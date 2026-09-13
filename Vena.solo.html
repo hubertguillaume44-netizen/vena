@@ -10610,8 +10610,8 @@ GROUPES = {
   // migrer, à exporter, ni à peser — et « supprimer » n'a plus besoin d'être définitif.
   // ————— UNE SEULE PORTE D'ÉCRITURE POUR `deposes` —————
   //
-  // LE CAS RÉPARÉ N'ÉTAIT QUE LE PREMIER DE CINQ. `reprendreSeries` remplaçait `deposes`
-  // et emportait les dix séries d'exemple ; corriger CETTE ligne laissait les quatre
+  // LE CAS RÉPARÉ N'ÉTAIT QUE LE PREMIER DE SIX. `reprendreSeries` remplaçait `deposes`
+  // et emportait les dix séries d'exemple ; corriger CETTE ligne laissait les cinq
   // autres écritures libres de refaire exactement la même chose — et l'une d'elles le
   // faisait déjà, dans la libération d'espace : `deposes: []` sur une purge de place,
   // alors que ces séries ne sont pas stockées et ne libèrent rien.
@@ -15530,7 +15530,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260913.10';
+  VERSION_APP = '260913.11';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les

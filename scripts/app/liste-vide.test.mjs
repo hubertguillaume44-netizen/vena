@@ -98,7 +98,7 @@ test("aucune écriture de `deposes` ne peut perdre les séries d’exemple", () 
   // ————— UNE PORTE FERME LA CLASSE ; UNE GARDE SUR UN CHEMIN NE FERME QU'UN CAS —————
   //
   // La première version de ce test disait « les exemples survivent à une série à soi » :
-  // elle éprouvait `reprendreSeries`, et LAISSAIT LIBRES les quatre autres écritures de
+  // elle éprouvait `reprendreSeries`, et LAISSAIT LIBRES les cinq autres écritures de
   // `deposes`. L'une d'elles faisait déjà exactement la même faute — `deposes: []` dans
   // la libération d'espace, alors que ces séries ne sont stockées nulle part et ne
   // libèrent pas un octet.

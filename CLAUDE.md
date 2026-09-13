@@ -505,14 +505,14 @@ stockage, dans les trois espaces.
 
 **Troisième occurrence, et c'est elle qui donne son nom à la figure : `deposes`.** Le
 correctif d'un chemin — `reprendreSeries` cessant d'emporter les dix séries d'exemple —
-laissait **quatre autres écritures** libres de refaire la même faute, et l'une d'elles la
+laissait **cinq autres écritures** libres de refaire la même faute, et l'une d'elles la
 faisait déjà : une purge de place remettait `deposes` à vide, alors que ces séries ne sont
 écrites nulle part et ne libèrent pas un octet. La garde écrite pour l'occasion, « les
 exemples survivent à une série à soi », éprouvait **le chemin réparé**.
 
 > **Une garde sur un chemin ferme un CAS ; une porte unique ferme la CLASSE.**
 
-Les cinq écritures passent donc par `deposesApres`, et la porte **décide sur un résultat** :
+Les six écritures passent donc par `deposesApres`, et la porte **décide sur un résultat** :
 elle ne demande à personne « faut-il garder les exemples ? » — un drapeau rouvrirait le trou
 au premier appelant qui l'oublie — elle regarde ce qui est vrai, les séries d'exemple
 effectivement posées dans `this.dfs`. `poserExemples` les y met avant d'appeler ;
