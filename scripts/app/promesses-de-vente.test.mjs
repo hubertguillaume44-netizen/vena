@@ -131,6 +131,15 @@ test("le comparatif ne vend que ce que le code garde", () => {
   const refus = [...bloc.matchAll(/\{ quoi: "([^"]+)", gratuit: false/g)].map((m) => m[1]);
   assert.deepEqual(refus, ["Réponse à vos questions par courriel"],
     `ces lignes disent que le gratuit ne les a pas, alors que rien ne l’en empêche : ${refus.join(" · ")}`);
+
+  // ————— ET L'APPLICATION NOMME LE PALIER COMME LA VENTE LE NOMME —————
+  // La pastille d'en-tête disait « 3 instruments » au-dessus d'une table qui en montre
+  // dix : un palier qui se lit comme un décompte. « À vous » est le qualificatif vendu
+  // (« Trois instruments à vous ») et celui du refus du palier (« instruments
+  // personnels ») — les deux vocabulaires ne doivent pas diverger en silence.
+  assert.match(APP, /PALIER_GRATUIT \+ ' instruments \\u00e0 vous/,
+    "la pastille du palier gratuit ne dit plus « à vous » : sans ce mot, le nombre se lit "
+    + "comme un décompte au-dessus des dix séries d’exemple, qui ne sont à personne");
 });
 
 test("une promesse de non-conservation nomme son domaine", () => {

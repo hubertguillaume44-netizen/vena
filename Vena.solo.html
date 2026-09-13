@@ -15530,7 +15530,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260913.13';
+  VERSION_APP = '260913.14';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -19998,7 +19998,16 @@ GROUPES = {
         const licPast = (() => {
           const l2 = s.lic;
           if (!(l2 && l2.ok)) {
-            return this.PALIER_GRATUIT + ' instruments \u00b7 ce navigateur';
+            // ————— « 3 INSTRUMENTS » SE LISAIT COMME UN DÉCOMPTE, PAS COMME UN PALIER —————
+            // Observé à l'écran, dès que la liste s'est mise à rendre : la pastille disait
+            // « 3 instruments » au-dessus d'une table qui en montre dix. Vrai (c'est le
+            // palier), mais illisible — et l'ambiguïté n'existait pas tant que la table
+            // était vide. « À VOUS » est le mot que la vente emploie déjà : la formule
+            // gratuite s'appelle « Trois instruments à vous » sur /tarifs et l'accueil, et
+            // le refus du palier dit « instruments personnels ». Un seul vocabulaire,
+            // celui qui distingue le palier des dix séries d'exemple, qui ne sont à
+            // personne.
+            return this.PALIER_GRATUIT + ' instruments \u00e0 vous \u00b7 ce navigateur';
           }
           return this.nomPlan(l2.plan, 'court')
             + (l2.fin ? ' \u00b7 jusqu\u2019au ' + l2.fin.split('-').reverse().join('/') : '');
