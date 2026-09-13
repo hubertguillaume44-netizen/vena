@@ -415,7 +415,7 @@ d'URL est fabricable par l'acheteur, et son absence ne prouve rien non plus, alo
 charge de la preuve pèse sur le **vendeur**. La case à cocher reste, et sa fonction reste
 entière : elle fait **consentir**. C'est la facture qui **prouve**.
 
-## Les onze règles, dans l'ordre où elles se servent
+## Les douze règles, dans l'ordre où elles se servent
 
 Elles viennent toutes d'un défaut réel de ce dépôt, et chacune est détaillée plus bas.
 
@@ -438,11 +438,15 @@ Elles viennent toutes d'un défaut réel de ce dépôt, et chacune est détaill�
 11. **Seul le rendu prouve que la valeur arrive** — une garde de source voit ce qui est
     envoyé, jamais ce qui est reçu ; et un avertissement de runtime est une mesure, pas
     du bruit.
+12. **Un mot relatif n'est vrai que depuis un référentiel stable** — un élément engendré,
+    figé ou collant n'a ni « depuis quand » ni « depuis où ».
 
 Les règles 6 à 9 sont nées le même jour, sur la même garde. Elles ferment par
 **construction** ce que les cinq premières ne fermaient que par **vigilance** — ou, quand
 rien ne peut le fermer, elles l'écrivent. La onzième est née de la panne la plus large du
-dépôt : toutes les tables vides, tous les tests verts.
+dépôt : toutes les tables vides, tous les tests verts. La douzième unifie deux corrections
+d'affichage nées à un jour d'écart — « hier » sur une fenêtre figée, « ci-dessous » depuis
+une barre collante.
 
 ## Le défaut a un nom : demander une INTENTION pour prédire un RÉSULTAT
 
@@ -897,6 +901,40 @@ Trois leçons, dans l'ordre où elles ont coûté :
   défaut, sous les yeux, et il a été rangé d'une phrase — « sans doute une autre table ».
   Le premier utilisateur, lui aussi, avait été cru sur la mauvaise cause : son filtre à
   0/4 était une coïncidence, sa liste était vide comme celle de tout le monde.
+
+### Un mot relatif n'est vrai que depuis un référentiel stable
+
+Deux corrections à un jour d'écart, et c'était deux instances d'un seul énoncé :
+
+| Le mot | Son référentiel supposé | Ce qui l'avait perdu |
+|---|---|---|
+| « hier » (couverture des exemples) | aujourd'hui, qui avance | une série **engendrée**, dont la dernière bougie est figée |
+| « ci-dessous » (phrase de reprise du scan) | ma position dans la page | un pied **collant**, lu depuis n'importe quel point de défilement |
+
+**Un mot relatif — de temps ou de lieu — emprunte son sens à un point fixe : « depuis
+quand », « depuis où ». Un élément engendré, figé ou collant n'en a pas.** « Hier » était
+vrai le jour de la génération et mentait dès le lendemain ; « ci-dessous » était vrai
+depuis le cadre dans le flux et mentait depuis la barre qui suit l'écran.
+
+Le test se fait à voix haute, comme celui des noms de lieu : **ce mot suppose-t-il un
+« depuis où » ou un « depuis quand » ? Si oui, l'élément qui le porte doit prouver qu'il
+a ce point fixe.** Une série à soi, fraîche par construction, a le sien — « hier » y
+reste juste et se lit mieux ; un texte dans le flux du document a le sien — « ci-dessous »
+y désigne bien ce qui suit. C'est l'élément qui perd le référentiel, jamais le mot qui
+est interdit.
+
+Le domaine est plus large que ces deux cas, et il se reconnaît au même test :
+« récemment », « le mois dernier », « plus haut », « à droite », « le premier de la
+liste ». Tout ce qui se déplace ou se fige les invalide — une liste retriée déplace « le
+premier », une colonne repliée déplace « à droite », une capture d'écran fige
+« récemment ».
+
+Le remède est toujours le même : **remplacer le référentiel perdu par une valeur
+absolue** — la date en toutes lettres, le nom de la chose (« la carte du balayage »), le
+libellé de l'élément plutôt que sa position. Voir « Aucun mot relatif sur une fenêtre
+figée » plus bas pour l'instance fondatrice, et sa garde de rendu dans
+`rendu-gabarit.test.mjs` — qui lit l'écran, pas le code, parce qu'un mot relatif est un
+défaut d'AFFICHAGE : il n'existe que rendu.
 
 ## Le démarrage se chronomètre — mesurer à vide ne mesure personne
 
