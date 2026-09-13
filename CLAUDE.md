@@ -317,6 +317,29 @@ Elles viennent toutes d'un défaut réel de ce dépôt, et chacune est détaill�
 4. **Quand l'explication contredit l'étiquette, c'est l'étiquette qui est le défaut.**
 5. **Une affirmation sur un fichier se relit avant d'être rapportée.**
 
+## Le défaut a un nom : demander une INTENTION pour prédire un RÉSULTAT
+
+**C'est la règle qui sert le plus, et de loin.** Cinq fois la même forme en deux séances,
+et toujours le même geste pour en sortir : **décider après, pas avant.**
+
+| Où | L'intention demandée | Le résultat voulu |
+|---|---|---|
+| Garde d'étanchéité | « le générateur écrit-il ? » | « quelque chose d'engendré entre-t-il dans le stockage ? » |
+| `this.essai` | « a-t-il payé ? » | « y a-t-il quelque chose à mesurer ? » |
+| `aMoi` | « a-t-il déposé ? » | idem |
+| La sonde accrochée à `const OUVERTS = [];` | « la liste est-elle encore vide ? » | « où la déclaration se trouve-t-elle ? » |
+| Le semis de mesure | « l'espace est-il `.essai` ? » | « quel espace l'application vient-elle d'écrire ? » |
+
+À chaque fois l'intention était un **proxy plausible** du résultat, et à chaque fois elle
+divergeait dans un cas que personne n'avait listé. Les deux dernières sont les plus
+instructives parce qu'elles n'ont rien cassé bruyamment : la sonde échouait en annonçant
+« /merci : attendu 200 », un message qui ne désigne pas la cause ; et le semis de mesure
+écrivait dans le mauvais espace en rapportant **« 0 série » sans se plaindre** — une
+mesure fausse qui a l'air d'une mesure.
+
+**Quand le résultat est observable, observez-le.** Il l'est presque toujours : il suffit
+d'accepter de le faire plus tard dans le code.
+
 ## Une garde d'étanchéité se pose à la frontière d'ÉCRITURE
 
 C'est la leçon d'un aller-retour, et elle vaut au-delà de ce chantier. La première garde
@@ -357,21 +380,6 @@ Le commentaire qui raconte une garde précédente la **nomme** — c'est son tra
 qui lit du source doit donc retirer les commentaires avant de juger, ou s'accrocher à une
 forme que la prose ne peut pas imiter.
 
-### Le défaut a un nom : demander une INTENTION pour prédire un RÉSULTAT
-
-Il a été réparé trois fois de suite, toujours par le même geste — **décider après, pas
-avant** :
-
-| Où | L'intention demandée | Le résultat voulu |
-|---|---|---|
-| Garde d'étanchéité | « le générateur écrit-il ? » | « quelque chose d'engendré entre-t-il dans le stockage ? » |
-| `this.essai` | « a-t-il payé ? » | « y a-t-il quelque chose à mesurer ? » |
-| `aMoi` | « a-t-il déposé ? » | idem |
-
-À chaque fois l'intention était un **proxy plausible** du résultat, et à chaque fois elle
-divergeait dans un cas que personne n'avait listé. Quand le résultat est observable,
-observez-le.
-
 ### Une affirmation sur un fichier se relit avant d'être rapportée
 
 Un commentaire a été annoncé comme écrit alors que le script qui le posait s'était arrêté
@@ -399,6 +407,50 @@ partage pas. Le seuil, lui, n'est **pas** exempté : `vieux` ne pilote que l'ét
 phrase et deux encres — aucun comportement — donc c'est le verdict qui change, pas la
 mesure. Les deux encres d'alerte suivent le verdict (`vieux && !estExemple(sel)`), sans
 quoi les dix porteraient la couleur d'alerte sans porter le mot.
+
+## Le démarrage se chronomètre — mesurer à vide ne mesure personne
+
+Un chargement lent a d'abord été attribué au **poids du fichier**. Mesuré : 2,46 Mo bruts,
+**554 Ko transférés** en brotli (4,4×), et sur un navigateur VIDE le premier rendu tient
+en 0,4 s — 4,9 s dans le pire cas fabriqué, processeur ÷6 **et** 3G. Mais un navigateur
+vide n'est la condition de personne.
+
+**Deux jalons, et ils ne se comportent pas pareil.**
+
+| | page affichée | **données là** | restauration |
+|---|---|---|---|
+| CPU ÷1 · vide | 463 ms | 768 ms | 185 ms |
+| CPU ÷1 · 2,8 Mo | 405 ms | 980 ms | 424 ms |
+| CPU ÷1 · 13,5 Mo | 409 ms | 1 199 ms | 675 ms |
+| CPU ÷4 · vide | 1 761 ms | 3 062 ms | 721 ms |
+| CPU ÷4 · 2,8 Mo | 1 705 ms | 3 964 ms | 1 844 ms |
+| CPU ÷4 · 13,5 Mo | 1 899 ms | 5 317 ms | 3 027 ms |
+
+Le moment où la **page** s'affiche **ne dépend pas des données** — 405 ms à vide comme
+avec 13,5 Mo. Donc tout chantier sur le poids du fichier ne touche que ce jalon-là, celui
+qui est déjà rapide : **déshabiller le gabarit rapporte un cinquième** (mesuré : 2 433 →
+1 938 Ko, rendu −20 % à ÷4, −23 % à ÷6) et ne peut rien pour l'autre.
+
+Le moment où les **données** sont là grandit avec le stockage. Mais à **CPU ÷1 le pire cas
+mesuré est 1,2 s** : sur une machine normale, rien de ce qui est mesuré ici n'approche dix
+secondes. Les lignes ÷4 et ÷6 donnent la **loi d'échelle**, pas le cas de quelqu'un.
+
+**Trois marques sont posées dans le produit**, et se lisent d'une ligne sans outil :
+
+```js
+performance.getEntriesByType('measure').filter((m) => m.name.startsWith('vena:'))
+```
+
+`reprendreSeries` (avec le nombre de séries), `lireScanComplet` et `reprendreScan` (avec
+les lignes et les archives). **Deux marques pour le scan et non une**, parce que ce sont
+deux coûts sans rapport : une lecture de base d'un côté, du calcul de fil principal de
+l'autre — les confondre dirait « 4 s » sans dire s'il faut décoder plus tard ou calculer
+autrement. Les sorties anticipées sont mesurées elles aussi : sans ça, le cas « rien en
+mémoire » ne laisserait aucune trace, et c'est précisément celui auquel on compare.
+
+**Avant tout nombre, savoir ce qui a été chronométré.** Le tableau ci-dessus écarte les
+deux jalons de 405 ms à 5 317 ms — un facteur treize selon la définition. « Page blanche »
+et « page visible, liste vide » mènent à deux chantiers différents.
 
 ## Aucun mot relatif sur une fenêtre figée
 

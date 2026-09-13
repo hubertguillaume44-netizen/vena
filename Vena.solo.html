@@ -12511,6 +12511,7 @@ GROUPES = {
   // reprise d'une sauvegarde antérieure : on fabrique une entrée d'archive pour que
   // le sélecteur de scans et le TOP aient toujours un scan identifiable.
   reprendreScan(b) {
+    const fini = this.chrono('reprendreScan');
     const scan = b.scan || [];
     let archives = b.archives || [];
     if (!archives.length && scan.length) {
@@ -12549,6 +12550,10 @@ GROUPES = {
       ? brut.filter((r) => dansScan.has(r._sid + '|' + r.sym + '|' + r.entree + '|'
         + r.ligne + '|' + r.periode + '|' + r.sl + '|' + r.rr + '|' + (r.filtres || '')))
       : (dernier ? scan.filter((r) => r._sid === dernier.id) : []);
+    // le nom porte les DEUX grandeurs qui font le coût : les lignes reconstruites et
+    // les archives réconciliées. « 4 s » ne dit rien, « 4 s pour 38 000 lignes et 12
+    // archives » dit laquelle des deux boucles regarder.
+    fini(scan.length + ' lignes · ' + archives.length + ' archives');
     return { _scan: scan, _courant: courant, archives,
       scanTestes: (dernier && dernier.testees) || b.testees || scan.length, fiche: b.fiche };
   }
@@ -12951,10 +12956,27 @@ GROUPES = {
     }
     return { fait, restant: restantes.length };
   }
+  // ————— LE SECOND TERME DU DÉMARRAGE, CHRONOMÉTRÉ COMME LE PREMIER —————
+  //
+  // Les bougies ne sont pas seules à être relues avant que l'écran ne soit utilisable :
+  // un historique de scans l'est aussi, et il peut peser bien plus qu'elles. Tant qu'il
+  // n'était pas mesuré, aucun tableau ne pouvait ni l'accuser ni le disculper — et une
+  // console d'utilisateur n'aurait répondu qu'à moitié, obligeant à le redéranger.
+  //
+  // DEUX MARQUES ET NON UNE, parce que ce sont deux coûts différents : `lireScanComplet`
+  // est une lecture de la base, `reprendreScan` est du calcul de fil principal. Les
+  // confondre dans une seule mesure dirait « 4 s » sans dire s'il faut décoder plus tard
+  // ou calculer autrement — deux chantiers sans rapport.
   async lireScanComplet() {
+    const fini = this.chrono('lireScanComplet');
     const gros = this.decompacterBloc(await this.grosGet(this.cle(this.CLE_SCAN)));
-    if (gros && Array.isArray(gros.scan) && gros.scan.length) return gros;
-    return this.lireScan();
+    if (gros && Array.isArray(gros.scan) && gros.scan.length) {
+      fini(gros.scan.length + ' lignes');
+      return gros;
+    }
+    const b = this.lireScan();
+    fini(b && b.scan ? b.scan.length + ' lignes (localStorage)' : 'aucun scan');
+    return b;
   }
   lireScan() {
     try {
@@ -15331,7 +15353,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260912';
+  VERSION_APP = '260913';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
