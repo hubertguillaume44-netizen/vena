@@ -451,18 +451,20 @@
       <span style="font-size:11px;margin-inline-start:auto;white-space:nowrap;opacity:.75">{{ vueIntegreExportTxt }}</span>
     </div>
   </sc-if>
-  <sc-if value="{{ aSansFilet }}" hint-placeholder-val="{{ false }}">
-    <div style="position:relative;background:var(--color-accent-900);color:var(--color-bg);padding:7px 32px 8px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;min-height:30px;border-top:1px solid color-mix(in srgb,var(--color-bg) 22%,transparent)">
-      <span style="font-size:11.5px;line-height:1.5;min-width:0">{{ sansFiletTxt }}</span>
-      <sc-if value="{{ aFiletFichier }}" hint-placeholder-val="{{ true }}">
-        <button type="button" style="cursor:pointer;font:inherit;font-size:11px;background:var(--color-bg);color:var(--color-accent-900);border:0;padding:3px 10px;white-space:nowrap" onClick="{{ choisirFilet }}" title="Choisit un fichier sur votre disque. Véna y réécrit tout, chaque minute.">Choisir un fichier</button>
-      </sc-if>
-      <sc-if value="{{ aFiletProtection }}" hint-placeholder-val="{{ true }}">
-        <button type="button" style="cursor:pointer;font:inherit;font-size:11px;background:none;color:var(--color-bg);border:1px solid color-mix(in srgb,var(--color-bg) 42%,transparent);padding:3px 10px;white-space:nowrap" onClick="{{ demanderFiletProtection }}" title="Demande au navigateur de ne pas vider ce site quand le disque se remplit.">Demander la protection</button>
-      </sc-if>
-      <span style="font-size:11px;margin-inline-start:auto;white-space:nowrap;opacity:.75">{{ sansFiletEtat }}</span>
-    </div>
-  </sc-if>
+  <!-- ————— DEUX BARRES, UN SEUL MESSAGE, VISIBLES ENSEMBLE —————
+
+       Un bandeau disait ici « Aucune sauvegarde hors de ce navigateur. Vos données sont
+       ici, et nulle part ailleurs. » pendant que le pied de sauvegarde disait, en bas du
+       même écran, « Aucune sauvegarde hors de ce navigateur — Rien de ce qui est ici
+       n'existe ailleurs… ». Le second EXPLIQUE et propose le fichier de sauvegarde ; le
+       premier répétait son titre. C'est celui-là qui part.
+
+       CE QU'IL PORTAIT SEUL EST DÉPLACÉ, PAS SUPPRIMÉ. « Demander la protection »
+       n'existait nulle part ailleurs tant que le navigateur ne l'avait pas refusée : le
+       tiroir Intendance ne l'offrait qu'à l'état `refusee`. Il l'offre désormais dès que
+       le navigateur CONNAÎT la fonction et ne l'a pas déjà accordée — ce que la condition
+       `aFiletProtection` disait déjà, et qui vaut aussi pour « pas encore demandée ».
+       Retirer une barre ne doit pas retirer l'unique accès à ce qu'elle offrait. -->
   <sc-if value="{{ aManquePlace }}" hint-placeholder-val="{{ false }}">
     <div style="position:relative;background:var(--color-accent-900);color:var(--color-bg);padding:8px 32px 9px;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;min-height:34px;border-top:1px solid color-mix(in srgb,var(--color-bg) 22%,transparent)">
       <strong style="font-family:var(--font-heading);font-size:13px;letter-spacing:.04em">Enregistrement refusé</strong>
@@ -1643,6 +1645,17 @@
             </sc-for>
           </tbody>
         </table>
+          <!-- L'ÉTAT VIDE, SOUS LE TABLEAU ET DANS SON FLUX : c'est là que l'œil cherche
+               les lignes qui manquent. En-dessous de la note de coût, il se lirait comme
+               un commentaire de la note. -->
+          <sc-if value="{{ instrAucun }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:22px 16px;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;border-bottom:1px solid var(--color-divider)">
+              <span style="font-size:13px;line-height:1.5;flex:1;min-width:32ch">{{ instrAucunTxt }}</span>
+              <sc-if value="{{ aInstrToutAfficher }}" hint-placeholder-val="{{ true }}">
+                <button type="button" class="btn btn-secondary" style="min-height:1.9rem;font-size:11px;padding-inline:11px;white-space:nowrap" title="Efface d’un coup la recherche, la famille, la provenance, le filtre des bougies et le masquage des plus chers." onClick="{{ instrToutAfficher }}">Tout afficher</button>
+              </sc-if>
+            </div>
+          </sc-if>
           <sc-if value="{{ aSansReleve }}" hint-placeholder-val="{{ false }}">
             <div class="blueprint" style="padding:14px 16px;align-self:flex-start;max-width:96ch">
               <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
@@ -12158,9 +12171,25 @@ GROUPES = {
   get champsSession() {
     return [...this.REGLAGES, '_grilleV2', '_penteV3', '_trailV4', '_echV3', 'ouvH1', 'ouvH2', 'ouvH3', 'ouvH4', 'ouvMt5', 'ouvSymb', 'ouvTele', 'ouvMarc',
       'ouvVali', 'ouvCout', 'ouvSecu', 'ouvGril', 'ouvFlux', 'triCout', 'tab', 'vueLecture',
-      'filtreBougies', 'filtreProv', 'exemplesCaches', 'familleFiltre', 'aTele', 'gPeriodes', 'gSls', 'gRrs', 'tradesMin', 'segMin',
+      'filtreBougies', 'filtreProv', 'exemplesCaches', 'aTele', 'gPeriodes', 'gSls', 'gRrs', 'tradesMin', 'segMin',
       // 'univers' n'est PAS restauré : la liste d'instruments repart vide à chaque
       // ouverture, pour qu'un scan ne reprenne jamais une sélection oubliée
+      //
+      // ————— NI 'familleFiltre', ET POUR LA MÊME RAISON —————
+      //
+      // Constaté chez un utilisateur : la famille « ETF immobilier » était retenue, elle
+      // compte 0 instrument sur 4 avec bougies, et la page de marché s'ouvrait sur une
+      // liste vide À CHAQUE CHARGEMENT. Il en a conclu que l'application était cassée, et
+      // il avait toutes les raisons : rien ne disait qu'un filtre était actif.
+      //
+      // Une famille est UNE pastille parmi quatorze, et son état actif tient à une classe
+      // CSS ; les deux segments voisins, eux, affichent en permanence laquelle de leurs
+      // trois positions est cochée, avec son compte. C'est la différence qui décide : un
+      // réglage qui peut tout cacher sans se montrer ne se réenregistre pas.
+      //
+      // Les deux segments restent donc restaurés. Ce qui les rendait dangereux n'était pas
+      // la restauration mais le SILENCE de la liste vide, et c'est ça qui est corrigé —
+      // voir `instrAucunTxt`, qui nomme les filtres actifs et offre de les effacer.
       'vue', 'derniereVue', 'modeTable', 'ouvLot', 'sonScan', 'tri', 'ddMax', 'winMin', 'oosMin', 'zoneMarche',
       'fenMode', 'fenDu', 'fenAu', 'etapeScan',
       'coupureRegime', 'pleinRegime', 'gEntrees', 'gLignes', 'gFiltres', 'gSens', 'gLectures', 'gSecus', 'gTemps', 'gDurees', 'gTrailing', 'gEchelles', 'gPeriodeMa', 'gLigneMtf', 'gPeriodeMtf',
@@ -15433,7 +15462,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260913.8';
+  VERSION_APP = '260913.9';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -17579,7 +17608,22 @@ GROUPES = {
     this.mesurerPlace();
       // la liste des séries de CE compte REMPLACE la précédente : la fusionner faisait
       // apparaître les 150 séries du compte 1 dans le compte 2 (197 au lieu de 79)
-      this.setState({ deposes: [...new Set(idx)] });
+      //
+      // ————— MAIS LE REMPLACEMENT EMPORTAIT LES DIX SÉRIES D'EXEMPLE —————
+      //
+      // `poserExemples()` vient de les AJOUTER à `deposes`, quinze lignes plus haut ;
+      // cette écriture-ci remplaçait tout par le seul index du compte. Le défaut ne se
+      // voyait QUE chez quelqu'un qui a déjà des séries à lui : avec zéro série, la
+      // sortie anticipée passe avant et rien n'est remplacé — c'est-à-dire que le cas
+      // testé était le seul où le bug n'existe pas. Constaté à 55 séries : la
+      // provenance « Séries d'exemple » affichait une liste vide, sans compteur.
+      //
+      // C'est encore LA CARTE LUE EST CELLE QU'ON RÉÉCRIT : un producteur propre
+      // (`poserExemples`) ne prouve rien sur ce que le reste du programme fait ensuite
+      // de ce qu'il a produit. Le remplacement garde son sens — les séries d'un autre
+      // compte ne doivent pas survivre — et ne porte que sur les séries DÉPOSÉES.
+      this.setState((p) => ({
+        deposes: [...new Set([...idx, ...(p.deposes || []).filter(estExemple)])] }));
     }
     return n;
   }
@@ -20325,9 +20369,9 @@ GROUPES = {
           // aucun trou du gabarit ne les lisait. Un jeu de libellés mort décrivant un
           // état vivant redevient faux le jour où quelqu'un rebranche son trou.
           // redemander n'a de sens que si le navigateur CONNAÎT la fonction : un
-          // bouton qui redemande une fonction absente est un bouton menteur
-          aRedemander: s.persistEtat === 'refusee',
-          redemanderPersist: () => this.reclamerPersistance(true),
+          // bouton qui redemande une fonction absente est un bouton menteur.
+          // `aRedemander` et `redemanderPersist` vivent maintenant dans le bloc du filet,
+          // avec `protectionPossible` qui porte exactement cette condition.
           aPersistMsg: !!s.persistMsg,
           persistMsg: s.persistMsg || '',
           // « Ouvrir dans un onglet » a quitté le tiroir : c'est une commande de
@@ -20735,13 +20779,18 @@ GROUPES = {
                 : 'Aucun export aujourd\u2019hui',
             };
           })(),
-          aSansFilet: reelles && !filet && !s.filetPropose,
-          sansFiletTxt: 'Aucune sauvegarde hors de ce navigateur. Vos données sont ici, et nulle part ailleurs.',
-          sansFiletEtat: 'Protection du stockage : ' + (
-            s.persistEtat === 'accordee' ? 'accordée'
-            : s.persistEtat === 'refusee' ? 'refusée par le navigateur'
-            : s.persistEtat === 'indisponible' ? 'inconnue de ce navigateur'
-            : 'pas encore demandée'),
+          // `aSansFilet`, `sansFiletTxt` et `sansFiletEtat` sont partis avec leur bandeau —
+          // voir la note du gabarit, « deux barres, un seul message ». `reelles` et `filet`
+          // servent encore à `aFiletPropose`, qui est une autre barre et un autre moment :
+          // celle-là se déclenche à un geste, elle ne s'installe pas.
+          //
+          // ET LA DEMANDE DE PROTECTION ATTERRIT ICI, où `protectionPossible` est calculé.
+          // Elle vivait dans le tiroir sous `s.persistEtat === 'refusee'` : un utilisateur
+          // à qui le navigateur n'a JAMAIS posé la question ne la voyait donc qu'au
+          // bandeau qu'on vient de retirer. Une seule définition, à l'endroit où la
+          // condition est écrite — deux copies d'une même règle divergent.
+          aRedemander: protectionPossible,
+          redemanderPersist: () => this.reclamerPersistance(true),
         };
       })(),
       // LE REFUS DE QUOTA, dit en clair. `octets` est le poids de l'écriture refusée,
@@ -25737,6 +25786,7 @@ GROUPES = {
       ...(() => {
         if (s.vue !== 'courtiers') {
           return { instrRows: [], aCoches: false, cochesTxt: '', cocherVus: () => {},
+            instrAucun: false, instrAucunTxt: '', aInstrToutAfficher: false, instrToutAfficher: () => {},
             cocherVusTxt: '', decocherTout: () => {},
             familles: [], aFamilles: false, familleToutCls: 'tag tag-accent', familleTout: () => {},
             aFiche: false, fNom: '', fMeta: '', fCoutLignes: [],
@@ -25930,6 +25980,49 @@ GROUPES = {
             + (nClasses ? 'rang au-delà de ' + seuilCher + ' sur ' + nClasses : 'classement vide')
             + ') — leurs frais mangent l\u2019avantage avant la mesure. Un instrument déjà coché reste visible, et un coût inconnu aussi.',
           instrRows,
+          // ————— LA LISTE VIDE NE SE LIT PAS —————
+          //
+          // Constaté chez un utilisateur, trois captures : 55 séries prêtes, 2 080
+          // instruments, et la zone de liste entièrement muette — en-tête de colonnes,
+          // puis rien, puis la note de coût. Le filtre était juste (une famille à 0 sur 4)
+          // et l'application n'était pas cassée ; elle n'avait simplement AUCUN moyen de
+          // le dire. Il en a conclu ce que n'importe qui aurait conclu.
+          //
+          // `instrVideTxt` existait déjà, mais ne couvrait que la recherche textuelle du
+          // panneau du scan : les quatre autres filtres — famille, provenance, bougies,
+          // coût — n'avaient aucun équivalent. UN SEUL état vide les nomme tous, parce
+          // qu'ils se cumulent : dire « aucun résultat pour votre recherche » quand c'est
+          // la famille qui vide enverrait chercher au mauvais endroit.
+          //
+          // Et il porte le geste qui répare : « Tout afficher » efface les cinq ENSEMBLE.
+          // Les lever un par un demande de savoir lesquels sont actifs — c'est
+          // précisément ce que l'utilisateur ne savait pas.
+          ...(() => {
+            const actifs = [];
+            if (q) actifs.push('la recherche « ' + (s.rechCourtier || '').trim() + ' »');
+            if (fam) actifs.push('la famille « ' + this.familleLisible(fam) + ' »');
+            const pv2 = s.filtreProv || 'tous';
+            if (pv2 === 'vous') actifs.push('la provenance « les vôtres »');
+            if (pv2 === 'exemple') actifs.push('la provenance « séries d\u2019exemple »');
+            if (fb === 'avec') actifs.push('« ' + nAvec + (nAvec > 1 ? ' prêts' : ' prêt') + ' »');
+            if (fb === 'sans') actifs.push('« ' + manquants.length + ' à faire »');
+            if (s.masquerChers) actifs.push('« masquer les plus chers »');
+            // LE CAS SANS AUCUN FILTRE EXISTE AUSSI, et il ne dit pas la même chose : un
+            // relevé de courtier absent n'est pas un filtre trop serré, et proposer
+            // « Tout afficher » là-dessus serait un bouton qui ne peut rien.
+            const txt = actifs.length
+              ? 'Aucun instrument ne passe ' + (actifs.length > 1 ? 'ces filtres' : 'ce filtre')
+                + ' : ' + actifs.join(', ') + '.'
+              : 'Aucun instrument dans ce relevé de courtier.';
+            return {
+              instrAucun: instrRows.length === 0,
+              instrAucunTxt: txt,
+              aInstrToutAfficher: actifs.length > 0,
+              instrToutAfficher: () => this.setState({ rechCourtier: '', familleFiltre: '',
+                filtreProv: 'tous', filtreBougies: 'tous', masquerChers: false, coutLimite: 60 },
+                () => this.ecrireSession()),
+            };
+          })(),
           familles,
           aFamilles: familles.length > 1,
           familleToutCls: 'pg' + (fam ? '' : ' act'),

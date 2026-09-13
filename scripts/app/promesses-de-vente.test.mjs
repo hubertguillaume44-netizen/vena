@@ -11,6 +11,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
+import { chainesLivrees, blocLivre } from "./chaines-livrees.mjs";
 
 const RACINE = new URL("../../", import.meta.url);
 const lire = (f) => readFileSync(new URL(f, RACINE), "utf8");
@@ -64,55 +65,13 @@ for (const attendu of ["src/routes/index.tsx", "src/components/site-header.tsx"]
   if (!SURFACES.some(([n]) => n === attendu))
     throw new Error(`la découverte n'atteint plus ${attendu} : le périmètre est revenu`);
 }
-// ————— ON INTERDIT LE CODE, PAS LE RÉCIT DU CODE — ET ON ARRÊTE DE COURIR APRÈS —————
+// ————— L'ANALYSEUR DE CHAÎNES VIT DANS UN SEUL MODULE —————
 //
-// Ces gardes interdisent des phrases. Les commentaires qui racontent POURQUOI elles
-// existent CITENT ces phrases : c'est leur travail. Trois fois de suite, une garde est
-// tombée sur sa propre note — `//`, puis `/* */`, puis `{/* */}`, dont les lignes
-// intérieures ne portent aucune marque.
-//
-// LA LEÇON N'EST PAS D'AJOUTER LE MOTIF SUIVANT. Chaque langage apporte sa syntaxe, et on
-// en ajouterait un après chaque échec. Une garde qui lit du source doit s'ancrer sur une
-// forme QUE LA PROSE NE PEUT PAS IMITER.
-//
-// ON A FAILLI SE TROMPER DE FORME. Un premier remède parcourait le fichier en suivant les
-// balises JSX : mieux qu'un motif, mais il fallait déjà lui apprendre qu'un `a < b` n'est
-// pas une balise, puis qu'un `=>` dans un attribut n'est pas la fin de la balise — la même
-// course, un étage plus haut. Un analyseur JSX écrit à la main a ses angles morts, et on
-// ne les découvre qu'un par un.
-//
-// LA FORME RETENUE EST LA PLUS PAUVRE ET LA PLUS SÛRE : la CHAÎNE DE CARACTÈRES. Un
-// commentaire n'en est jamais une, quelle que soit sa syntaxe, et reconnaître une chaîne
-// ne demande de comprendre aucun langage — seulement ses guillemets et ses échappements.
-//
-// CE QU'ELLE NE COUVRE PAS, et il faut le savoir plutôt que le découvrir : le texte écrit
-// EN CLAIR entre deux balises JSX. Dans ce dépôt, la copie commerciale — formules,
-// comparatif, objections, métadonnées — vit dans des littéraux, et c'est vérifié par la
-// garde qui suit. Le jour où une promesse s'écrira entre deux balises, cette garde-là
-// tombera et dira quoi faire.
-function chainesLivrees(src) {
-  const sorti = [];
-  const n = src.length;
-  let i = 0;
-  while (i < n) {
-    const c = src[i], d = src[i + 1];
-    if (c === "/" && d === "/") { const f = src.indexOf("\n", i); i = f < 0 ? n : f; continue; }
-    if (c === "/" && d === "*") { const f = src.indexOf("*/", i + 2); i = f < 0 ? n : f + 2; continue; }
-    if (src.startsWith("<!--", i)) { const f = src.indexOf("-->", i + 4); i = f < 0 ? n : f + 3; continue; }
-    if (c === '"' || c === "'" || c === "`") {
-      let j = i + 1;
-      while (j < n && src[j] !== c) { if (src[j] === "\\") j++; j++; }
-      sorti.push(src.slice(i + 1, j));
-      i = j + 1;
-      continue;
-    }
-    i++;
-  }
-  return sorti;
-}
-
-/** Les mêmes chaînes, mises bout à bout — pour les gardes qui cherchent une phrase. */
-const blocLivre = (src) => chainesLivrees(src).join("\n");
+// Il était écrit ici. Une quatrième garde en a eu besoin — `liste-vide.test.mjs`, tombée
+// sur la note qui cite le réglage qu'elle interdit — et recopier un analyseur, c'est se
+// donner deux formes de la même règle qui divergeront en silence : l'une verrait une
+// chaîne que l'autre manque. Il est parti dans `chaines-livrees.mjs`, avec le récit de
+// pourquoi cette forme-là et pas une autre.
 
 const ANCRES = [
   ["src/routes/tarifs.tsx", "Trois instruments à vous"],

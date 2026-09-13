@@ -176,13 +176,6 @@
    ]
   },
   {
-   "terme": "Choisir un fichier",
-   "texte": "Choisit un fichier sur votre disque. Véna y réécrit tout, chaque minute.",
-   "vues": [
-    "Toutes les pages"
-   ]
-  },
-  {
    "terme": "Choisir un fichier de sauvegarde",
    "texte": "Choisit un fichier sur votre disque. Véna y réécrit tout, chaque minute. Aucun vidage de navigateur ne l’atteint.",
    "vues": [
@@ -271,13 +264,6 @@
    "texte": "Remet les valeurs par défaut de ce filtre, sans changer son état actif ou non.",
    "vues": [
     "Backtest"
-   ]
-  },
-  {
-   "terme": "Demander la protection",
-   "texte": "Demande au navigateur de ne pas vider ce site quand le disque se remplit.",
-   "vues": [
-    "Toutes les pages"
    ]
   },
   {
@@ -833,6 +819,13 @@
    "texte": "Affiche l’ensemble des scans en mémoire.",
    "vues": [
     "Toutes les pages"
+   ]
+  },
+  {
+   "terme": "Tout afficher",
+   "texte": "Efface d’un coup la recherche, la famille, la provenance, le filtre des bougies et le masquage des plus chers.",
+   "vues": [
+    "Mes instruments"
    ]
   },
   {

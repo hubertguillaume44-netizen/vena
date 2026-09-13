@@ -61,24 +61,54 @@ test("la protection n’est plus DEMANDÉE au chargement, seulement lue", () => 
     "protegerStockage ne doit plus réclamer la protection au chargement");
 });
 
-test("le rang d’état ne se referme pas : c’est un état, pas une nouvelle", () => {
-  // jusqu'au rang suivant : le rang porte des sc-if imbriqués, s'arrêter au premier
-  // « </sc-if> » couperait au milieu
-  const rang = bloc('<sc-if value="{{ aSansFilet }}"', '<sc-if value="{{ aManquePlace }}"');
-  // aucun bouton de fermeture : s'il gêne, c'est qu'il faut agir, et agir le fait partir
-  assert.ok(!/Fermer|fermerSansFilet|masquer/i.test(rang),
-    "le rang d’état ne doit pas être refermable");
-  // les deux gestes y sont, et l'état est dit en clair
-  assert.match(rang, /choisirFilet/);
-  assert.match(rang, /demanderFiletProtection/);
-  assert.match(rang, /\{\{ sansFiletEtat \}\}/);
+test("l’état permanent ne se referme pas : c’est un état, pas une nouvelle", () => {
+  // ————— IL Y AVAIT DEUX BARRES POUR UN SEUL MESSAGE —————
+  //
+  // Un bandeau de haut d'écran disait « Aucune sauvegarde hors de ce navigateur. Vos
+  // données sont ici, et nulle part ailleurs. » pendant que le pied de sauvegarde disait,
+  // en bas du MÊME écran, la même chose en l'expliquant et en proposant le fichier. Le
+  // second a été gardé ; ce test suit l'invariant jusqu'à son nouveau logis.
+  const rang = bloc('<sc-if value="{{ sansSauvPlein }}"', "sansSauvReduit");
+  assert.ok(!/Fermer|fermerSansSauv|masquer/i.test(rang),
+    "l’état permanent ne doit pas être refermable : s’il gêne, c’est qu’il faut agir, et agir le fait partir");
+  assert.match(rang, /\{\{ sansSauvTxt \}\}/, "l’état doit dire ce qui est en jeu, pas seulement son titre");
+
+  // ————— ET RETIRER UNE BARRE NE RETIRE PAS CE QU'ELLE OFFRAIT SEULE —————
+  //
+  // Le bandeau disparu portait les DEUX gestes. Celui du fichier vit dans le pied ;
+  // celui de la protection n'existait nulle part ailleurs tant que le navigateur ne
+  // l'avait pas REFUSÉE — le tiroir ne l'offrait qu'à cet état-là, donc jamais à qui
+  // n'avait simplement pas encore été sollicité. Il est maintenant offert dès que le
+  // navigateur connaît la fonction et ne l'a pas accordée.
+  assert.match(SOURCE, /sansSauvAgir: \(reduit \|\| integre\) \? \(\) => this\.exporterTout\(\) : \(\) => this\.choisirFichierAuto\(\)/,
+    "le pied doit rester l’unique chemin vers le choix d’un fichier de sauvegarde");
+  assert.match(SOURCE, /aRedemander: protectionPossible,/,
+    "« Demander la protection » doit être offerte dès que le navigateur la connaît et ne "
+    + "l’a pas accordée — pas seulement après un refus, sinon elle est hors de portée de "
+    + "quelqu’un à qui on n’a jamais posé la question");
+  assert.match(SOURCE, /\{\{ redemanderPersist \}\}/, "et le bouton doit être rendu");
 });
 
 test("l’état de la protection se dit en français, y compris « pas encore demandée »", () => {
-  const corps = bloc("sansFiletEtat: 'Protection du stockage : '", "};");
-  for (const mot of ["accordée", "refusée par le navigateur", "inconnue de ce navigateur",
-    "pas encore demandée"]) {
+  // Il vivait dans `sansFiletEtat`, une ligne du bandeau retiré. La table qui le porte
+  // désormais existait déjà, avec ses quatre cas — et elle est RENDUE, dans le tiroir,
+  // juste au-dessus du bouton qui agit dessus.
+  const corps = bloc("ETATS_PERSISTANCE = {", "  etatPersistance(champ) {");
+  for (const [cas, mot] of [
+    ["accordee", "persistance accordée"],
+    ["refusee", "refusée par le navigateur"],
+    ["indisponible", "Protection du stockage indisponible"],
+    // l’apostrophe typographique est échappée en \\u2019 dans la source : on s’arrête
+    // avant elle plutôt que de deviner laquelle des deux formes le fichier porte
+    ["inconnu", "Persistance non demandée pour l"],
+  ]) {
+    assert.ok(corps.includes(cas + ":"), `cas manquant dans ETATS_PERSISTANCE : ${cas}`);
     assert.ok(corps.includes(mot), `état manquant : ${mot}`);
+  }
+  // rendue, sinon on garde quatre libellés morts décrivant un état vivant — c'est
+  // exactement ce qui était arrivé à `persistCls` et `persistPhrase`.
+  for (const trou of ["{{ tirRisqueTitre }}", "{{ tirRisquePhrase }}", "{{ persistSous }}"]) {
+    assert.ok(SOURCE.includes(trou), `l’état de la protection n’est plus rendu : ${trou}`);
   }
 });
 
