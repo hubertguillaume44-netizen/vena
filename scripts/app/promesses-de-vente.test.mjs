@@ -392,6 +392,73 @@ test("la rétractation annoncée et le renoncement exigé restent marqués ensem
   }
 });
 
+test("les textes qui vivent chez le prestataire ont leur source DANS le dépôt", () => {
+  // ————— LA SURFACE QUI DÉBORDE DU DÉPÔT —————
+  //
+  // La découverte lit tout src/ et l'application : plus aucune hypothèse implicite sur
+  // l'endroit où une promesse peut naître À L'INTÉRIEUR du dépôt. Mais les phrases qui
+  // engagent le plus vivront DEHORS — le libellé de l'article qui porte le renoncement, la
+  // description de la facture, le courriel de confirmation qui porte le lien de gestion.
+  // Elles habitent le tableau de bord du prestataire, et aucune garde ne les y atteindra.
+  //
+  // LE REMÈDE N'EST PAS UNE GARDE, C'EST UN DÉPLACEMENT DE LA SOURCE : ces textes sont
+  // écrits dans le dépôt, et le tableau de bord n'en est que le miroir recopié. Ils
+  // redeviennent alors lisibles par les gardes comme n'importe quelle autre phrase, et une
+  // divergence devient une erreur visible au lieu d'être muette.
+  const MOD = "src/lib/textes-recopies.ts";
+  const src = lire(MOD);
+
+  // ————— UN LIBELLÉ PAR PLAN, ET LES PLANS SONT LUS DANS L'APPLICATION —————
+  // Un plan sans son libellé est un plan qui se vend sans porter le renoncement. Les noms
+  // attendus sont DÉRIVÉS des plans déclarés, jamais énumérés ici : en ajouter un cinquième
+  // dans l'application fait tomber ce test, ce qu'aucune liste écrite à la main ne ferait.
+  const iL = APP.indexOf("const LIENS = {");
+  assert.ok(iL > 0, "les plans de paiement ont disparu de l’application");
+  const blocL = APP.slice(iL, APP.indexOf("};", iL));
+  const plans = [...blocL.matchAll(/(\w+): \{ mois: '[^']*', an: '[^']*' \}/g)].map((m) => m[1]);
+  assert.ok(plans.length > 0, "aucun plan lu dans LIENS : le format a changé, relisez-le");
+  for (const plan of plans) {
+    for (const duree of ["MOIS", "AN"]) {
+      const nom = `ARTICLE_${plan.toUpperCase()}_${duree}`;
+      assert.ok(new RegExp(`\\b${nom}\\b`).test(src),
+        `le plan « ${plan} / ${duree.toLowerCase()} » existe dans l’application mais n’a pas de `
+        + `libellé d’article dans ${MOD}. Un plan sans libellé se vend sans porter le `
+        + `renoncement : ajoutez ${nom}.`);
+    }
+  }
+
+  // ————— LA MARQUE EST RELIÉE À LA CONDITION QUI LA JUSTIFIE (règle 6) —————
+  const enAttente = /RENONCE_TXT = 'À COMPLÉTER/.test(APP);
+  // on lit les VALEURS, pas la déclaration de type : `texte: string;` du type `TexteRecopie`
+  // ressemble à une valeur écrite en dur, et ce test l'a signalée en premier. La coupure
+  // est structurelle — après la fin du bloc de type — et non un motif à exclure.
+  const iT = src.indexOf("export type TexteRecopie = {");
+  assert.ok(iT > 0, `${MOD} ne déclare plus le type TexteRecopie`);
+  const valeurs = src.slice(src.indexOf("};", iT) + 2);
+  const textes = [...valeurs.matchAll(/texte: ([A-Za-z_]+|"[^"]*")/g)].map((m) => m[1]);
+  assert.ok(textes.length >= 6,
+    `${MOD} ne déclare plus que ${textes.length} textes : il en faut un par endroit où un `
+    + "texte engageant est recopié chez le prestataire.");
+
+  if (enAttente) {
+    const relus = textes.filter((t) => t !== "EN_ATTENTE_DU_STATUT");
+    assert.deepEqual(relus, [],
+      `${MOD} porte un texte écrit en dur alors que le statut de la société n’est pas `
+      + "tranché (RENONCE_TXT porte encore sa marque « À COMPLÉTER »). Une formule "
+      + "plausible écrite ici aurait l’autorité du dépôt sans avoir été relue — pire que "
+      + `rien. Laissez EN_ATTENTE_DU_STATUT. En trop : ${relus.join(" · ")}`);
+    assert.match(parNom(src, "EN_ATTENTE_DU_STATUT") || "", /À COMPLÉTER/,
+      "la marque ne dit plus qu’elle est une marque : elle se lirait comme un texte relu");
+  } else {
+    assert.fail(
+      "Le libellé du renoncement n’est plus marqué « À COMPLÉTER » : le statut a donc été "
+      + `tranché. C’est le moment de remplir ${MOD} — les quatre libellés d’article, la `
+      + "description de facture, le courriel de confirmation — puis de les RECOPIER mot "
+      + "pour mot chez le prestataire. Le dépôt fait foi ; le tableau de bord en est le "
+      + "miroir. Retirez ensuite cette branche, ou réécrivez-la sur ce qui aura été décidé.");
+  }
+});
+
 test("le renoncement est porté par le libellé de l’article, pas par l’application", () => {
   // Ce que l'application peut faire, c'est faire CONSENTIR. Ce qui PROUVE est écrit par un
   // tiers et conservé dix ans. La note doit le dire à qui ouvrira le paiement, sinon la

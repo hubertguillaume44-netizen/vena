@@ -77,6 +77,7 @@ supprimé : l'occupation réelle du navigateur est bien celle des deux.
 | `Vena.solo.html` | **artefact**, régénéré par `npm run app:solo` — ne jamais l'éditer à la main |
 | `Export_H1_Vena.mq5`, `Vena_Releve.mq5` | scripts MT5 téléchargés par l'utilisateur |
 | `aide-index.json` | **artefact**, régénéré par `npm run app:aide` après tout changement de `title=` |
+| `src/lib/textes-recopies.ts` | **la source** des textes recopiés chez le prestataire de paiement — vide et marquée tant que le statut n'est pas tranché |
 
 À chaque livraison : `npm run app:version` avant `npm run app:solo` — voir « La version
 affichée est une date » plus bas.
@@ -694,6 +695,39 @@ découverte d'un périmètre simplement plus large.
 **Et la découverte se garde elle-même.** Elle vérifie qu'elle atteint toujours les deux
 fichiers d'où le défaut est venu ; si elle ne les atteint plus, c'est qu'un périmètre est
 revenu, et elle le dit.
+
+#### Et la surface déborde du dépôt — on déplace la source, on n'invente pas une garde
+
+La découverte atteint tout ce qui est versionné. **Les phrases qui engagent le plus n'y
+seront pas** : le libellé de l'article de chaque lien de paiement — celui qui porte le
+renoncement au droit de rétractation —, la description de la facture, le courriel de
+confirmation qui porte le lien de gestion, donc le seul chemin de résiliation que le site
+promet. Ils habitent le tableau de bord du prestataire de paiement. **Pas d'API, pas de
+lecture, aucune vérification possible**, et ce sont les plus engageants de tous.
+
+**Le remède n'est pas une garde, c'est un déplacement de la source.** Ces textes sont
+écrits dans le dépôt — `src/lib/textes-recopies.ts` — et le tableau de bord n'en est que le
+**miroir recopié**. Ils redeviennent alors lisibles comme n'importe quelle autre phrase :
+ils sont dans `src/`, dans des chaînes, et les gardes les voient sans qu'on ait rien à leur
+apprendre. Une divergence cesse d'être muette.
+
+> **Ce qu'on ne peut pas vérifier, on fait en sorte qu'il n'y ait rien à inventer quand on
+> le recopie.**
+
+**Le module est vide, et il est marqué** (`EN_ATTENTE_DU_STATUT`) : la formule du
+renoncement, la forme de la facture et l'identité du vendeur dépendent de l'arbitrage en
+cours. Y écrire une formule plausible serait **pire que ne rien écrire** — elle aurait
+l'autorité du dépôt sans avoir été relue, et c'est précisément ce qu'un test refuse.
+
+Trois choses le tiennent, et aucune n'énumère :
+
+- **un libellé par plan**, et les plans sont **lus dans l'application** : ajouter un
+  cinquième plan là-bas fait tomber le test ici, en nommant la constante qui manque ;
+- **la marque est reliée à sa condition** (règle 6) — tant que `RENONCE_TXT` porte son
+  « À COMPLÉTER », les textes doivent porter le leur ; le jour où il ne le porte plus, le
+  test échoue et dit quoi remplir, puis où le recopier ;
+- **le module est dans la surface découverte** : une promesse fausse écrite dedans est
+  attrapée par les gardes ordinaires, sans que ce fichier soit nommé nulle part.
 
 ## Le démarrage se chronomètre — mesurer à vide ne mesure personne
 
