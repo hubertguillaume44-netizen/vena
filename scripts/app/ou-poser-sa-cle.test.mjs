@@ -76,3 +76,32 @@ test("une clé posée fait disparaître le bandeau d’arrivée", () => {
   // aucun prix n'entre dans l'application : /tarifs en reste seule maîtresse
   assert.ok(!/\d+,\d\d\s*€/.test(bloc), "un montant s’est glissé dans le bandeau");
 });
+
+test("la clé de licence n’apparaît jamais en clair dans l’application rendue", () => {
+  // ————— LA SEULE GARDE DE CETTE PLANCHE —————
+  //
+  // Tout le reste — tailles, couleurs, bordures, la grille 2×2 — se voit à l'œil et
+  // bougera. Ceci ne se voit pas : une clé affichée en clair sur un écran de travail part
+  // dans la première capture d'écran partagée, et elle NE SE RÉVOQUE PAS. Le dommage est
+  // définitif et il est invisible au moment où il se produit.
+  //
+  // LA LIMITE EXACTE : un CHAMP est une commande, pas un affichage. Celui du tiroir doit
+  // porter le code — c'est là qu'on le colle. Aucun producteur de TEXTE ne doit le porter.
+  const champs = [...APP.matchAll(/\{\{ licCode \}\}/g)];
+  assert.equal(champs.length, 1,
+    `le code entier atteint le rendu ${champs.length} fois, une seule est permise — `
+    + "celle du champ où on le colle");
+  const i = APP.indexOf("{{ licCode }}");
+  const ligne = APP.slice(APP.lastIndexOf("\n", i) + 1, APP.indexOf("\n", i));
+  assert.match(ligne, /<input\b[^>]*value="\{\{ licCode \}\}"/,
+    "le code entier est rendu ailleurs que dans le champ où on le colle : "
+    + `« ${ligne.trim().slice(0, 110)} »`);
+
+  // et l'état de licence n'en montre qu'une fin, jamais le début ni le milieu
+  const j = APP.indexOf("licCleMasquee: (() => {");
+  assert.ok(j > 0, "le producteur de la clé masquée a disparu");
+  const corps = APP.slice(j, APP.indexOf("})(),", j));
+  assert.match(corps, /slice\(-4\)/, "la clé masquée ne doit exposer que ses quatre derniers caractères");
+  assert.ok(!/\bc\b(?!\.trim|\s*=|\s*\|\|)/.test(corps.replace(/const c = [^;]+;/, "")),
+    "le code complet circule encore dans le producteur de la clé masquée");
+});

@@ -337,6 +337,20 @@
    ]
   },
   {
+   "terme": "Espace",
+   "texte": "Le nom de ce compte, tel que vous le lisez. Il reste dans votre navigateur.",
+   "vues": [
+    "Mes instruments"
+   ]
+  },
+  {
+   "terme": "Espace",
+   "texte": "L’installation des scripts, une fois — puis les quatre gestes de chaque mise à jour : relevé, liste, bougies H1, bougies M1. Le glisser-déposer marche sur toute la page, cadre replié compris.",
+   "vues": [
+    "Mes instruments"
+   ]
+  },
+  {
    "terme": "Exporter",
    "texte": "Télécharge l'Expert Advisor MQL5 de cette configuration.",
    "vues": [
@@ -397,20 +411,6 @@
    "texte": "Capital, risque et stop — c’est ce que vaut 1 R partout dans l’application. Cliquez pour régler.",
    "vues": [
     "Toutes les pages"
-   ]
-  },
-  {
-   "terme": "Fichier de diagnostic — sans réseau",
-   "texte": "Le nom de ce compte, tel que vous le lisez. Il reste dans votre navigateur.",
-   "vues": [
-    "Mes instruments"
-   ]
-  },
-  {
-   "terme": "Fichier de diagnostic — sans réseau",
-   "texte": "L’installation des scripts, une fois — puis les quatre gestes de chaque mise à jour : relevé, liste, bougies H1, bougies M1. Le glisser-déposer marche sur toute la page, cadre replié compris.",
-   "vues": [
-    "Mes instruments"
    ]
   },
   {
