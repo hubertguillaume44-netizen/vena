@@ -58,6 +58,57 @@ const CHIFFRES = [
   { n: "0", b: "fichier envoyé, compte créé ou mouchard posé" },
 ];
 
+// ————— LES PHRASES QUI ENGAGENT SONT NOMMÉES, ICI AUSSI —————
+//
+// L'accueil n'avait pas suivi les corrections du registre des promesses, et la raison est
+// plus instructive que les phrases : la garde qui les tient ne lisait que /tarifs. Son
+// hypothèse implicite — « les promesses de vente vivent sur la page de vente » — était
+// fausse depuis le jour où l'accueil a gardé un résumé des trois formules. Une garde doit
+// tomber quand son hypothèse cesse d'être vraie ; celle-là est restée verte en ne
+// regardant plus la moitié de la surface. Elle lit désormais TOUTES les routes.
+//
+// Trois phrases vivaient ici en clair. Elles sont nommées, pour que la garde ait la même
+// prise que sur /tarifs : ni le formatage ni la tournure ne défont un nom.
+
+// ————— CE QUI NE SORT JAMAIS, ET CE QUI EST CONSERVÉ —————
+// « Pas de compte, rien n'est conservé sur vous, pas même votre achat » était faux ET
+// illégal : une facture se conserve dix ans. Et la phrase contredisait la promesse de
+// renvoi de clé, qui n'est tenable QUE parce qu'un registre des ventes existe. Même
+// correction que sur /tarifs : on nomme les deux domaines au lieu d'en promettre un seul
+// pour tout.
+//
+// ET ELLE TIENT EN UN SEUL LITTÉRAL. Écrite en trois morceaux concaténés, la garde n'en
+// lisait que le premier — « aucun compte à créer » — et la preuve, en troisième position,
+// lui restait invisible. C'est exactement ce qui était arrivé à `mentionLancement` : la
+// promesse séparée de sa preuve par un retour à la ligne. Une phrase qui engage voyage
+// d'un bloc, ou elle ne voyage pas.
+// prettier-ignore
+const SANS_COMPTE = "Une clé s’achète une fois et se colle dans l’application : aucun compte à créer. Vos données de marché ne quittent jamais votre navigateur. De la vente, il reste la facture et son registre — c’est ce qui permet de vous renvoyer votre clé si vous la perdez.";
+
+// ————— OÙ LA RÉSILIATION SE FAIT RÉELLEMENT —————
+// « Résiliable à tout moment » est la même famille que « le mensuel se coupe d'un clic »,
+// déjà corrigée sur /tarifs : sans compte, il n'y a ni portail ni page de résiliation. Le
+// geste existe, mais ailleurs — dans le courriel de confirmation du paiement. On le dit.
+const RESILIATION = "Le mensuel s’arrête quand vous voulez, depuis le courriel de votre paiement.";
+
+// ————— UNE CONTRADICTION QU'ON MARQUE, ET QU'ON NE TRANCHE PAS SEUL —————
+//
+// L'accueil annonce quatorze jours de rétractation sur l'annuel. Le chemin de paiement, lui,
+// fait désormais RENONCER l'acheteur à ce droit (`RENONCE_TXT`, dans l'application). Les
+// deux ne peuvent pas être vrais en même temps, et laquelle des deux doit céder dépend de
+// l'arbitrage en cours sur le statut de l'entreprise — une question juridique, pas une
+// question de code.
+//
+// La phrase reste donc telle quelle, mais NOMMÉE « à trancher » : c'est le même geste que
+// `RENONCE_TXT = 'À COMPLÉTER…'` dans l'application. Un emplacement qui porte sa marque ne
+// se prend pas pour du texte relu. Le site est encore derrière son authentification : rien
+// de tout cela n'est publié, et c'est bien avant publication que ça se tranche.
+//
+// Les deux marques sont liées par une garde : le jour où le renoncement est arrêté, elle
+// tombe et redemande celle-ci. Sans ce lien, la marque survivrait à la raison de son
+// existence — une consigne périmée a l'autorité des vraies.
+const RETRACTATION_A_TRANCHER = "Quatorze jours pour changer d’avis.";
+
 function CarteMesure({ v }: { v: Vitrine }) {
   const { row, controles: ctl } = v;
   return (
@@ -275,7 +326,7 @@ function Home() {
                   </span>
                 </div>
                 <div className="text-sm font-medium">Tous vos instruments</div>
-                <p className="text-sm text-muted">Résiliable à tout moment.</p>
+                <p className="text-sm text-muted">{RESILIATION}</p>
               </div>
               <div className="flex flex-col gap-1">
                 <div className="font-display text-4xl leading-none tabular">
@@ -285,12 +336,11 @@ function Home() {
                   </span>
                 </div>
                 <div className="text-sm font-medium tabular">Soit 12,42 € par mois</div>
-                <p className="text-sm text-muted">Quatorze jours pour changer d’avis.</p>
+                <p className="text-sm text-muted">{RETRACTATION_A_TRANCHER}</p>
               </div>
             </div>
             <p className="border-t border-line pt-4 text-sm text-muted">
-              Une clé s’achète une fois et se colle dans l’application : pas de compte, rien n’est
-              conservé sur vous, pas même votre achat.{" "}
+              {SANS_COMPTE}{" "}
               <Link to="/tarifs" className="text-ink underline decoration-line underline-offset-2">
                 Le comparatif et les conditions
               </Link>

@@ -10,12 +10,34 @@
 // absolue nomme son domaine, qu'un lien de paiement ne s'ouvre pas sans renoncement.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 
 const RACINE = new URL("../../", import.meta.url);
 const lire = (f) => readFileSync(new URL(f, RACINE), "utf8");
 const APP = lire("Vena.dc.html");
 const TARIFS = lire("src/routes/tarifs.tsx");
+
+// ————— UNE GARDE DOIT TOMBER QUAND SON HYPOTHÈSE CESSE D'ÊTRE VRAIE —————
+//
+// Ces gardes ne lisaient que /tarifs et l'application. L'hypothèse n'était écrite nulle
+// part — « les promesses de vente vivent sur la page de vente » — et elle a cessé d'être
+// vraie le jour où l'accueil a gardé un résumé des trois formules. La garde n'est pas
+// tombée : elle a continué de passer au vert en ne regardant plus la moitié de la surface,
+// pendant que l'accueil promettait « rien n'est conservé sur vous, pas même votre achat »
+// que /tarifs venait de corriger. C'est le pire mode de panne — couvert par une garde qui
+// ne regarde plus rien.
+//
+// LA SURFACE SE DÉCOUVRE, ELLE NE S'ÉNUMÈRE PAS. Une liste écrite à la main aurait le même
+// défaut une route plus tard : la prochaine page naîtrait hors de portée sans que rien ne
+// le dise. On lit le répertoire.
+const DOSSIER_ROUTES = new URL("src/routes/", RACINE);
+const ROUTES = readdirSync(DOSSIER_ROUTES)
+  .filter((n) => n.endsWith(".tsx"))
+  .sort()
+  .map((n) => [`src/routes/${n}`, lire(`src/routes/${n}`)]);
+
+/** Toutes les surfaces que l'acheteur lit : les routes du site, et l'application. */
+const SURFACES = [...ROUTES, ["Vena.dc.html", APP]];
 // ————— ON INTERDIT LE CODE, PAS LE RÉCIT DU CODE — ET ON ARRÊTE DE COURIR APRÈS —————
 //
 // Ces gardes interdisent des phrases. Les commentaires qui racontent POURQUOI elles
@@ -66,17 +88,24 @@ function chainesLivrees(src) {
 /** Les mêmes chaînes, mises bout à bout — pour les gardes qui cherchent une phrase. */
 const blocLivre = (src) => chainesLivrees(src).join("\n");
 
+const ANCRES = [
+  ["src/routes/tarifs.tsx", "Trois instruments à vous"],
+  ["src/routes/tarifs.tsx", "Instruments illimités — au lieu de trois"],
+  ["src/routes/tarifs.tsx", "Réponse à vos questions par courriel"],
+  ["src/routes/tarifs.tsx", "données de marché ne quittent jamais votre navigateur"],
+  // l'accueil garde un résumé des trois formules : ses trois phrases qui engagent sont
+  // nommées, et c'est là qu'elles s'ancrent.
+  ["src/routes/index.tsx", "données de marché ne quittent jamais votre navigateur"],
+  ["src/routes/index.tsx", "Le mensuel s’arrête quand vous voulez"],
+  ["src/routes/index.tsx", "Quatorze jours pour changer d’avis"],
+];
+
 test("la copie commerciale vit dans des littéraux — sinon les gardes sont aveugles", () => {
-  // C'est la garde des gardes : les six suivantes ne lisent que les chaînes. Si une
-  // promesse se met à vivre en texte JSX nu, elles cesseraient de la voir SANS ÉCHOUER —
-  // le pire mode de panne. Ce test échoue à leur place, et dit pourquoi.
-  const dans = blocLivre(TARIFS);
-  for (const bout of [
-    "Trois instruments à vous",
-    "Instruments illimités — au lieu de trois",
-    "Réponse à vos questions par courriel",
-    "données de marché ne quittent jamais votre navigateur",
-  ]) {
+  // C'est la garde des gardes : les suivantes ne lisent que les chaînes. Si une promesse
+  // se met à vivre en texte JSX nu, elles cesseraient de la voir SANS ÉCHOUER — le pire
+  // mode de panne. Ce test échoue à leur place, et dit pourquoi.
+  for (const [fichier, bout] of ANCRES) {
+    const dans = blocLivre(lire(fichier));
     assert.ok(dans.includes(bout),
       "————— CE TEST ENSEIGNE UNE CONVENTION, IL NE SIGNALE PAS UNE FAUTE —————\n\n"
       + `La phrase « ${bout} » n’est plus dans une chaîne de caractères : elle a sans doute `
@@ -92,7 +121,8 @@ test("la copie commerciale vit dans des littéraux — sinon les gardes sont ave
       + "`const PHRASE = \"…\";` puis `<p>{PHRASE}</p>`, ou ajoutez-la à FORMULES, "
       + "COMPARATIF ou OBJECTIONS selon ce qu’elle dit. Le rendu ne change pas ; la prise "
       + "des gardes, si.\n\n"
-      + "Si la phrase a simplement été réécrite, mettez la nouvelle dans cette liste.");
+      + `Fichier concerné : ${fichier}. Si la phrase a simplement été réécrite, mettez la `
+      + "nouvelle dans ANCRES.");
   }
 });
 
@@ -119,19 +149,25 @@ test("une promesse de non-conservation nomme son domaine", () => {
   // « Rien n'est conservé sur vous, pas même votre achat » était faux ET illégal : une
   // facture se conserve dix ans. La promesse vraie porte sur les DONNÉES. C'est la même
   // figure que la limite écrite dans netlify.toml — une règle dit où elle s'arrête.
-  for (const [nom, t] of [["/tarifs", TARIFS], ["l’application", APP]]) {
+  // LUE SUR TOUTES LES SURFACES, pas seulement sur la page de vente : c'est l'accueil,
+  // hors de portée de la première version de cette garde, qui portait encore la phrase.
+  for (const [nom, t] of SURFACES) {
     const absolus = [...blocLivre(t).matchAll(/[Rr]ien n[’']est conserv[^.]{0,60}/g)].map((m) => m[0]);
     assert.deepEqual(absolus, [],
       `${nom} promet une non-conservation sans domaine : ${absolus.join(" | ")}`);
   }
-  // et la promesse qui remplace nomme ce qui ne bouge pas
-  assert.match(TARIFS, /données de marché ne quittent jamais votre navigateur/);
+  // et là où la formule est résumée, la promesse qui remplace nomme ce qui ne bouge pas
+  for (const f of ["src/routes/tarifs.tsx", "src/routes/index.tsx"]) {
+    assert.match(lire(f), /données de marché ne quittent jamais votre navigateur/,
+      `${f} ne dit plus ce qui, lui, ne sort jamais`);
+  }
 });
 
 test("aucune rareté chiffrée sans compteur pour la tenir", () => {
   // Rien n'étant conservé sur les acheteurs, aucun compteur ne peut exister : une rareté
   // chiffrée ne serait ni tenable ni vérifiable.
-  for (const [nom, t] of [["/tarifs", blocLivre(TARIFS)], ["l’application", blocLivre(APP)]]) {
+  for (const [nom, src] of SURFACES) {
+    const t = blocLivre(src);
     assert.ok(!/cinquante premiers|50 premiers|premiers abonnés/.test(t),
       `${nom} annonce une rareté chiffrée que rien ne compte`);
   }
@@ -258,6 +294,73 @@ test("le tarif gelé s’appuie sur le registre, pas sur la parole", () => {
   const fn = lire("netlify/functions/licence.mjs");
   assert.match(fn, /PRIX PAYÉ/,
     "la fonction ne rappelle plus que le registre doit porter le prix payé");
+});
+
+test("les phrases qui engagent sont nommées sur TOUTES les routes, pas sur la seule page de vente", () => {
+  // C'est la généralisation de la garde du tarif gelé, et elle vient d'un défaut réel :
+  // l'accueil promettait une résiliation sans dire où elle se fait, et une non-conservation
+  // sans domaine, pendant que /tarifs avait corrigé les deux. La prise reste un NOM.
+  const ACCUEIL = lire("src/routes/index.tsx");
+
+  const sansCompte = parNom(ACCUEIL, "SANS_COMPTE");
+  assert.ok(sansCompte, "l’accueil n’a plus de constante SANS_COMPTE");
+  assert.match(sansCompte, /facture/,
+    "SANS_COMPTE dit qu’il n’y a pas de compte sans dire ce qui EST conservé : la facture "
+    + "et son registre, qui sont précisément ce qui permet de renvoyer une clé perdue");
+
+  const resiliation = parNom(ACCUEIL, "RESILIATION");
+  assert.ok(resiliation, "l’accueil n’a plus de constante RESILIATION");
+  assert.ok(!/[Rr]ésiliable à tout moment/.test(resiliation),
+    "« Résiliable à tout moment » promet un geste sans dire où il se fait : sans compte, il "
+    + "n’y a ni portail ni page de résiliation. Dites d’où la coupure part, comme /tarifs, "
+    + "ou renvoyez-y.");
+  assert.match(resiliation, /courriel/,
+    "RESILIATION ne nomme plus l’endroit d’où la coupure part");
+
+  // et les constantes sont RENDUES — nommer protège du formatage, pas de quelqu'un qui
+  // recopierait la phrase en clair en laissant la constante derrière.
+  const rendu = ACCUEIL.slice(ACCUEIL.indexOf("function Home()"));
+  for (const nom of ["SANS_COMPTE", "RESILIATION", "RETRACTATION_A_TRANCHER"]) {
+    assert.ok(rendu.includes(`{${nom}}`),
+      `${nom} n’est plus rendue : la phrase a probablement été recopiée en clair dans le `
+      + "JSX, et cette garde surveillerait un texte que plus personne n’affiche.");
+  }
+});
+
+test("la rétractation annoncée et le renoncement exigé restent marqués ensemble", () => {
+  // ————— ON MARQUE LA CONTRADICTION, ON NE LA TRANCHE PAS —————
+  //
+  // L'accueil annonce quatorze jours pour changer d'avis sur l'annuel ; le chemin de
+  // paiement fait renoncer l'acheteur à ce droit. Laquelle cède dépend de l'arbitrage en
+  // cours sur le statut de l'entreprise — une question juridique, pas une question de code.
+  //
+  // LES DEUX MARQUES SONT LIÉES, et c'est tout l'objet de cette garde. Une marque seule
+  // survivrait à la raison de son existence : le jour où le libellé du renoncement est
+  // arrêté, ce test tombe et redemande la phrase de l'accueil. Sans ce lien, la garde
+  // deviendrait aveugle sans rougir — exactement ce qui vient d'arriver à la surface lue.
+  const ACCUEIL = lire("src/routes/index.tsx");
+  const enAttente = /RENONCE_TXT = 'À COMPLÉTER/.test(APP);
+
+  const dit = parNom(ACCUEIL, "RETRACTATION_A_TRANCHER");
+  if (enAttente) {
+    assert.ok(dit,
+      "Le chemin de paiement fait encore renoncer l’acheteur à son droit de rétractation "
+      + "(RENONCE_TXT porte toujours sa marque « À COMPLÉTER »), et l’accueil annonce "
+      + "quatorze jours pour changer d’avis. Les deux ne peuvent pas être vrais ensemble. "
+      + "Tant que l’arbitrage sur le statut n’a pas tranché, la phrase de l’accueil vit dans "
+      + "une constante dont le NOM porte la marque — RETRACTATION_A_TRANCHER — pour que "
+      + "personne ne la prenne pour du texte relu.");
+    assert.match(dit, /[Qq]uatorze jours|14 jours/,
+      "RETRACTATION_A_TRANCHER ne porte plus la phrase qu’elle marque : si elle a été "
+      + "retirée, retirez la constante et cette garde tombera pour le dire.");
+  } else {
+    assert.fail(
+      "Le libellé du renoncement n’est plus marqué « À COMPLÉTER » : l’arbitrage a donc "
+      + "tranché. C’est le moment de trancher AUSSI la phrase de l’accueil — soit le droit "
+      + "de rétractation est maintenu et le renoncement disparaît du chemin de paiement, "
+      + "soit il est écarté et l’accueil cesse d’annoncer quatorze jours. Puis retirez cette "
+      + "garde, ou réécrivez-la sur ce qui aura été décidé.");
+  }
 });
 
 test("le renoncement est porté par le libellé de l’article, pas par l’application", () => {
