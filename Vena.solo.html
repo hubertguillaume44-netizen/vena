@@ -15530,7 +15530,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260913.12';
+  VERSION_APP = '260913.13';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -25984,6 +25984,22 @@ GROUPES = {
           if (!la2) return { txt: 'aucune bougie', coul: 'var(--color-neutral-700)' };
           if (!cv2) return { txt: 'couverture non relevée', coul: 'var(--color-neutral-700)' };
           const a0 = new Date(cv2.t0).getUTCFullYear();
+          // ————— AUCUN MOT RELATIF SUR UNE FENÊTRE FIGÉE — ICI AUSSI —————
+          //
+          // Cette colonne disait « 2023 → hier · complet » sur les dix séries d'exemple :
+          // vrai le jour de leur génération, faux dès le lendemain, et dans neuf jours le
+          // seuil des 8 jours l'aurait basculée en « s'arrête en 09/2026 » À L'ENCRE
+          // D'ALERTE — dix alertes sans action possible, la famille « périmée » exactement.
+          // La règle était appliquée au régime, à zBougie et au verdict de la fiche, mais
+          // pas ici — parce que personne ne pouvait le voir : cette table n'a jamais rendu
+          // une ligne avant la passe sc-raw-*. Un correctif de rendu rend visibles les
+          // défauts que l'invisibilité protégeait.
+          if (estExemple(sym)) {
+            const d3 = new Date(cv2.t1);
+            return { txt: a0 + ' \u2192 ' + String(d3.getUTCDate()).padStart(2, '0') + '/'
+              + String(d3.getUTCMonth() + 1).padStart(2, '0') + '/' + d3.getUTCFullYear()
+              + ' · fenêtre fixe', coul: 'var(--color-neutral-700)' };
+          }
           const recent = Date.now() - cv2.t1 < 8 * 86400000;
           const nT = (cv2.trous || []).length;
           if (!recent) {

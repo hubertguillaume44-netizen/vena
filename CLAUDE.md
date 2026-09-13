@@ -967,9 +967,17 @@ des bougies à soi, fraîches par construction, « hier » reste juste et se lit
 **Deux « périmées » différentes, et il faut les distinguer.** Le filtre des 48 h de
 `calcRegime` n'écarte JAMAIS les séries d'exemple : `tFin` est la dernière bougie du lot
 mesuré, donc leur propre dernière bougie. Mais la fiche d'instrument porte un AUTRE test,
-le seul date-contre-aujourd'hui du fichier — `Date.now() - cv.t1 > 45 jours`, dans le
-producteur de la fiche — et **celui-là s'applique bien à elles** : elles passeront
-« périmées » quarante-cinq jours après leur dernière bougie.
+date-contre-aujourd'hui — `Date.now() - cv.t1 > 45 jours`, dans le producteur de la
+fiche — et **celui-là s'applique bien à elles** : elles passeront « périmées »
+quarante-cinq jours après leur dernière bougie.
+
+**« Le seul date-contre-aujourd'hui du fichier » était écrit ici, et c'était faux** : la
+colonne « Bougies présentes » en portait un deuxième (`< 8 jours` → « hier », au-delà →
+« s'arrête en » à l'encre d'alerte), invisible tant que sa table ne rendait rien. Sur une
+série d'exemple, elle disait « 2023 → hier · complet » — vrai le jour de la génération,
+faux dès le lendemain — puis aurait basculé en alerte sans action possible. Corrigée en
+date absolue, « 2023 → 11/09/2026 · fenêtre fixe », encre neutre, décidée AVANT le seuil
+relatif. Un « seul » se périme sans bruit : compter, pas jurer.
 
 **Mais elles n'en portent pas le MOT** : le verdict est « fenêtre fixe » — voir « Quand
 l'explication doit contredire l'étiquette » plus haut. Ce paragraphe a d'abord dit

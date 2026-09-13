@@ -74,6 +74,17 @@ test("aucun trou du gabarit ne reste non résolu au rendu, et les dix lignes d�
       + `${lignes.length}. Une rangée vide « qui a l’air d’un rendu » compte pour zéro.`);
     for (const l of lignes) {
       assert.ok(l.length > 10, "une ligne rendue est vide : ses trous ne se remplissent pas");
+      // ————— AUCUN MOT RELATIF SUR UNE FENÊTRE FIGÉE, VÉRIFIÉ AU RENDU —————
+      // « 2023 → hier · complet » sur une série d'exemple : vrai le jour de sa
+      // génération, faux dès le lendemain — et découvert TRENTE SECONDES après que la
+      // table s'est mise à rendre. Un correctif de rendu rend visibles les défauts que
+      // l'invisibilité protégeait ; cette assertion lit l'écran, pas le code.
+      assert.ok(!/\bhier\b|aujourd/.test(l),
+        "une ligne d’exemple porte un mot relatif — sur une fenêtre figée, il ment dès le "
+        + "lendemain : datez en absolu, comme le régime et le verdict de la fiche.\n  " + l);
+      assert.ok(l.includes("fenêtre fixe"),
+        "une ligne d’exemple ne dit plus « fenêtre fixe » : la date absolue seule n’explique "
+        + "pas pourquoi elle ne bougera pas.\n  " + l);
     }
   } finally {
     await nav.close();
