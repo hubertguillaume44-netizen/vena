@@ -5,10 +5,19 @@
  * La fonction : vérifie la signature du webhook (sans quoi n'importe qui se
  * délivrerait une licence), lit le plan et l'e-mail, calcule la date de fin,
  * SIGNE le code (Ed25519, déterministe — un webhook rejoué produit le même code,
- * l'idempotence est gratuite), et l'envoie par mail. Rien n'est stocké : pas de
- * session, pas de client en base, pas de code à retrouver. Un mail perdu se
- * renvoie à la main avec scripts/licence/signer.mjs — c'est le prix de l'absence
- * de base, et c'est un bon prix.
+ * l'idempotence est gratuite), et l'envoie par mail.
+ *
+ * CETTE FONCTION ne stocke rien : pas de session, pas de client en base, pas de
+ * code à retrouver. La nuance vaut d'être écrite, parce que la page de vente a
+ * longtemps dit « rien n'est conservé sur vous, pas même votre achat » — ce qui
+ * était faux et le serait resté : la VENTE laisse une trace comptable chez le
+ * vendeur, qu'une société conserve dix ans. Ce qui ne quitte pas la machine de
+ * l'utilisateur, ce sont ses DONNÉES — prix, scans, portefeuilles — et cette
+ * promesse-là est vraie et vérifiable.
+ *
+ * Un mail perdu se renvoie à la main avec scripts/licence/signer.mjs, et c'est
+ * justement ce registre comptable qui permet de vérifier que le demandeur a
+ * acheté. Les deux promesses cessent de s'exclure dès qu'on nomme leurs domaines.
  *
  * Variables d'environnement (Netlify → Site settings → Environment variables) :
  *   LICENCE_CLE_PRIVEE      clé Ed25519 PKCS8 en base64 — sortie de generer-cles.mjs.

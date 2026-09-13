@@ -15317,7 +15317,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260913.3';
+  VERSION_APP = '260913.4';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -19233,8 +19233,45 @@ GROUPES = {
           lancement: { mois: '14,99', an: '149', parMois: '12,42', douze: '179,88' },
           normal: { mois: '19,99', an: '199', parMois: '16,58', douze: '239,88' },
         };
+        // ————— LE RENONCEMENT EXPRÈS, POSÉ À LA FRONTIÈRE DU PAIEMENT —————
+        //
+        // LE PROBLÈME, et il est réel. Une clé est délivrée à la seconde du paiement et
+        // ne se révoque JAMAIS — c'est un choix d'architecture assumé, mais il rend les
+        // quatorze jours de rétractation coûteux pour de bon : rembourser ne reprend
+        // rien. Les trois issues ne se valent pas. Mentir sur le droit est exclu ;
+        // l'offrir quand même revient à distribuer des clés perpétuelles gratuites ; la
+        // troisième est celle que le droit prévoit — l'acheteur DEMANDE la fourniture
+        // immédiate et RECONNAÎT qu'il perd son droit de rétractation, avant de payer.
+        //
+        // LA GARDE VIT ICI, dans l'unique fonction par laquelle un lien de paiement
+        // s'ouvre — pas sur chaque bouton. Posée là, elle vaut pour les boutons
+        // d'aujourd'hui et pour ceux que quelqu'un ajoutera : c'est la même géométrie que
+        // le refus d'écriture des séries d'exemple, décidé plus haut que la clé.
+        //
+        // CE QUI RESTE À TRANCHER, et qui n'est pas du code :
+        //   · le LIBELLÉ exact du renoncement — il attend l'arbitrage de l'éditeur et de
+        //     son comptable ; `RENONCE_TXT` est un emplacement, pas une formule validée ;
+        //   · OÙ l'horodatage est conservé de façon durable. Il part ici dans l'adresse
+        //     de paiement, donc dans la commande ; que le prestataire le renvoie au
+        //     webhook reste À VÉRIFIER avant l'ouverture du paiement. Sans ça, la preuve
+        //     du renoncement n'existe que chez l'acheteur.
+        const RENONCE_TXT = 'À COMPLÉTER avant l\u2019ouverture du paiement : demande de '
+          + 'fourniture immédiate du code d\u2019accès, et reconnaissance de la perte du '
+          + 'droit de rétractation qui en découle. Libellé à valider.';
         const aller = (k) => () => {
-          if (LIENS[TARIF][k]) { window.open(LIENS[TARIF][k], '_blank', 'noopener'); return; }
+          if (!this.state.renonceAccepte) {
+            this.setState({ achatMsg: '__renonce' });
+            return;
+          }
+          const lien = LIENS[TARIF][k];
+          if (lien) {
+            // l'horodatage voyage AVEC la commande : c'est le seul endroit où il peut
+            // encore rejoindre la vente, puisque rien n'est conservé de ce côté-ci
+            const u = lien + (lien.includes('?') ? '&' : '?')
+              + 'renonce=' + encodeURIComponent(new Date().toISOString());
+            window.open(u, '_blank', 'noopener');
+            return;
+          }
           // on reste sur la page de vente : le visiteur venait payer, pas naviguer
           this.setState({ achatMsg: this.nomPlan(this.PLAN_ACHETE[k], 'defini') });
         };
@@ -19252,7 +19289,16 @@ GROUPES = {
           prixAnDetail: 'soit ' + p.parMois + ' € par mois — ' + p.an + ' € au lieu de '
             + p.douze + ' € en douze mensualités',
           aLancement: TARIF === 'lancement',
-          mentionLancement: 'Tarif de lancement, pour les cinquante premiers abonnés — garanti tant que votre abonnement court.',
+          // ————— « LES CINQUANTE PREMIERS ABONNÉS » EST PARTI —————
+          //
+          // Une rareté chiffrée doit être vraie ET vérifiable. Celle-ci n'était ni l'une
+          // ni l'autre : AUCUN compteur n'existe, et rien n'étant conservé sur les
+          // acheteurs, aucun ne peut exister sans revenir sur cette promesse-là. La page
+          // de vente l'avait déjà écartée pour une autre raison — une rareté chiffrée à
+          // côté de quatorze jours de rétractation se lit comme une pression à décider
+          // vite, et les deux se contredisent à voix haute. Il ne reste que la partie
+          // tenable : le tarif ne remonte pas pour qui en bénéficie.
+          mentionLancement: 'Tarif de lancement — garanti tant que votre abonnement court : il ne remonte pas pour ceux qui en bénéficient.',
           // ————— LE CODE D'ACCÈS : plan et date EN CLAIR, motif en clair au refus —————
           //
           // `licEtatTxt` NOMME le titulaire, et c'est voulu — ne le retirez pas par
@@ -19331,8 +19377,16 @@ GROUPES = {
             this.garderLicence(null);
             this.setState({ lic: null, licMsg: null });
           },
+          // le renoncement : sa case, son libellé, et le refus qui va avec
+          renonceVal: !!s.renonceAccepte,
+          renonceTxt: RENONCE_TXT,
+          basculerRenonce: () => this.setState((q) => ({ renonceAccepte: !q.renonceAccepte,
+            achatMsg: q.achatMsg === '__renonce' ? null : q.achatMsg })),
           aAchatMsg: !!s.achatMsg,
-          achatMsgTxt: s.achatMsg
+          achatMsgTxt: s.achatMsg === '__renonce'
+            ? 'Cochez la case au-dessus avant de payer : le code d\u2019acc\u00e8s part '
+              + 'imm\u00e9diatement, et cette case est ce qui l\u2019autorise.'
+            : s.achatMsg
             ? 'Le paiement n\u2019est pas encore ouvert pour ' + s.achatMsg
               + '. En attendant, les trois instruments gratuits fonctionnent déjà sur vos propres données — '
               + 'et vous garderez tout ce que vous y aurez mesuré.'

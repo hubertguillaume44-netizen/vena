@@ -10,7 +10,7 @@ export const Route = createFileRoute("/tarifs")({
       {
         name: "description",
           content:
-            "Trois instruments gratuits sans limite de durée, puis 14,99 € par mois ou 149 € par an. Une clé, pas un compte : rien n’est conservé sur vous, pas même votre achat.",
+            "Trois instruments gratuits sans limite de durée, puis 14,99 € par mois ou 149 € par an. Une clé, pas un compte : vos données de marché ne quittent jamais votre navigateur.",
       },
     ],
   }),
@@ -30,9 +30,13 @@ export const Route = createFileRoute("/tarifs")({
 // et pointe vers cette page.
 //
 // Les montants sont ceux du code de l'application (tarif de lancement). La mention
-// « cinquante premiers abonnés » n'est PAS reprise ici : dans une colonne qui promet
+// « cinquante premiers abonnés » n'était PAS reprise ici : dans une colonne qui promet
 // par ailleurs quatorze jours de rétractation, une rareté chiffrée se lit comme une
 // pression à décider vite, et les deux se contredisent à voix haute.
+//
+// Elle a depuis été retirée de l'application aussi, pour une raison plus forte : aucun
+// compteur n'existe, et rien n'étant conservé sur les acheteurs, aucun ne peut exister.
+// Une rareté qu'on ne peut ni tenir ni vérifier ne s'écrit nulle part.
 // ————— LE REPÈRE D'ARRIVÉE —————
 //
 // `#licence` ouvre le tiroir de l'application sur la section Licence, curseur dans le
@@ -45,6 +49,12 @@ export const Route = createFileRoute("/tarifs")({
 // de clé : lui ouvrir le champ où la coller serait lui demander ce qu'il n'a pas.
 const VERS_CLE = "/app#licence";
 
+// ————— L'ADRESSE DE CONTACT VIT SUR LA PAGE DE VENTE, PAS SEULEMENT DANS L'OUTIL —————
+// Elle n'existait que dans le tiroir de l'application (`Vena.dc.html`, MAIL_CONTACT).
+// Or celui qui a perdu sa clé, ou qui veut résilier, n'est justement pas dans l'outil.
+// Les deux doivent rester d'accord : si l'une change, l'autre change.
+const CONTACT = "venacontact1@gmail.com";
+
 const FORMULES = [
   {
     cle: "gratuit",
@@ -54,9 +64,10 @@ const FORMULES = [
     sous: "sans limite de durée",
     lignes: [
       "Trois instruments à vous",
-      "Un compte de courtier",
-      "Scans, backtests et portefeuille complets",
-      "Les séries de démonstration, sans limite",
+      "Cinq comptes de courtier",
+      "Scans, backtests, portefeuille et journal",
+      "Dix séries d’exemple, sans limite",
+      "Les mises à jour, comme tout le monde",
     ],
     action: "Commencer",
     vers: "/app",
@@ -68,11 +79,15 @@ const FORMULES = [
     montant: "14,99 €",
     unite: "/ mois",
     sous: "résiliable à tout moment",
+    // LA SEULE DIFFÉRENCE, et elle est écrite seule. Le code ne garde QU'ELLE :
+    // `licenceActive` n'existe qu'à deux endroits de l'application, le palier gratuit et
+    // le compteur qui l'affiche. Trois lignes vantaient des fonctions que la formule
+    // gratuite possède déjà — cinq comptes, actualités, agenda — et une quatrième, les
+    // mises à jour, qui vont à tout le monde. Un comparatif court et vrai bat un long qui
+    // ment, et brider ce qui est déjà servi serait une régression pour qui s'en sert.
     lignes: [
-      "Instruments illimités",
-      "Jusqu’à cinq comptes de courtier",
-      "Actualités et agenda par instrument",
-      "Mises à jour incluses",
+      "Instruments illimités — au lieu de trois",
+      "Tout le reste est déjà dans le gratuit",
     ],
     action: "Prendre l’abonnement",
     vers: VERS_CLE,
@@ -84,7 +99,7 @@ const FORMULES = [
     montant: "149 €",
     unite: "/ an",
     sous: "soit 12,42 € par mois — au lieu de 179,88 €",
-    lignes: ["Tout le mensuel", "Un an de mises à jour", "Réponse à vos questions par courriel"],
+    lignes: ["Tout le mensuel", "Réponse à vos questions par courriel"],
     action: "Prendre l’année",
     vers: VERS_CLE,
     avant: true,
@@ -95,12 +110,24 @@ const FORMULES = [
 // se comparent pas entre elles : « instruments illimités » ne se mesure pas contre
 // « trois instruments » quand les lignes ne sont pas les mêmes. Ici, une ligne par
 // question, et la même question posée aux trois.
+// ————— UNE LIGNE N'ENTRE ICI QUE SI LE CODE LA GARDE —————
+//
+// Trois lignes ont été retirées parce qu'elles décrivaient une différence qui n'existe
+// pas : « Comptes de courtier 1 / 5 / 5 » (la table en porte cinq pour tout le monde),
+// « Actualités et agenda macro » et « Mises à jour » (aucune garde de licence, et
+// l'application est un fichier servi à tous). Vérifiable : `licenceActive` n'apparaît
+// qu'à DEUX endroits de `Vena.dc.html`, le palier gratuit et son compteur.
+//
+// On a retiré les lignes plutôt que posé les gardes. Brider ce qui est déjà servi serait
+// une régression pour qui s'en sert aujourd'hui ; ces fonctions ne coûtent rien à
+// servir ; et la limite à trois instruments suffit à faire une formule.
 const COMPARATIF: { quoi: string; gratuit: string | boolean; mois: string | boolean; an: string | boolean }[] = [
   { quoi: "Instruments mesurables", gratuit: "3", mois: "tous", an: "tous" },
-  { quoi: "Comptes de courtier", gratuit: "1", mois: "5", an: "5" },
+  { quoi: "Comptes de courtier", gratuit: "5", mois: "5", an: "5" },
   { quoi: "Scans, backtests, portefeuille, journal", gratuit: true, mois: true, an: true },
   { quoi: "Robots MQL5 générés", gratuit: true, mois: true, an: true },
-  { quoi: "Actualités et agenda macro par instrument", gratuit: false, mois: true, an: true },
+  { quoi: "Actualités et agenda macro par instrument", gratuit: true, mois: true, an: true },
+  { quoi: "Mises à jour", gratuit: true, mois: true, an: true },
   { quoi: "Réponse à vos questions par courriel", gratuit: false, mois: false, an: true },
   // « — » et non « 0 » : sans clé il n'y a rien à poser, ce n'est pas une quantité nulle
   { quoi: "Appareils où poser la clé", gratuit: "—", mois: "sans limite", an: "sans limite" },
@@ -111,15 +138,23 @@ const COMPARATIF: { quoi: string; gratuit: string | boolean; mois: string | bool
 const OBJECTIONS = [
   {
     q: "Et si je change d’avis ?",
-    r: "Quatorze jours pour vous rétracter, sans justification — c’est votre droit. Le mensuel se coupe d’un clic, sans motif à donner.",
+    // « Le mensuel se coupe d'un clic » promettait un geste INTROUVABLE : sans compte, il
+    // n'y a ni portail ni page de résiliation, sur aucune des routes du site ni dans
+    // l'application. Le seul recours réel est l'interface du prestataire de paiement, que
+    // la page ne nommait pas. On dit donc où la coupure se fait, en attendant de la
+    // construire — et on donne l'adresse à qui ne la trouve pas.
+    r: "Le mensuel s’arrête quand vous voulez, depuis le courriel de confirmation de votre paiement : il porte le lien de gestion de l’abonnement. Aucun motif à donner. Si vous ne le retrouvez pas, écrivez-nous et nous l’arrêtons pour vous.",
   },
   {
     q: "Que se passe-t-il à l’échéance ?",
     r: "Rien n’est prélevé sans vous, et vos données restent là. Vous repassez aux trois instruments gratuits ; les scans déjà faits se relisent tous.",
   },
   {
+    // L'ADRESSE EST ÉCRITE ICI, pas seulement « l'adresse de contact ». Elle ne vivait
+    // que dans le tiroir de l'application : quelqu'un qui a perdu sa clé et lit cette page
+    // n'avait nulle part où écrire, puisqu'il ne peut plus entrer dans l'outil.
     q: "J’ai perdu ma clé.",
-    r: "Écrivez à l’adresse de contact : elle est re-signée à l’identique et renvoyée à l’adresse de l’achat, autant de fois qu’il le faut. Une clé ne s’épuise pas et ne se révoque pas.",
+    r: `Écrivez à ${CONTACT} depuis l’adresse de l’achat : la clé est re-signée à l’identique et renvoyée, autant de fois qu’il le faut. Une clé ne s’épuise pas et ne se révoque pas — même après un remboursement, elle continue de fonctionner jusqu’à son terme.`,
   },
   {
     q: "Sur combien de machines ?",
@@ -130,8 +165,14 @@ const OBJECTIONS = [
     r: "MetaTrader 5 chez votre courtier — la seule plateforme que Véna lit. Ni cTrader, ni TradingView, ni relevé au format maison.",
   },
   {
+    // ————— CE N'EST PAS LE PRESTATAIRE QUI VEND —————
+    // La page affirmait que la facture est « émise par le prestataire de paiement ». Faux :
+    // il encaisse, il ne vend pas en son nom — la facture vient donc de l'éditeur. La
+    // mention légale de l'application le disait déjà correctement, et les deux surfaces se
+    // contredisaient. La FORME définitive (dénomination, numérotation, régime de TVA)
+    // dépend du statut de la société, qui n'est pas arrêté : on ne l'écrit pas encore.
     q: "Et ma facture, sans compte ?",
-    r: "Elle est émise par le prestataire de paiement et arrive au courriel de l’achat. C’est aussi à cette adresse que la clé est renvoyée.",
+    r: "Elle est émise par l’éditeur de Véna — pas par le prestataire de paiement, qui ne fait qu’encaisser — et elle part au courriel de l’achat. C’est aussi à cette adresse que la clé est renvoyée.",
   },
 ];
 
@@ -283,14 +324,26 @@ function Tarifs() {
             </h2>
           </div>
           <div className="flex flex-col gap-4">
+            {/* ————— UNE PROMESSE DIT SON DOMAINE, SINON ELLE SE LIT COMME GÉNÉRALE —————
+                « Rien n'est conservé sur vous, pas même votre achat » était faux ET
+                illégal : une facture se conserve dix ans. La promesse vraie porte sur les
+                DONNÉES, et elle est vérifiable ; la vente, elle, laisse une trace
+                comptable — et c'est précisément ce registre qui permet de renvoyer une clé
+                perdue. Les deux cessent de s'exclure dès qu'on nomme leurs domaines. */}
             <p className="text-base leading-relaxed">
               Une clé s’achète une fois et se colle dans l’application.{" "}
-              <strong>Rien n’est conservé sur vous, pas même votre achat.</strong> Elle se vérifie
-              hors ligne, sur votre machine : aucune requête ne part au moment où vous l’ouvrez.
+              <strong>Vos données de marché ne quittent jamais votre navigateur</strong> — ni vos
+              prix, ni vos scans, ni vos portefeuilles. La clé se vérifie hors ligne, sur votre
+              machine : aucune requête ne part au moment où vous l’ouvrez.
+            </p>
+            <p className="text-base leading-relaxed">
+              De la vente, il reste ce que la loi impose de garder : la facture et son registre,
+              chez le vendeur. C’est ce qui permet de vous renvoyer votre clé si vous la perdez.
+              Rien de plus n’est conservé — ni ce que vous mesurez, ni ce que vous en concluez.
             </p>
             <p className="text-sm leading-relaxed text-panel/85">
-              C’est la contrepartie de la promesse : sans serveur qui vous connaît, personne ne peut
-              couper votre outil, revendre votre historique, ou disparaître avec vos données.
+              C’est la contrepartie de la promesse : sans serveur qui garde vos mesures, personne ne
+              peut couper votre outil, revendre votre historique, ou disparaître avec vos données.
             </p>
           </div>
         </div>
