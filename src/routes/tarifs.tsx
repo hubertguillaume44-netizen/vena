@@ -338,8 +338,10 @@ function Tarifs() {
             </p>
             <p className="text-base leading-relaxed">
               De la vente, il reste ce que la loi impose de garder : la facture et son registre,
-              chez le vendeur. C’est ce qui permet de vous renvoyer votre clé si vous la perdez.
-              Rien de plus n’est conservé — ni ce que vous mesurez, ni ce que vous en concluez.
+              chez le vendeur — avec <strong>le prix que vous avez payé</strong>. C’est ce qui
+              permet de vous renvoyer votre clé si vous la perdez, et de ne jamais remonter votre
+              tarif. Rien de plus n’est conservé : ni ce que vous mesurez, ni ce que vous en
+              concluez.
             </p>
             <p className="text-sm leading-relaxed text-panel/85">
               C’est la contrepartie de la promesse : sans serveur qui garde vos mesures, personne ne

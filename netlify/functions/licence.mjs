@@ -19,6 +19,14 @@
  * justement ce registre comptable qui permet de vérifier que le demandeur a
  * acheté. Les deux promesses cessent de s'exclure dès qu'on nomme leurs domaines.
  *
+ * CE REGISTRE PORTE DEUX PROMESSES, PAS UNE — et la seconde demande une ligne de
+ * plus. « Le tarif de lancement ne remonte jamais pour ceux qui en bénéficient »
+ * n'était tenu par rien : c'est le PRIX PAYÉ, inscrit sur la facture et conservé
+ * avec elle, qui le rend vérifiable sur pièce plutôt que sur parole. À l'ouverture
+ * du paiement, s'assurer que l'article facturé porte son montant — et que le
+ * renoncement au droit de rétractation figure dans le LIBELLÉ de cet article,
+ * pour la même raison : ce qui prouve est ce qu'un tiers a écrit et conserve.
+ *
  * Variables d'environnement (Netlify → Site settings → Environment variables) :
  *   LICENCE_CLE_PRIVEE      clé Ed25519 PKCS8 en base64 — sortie de generer-cles.mjs.
  *                           JAMAIS dans le dépôt ; la fonction refuse la clé de démo.

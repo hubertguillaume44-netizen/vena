@@ -368,6 +368,33 @@ impossible « mes instruments qui ont des bougies », qui est la vue de travail.
 mesure à quelqu'un qui n'a rien déposé ; le second disparaîtrait au premier chargement, et
 avec lui la seule porte visible vers le champ de clé.
 
+## Ce qu'on conserve porte deux promesses, et c'est ce qui les rend vraies
+
+« **Rien n'est conservé sur vous, pas même votre achat** » a longtemps été écrit sur la page
+de vente. C'était faux **et** illégal : une facture se conserve dix ans. La promesse vraie
+porte sur les **données** — prix, scans, portefeuilles ne quittent pas le navigateur — et
+elle est vérifiable. C'est la même figure que la limite de `netlify.toml` : *une règle dit
+où elle s'arrête, sinon elle se lit comme une garantie générale.*
+
+Une fois le domaine nommé, le registre des ventes cesse d'être une gêne et devient **ce qui
+tient deux promesses** :
+
+| La promesse | Ce qui la rend vraie |
+|---|---|
+| « votre clé vous est renvoyée autant de fois qu'il le faut » | le registre prouve que le demandeur a acheté |
+| « le tarif ne remonte jamais pour ceux qui en bénéficient » | **le prix payé**, inscrit sur la facture et conservé avec elle |
+
+La seconde ligne est une **ligne de plus dans ce qu'on conserve**, et sans elle la promesse
+reste verbale — exactement le défaut qu'on venait de purger ailleurs.
+
+**Ce qui prouve est ce qu'un tiers a écrit et conserve.** Le renoncement au droit de
+rétractation suit la même règle : il doit vivre dans le **libellé de l'article** du lien de
+paiement, donc dans la facture, et non à côté. Une première version le faisait voyager dans
+l'adresse de paiement (`?renonce=<horodatage>`) : fausse preuve deux fois — un paramètre
+d'URL est fabricable par l'acheteur, et son absence ne prouve rien non plus, alors que la
+charge de la preuve pèse sur le **vendeur**. La case à cocher reste, et sa fonction reste
+entière : elle fait **consentir**. C'est la facture qui **prouve**.
+
 ## Les cinq règles, dans l'ordre où elles se servent
 
 Elles viennent toutes d'un défaut réel de ce dépôt, et chacune est détaillée plus bas.
@@ -455,9 +482,28 @@ sur `calcRegime` échouait sur son propre commentaire, celui qui nomme `this.ess
 raconter l'erreur ; et la garde d'écriture du générateur tombait sur le nom d'une fonction
 cité dans une note.
 
-Le commentaire qui raconte une garde précédente la **nomme** — c'est son travail. Une garde
-qui lit du source doit donc retirer les commentaires avant de juger, ou s'accrocher à une
-forme que la prose ne peut pas imiter.
+Le commentaire qui raconte une garde précédente la **nomme** — c'est son travail.
+
+**LA CONCLUSION N'EST PAS « AJOUTER LE MOTIF SUIVANT ».** Le remède naïf est de dépouiller
+les commentaires par expression régulière, puis d'en ajouter une à chaque échec : `//`,
+puis `/* */`, puis `{/* */}`. Chaque langage apportera sa syntaxe, et la course est perdue
+d'avance — on ne découvre le motif manquant qu'en tombant dessus.
+
+**Une garde qui lit du source s'ancre sur une forme que la prose ne peut pas imiter** : une
+structure, un marqueur explicite, un compte de nœuds. Pas un motif de commentaire.
+
+Et on peut se tromper de forme une fois de plus. Un analyseur qui suivait les balises JSX
+a paru être la réponse — jusqu'à ce qu'il faille lui apprendre qu'un `a < b` n'est pas une
+balise, puis qu'un `=>` dans un attribut n'est pas la fin d'une balise. La même course, un
+étage plus haut. **La forme retenue est la plus pauvre et la plus sûre : la chaîne de
+caractères.** Un commentaire n'en est jamais une, quelle que soit sa syntaxe, et
+reconnaître une chaîne ne demande de comprendre aucun langage.
+
+**Et une forme pauvre a un angle mort qu'il faut garder, pas taire.** Le texte écrit en
+clair entre deux balises JSX n'est pas une chaîne : les gardes ne le verraient pas, et
+elles ne le diraient pas — le pire mode de panne. Une garde supplémentaire vérifie donc que
+la copie commerciale vit bien dans des littéraux, et **échoue à la place des autres** le
+jour où ce ne sera plus vrai.
 
 ### Une affirmation sur un fichier se relit avant d'être rapportée
 

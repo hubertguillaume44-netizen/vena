@@ -5405,7 +5405,7 @@
         </div>
         <div style="display:flex;flex-direction:column;gap:6px">
           <div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text)">Abonnement</div>
-          <p style="margin:0" class="text-muted">L'abonnement se résilie à tout moment et prend fin au terme de la période en cours. Le tarif de lancement est garanti tant que l'abonnement court : il ne remonte jamais pour ceux qui en bénéficient. Vos données étant enregistrées sur votre appareil, elles ne sont pas supprimées par la résiliation : exportez-les si vous changez de machine. Aucune donnée de marché ni aucun résultat n'est conservé par l'éditeur.</p>
+          <p style="margin:0" class="text-muted">L'abonnement se résilie à tout moment et prend fin au terme de la période en cours. Le tarif de lancement est garanti tant que l'abonnement court : il ne remonte jamais pour ceux qui en bénéficient — le prix payé figure sur votre facture, conservée par l'éditeur, et c'est lui qui fait foi. Vos données étant enregistrées sur votre appareil, elles ne sont pas supprimées par la résiliation : exportez-les si vous changez de machine. Aucune donnée de marché ni aucun résultat n'est conservé par l'éditeur.</p>
         </div>
         <div style="display:flex;flex-direction:column;gap:6px">
           <div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text)">Droit applicable</div>
@@ -15317,7 +15317,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260913.4';
+  VERSION_APP = '260913.5';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -19251,10 +19251,24 @@ GROUPES = {
         // CE QUI RESTE À TRANCHER, et qui n'est pas du code :
         //   · le LIBELLÉ exact du renoncement — il attend l'arbitrage de l'éditeur et de
         //     son comptable ; `RENONCE_TXT` est un emplacement, pas une formule validée ;
-        //   · OÙ l'horodatage est conservé de façon durable. Il part ici dans l'adresse
-        //     de paiement, donc dans la commande ; que le prestataire le renvoie au
-        //     webhook reste À VÉRIFIER avant l'ouverture du paiement. Sans ça, la preuve
-        //     du renoncement n'existe que chez l'acheteur.
+        //   · le LIBELLÉ DE L'ARTICLE du lien de paiement, qui doit PORTER ce renoncement
+        //     — voir juste en dessous pourquoi c'est là et nulle part ailleurs.
+        //
+        // CE QUI PROUVE N'EST PAS CETTE CASE. Une première version faisait voyager
+        // l'horodatage du consentement dans l'adresse de paiement (`?renonce=<ISO>`).
+        // C'était une fausse preuve, deux fois : un paramètre d'URL est fabricable par
+        // l'acheteur, et son absence ne prouve rien non plus — or la charge de la preuve
+        // pèse sur le VENDEUR. Même renvoyé par le prestataire, il ne rapporterait qu'une
+        // valeur que le client contrôle.
+        //
+        // Le renoncement doit donc vivre DANS LE LIBELLÉ DE L'ARTICLE vendu, pas à côté.
+        // Il part alors dans la facture — émise par un tiers, conservée dix ans, non
+        // réécrivable — et payer, c'est accepter ce qui y est décrit. La preuve devient
+        // STRUCTURELLE au lieu d'être déclarative, et elle ne dépend plus de ce que le
+        // webhook veut bien transporter.
+        //
+        // La case reste, et sa fonction reste entière : elle fait CONSENTIR, en clair,
+        // avant le clic. C'est la facture qui prouve.
         const RENONCE_TXT = 'À COMPLÉTER avant l\u2019ouverture du paiement : demande de '
           + 'fourniture immédiate du code d\u2019accès, et reconnaissance de la perte du '
           + 'droit de rétractation qui en découle. Libellé à valider.';
@@ -19265,11 +19279,10 @@ GROUPES = {
           }
           const lien = LIENS[TARIF][k];
           if (lien) {
-            // l'horodatage voyage AVEC la commande : c'est le seul endroit où il peut
-            // encore rejoindre la vente, puisque rien n'est conservé de ce côté-ci
-            const u = lien + (lien.includes('?') ? '&' : '?')
-              + 'renonce=' + encodeURIComponent(new Date().toISOString());
-            window.open(u, '_blank', 'noopener');
+            // le lien part TEL QUEL : rien d'ajouté ici ne prouverait quoi que ce soit.
+            // Ce qui doit porter le renoncement, c'est le libellé de l'article configuré
+            // chez le prestataire — donc la facture.
+            window.open(lien, '_blank', 'noopener');
             return;
           }
           // on reste sur la page de vente : le visiteur venait payer, pas naviguer
@@ -19298,7 +19311,18 @@ GROUPES = {
           // côté de quatorze jours de rétractation se lit comme une pression à décider
           // vite, et les deux se contredisent à voix haute. Il ne reste que la partie
           // tenable : le tarif ne remonte pas pour qui en bénéficie.
-          mentionLancement: 'Tarif de lancement — garanti tant que votre abonnement court : il ne remonte pas pour ceux qui en bénéficient.',
+          // ————— ET CE QUI REND CETTE PHRASE VRAIE EST NOMMÉ —————
+          // « Le tarif ne remonte pas » n'était tenu par rien : exactement le défaut qu'on
+          // venait de purger ailleurs. Ce qui le tient, c'est le REGISTRE DES VENTES — le
+          // même qu'on a légitimé en resserrant « rien n'est conservé » sur son domaine —
+          // à condition d'y écrire le prix payé. Une ligne de plus dans ce qu'on conserve,
+          // et la promesse cesse d'être verbale : elle se vérifie sur pièce.
+          // EN UNE SEULE CHAÎNE, et ce n'est pas une coquetterie : coupée en trois
+          // littéraux, la promesse (« il ne remonte pas ») et sa preuve (« votre
+          // facture ») ne voyageaient plus ensemble — la garde l'a dit, et elle avait
+          // raison. Une phrase qu'on ne peut pas lire d'un bloc se relit mal, et se
+          // vérifie encore plus mal.
+          mentionLancement: 'Tarif de lancement — garanti tant que votre abonnement court : le prix que vous avez pay\u00e9 est inscrit sur votre facture, c\u2019est lui qui fait foi, et il ne remonte pas.',
           // ————— LE CODE D'ACCÈS : plan et date EN CLAIR, motif en clair au refus —————
           //
           // `licEtatTxt` NOMME le titulaire, et c'est voulu — ne le retirez pas par
