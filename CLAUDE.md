@@ -130,11 +130,20 @@ avaient réussi** — c'est la publication automatique qui était verrouillée. 
 ligne restait sur `main@eeca9d5` pendant que les suivantes s'empilaient en réserve.
 
 Retenir la forme, parce qu'elle se reproduira : **tout est vert, et rien n'arrive.** Une
-construction verte ne prouve pas une mise en ligne ; un journal de constructions réussies
-n'est pas un journal de publications. C'est la règle 1 déguisée en tableau de bord — « la
-construction a-t-elle réussi ? » est une intention, « la version en ligne a-t-elle
-changé ? » est le résultat. La seule preuve est **ce que sert l'adresse publique**, et sur
-cette application c'est le numéro du pied de page.
+construction verte ne prouve pas une mise en ligne. C'est la règle 1 déguisée en tableau
+de bord — « la construction a-t-elle réussi ? » est une intention, « la version en ligne
+a-t-elle changé ? » est le résultat.
+
+> **Le journal qu'on regarde n'est pas celui qui répond à la question.**
+
+Un journal de constructions réussies n'est pas un journal de publications, et il est
+d'autant plus trompeur qu'il est vert : on y lit une confirmation là où il n'y a qu'une
+étape. La seule preuve est **ce que sert l'adresse publique** — sur cette application, le
+numéro du pied de page.
+
+C'est ce qui donne rétroactivement sa valeur au **rang de version** : `260913.8` désigne
+une livraison, `260905` ne désignait qu'une semaine. Un numéro qui ne distingue pas deux
+mises en ligne ne peut pas servir de preuve qu'une mise en ligne a eu lieu.
 
 Ce que le dépôt prouvait alors, et qui reste la façon de trancher — en sachant désormais
 qu'aucune de ces vérifications n'atteint le verrou :
