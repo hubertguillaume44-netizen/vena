@@ -78,8 +78,21 @@ test("la copie commerciale vit dans des littéraux — sinon les gardes sont ave
     "données de marché ne quittent jamais votre navigateur",
   ]) {
     assert.ok(dans.includes(bout),
-      `« ${bout} » n’est plus dans un littéral : les gardes de cette suite ne le lisent plus. `
-      + "Remettez-la dans une chaîne, ou donnez à ces gardes une autre prise.");
+      "————— CE TEST ENSEIGNE UNE CONVENTION, IL NE SIGNALE PAS UNE FAUTE —————\n\n"
+      + `La phrase « ${bout} » n’est plus dans une chaîne de caractères : elle a sans doute `
+      + "été écrite en clair entre deux balises, comme <p>Texte</p>. C’est parfaitement "
+      + "lisible, et c’est pour ça que le piège est réel.\n\n"
+      + "POURQUOI ÇA COMPTE : les six gardes de ce fichier vérifient ce que le site PROMET "
+      + "à ses acheteurs — qu’aucune fonction n’est vendue sans être gardée, qu’aucune "
+      + "non-conservation n’est promise sans domaine, qu’aucune rareté n’est annoncée sans "
+      + "compteur. Elles ne savent lire que les CHAÎNES, parce que c’est la seule forme "
+      + "qu’un commentaire ne peut pas imiter. Du texte entre deux balises leur serait "
+      + "invisible, et elles passeraient au vert en ne regardant plus rien.\n\n"
+      + "QUOI ÉCRIRE À LA PLACE : mettez la phrase dans une chaîne et rendez-la — "
+      + "`const PHRASE = \"…\";` puis `<p>{PHRASE}</p>`, ou ajoutez-la à FORMULES, "
+      + "COMPARATIF ou OBJECTIONS selon ce qu’elle dit. Le rendu ne change pas ; la prise "
+      + "des gardes, si.\n\n"
+      + "Si la phrase a simplement été réécrite, mettez la nouvelle dans cette liste.");
   }
 });
 
@@ -179,28 +192,68 @@ test("la facture n’est pas attribuée au prestataire de paiement", () => {
     "la mention légale ne dit plus QUI ne la délivre pas");
 });
 
+/**
+ * Le contenu d'une constante ou d'une propriété, DÉSIGNÉE PAR SON NOM.
+ *
+ * C'est la prise que ni la prose ni le balisage ne peuvent défaire : un commentaire n'est
+ * pas une déclaration, et un `<strong>` inséré dans le rendu ne change pas ce que la
+ * constante contient. Reconnaître la phrase dans le texte, au contraire, se défait des
+ * deux côtés — par le formatage qui la fragmente, par la tournure qui la déguise.
+ */
+function parNom(src, nom) {
+  const re = new RegExp("\\b" + nom + "\\s*[:=]\\s*([\"'`])");
+  const m = re.exec(src);
+  if (!m) return null;
+  const q = m[1];
+  let i = m.index + m[0].length, out = "";
+  while (i < src.length && src[i] !== q) {
+    if (src[i] === "\\") { out += src[i] + src[i + 1]; i += 2; continue; }
+    out += src[i];
+    i++;
+  }
+  return out;
+}
+
 test("le tarif gelé s’appuie sur le registre, pas sur la parole", () => {
   // C'ÉTAIT LA DERNIÈRE PROMESSE SANS MÉCANISME, et elle venait d'être gardée par le même
   // nettoyage qui en a purgé d'autres. « Le tarif ne remonte pas » ne tient que si le prix
-  // payé est écrit quelque part qu'on ne réécrit pas — la facture, conservée avec le
-  // registre des ventes. C'est le MÊME registre qui permet de renvoyer une clé perdue :
-  // une ligne de plus dedans, et deux promesses cessent d'être verbales.
+  // payé est écrit là où on ne le réécrit pas — la facture, conservée avec le registre des
+  // ventes. C'est le MÊME registre qui permet de renvoyer une clé perdue.
   //
-  // La garde exige donc que les deux voyagent ensemble : là où le tarif est promis gelé,
-  // la pièce qui le prouve doit être nommée.
-  // DANS LA MÊME PHRASE, et pas quelque part dans le fichier. Une première écriture
-  // cherchait « facture » dans tout le texte livré : elle passait au vert alors qu'on
-  // venait d'ajouter ailleurs une promesse nue, parce qu'une AUTRE phrase, à propos de
-  // tout autre chose, parlait de facture. Une garde de proximité doit mesurer la
-  // proximité qu'elle prétend mesurer.
-  for (const [nom, t] of [["/tarifs", TARIFS], ["l’application", APP]]) {
-    for (const phrase of chainesLivrees(t)) {
-      if (!/ne remonte (pas|jamais)/.test(phrase)) continue;
-      assert.match(phrase, /facture/,
-        `${nom} promet un tarif qui ne remonte pas sans nommer, LÀ, la pièce qui le prouve : `
-        + `« ${phrase.trim().slice(0, 90)} »`);
-    }
+  // LA GARDE LIT DEUX NOMS, et rien d'autre. Deux versions précédentes se sont défaites :
+  // l'une cherchait « facture » dans TOUT le fichier — mesurer une INTENTION (le mot
+  // existe quelque part) pour un RÉSULTAT (les deux phrases sont ensemble), la règle 1
+  // déguisée ; l'autre lisait phrase par phrase, et manquait « ne jamais remonter votre
+  // tarif » parce que la tournure ne correspondait pas au motif.
+  for (const [ou, src, nom] of [
+    ["/tarifs", TARIFS, "TARIF_GELE"],
+    ["l’application", APP, "mentionLancement"],
+  ]) {
+    const dit = parNom(src, nom);
+    assert.ok(dit,
+      `${ou} : la constante « ${nom} » a disparu. Les phrases qui ENGAGENT vivent dans une `
+      + "constante nommée, précisément pour que cette garde ait une prise que le formatage "
+      + "ne défait pas. Si elle a été renommée, renommez-la ici aussi.");
+    assert.match(dit, /facture/,
+      `${ou} : « ${nom} » promet un tarif qui ne remonte pas sans nommer, DANS LA MÊME `
+      + `phrase, la pièce qui le prouve — la facture, où le prix payé est inscrit. `
+      + `Aujourd’hui : « ${dit.slice(0, 80)}… »`);
+    assert.match(dit, /ne remonte/,
+      `${ou} : « ${nom} » ne porte plus la promesse qu’elle est censée tenir.`);
   }
+  // ————— ET LA CONSTANTE DOIT ÊTRE RENDUE, SINON ON GARDE UN TEXTE MORT —————
+  // Nommer la phrase protège du formatage, mais pas de quelqu'un qui la recopierait en
+  // clair dans le rendu en laissant la constante derrière : la garde resterait verte en
+  // surveillant un texte que personne ne lit plus. Vérifié à la mutation — c'est le seul
+  // trou que l'ancrage par nom ouvrait.
+  const rendu = TARIFS.slice(TARIFS.indexOf("function Tarifs()"));
+  assert.match(rendu, /\{TARIF_GELE\}/,
+    "TARIF_GELE n’est plus rendue : la phrase a probablement été recopiée en clair dans le "
+    + "JSX. Rendez la constante — `<p>{TARIF_GELE}</p>` — sinon cette garde surveille un "
+    + "texte que plus personne n’affiche.");
+  // `mentionLancement` n'est pas encore rendue dans l'application : les boutons d'achat
+  // attendent l'ouverture du paiement. On ne l'exige donc pas, et on le dit plutôt que de
+  // laisser croire que la garde le couvre.
   // et la fonction de licence dit ce que le registre doit porter, pour qui viendra après
   const fn = lire("netlify/functions/licence.mjs");
   assert.match(fn, /PRIX PAYÉ/,

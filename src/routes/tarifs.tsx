@@ -55,6 +55,24 @@ const VERS_CLE = "/app#licence";
 // Les deux doivent rester d'accord : si l'une change, l'autre change.
 const CONTACT = "venacontact1@gmail.com";
 
+// ————— LES PHRASES QUI ENGAGENT SONT NOMMÉES, ET LUES PAR LEUR NOM —————
+//
+// Une garde de proximité — « là où le tarif est promis gelé, la pièce qui le prouve doit
+// être nommée » — a d'abord cherché les deux morceaux dans le texte. Deux façons de la
+// défaire, et aucune ne demande de mauvaise foi :
+//
+//   · le FORMATAGE. Un <strong> inséré au milieu coupe la phrase en trois morceaux, et la
+//     promesse ne voyage plus avec sa preuve — c'est exactement ce qui était arrivé à
+//     `mentionLancement`, écrite en trois littéraux ;
+//   · la TOURNURE. « ne jamais remonter votre tarif » ne correspond pas à « ne remonte
+//     pas » : la garde ne voyait tout simplement pas la phrase, sans rien dire.
+//
+// La prise est donc un NOM, que ni la prose ni le balisage ne peuvent défaire. La garde
+// lit ces constantes par leur nom et vérifie ce qu'elles contiennent ; le rendu peut être
+// mis en forme comme on veut autour.
+const TARIF_GELE =
+  "Le prix que vous avez payé est inscrit sur votre facture : c’est lui qui fait foi, et il ne remonte pas tant que votre abonnement court.";
+
 const FORMULES = [
   {
     cle: "gratuit",
@@ -338,11 +356,10 @@ function Tarifs() {
             </p>
             <p className="text-base leading-relaxed">
               De la vente, il reste ce que la loi impose de garder : la facture et son registre,
-              chez le vendeur — avec <strong>le prix que vous avez payé</strong>. C’est ce qui
-              permet de vous renvoyer votre clé si vous la perdez, et de ne jamais remonter votre
-              tarif. Rien de plus n’est conservé : ni ce que vous mesurez, ni ce que vous en
-              concluez.
+              chez le vendeur. C’est ce qui permet de vous renvoyer votre clé si vous la perdez.
+              Rien de plus n’est conservé : ni ce que vous mesurez, ni ce que vous en concluez.
             </p>
+            <p className="text-base leading-relaxed">{TARIF_GELE}</p>
             <p className="text-sm leading-relaxed text-panel/85">
               C’est la contrepartie de la promesse : sans serveur qui garde vos mesures, personne ne
               peut couper votre outil, revendre votre historique, ou disparaître avec vos données.

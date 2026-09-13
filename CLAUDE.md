@@ -418,9 +418,16 @@ et toujours le même geste pour en sortir : **décider après, pas avant.**
 | `aMoi` | « a-t-il déposé ? » | idem |
 | La sonde accrochée à `const OUVERTS = [];` | « la liste est-elle encore vide ? » | « où la déclaration se trouve-t-elle ? » |
 | Le semis de mesure | « l'espace est-il `.essai` ? » | « quel espace l'application vient-elle d'écrire ? » |
+| La garde du tarif gelé | « le mot *facture* existe-t-il quelque part ? » | « les deux phrases sont-elles ensemble ? » |
+
+La dernière est une variante discrète : chercher un mot dans **tout un fichier** pour
+conclure que deux phrases voyagent ensemble, c'est encore mesurer une intention pour un
+résultat. Elle passait au vert sur une promesse nue, parce qu'une autre phrase, sur tout
+autre chose, parlait de facture. Corrigée, elle a immédiatement trouvé un vrai défaut :
+`mentionLancement` était écrite en trois littéraux, la promesse séparée de sa preuve.
 
 À chaque fois l'intention était un **proxy plausible** du résultat, et à chaque fois elle
-divergeait dans un cas que personne n'avait listé. Les deux dernières sont les plus
+divergeait dans un cas que personne n'avait listé. Les deux du milieu sont les plus
 instructives parce qu'elles n'ont rien cassé bruyamment : la sonde échouait en annonçant
 « /merci : attendu 200 », un message qui ne désigne pas la cause ; et le semis de mesure
 écrivait dans le mauvais espace en rapportant **« 0 série » sans se plaindre** — une
@@ -467,6 +474,11 @@ entre les deux passages : le second ne doit rien retravailler, ni rebalayer les 
 bougies. Une troisième sonde pose la marque d'avance et vérifie que la migration n'entre
 même pas — elle a fait son office une fois, elle ne surveille pas le stockage à vie.
 
+> **Une garde doit échouer quand son HYPOTHÈSE cesse d'être vraie, pas seulement quand le
+> code est faux.** Une garde qui perd sa prise doit tomber, pas passer au vert : sinon
+> elle devient aveugle sans rougir, et c'est le pire mode de panne — on croit être
+> couvert par une garde qui ne regarde plus rien.
+
 **Toute garde qui protège une frontière se vérifie par MUTATION.** On l'écrit, puis on
 casse le code exprès et on vérifie qu'elle tombe. Sans ça, on a écrit un commentaire
 exécutable — c'est précisément pourquoi la garde du générateur passait pendant que la
@@ -499,11 +511,37 @@ balise, puis qu'un `=>` dans un attribut n'est pas la fin d'une balise. La même
 caractères.** Un commentaire n'en est jamais une, quelle que soit sa syntaxe, et
 reconnaître une chaîne ne demande de comprendre aucun langage.
 
+> **Quand une garde demande un correctif de plus, changer de forme — pas ajouter un
+> motif.** Le deuxième rustine est le signal ; le troisième est déjà trop tard.
+
 **Et une forme pauvre a un angle mort qu'il faut garder, pas taire.** Le texte écrit en
 clair entre deux balises JSX n'est pas une chaîne : les gardes ne le verraient pas, et
 elles ne le diraient pas — le pire mode de panne. Une garde supplémentaire vérifie donc que
 la copie commerciale vit bien dans des littéraux, et **échoue à la place des autres** le
 jour où ce ne sera plus vrai.
+
+**Une garde de convention doit ENSEIGNER la convention, pas signaler un écart.** Celle-là
+impose une façon d'écrire : quelqu'un rendra `<p>Texte</p>` de bonne foi et la verra tomber
+sans comprendre. Son message dit donc, en toutes lettres, ce qui vient d'arriver, *pourquoi
+ça compte* — les six autres gardes deviendraient aveugles sans rougir — et *quoi écrire à
+la place*. Une garde de convention dont le message n'enseigne rien est un piège pour le
+prochain.
+
+### Une phrase qui ENGAGE s'ancre sur un nom, pas sur son texte
+
+C'est la conclusion de la règle 3 poussée d'un cran : une forme que **ni la prose ni le
+balisage** ne peuvent défaire.
+
+Une garde de proximité — *là où le tarif est promis gelé, la pièce qui le prouve doit être
+nommée* — a été défaite deux fois sans mauvaise foi : par le **formatage**, un `<strong>`
+au milieu fragmentant la phrase ; et par la **tournure**, « ne jamais remonter votre
+tarif » ne correspondant pas au motif « ne remonte pas ». Les phrases qui engagent vivent
+donc dans une **constante nommée** (`TARIF_GELE`, `mentionLancement`), que la garde lit par
+son nom. Le rendu peut être mis en forme comme on veut autour.
+
+**Avec un trou que l'ancrage par nom ouvre, et qu'il faut fermer** : recopier la phrase en
+clair dans le rendu en laissant la constante derrière laisserait la garde verte sur un
+texte que plus personne n'affiche. Elle vérifie donc aussi que la constante **est rendue**.
 
 ### Une affirmation sur un fichier se relit avant d'être rapportée
 
