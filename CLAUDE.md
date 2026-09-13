@@ -415,7 +415,7 @@ d'URL est fabricable par l'acheteur, et son absence ne prouve rien non plus, alo
 charge de la preuve pèse sur le **vendeur**. La case à cocher reste, et sa fonction reste
 entière : elle fait **consentir**. C'est la facture qui **prouve**.
 
-## Les sept règles, dans l'ordre où elles se servent
+## Les neuf règles, dans l'ordre où elles se servent
 
 Elles viennent toutes d'un défaut réel de ce dépôt, et chacune est détaillée plus bas.
 
@@ -429,9 +429,14 @@ Elles viennent toutes d'un défaut réel de ce dépôt, et chacune est détaill�
    un commentaire permanent que plus personne ne lit.
 7. **La surface se découvre, elle ne s'énumère pas** — un périmètre écrit à la main porte
    toujours une hypothèse implicite.
+8. **Un nom de LIEU fixe un périmètre ; un nom de PROPRIÉTÉ en découvre un** — c'est la
+   règle 7 vue depuis l'amont, au moment où l'on nomme.
+9. **Un angle mort qu'on ne peut pas fermer se déclare dans la garde elle-même** — sinon la
+   garde suivante hérite d'une confiance qu'elle n'a pas méritée.
 
-Les deux dernières sont nées le même jour, sur la même garde, et elles ferment par
-**construction** deux trous que les cinq premières ne fermaient que par **vigilance**.
+Les quatre dernières sont nées le même jour, sur la même garde. Elles ferment par
+**construction** ce que les cinq premières ne fermaient que par **vigilance** — ou, quand
+rien ne peut le fermer, elles l'écrivent.
 
 ## Le défaut a un nom : demander une INTENTION pour prédire un RÉSULTAT
 
@@ -749,8 +754,53 @@ puisqu'elle n'existe qu'au moment d'agir**.
 les quatre autres textes n'ont aucune source dont les dériver — chercher un mot dans la
 prose de `/tarifs` pour conclure qu'un texte existe serait la règle 1 exactement. Ils sont
 donc listés, et le test **écrit son propre angle mort** : un cinquième texte d'après-vente
-naîtrait hors de portée de cette liste. Une garde qui énumère sans le dire finit par se
-lire comme une garde qui découvre.
+naîtrait hors de portée de cette liste — voir la règle 9, qui est née là.
+
+### Un nom de LIEU fixe un périmètre ; un nom de PROPRIÉTÉ en découvre un
+
+C'est **la règle 7 vue depuis l'amont** — non plus au moment où l'on écrit le périmètre,
+mais au moment où l'on **nomme la chose**. Et c'est elle qui explique pourquoi les deux
+premières tentatives étaient des impasses : `tarifs.tsx` puis `src/routes/` sont **deux
+lieux**. Un lieu se déplace ; il ne se généralise pas. Aucune des deux corrections ne
+pouvait mener ailleurs qu'à un troisième lieu.
+
+Le même mouvement s'est rejoué sur le module des textes hors dépôt, et **le nom était le
+symptôme** : il a failli s'appeler « les textes de Revolut ». Revolut est un lieu, et la
+moitié du sujet — l'après-vente, réécrite à la main dans une boîte de courrier — serait
+restée dehors sans que rien ne le signale. Nommé par sa **propriété** — *ce qui engage et
+qu'aucune garde n'atteint, parce que c'est recopié à la main* —, le module a immédiatement
+désigné ce qui lui manquait.
+
+> **Quand un nom désigne un endroit, demandez ce que les choses qui y vivent ont en
+> commun.** La réponse est le vrai nom, et elle découvre ce que l'endroit cachait.
+
+Le test se fait à voix haute : un nom de propriété permet de dire « ceci en est un / ceci
+n'en est pas un » sans regarder où la chose se trouve. Un nom de lieu ne le permet jamais.
+
+### Un angle mort qu'on ne peut pas fermer se déclare dans la garde elle-même
+
+Les quatre libellés d'article se **dérivent** des plans de l'application : aucune liste,
+donc aucune hypothèse. Les quatre autres textes n'ont **aucune source dont les dériver** —
+la promesse de renvoi de clé vit en prose sur `/tarifs`, et chercher un mot dans de la
+prose pour conclure qu'un texte existe serait la **règle 1** exactement, une intention pour
+un résultat. Il fallait donc les énumérer, et une énumération a toujours un angle mort : un
+cinquième texte d'après-vente naîtrait hors de portée.
+
+**On ne pouvait pas le fermer sans commettre la règle 1. On l'a donc écrit** — dans le
+commentaire de la garde, avec ce qu'il coûte et pourquoi il n'est pas refermable.
+
+C'est la même exigence que l'angle mort déjà déclaré pour la forme « chaîne de caractères »
+(le texte JSX nu, qu'une garde supplémentaire signale à la place des autres). Sans cette
+déclaration, la prochaine personne lira une garde qui liste et croira lire une garde qui
+découvre : **elle héritera d'une confiance qu'aucune mesure n'a méritée**, et c'est le pire
+mode de panne — être couvert par une garde qui ne regarde plus ce qu'on croit.
+
+> **Une garde qui énumère sans le dire finit par se lire comme une garde qui découvre.**
+
+Et la conséquence pratique : un angle mort déclaré est un angle mort qui a une **date de
+péremption**. Le jour où une source dont dériver apparaît, la note dit exactement quoi
+remplacer. Un angle mort passé sous silence ne se rouvre jamais, parce que personne ne sait
+qu'il est là.
 
 ## Le démarrage se chronomètre — mesurer à vide ne mesure personne
 
