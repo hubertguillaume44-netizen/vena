@@ -20,8 +20,19 @@
  *
  * Le format est une DATE, pas un compteur : « 260912 » se lit tout de suite comme le
  * 12 septembre 2026, alors que « v47 » demande un tableau de correspondance que
- * personne ne tient. Deux livraisons le même jour portent le même numéro, et c'est
- * assumé : la journée est la granularité utile pour retrouver ce qui tournait.
+ * personne ne tient.
+ *
+ * ————— ET UN RANG, QUAND LA JOURNÉE NE SUFFIT PLUS —————
+ *
+ * « la journée est la granularité utile » était vrai jusqu'au jour où il a fallu savoir
+ * LAQUELLE des livraisons du jour était en ligne. Une seconde livraison le même jour
+ * prend donc « 260913.2 », la troisième « 260913.3 ». Le premier passage du jour reste
+ * nu — « 260913 » — pour que le cas courant garde sa lisibilité.
+ *
+ * Ça ne remplace pas une identification exacte du déploiement, et il faut le savoir :
+ * `VERSION_APP` est restée figée à « 260905 » pendant toute une semaine de travail, si
+ * bien qu'aucun numéro ne distingue les commits antérieurs au 12 septembre. Un rang ne
+ * répare pas le passé, il empêche la suite.
  *
  * Après ce script : `npm run app:solo`, sans quoi l'artefact annonce l'ancienne date et
  * `publier-solo.mjs` refuse de publier — il compare les deux exprès.
@@ -33,30 +44,44 @@ const RACINE = path.resolve(new URL("../../", import.meta.url).pathname);
 const SOURCE = path.join(RACINE, "Vena.dc.html");
 const MARQUE = /(VERSION_APP = ')([^']+)(')/;
 
+/** Le numéro qui suit celui-ci : même jour → rang suivant ; autre jour → la date nue. */
+export function suivante(posee, jour) {
+  const m = /^(\d{6})(?:\.(\d+))?$/.exec(String(posee || ""));
+  if (!m || m[1] !== jour) return jour;
+  return jour + "." + (Number(m[2] || 1) + 1);
+}
+
 /** La date du jour en AAMMJJ, dans le fuseau de la machine — celui de qui livre. */
 export function dateDuJour(d = new Date()) {
   const deux = (n) => String(n).padStart(2, "0");
   return deux(d.getFullYear() % 100) + deux(d.getMonth() + 1) + deux(d.getDate());
 }
 
-const src = readFileSync(SOURCE, "utf8");
-const m = MARQUE.exec(src);
-if (!m) {
-  console.error("[version] VERSION_APP est introuvable dans Vena.dc.html.");
-  process.exit(1);
-}
-const avant = m[2];
-const jour = dateDuJour();
+// ————— UN SCRIPT QUI EXPORTE NE DOIT PAS AGIR EN ÉTANT IMPORTÉ —————
+//
+// `suivante` est exportée pour qu'un test l'éprouve. Sans cette garde, la SEULE lecture
+// du module posait une version : deux imports de vérification ont fait passer le fichier
+// de 260913 à 260913.3 en deux secondes, sans que personne n'ait demandé une livraison.
+// Un module qui agit au chargement n'est pas testable — il n'est même pas lisible.
+const APPELE = process.argv[1]
+  && import.meta.url === new URL("file://" + path.resolve(process.argv[1])).href;
 
-if (process.argv.includes("--voir")) {
-  console.log(`[version] posée : ${avant} · aujourd'hui : ${jour}`
-    + (avant === jour ? " — à jour." : " — À DATER."));
-  process.exit(0);
-}
+if (APPELE) {
+  const src = readFileSync(SOURCE, "utf8");
+  const m = MARQUE.exec(src);
+  if (!m) {
+    console.error("[version] VERSION_APP est introuvable dans Vena.dc.html.");
+    process.exit(1);
+  }
+  const avant = m[2];
+  const jour = dateDuJour();
+  const apres = suivante(avant, jour);
 
-if (avant === jour) {
-  console.log(`[version] déjà datée d'aujourd'hui (${jour}) — rien à faire.`);
-  process.exit(0);
+  if (process.argv.includes("--voir")) {
+    console.log(`[version] posée : ${avant} · aujourd'hui : ${jour}`
+      + (avant === apres ? " — à jour." : ` — prochaine : ${apres}.`));
+  } else {
+    writeFileSync(SOURCE, src.replace(MARQUE, `$1${apres}$3`));
+    console.log(`[version] ${avant} → ${apres}. Relancez « npm run app:solo » pour dater l'artefact.`);
+  }
 }
-writeFileSync(SOURCE, src.replace(MARQUE, `$1${jour}$3`));
-console.log(`[version] ${avant} → ${jour}. Relancez « npm run app:solo » pour dater l'artefact.`);

@@ -33,9 +33,13 @@ function version(fichier) {
   return m[1];
 }
 
-test("la version est une date AAMMJJ, pas un compteur", () => {
+/** La partie DATE d'un numéro, rang éventuel retiré. */
+function jourDe(v) { return String(v).split(".")[0]; }
+
+test("la version est une date AAMMJJ, avec un rang seulement si le jour se répète", () => {
   const v = version("Vena.dc.html");
-  assert.match(v, /^\d{6}$/, `« ${v} » n’est pas six chiffres`);
+  assert.match(v, /^\d{6}(\.[2-9]\d*)?$/,
+    `« ${v} » n’est ni six chiffres, ni six chiffres suivis d’un rang`);
   const [aa, mm, jj] = [v.slice(0, 2), v.slice(2, 4), v.slice(4, 6)].map(Number);
   assert.ok(mm >= 1 && mm <= 12, `mois ${mm} impossible dans « ${v} »`);
   assert.ok(jj >= 1 && jj <= 31, `jour ${jj} impossible dans « ${v} »`);
@@ -48,7 +52,7 @@ test("la version est une date AAMMJJ, pas un compteur", () => {
 test("la version n’est pas dans l’avenir", () => {
   // une faute de frappe se voit ici plutôt que dans un rapport d'avis six mois plus
   // tard : « 270912 » pour « 260912 » passerait tous les autres contrôles
-  const v = version("Vena.dc.html");
+  const v = jourDe(version("Vena.dc.html"));
   const n = new Date();
   const deux = (x) => String(x).padStart(2, "0");
   const aujourdHui = deux(n.getFullYear() % 100) + deux(n.getMonth() + 1) + deux(n.getDate());
@@ -73,4 +77,29 @@ test("la version de l’application n’est pas celle du moteur", () => {
   assert.notEqual(moteur[1], version("Vena.dc.html"), "les deux versions se sont confondues");
   assert.ok(!/signature\([^)]*\)\s*\{[^}]*VERSION_APP/.test(src),
     "VERSION_APP entre dans la signature de cache : une livraison périmerait tous les scans");
+});
+
+test("le rang distingue deux livraisons du même jour", async () => {
+  // « la journée est la granularité utile » était vrai jusqu'au jour où il a fallu savoir
+  // LAQUELLE des livraisons du jour était en ligne. Le premier passage du jour reste nu,
+  // pour que le cas courant garde sa lisibilité.
+  const { suivante } = await import("./version.mjs");
+  assert.equal(suivante("260912", "260913"), "260913", "un jour neuf repart sans rang");
+  assert.equal(suivante("", "260913"), "260913", "un numéro illisible repart sans rang");
+  assert.equal(suivante("260913", "260913"), "260913.2", "la deuxième du jour prend le rang 2");
+  assert.equal(suivante("260913.2", "260913"), "260913.3");
+  assert.equal(suivante("260913.9", "260913"), "260913.10", "le rang compte, il ne s’ordonne pas en texte");
+});
+
+test("importer le script ne pose AUCUNE version", async () => {
+  // `suivante` est exportée pour être éprouvée. Sans garde, la seule LECTURE du module
+  // écrivait dans la source : deux imports de vérification ont fait passer le fichier de
+  // 260913 à 260913.3 en deux secondes, sans que personne n'ait demandé une livraison.
+  const avant = version("Vena.dc.html");
+  await import("./version.mjs?sonde=" + Date.now());
+  assert.equal(version("Vena.dc.html"), avant,
+    "le module a daté le fichier en étant simplement importé");
+  // et la garde se lit dans le source, pour qu'on ne la retire pas par « simplification »
+  const src = readFileSync(new URL("version.mjs", import.meta.url), "utf8");
+  assert.match(src, /const APPELE = /, "la garde d’exécution a disparu");
 });

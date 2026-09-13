@@ -108,6 +108,30 @@ ne parie pas sur une préséance non documentée quand une licence qui tombe sur
 `scripts/deploiement-netlify.test.mjs` lie ces réglages entre eux : préréglage, répertoire
 publié, présence des deux fonctions, et une redirection forcée par chemin déclaré.
 
+### Ce que `netlify.toml` NE tient pas, et qui a déjà fait défaut
+
+**La branche construite n'est pas dans ce fichier.** `netlify.toml` porte la commande, le
+répertoire publié et les fonctions — mais la *production branch* est un réglage de
+l'interface, et rien dans le dépôt ne peut la contredire. C'est exactement le trou que la
+section ci-dessus dénonce, une strate plus bas : le fichier fait foi sur ce qu'il couvre,
+et il ne couvre pas ça.
+
+Un déploiement figé pendant deux jours l'a montré. Ce que le dépôt prouvait alors, et qui
+reste la façon de trancher :
+
+| Vérification | Commande |
+|---|---|
+| la branche par défaut est bien `main` | `git ls-remote --symref origin HEAD` |
+| `main` porte le travail | `git log origin/main --oneline -5` |
+| aucune branche périmée ne traîne | `git ls-remote --heads origin` |
+| la construction passe de bout en bout | `npm run build` |
+
+**Une branche périmée qui reste sur le dépôt est un piège**, pas un souvenir :
+`claude/sivula-mt5-discrepancy-25ktd5` portait encore `Sivula.dc.html` et
+`VERSION_APP = '260905'`. Une interface qui pointerait là construirait un fichier que
+`publier-solo.mjs` ne trouve même plus, et le site resterait figé sans qu'aucune
+construction n'échoue bruyamment.
+
 ## Deux entrées, deux promesses
 
 | Adresse | Ce que c'est | Ce qu'elle promet |
@@ -150,11 +174,12 @@ l'artefact est celle de `Vena.dc.html`, puis copie dans `dist/app/index.html`. P
 `Vena.solo.html` du dépôt aurait servi, un jour ou l'autre, une version figée divergeant
 de la source — la même panne que le préréglage de déploiement, une strate plus haut.
 
-**`_ds/` n'est pas dans le dépôt.** L'application charge sa feuille de style et son paquet
-depuis `_ds/industry-…/`. Sans eux, la page se charge mais la mise en page s'effondre :
-ce n'est pas « seulement l'habillage ». `publier-solo.mjs` le dit à chaque construction.
-Pour le corriger : déposer les deux fichiers dans `public/_ds/industry-…/`, Vite les
-recopie dans `dist/` tout seul.
+**`_ds/` EST dans le dépôt depuis, et cette section disait le contraire.** Quinze fichiers
+sous `public/_ds/industry-…/` — feuille, paquet, manifeste, polices — suivis par git et
+recopiés dans `dist/` par Vite. `publier-solo.mjs` avertit s'ils manquent, et il
+n'avertit plus. La phrase « `_ds/` n'est pas dans le dépôt » est restée après que le
+problème eut été réglé : une consigne périmée envoie chercher une panne qui n'existe
+plus, ce qui coûte plus cher que pas de consigne du tout.
 
 **React et React-DOM viennent d'unpkg.com**, chargés par le runtime DC au démarrage. Un
 réseau qui bloque unpkg laisse l'application vide.
@@ -220,8 +245,22 @@ chercher un défaut là où il n'est plus.
 
 **À chaque livraison :** `npm run app:version` (pose la date du jour, format AAMMJJ),
 puis `npm run app:solo`. `npm run app:version -- --voir` dit ce qui est posé sans rien
-écrire. Deux livraisons le même jour portent le même numéro : la journée est la
-granularité utile.
+écrire.
+
+**Et un RANG quand la journée ne suffit plus.** « La journée est la granularité utile »
+était vrai jusqu'au jour où il a fallu savoir *laquelle* des livraisons du jour était en
+ligne. Une seconde livraison le même jour prend `260913.2`, la troisième `260913.3` ; la
+première du jour reste nue, pour que le cas courant garde sa lisibilité.
+
+**Un rang ne répare pas le passé.** `VERSION_APP` est restée figée à `260905` pendant une
+semaine entière : aucun numéro ne distingue les commits antérieurs au 12 septembre, et
+lire « 260905 » dans un pied de page ne dit rien de plus que « avant le 12 ». C'est la
+raison d'être du rang, et la limite de ce qu'il peut.
+
+**Le script n'agit plus en étant importé.** `suivante()` est exportée pour être éprouvée ;
+sans garde, la seule *lecture* du module posait une version — deux imports de vérification
+ont fait passer le fichier de `260913` à `260913.3` en deux secondes, sans que personne
+n'ait demandé une livraison. Un module qui agit au chargement n'est pas testable.
 
 **Ne pas la confondre avec `MOTEUR_V`.** Celle-là est une clé de cache : la changer
 PÉRIME les résultats enregistrés de tout le monde. `VERSION_APP` est une étiquette, elle
