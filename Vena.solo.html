@@ -3360,7 +3360,7 @@ window.__sivAide = {"entrees":[{"terme":"? Aide","texte":"Les explications de l�
           par le bandeau du haut.
 
           Quatre états, un seul geste offert à chaque fois. Le grand nombre change de
-          sens avec l'état : à mesurer, mesurées, mesurées en tant de temps. La durée
+          sens avec l'état : à balayer, balayées, balayées en tant de temps. La durée
           affichée est l'estimation au repos, le RESTE RÉEL pendant le calcul — le même
           chiffre que le bandeau, calculé au même endroit — et le temps écoulé à la fin.
           Grille vide : la barre nomme l'obstacle et dit où le corriger, à la place du
@@ -3389,8 +3389,16 @@ window.__sivAide = {"entrees":[{"terme":"? Aide","texte":"Les explications de l�
             </sc-if>
             <div style="display:flex;gap:9px;margin-inline-start:auto;align-items:center;flex-wrap:wrap">
               <sc-if value="{{ barEnCours }}" hint-placeholder-val="{{ false }}">
-                <button type="button" style="cursor:pointer;border:1px solid color-mix(in srgb,var(--color-bg) 45%,transparent);background:none;color:var(--color-bg);font-family:var(--font-body);font-size:12px;padding:6px 13px;white-space:nowrap" onClick="{{ basculerPause }}" title="{{ pauseAide }}">{{ pauseBouton }}</button>
-                <button type="button" style="cursor:pointer;border:1px solid color-mix(in srgb,var(--color-bg) 45%,transparent);background:none;color:var(--color-bg);font-family:var(--font-body);font-size:12px;padding:6px 13px;white-space:nowrap" onClick="{{ arreterScan }}" title="Le scan s’arrête après le calcul en cours ; les résultats déjà obtenus sont conservés">{{ arretBouton }}</button>
+                <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end">
+                  <div style="display:flex;gap:9px">
+                    <button type="button" style="cursor:pointer;border:1px solid color-mix(in srgb,var(--color-bg) 45%,transparent);background:none;color:var(--color-bg);font-family:var(--font-body);font-size:12px;padding:6px 13px;white-space:nowrap" onClick="{{ basculerPause }}" title="{{ pauseAide }}">{{ pauseBouton }}</button>
+                    <button type="button" style="cursor:pointer;border:1px solid color-mix(in srgb,var(--color-bg) 45%,transparent);background:none;color:var(--color-bg);font-family:var(--font-body);font-size:12px;padding:6px 13px;white-space:nowrap" onClick="{{ arreterScan }}" title="Le scan s’arrête après le calcul en cours ; les résultats déjà obtenus sont conservés">{{ arretBouton }}</button>
+                  </div>
+                  <!-- la phrase du cadre disparu — à portée du geste qu'elle rassure.
+                       Sans « ci-dessous » : depuis un pied collant, un mot de position
+                       ment selon l'endroit où l'on a défilé. -->
+                  <span style="font-size:10.5px;line-height:1.45;opacity:.8;max-width:46ch;text-align:end">Les résultats déjà calculés sont gardés : un scan arrêté se reprend là où il s’est interrompu, et la carte du balayage se remplit au fur et à mesure.</span>
+                </div>
               </sc-if>
               <sc-if value="{{ barFini }}" hint-placeholder-val="{{ false }}">
                 <button type="button" style="cursor:pointer;border:1px solid var(--color-bg);background:var(--color-bg);color:var(--color-accent-900);font-family:var(--font-body);font-size:12px;padding:7px 15px;white-space:nowrap" onClick="{{ voirResultats }}" title="Le TOP des configurations retenues, plus bas sur cette page.">Voir les résultats</button>
@@ -3445,15 +3453,17 @@ window.__sivAide = {"entrees":[{"terme":"? Aide","texte":"Les explications de l�
           de s'y adapter, et toute la page déborde horizontalement.
         -->
         <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
-          <sc-if value="{{ aProgression }}" hint-placeholder-val="{{ false }}">
-            <div class="blueprint" style="padding:14px 16px;display:flex;flex-direction:column;gap:7px;border-color:var(--color-accent)">
-              <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
-              <span style="font-family:var(--font-heading);font-size:22px;line-height:1.1">{{ scanEnCoursTitre }}</span>
-              <span style="font-size:12px;line-height:1.5">{{ progression }}</span>
-              <span style="font-size:11px;line-height:1.5" class="text-muted">Les résultats déjà calculés sont gardés : un scan arrêté se reprend là où il s’est interrompu. La carte ci-dessous se remplit au fur et à mesure.</span>
-            </div>
-          </sc-if>
+          <!-- ————— TROIS INDICATEURS POUR UN SEUL SCAN : LE CADRE EST PARTI —————
 
+               Pendant un scan, le cadre « Scan en cours » répétait ce que le bandeau du
+               haut et le pied d'acier disaient déjà — pourcentage, reste, instrument
+               courant — sans les commandes. Sa seule information PROPRE était la phrase
+               qui rassure sur l'arrêt : elle vit maintenant sous Pause / Arrêter, dans le
+               pied — un message qui rassure se met à portée du geste qu'il rassure.
+               Son second usage, la progression du contrôle « ailleurs », était déjà
+               porté par {{ calculTexte }} dans la fiche, au point d'où le contrôle part.
+               Le « temps écoulé » n'a pas été replacé : le reste à faire est ce qu'on
+               regarde, et l'écoulé survit dans l'infobulle du bandeau (scanEtatTxt). -->
           <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap">
             <div>
               <div style="display:flex;gap:10px;align-items:baseline;flex-wrap:wrap">
@@ -15530,7 +15540,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260913.14';
+  VERSION_APP = '260913.15';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -20952,8 +20962,9 @@ GROUPES = {
             + Number(avance.total).toLocaleString('fr-FR')
             + ' \u00b7 instrument ' + Math.min(fait + 1, n) + ' sur ' + n
             + (s.scanSymCourant ? ' \u2014 ' + this.nomComplet(s.scanSymCourant) : ''),
-          progression: s.scanEnCours ? coeur : (s.progression || ''),
-          aProgression: !!(s.scanEnCours || s.progression),
+          // `progression` et `aProgression` sont partis avec le cadre « Scan en cours » :
+          // le bandeau et le pied portent le scan, {{ calculTexte }} porte le contrôle
+          // « ailleurs » — l'état s.progression, lui, reste : c'est lui qu'il lit.
         };
       })(),
       // Les producteurs de la pastille de fin sont partis avec elle : `scanFini`,
@@ -22483,7 +22494,6 @@ GROUPES = {
         };
       })(),
       titreTop: 'TOP des configurations',
-      scanEnCoursTitre: 'Scan en cours',
       // ————— LES PANNEAUX DE LA PAGE SCAN —————
       aPanScan: !!s.panScan,
       aPanNombres: s.panScan === 'nombres',
@@ -23952,11 +23962,21 @@ GROUPES = {
               barGros: enCours ? Number(avance.faites).toLocaleString('fr-FR')
                 : fini ? Number(faitesFin).toLocaleString('fr-FR')
                 : (nU * parInstr).toLocaleString('fr-FR'),
+              // ————— « MESURÉES » DÉSIGNAIT DEUX ÉTAGES DE L'ENTONNOIR À LA FOIS —————
+              // Ce compteur disait « 712 800 mesurées sur 3 556 800 » pendant que
+              // l'en-tête disait « 1 076 configurations mesurées » — le même mot à un
+              // rapport de 1 à 660. Les nombres étaient justes, le mot mentait. Le
+              // vocabulaire de la descente existe déjà dans le produit, un mot par
+              // étage : COMBINAISONS (le récapitulatif) → BALAYÉES (ce compteur, le
+              // champ s'appelle scanTestes) → MESURÉES (celles qui produisent une
+              // ligne) → RETENUES (celles qui passent les contrôles). Les trois états
+              // du compteur parlent le même étage : balayées en cours, balayées à la
+              // fin, à balayer au repos.
               barGrosSous: enCours
-                ? 'mesurées sur ' + Number(s.scanTestes || 0).toLocaleString('fr-FR')
-                : fini ? 'mesurées en ' + this.duree((s.scanDuree || 0) / 1000)
+                ? 'balayées sur ' + Number(s.scanTestes || 0).toLocaleString('fr-FR')
+                : fini ? 'balayées en ' + this.duree((s.scanDuree || 0) / 1000)
                   + (partiel ? ' \u00b7 scan arrêté' : '')
-                : 'combinaisons à mesurer',
+                : 'combinaisons à balayer',
               barADroite: !vide,
               barDroite: enCours ? avance.resteTxt
                 : fini ? Number((derniere && derniere.n) || 0).toLocaleString('fr-FR') + ' retenues'
