@@ -89,7 +89,17 @@ une redirection se retire le jour où quelqu'un recrée un dépôt sous l'ancien
 ## Déploiement — la configuration vit dans le dépôt
 
 `netlify.toml` porte les trois réglages : commande de construction, `publish = "dist"`,
-répertoire de fonctions. **Il fait foi contre l'interface Netlify.** Un réglage posé dans
+répertoire de fonctions. **Il fait foi contre l'interface Netlify — sur ces trois-là.**
+
+**UNE RÈGLE DIT OÙ ELLE S'ARRÊTE, SINON ELLE SE LIT COMME UNE GARANTIE GÉNÉRALE.** C'est
+la même famille que la garde qui éprouvait le producteur au lieu du consommateur : une
+consigne vraie sur son domaine, prise pour vraie partout. Ce fichier ne couvre **pas** la
+branche construite, ni l'activation des constructions, ni les variables d'environnement —
+trois réglages qui vivent dans l'interface, que rien dans le dépôt ne peut contredire, et
+dont le premier a déjà figé un déploiement pendant deux jours pendant que `main` avançait.
+Voir « Ce que `netlify.toml` ne tient pas » plus bas.
+
+Un réglage posé dans
 une interface ne se relit pas, ne se révise pas en revue, et personne ne sait qu'il existe
 jusqu'au jour où il casse — c'est arrivé : l'interface annonçait `dist/client` et le dépôt
 construisait pour Vercel, deux sorties dont aucune n'existait.
@@ -127,10 +137,23 @@ reste la façon de trancher :
 | la construction passe de bout en bout | `npm run build` |
 
 **Une branche périmée qui reste sur le dépôt est un piège**, pas un souvenir :
-`claude/sivula-mt5-discrepancy-25ktd5` portait encore `Sivula.dc.html` et
+`claude/sivula-mt5-discrepancy-25ktd5` porte encore `Sivula.dc.html` et
 `VERSION_APP = '260905'`. Une interface qui pointerait là construirait un fichier que
 `publier-solo.mjs` ne trouve même plus, et le site resterait figé sans qu'aucune
 construction n'échoue bruyamment.
+
+**Elle est à supprimer, et elle ne perd rien** : vérifié, son sommet est un ancêtre de
+`main` et elle ne porte **aucun** commit propre — `git log origin/main..<branche>` rend
+zéro. La supprimer retire un pointeur, pas un historique.
+
+```
+git push origin --delete claude/sivula-mt5-discrepancy-25ktd5
+```
+
+Depuis une session Claude Code, cette commande ne passe pas : le mandataire git accepte la
+poussée et **laisse tomber le refspec de suppression** — elle rend « Everything
+up-to-date » et la branche reste. Trois tentatives, même résultat. C'est un geste à faire
+depuis un poste, ou depuis l'interface GitHub.
 
 ## Deux entrées, deux promesses
 
@@ -375,6 +398,23 @@ instructives parce qu'elles n'ont rien cassé bruyamment : la sonde échouait en
 « /merci : attendu 200 », un message qui ne désigne pas la cause ; et le semis de mesure
 écrivait dans le mauvais espace en rapportant **« 0 série » sans se plaindre** — une
 mesure fausse qui a l'air d'une mesure.
+
+### Sa variante par effet de bord : un module qui AGIT au lieu d'OFFRIR
+
+**Un module qui agit au chargement transforme toute lecture en écriture.** `version.mjs`
+datait la source à l'import : deux imports de vérification ont livré deux versions en deux
+secondes. Le lecteur demandait « que fait cette fonction ? », le module a répondu en le
+faisant.
+
+C'est la même erreur vue de l'autre bout : au lieu de prendre une intention pour un
+résultat, le module prend une lecture pour un ordre. **Un script exporte, ou il agit — s'il
+fait les deux, sa partie active vit derrière un test d'appel direct.**
+
+Et une **consigne périmée** relève de la même famille : elle a l'autorité des vraies et
+envoie chercher une panne qui n'existe plus — « `_ds/` n'est pas dans le dépôt » l'a fait,
+des deux côtés de la conversation. La règle 5 vaut pour les consignes autant que pour le
+code : une affirmation sur un fichier se relit sur le disque, qu'elle vienne d'un script,
+d'un document, ou de quelqu'un qui cite le document.
 
 **Quand le résultat est observable, observez-le.** Il l'est presque toujours : il suffit
 d'accepter de le faire plus tard dans le code.
