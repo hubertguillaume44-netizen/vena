@@ -6,16 +6,25 @@
 // est ignorée ; en mode « in table body », un élément étranger est extrait de la table
 // et reposé avant elle. Une `sc-for` ou une `sc-if` placée là dépend donc du moteur.
 //
-// MESURÉ sur le fichier livré, analysé par le vrai analyseur HTML sans exécuter les
-// scripts : sur 452 balises de gabarit, 27 sont enfants directs d'un `<select>` — ce
-// Chromium-là les garde — et 37 portant des `<tr>`/`<td>` se retrouvent REPOSÉES HORS
-// de leur table. Chez un utilisateur, en vue intégrée, le sélecteur de comptes
-// n'affichait qu'une option vide : la liste n'arrivait jamais au DOM.
+// LA MOITIÉ TABLE DE CE CLIQUET A MORDU, ET LA DETTE AVAIT ÉTÉ SOUS-PESÉE. « 37 balises
+// portant des <tr>/<td> reposées hors de leur table » était mesuré ici même — et sa
+// CONSÉQUENCE n'était écrite nulle part : chaque table de données de l'application
+// rendait une rangée vide, pour tout le monde, à chaque chargement. « Dix-sept tableaux
+// à refaire » se lisait comme du cosmétique ; ça voulait dire « aucune table ne rend ».
+// Une dette déclarée sans sa gravité se classe toute seule en bas de la pile.
 //
-// CE TEST EST UN CLIQUET, pas une interdiction. Tout convertir demanderait de refaire
-// vingt-cinq menus déroulants et dix-sept tableaux, ce qui n'est pas une passe à mener
-// la veille d'une publication. Il fige donc ce qui existe et refuse tout AJOUT : la
-// classe de défaut ne peut plus grandir, et le reste se traite en une passe dédiée.
+// LA PASSE DÉDIÉE A EU LIEU. Le runtime porte depuis toujours la parade — RAW_WRAP
+// renomme table/tr/td en sc-raw-* pour traverser l'analyseur, et RAW_UNWRAP rend les
+// vrais éléments — mais elle ne protège que ce qui n'est pas DÉJÀ abîmé : le chemin de
+// réparation par relecture du texte brut est derrière `if (!window.__resources)`, que
+// le vendorage de React rend toujours faux. Le gabarit écrit donc ses tables
+// DIRECTEMENT en sc-raw-* : l'analyseur du document n'y touche pas, et le rendu est le
+// même. Pour les tables, le cliquet devient une INTERDICTION.
+//
+// LES <select>, eux, restent au cliquet : ce Chromium garde leurs sc-for (27 enfants
+// directs mesurés), le défaut confirmé du sélecteur de comptes est corrigé en <div>,
+// et leur conversion est une passe à part — qu'on mènera en sachant, cette fois,
+// écrire la gravité à côté de la dette.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -65,7 +74,7 @@ function occurrences() {
 }
 
 // L'état connu au moment où le cliquet est posé. Ces nombres ne doivent que DESCENDRE.
-const CONNUS = { select: 25, tbody: 17 };
+const CONNUS = { select: 25 };
 
 test("aucune boucle de gabarit dans un conteneur à contenu restreint NON connu", () => {
   const par = {};
@@ -86,6 +95,36 @@ test("le cliquet ne remonte pas : aucun ajout dans les conteneurs déjà touché
       + "correction — construisez la liste dans la logique et posez-la en une valeur, ou "
       + "remplacez le conteneur par un menu en <div>, comme l’en-tête.");
   }
+});
+
+test("le gabarit n’écrit plus une seule vraie table : sc-raw-* partout", () => {
+  // ————— CE TEST ENSEIGNE UNE CONVENTION, IL NE SIGNALE PAS UNE FAUTE —————
+  //
+  // Écrire <table><tbody><sc-for>… est la façon NATURELLE d'écrire une table de données,
+  // et c'est pour ça que le piège a tenu des semaines : l'analyseur HTML repose le
+  // sc-for HORS de la table avant que le moindre script ne tourne, la boucle itère dans
+  // le vide, et la rangée-gabarit reste dans le tbody avec des trous que rien ne peut
+  // plus remplir — « {{ ir.nom }} never resolved », en console, chez tout le monde.
+  //
+  // QUOI ÉCRIRE À LA PLACE : les mêmes balises, préfixées — <sc-raw-table>,
+  // <sc-raw-thead>, <sc-raw-tbody>, <sc-raw-tr>, <sc-raw-th>, <sc-raw-td>,
+  // <sc-raw-tfoot>, <sc-raw-caption>. Le runtime les rend comme les vraies (RAW_UNWRAP),
+  // le CSS ne voit pas la différence, et l'analyseur ne les connaît pas — donc ne les
+  // déplace pas. La garde de rendu (rendu-gabarit.test.mjs) attraperait le symptôme ;
+  // celle-ci attrape le geste, avec le numéro de ligne.
+  const gabarit = NU.slice(NU.indexOf("<x-dc>"), NU.indexOf("</x-dc>"));
+  const depart = NU.indexOf("<x-dc>");
+  const vraies = [];
+  const reT = /<\/?(table|thead|tbody|tfoot|caption|tr|th|td)(?=[\s>])/g;
+  let mt;
+  while ((mt = reT.exec(gabarit))) {
+    vraies.push(mt[0] + " — ligne " + NU.slice(0, depart + mt.index).split("\n").length);
+  }
+  assert.deepEqual(vraies.slice(0, 8), [],
+    "le gabarit écrit des balises de table réelles :\n  " + vraies.slice(0, 8).join("\n  ")
+    + "\n\nL'analyseur HTML les vide de leur gabarit avant tout script — voir l'en-tête de "
+    + "ce fichier. Écrivez <sc-raw-table>, <sc-raw-tr>, <sc-raw-td>… : même rendu, même "
+    + "CSS, aucune rangée fantôme.");
 });
 
 test("l’en-tête n’a plus de <select> : son menu de comptes est en <div>", () => {

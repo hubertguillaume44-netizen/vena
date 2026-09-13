@@ -415,7 +415,7 @@ d'URL est fabricable par l'acheteur, et son absence ne prouve rien non plus, alo
 charge de la preuve pèse sur le **vendeur**. La case à cocher reste, et sa fonction reste
 entière : elle fait **consentir**. C'est la facture qui **prouve**.
 
-## Les dix règles, dans l'ordre où elles se servent
+## Les onze règles, dans l'ordre où elles se servent
 
 Elles viennent toutes d'un défaut réel de ce dépôt, et chacune est détaillée plus bas.
 
@@ -435,10 +435,14 @@ Elles viennent toutes d'un défaut réel de ce dépôt, et chacune est détaill�
    garde suivante hérite d'une confiance qu'elle n'a pas méritée.
 10. **Le cas VIDE est le plus faible des tests** — c'est celui où la moitié des bugs
     d'état ne peuvent pas se produire, et c'est celui qu'on écrit spontanément.
+11. **Seul le rendu prouve que la valeur arrive** — une garde de source voit ce qui est
+    envoyé, jamais ce qui est reçu ; et un avertissement de runtime est une mesure, pas
+    du bruit.
 
-Les quatre dernières sont nées le même jour, sur la même garde. Elles ferment par
+Les règles 6 à 9 sont nées le même jour, sur la même garde. Elles ferment par
 **construction** ce que les cinq premières ne fermaient que par **vigilance** — ou, quand
-rien ne peut le fermer, elles l'écrivent.
+rien ne peut le fermer, elles l'écrivent. La onzième est née de la panne la plus large du
+dépôt : toutes les tables vides, tous les tests verts.
 
 ## Le défaut a un nom : demander une INTENTION pour prédire un RÉSULTAT
 
@@ -846,6 +850,53 @@ est le minimum pour qu'une fusion, un remplacement ou un ordre existent.
 La même forme se relit dans « mesurer à vide ne mesure personne » plus bas : un navigateur
 vide n'est la condition de personne, et un état vide n'est pas le cas d'usage. Les deux
 disent qu'un décor sans contenu ne mesure que le décor.
+
+### Seul le rendu prouve que la valeur arrive — et le runtime le criait déjà
+
+Chaque table de données de l'application a rendu **une rangée vide, pour tout le monde,
+pendant des semaines** — instruments, fiche des courtiers, scans, journal. Le producteur
+calculait juste, le gabarit était écrit juste, et 436 tests de source passaient au vert :
+**aucun d'eux ne pouvait voir que la valeur ne rejoignait jamais son trou.** Un test qui
+lit le code écrit sait ce qui est envoyé ; seul le rendu sait ce qui est reçu.
+
+La chaîne causale, parce qu'elle resservira :
+
+1. l'analyseur HTML **repose hors de la table** tout élément qui n'est pas de la famille
+   table — `<sc-for>` en tête. Vérifié d'une ligne : `<table><tbody><sc-for><tr>…`
+   devient `<sc-for></sc-for><table><tbody><tr>…` — la boucle vidée, la rangée-gabarit
+   orpheline dans le tbody, ses trous à jamais irrésolubles ;
+2. le runtime porte la parade (`RAW_WRAP` renomme les balises de table pour traverser
+   l'analyse) — mais elle ne protège que ce qui n'est pas **déjà** abîmé, et `boot()` lit
+   `dc.innerHTML`, le DOM après dégâts ;
+3. le chemin de réparation — relire le texte brut — vit derrière `if (!window.__resources)`,
+   et **le vendorage de React rend cette condition toujours fausse**. Une intention (« les
+   ressources sont fournies ») lue comme un résultat (« le gabarit du DOM est sain ») : la
+   règle 1, dans le runtime.
+
+**Le correctif vit dans la source** : les tables du gabarit s'écrivent en `sc-raw-table`,
+`sc-raw-tr`, `sc-raw-td`… — l'analyseur ne les connaît pas, donc ne les déplace pas, et
+`RAW_UNWRAP` rend les vrais éléments, même CSS, même comportement. Deux gardes le
+tiennent : l'interdiction de balise de table réelle dans le gabarit (le geste, avec le
+numéro de ligne), et **la garde de rendu** — `rendu-gabarit.test.mjs` charge le vrai
+fichier livré dans un vrai navigateur et échoue sur tout `never resolved`, avec le nom du
+trou. Elle exige Chromium et tombe s'il manque : une garde qui saute en silence est une
+garde aveugle sans rougir.
+
+Trois leçons, dans l'ordre où elles ont coûté :
+
+- **Le runtime le disait, sept fois, à chaque chargement, chez chaque utilisateur** —
+  `{{ ir.nom }} never resolved`, en console. Un avertissement de runtime est une mesure,
+  pas du bruit : celle-là désignait le trou par son nom depuis le premier jour.
+- **Une dette déclarée sans sa gravité se classe toute seule en bas de la pile.** Le
+  cliquet de `gabarit-contenu-restreint` avait MESURÉ les 37 balises reposées hors de
+  leur table et écrit « à traiter en une passe dédiée ». « Dix-sept tableaux » se lisait
+  comme du cosmétique ; ça voulait dire « aucune table ne rend ». La conséquence d'une
+  dette s'écrit à côté de la dette, sinon le chiffre seul décide de l'urgence.
+- **Une mesure qu'on explique au lieu de l'expliquer est une mesure perdue.** La sonde du
+  chantier précédent affichait `lignes: 1` sur une liste annoncée à dix : c'était CE
+  défaut, sous les yeux, et il a été rangé d'une phrase — « sans doute une autre table ».
+  Le premier utilisateur, lui aussi, avait été cru sur la mauvaise cause : son filtre à
+  0/4 était une coïncidence, sa liste était vide comme celle de tout le monde.
 
 ## Le démarrage se chronomètre — mesurer à vide ne mesure personne
 

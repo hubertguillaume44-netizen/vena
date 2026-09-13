@@ -1650,37 +1650,37 @@ window.__sivAide = {"entrees":[{"terme":"? Aide","texte":"Les explications de l�
       </div>
 
       <div style="overflow-x:auto">
-        <table class="table" style="font-size:12px;width:100%">
-          <thead><tr>
-            <th style="width:1%"></th>
-            <th style="width:1%">#</th>
-            <th>Instrument</th>
-            <th>Groupe</th>
-            <th style="text-align:right;width:1%;white-space:nowrap">Part de votre <button type="button" class="lien" style="font-size:inherit" title="Ce que vaut 1 R — capital × risque. Cette colonne divise par ce montant : cliquez pour le régler." onClick="{{ ouvrir1R }}">1 R</button></th>
-            <th style="min-width:18ch">Bougies présentes</th>
-            <th style="text-align:right;width:1%;white-space:nowrap">Meilleur au scan</th>
-          </tr></thead>
-          <tbody>
+        <sc-raw-table class="table" style="font-size:12px;width:100%">
+          <sc-raw-thead><sc-raw-tr>
+            <sc-raw-th style="width:1%"></sc-raw-th>
+            <sc-raw-th style="width:1%">#</sc-raw-th>
+            <sc-raw-th>Instrument</sc-raw-th>
+            <sc-raw-th>Groupe</sc-raw-th>
+            <sc-raw-th style="text-align:right;width:1%;white-space:nowrap">Part de votre <button type="button" class="lien" style="font-size:inherit" title="Ce que vaut 1 R — capital × risque. Cette colonne divise par ce montant : cliquez pour le régler." onClick="{{ ouvrir1R }}">1 R</button></sc-raw-th>
+            <sc-raw-th style="min-width:18ch">Bougies présentes</sc-raw-th>
+            <sc-raw-th style="text-align:right;width:1%;white-space:nowrap">Meilleur au scan</sc-raw-th>
+          </sc-raw-tr></sc-raw-thead>
+          <sc-raw-tbody>
             <sc-for list="{{ instrRows }}" as="ir" hint-placeholder-count="14">
-              <tr class="lg" style="cursor:pointer;background:{{ ir.fond }};opacity:{{ ir.opacite }}" title="{{ ir.aide }}" onClick="{{ ir.choisir }}">
-                <td style="width:1%">
+              <sc-raw-tr class="lg" style="cursor:pointer;background:{{ ir.fond }};opacity:{{ ir.opacite }}" title="{{ ir.aide }}" onClick="{{ ir.choisir }}">
+                <sc-raw-td style="width:1%">
                   <button type="button" style="cursor:pointer;border:0;background:none;padding:2px;display:flex;align-items:center" title="{{ ir.cocheAide }}" onClick="{{ ir.cocher }}">
                     <span style="width:13px;height:13px;border:1px solid {{ ir.cocheBord }};background:{{ ir.cocheFond }};color:var(--color-bg);font-size:10px;line-height:13px;text-align:center">{{ ir.cocheMarque }}</span>
                   </button>
-                </td>
-                <td class="text-muted" style="width:1%;font-family:var(--font-heading)">{{ ir.rangCout }}</td>
-                <td><strong style="font-size:13px">{{ ir.nom }}</strong></td>
-                <td class="text-muted">{{ ir.grp }}</td>
-                <td style="text-align:right;white-space:nowrap;font-weight:{{ ir.poids }};color:{{ ir.couleur }}">{{ ir.part }}</td>
-                <td style="min-width:18ch">
+                </sc-raw-td>
+                <sc-raw-td class="text-muted" style="width:1%;font-family:var(--font-heading)">{{ ir.rangCout }}</sc-raw-td>
+                <sc-raw-td><strong style="font-size:13px">{{ ir.nom }}</strong></sc-raw-td>
+                <sc-raw-td class="text-muted">{{ ir.grp }}</sc-raw-td>
+                <sc-raw-td style="text-align:right;white-space:nowrap;font-weight:{{ ir.poids }};color:{{ ir.couleur }}">{{ ir.part }}</sc-raw-td>
+                <sc-raw-td style="min-width:18ch">
                   <span style="display:block;height:5px;background:{{ ir.barre }}"></span>
                   <span style="display:block;font-size:10px;margin-top:2px;color:{{ ir.couvCoul }}">{{ ir.couvLbl }}</span>
-                </td>
-                <td style="text-align:right;white-space:nowrap;color:{{ ir.meilleurCoul }}">{{ ir.meilleur }}</td>
-              </tr>
+                </sc-raw-td>
+                <sc-raw-td style="text-align:right;white-space:nowrap;color:{{ ir.meilleurCoul }}">{{ ir.meilleur }}</sc-raw-td>
+              </sc-raw-tr>
             </sc-for>
-          </tbody>
-        </table>
+          </sc-raw-tbody>
+        </sc-raw-table>
           <!-- L'ÉTAT VIDE, SOUS LE TABLEAU ET DANS SON FLUX : c'est là que l'œil cherche
                les lignes qui manquent. En-dessous de la note de coût, il se lirait comme
                un commentaire de la note. -->
@@ -1766,28 +1766,28 @@ window.__sivAide = {"entrees":[{"terme":"? Aide","texte":"Les explications de l�
                 <span style="font-size:12px" class="text-muted">{{ fCoutSous }}</span>
               </div>
               <sc-if value="{{ aFCout }}" hint-placeholder-val="{{ true }}">
-                <table class="table" style="font-size:12px">
-                  <thead><tr>
-                    <th>Courtier</th>
-                    <th style="text-align:right">Spread</th>
-                    <th style="text-align:right">Portage</th>
-                    <th style="text-align:right">Commission</th>
-                    <th style="text-align:right">Total</th>
-                    <th style="text-align:right">Part de votre <button type="button" class="lien" style="font-size:inherit" title="Ce que vaut 1 R — capital × risque. Cette colonne divise par ce montant : cliquez pour le régler." onClick="{{ ouvrir1R }}">1 R</button></th>
-                  </tr></thead>
-                  <tbody>
+                <sc-raw-table class="table" style="font-size:12px">
+                  <sc-raw-thead><sc-raw-tr>
+                    <sc-raw-th>Courtier</sc-raw-th>
+                    <sc-raw-th style="text-align:right">Spread</sc-raw-th>
+                    <sc-raw-th style="text-align:right">Portage</sc-raw-th>
+                    <sc-raw-th style="text-align:right">Commission</sc-raw-th>
+                    <sc-raw-th style="text-align:right">Total</sc-raw-th>
+                    <sc-raw-th style="text-align:right">Part de votre <button type="button" class="lien" style="font-size:inherit" title="Ce que vaut 1 R — capital × risque. Cette colonne divise par ce montant : cliquez pour le régler." onClick="{{ ouvrir1R }}">1 R</button></sc-raw-th>
+                  </sc-raw-tr></sc-raw-thead>
+                  <sc-raw-tbody>
                     <sc-for list="{{ fCoutLignes }}" as="fc" hint-placeholder-count="3">
-                      <tr>
-                        <td style="font-weight:{{ fc.poids }}">{{ fc.courtier }}<sc-if value="{{ fc.principal }}" hint-placeholder-val="{{ false }}"><span style="display:block;font-size:11px;font-weight:400" class="text-muted">compte principal</span></sc-if></td>
-                        <td style="text-align:right">{{ fc.spread }}</td>
-                        <td style="text-align:right">{{ fc.portage }}</td>
-                        <td style="text-align:right">{{ fc.comm }}</td>
-                        <td style="text-align:right;font-weight:{{ fc.poids }}">{{ fc.total }}</td>
-                        <td style="text-align:right;font-weight:{{ fc.poids }}">{{ fc.partR }}<span style="display:block;font-size:11px;font-weight:400" class="text-muted">{{ fc.partEuros }}</span></td>
-                      </tr>
+                      <sc-raw-tr>
+                        <sc-raw-td style="font-weight:{{ fc.poids }}">{{ fc.courtier }}<sc-if value="{{ fc.principal }}" hint-placeholder-val="{{ false }}"><span style="display:block;font-size:11px;font-weight:400" class="text-muted">compte principal</span></sc-if></sc-raw-td>
+                        <sc-raw-td style="text-align:right">{{ fc.spread }}</sc-raw-td>
+                        <sc-raw-td style="text-align:right">{{ fc.portage }}</sc-raw-td>
+                        <sc-raw-td style="text-align:right">{{ fc.comm }}</sc-raw-td>
+                        <sc-raw-td style="text-align:right;font-weight:{{ fc.poids }}">{{ fc.total }}</sc-raw-td>
+                        <sc-raw-td style="text-align:right;font-weight:{{ fc.poids }}">{{ fc.partR }}<span style="display:block;font-size:11px;font-weight:400" class="text-muted">{{ fc.partEuros }}</span></sc-raw-td>
+                      </sc-raw-tr>
                     </sc-for>
-                  </tbody>
-                </table>
+                  </sc-raw-tbody>
+                </sc-raw-table>
               </sc-if>
               <span style="font-size:11px;line-height:1.5" class="text-muted">{{ fCoutLecture }}</span>
             </div>
@@ -1945,26 +1945,26 @@ window.__sivAide = {"entrees":[{"terme":"? Aide","texte":"Les explications de l�
         </div>
         <sc-if value="{{ aAvs }}" hint-placeholder-val="{{ false }}">
           <div style="overflow-x:auto">
-            <table class="table" style="font-size:13px;min-width:660px">
-              <thead>
-                <tr>
-                  <th style="text-align:left">Instrument · configuration</th>
-                  <th style="text-align:center">Sans filtre</th>
-                  <th style="text-align:center">En sautant ±2 h</th>
-                  <th style="text-align:left">Ce qu'on peut en dire</th>
-                </tr>
-              </thead>
-              <tbody>
+            <sc-raw-table class="table" style="font-size:13px;min-width:660px">
+              <sc-raw-thead>
+                <sc-raw-tr>
+                  <sc-raw-th style="text-align:left">Instrument · configuration</sc-raw-th>
+                  <sc-raw-th style="text-align:center">Sans filtre</sc-raw-th>
+                  <sc-raw-th style="text-align:center">En sautant ±2 h</sc-raw-th>
+                  <sc-raw-th style="text-align:left">Ce qu'on peut en dire</sc-raw-th>
+                </sc-raw-tr>
+              </sc-raw-thead>
+              <sc-raw-tbody>
                 <sc-for list="{{ avsLignes }}" as="cp" hint-placeholder-count="3">
-                  <tr>
-                    <td style="text-align:left"><strong>{{ cp.sym }}</strong><span class="text-muted" style="display:block;font-size:11px">{{ cp.cfg }}</span></td>
-                    <td style="text-align:center;font-family:var(--font-heading);font-variant-numeric:tabular-nums">{{ cp.avant }}<span class="text-muted" style="display:block;font-size:11px;font-family:var(--font-body)">{{ cp.avantN }}</span></td>
-                    <td style="text-align:center;font-family:var(--font-heading);font-variant-numeric:tabular-nums">{{ cp.apres }}<span class="text-muted" style="display:block;font-size:11px;font-family:var(--font-body)">{{ cp.apresN }}</span></td>
-                    <td style="text-align:left;font-size:12px;line-height:1.5">{{ cp.dit }}</td>
-                  </tr>
+                  <sc-raw-tr>
+                    <sc-raw-td style="text-align:left"><strong>{{ cp.sym }}</strong><span class="text-muted" style="display:block;font-size:11px">{{ cp.cfg }}</span></sc-raw-td>
+                    <sc-raw-td style="text-align:center;font-family:var(--font-heading);font-variant-numeric:tabular-nums">{{ cp.avant }}<span class="text-muted" style="display:block;font-size:11px;font-family:var(--font-body)">{{ cp.avantN }}</span></sc-raw-td>
+                    <sc-raw-td style="text-align:center;font-family:var(--font-heading);font-variant-numeric:tabular-nums">{{ cp.apres }}<span class="text-muted" style="display:block;font-size:11px;font-family:var(--font-body)">{{ cp.apresN }}</span></sc-raw-td>
+                    <sc-raw-td style="text-align:left;font-size:12px;line-height:1.5">{{ cp.dit }}</sc-raw-td>
+                  </sc-raw-tr>
                 </sc-for>
-              </tbody>
-            </table>
+              </sc-raw-tbody>
+            </sc-raw-table>
           </div>
           <span style="font-size:11px;line-height:1.5" class="text-muted">Le filtre reste éteint par défaut : la page donne le chiffre, pas un conseil.</span>
         </sc-if>
@@ -2149,28 +2149,28 @@ window.__sivAide = {"entrees":[{"terme":"? Aide","texte":"Les explications de l�
                     <span style="font-size:11px" class="text-muted">c’est ce que le score agrège sans le dire</span>
                   </div>
                   <div style="overflow-x:auto">
-                    <table class="table" style="font-size:12px">
-                      <thead><tr>
-                        <th>Instrument</th><th>Secteur</th>
-                        <th style="text-align:right">20 séances</th>
-                        <th style="min-width:17ch">Position vs MM200</th>
-                        <th style="min-width:13ch">Ligne rangée</th>
-                      </tr></thead>
-                      <tbody>
+                    <sc-raw-table class="table" style="font-size:12px">
+                      <sc-raw-thead><sc-raw-tr>
+                        <sc-raw-th>Instrument</sc-raw-th><sc-raw-th>Secteur</sc-raw-th>
+                        <sc-raw-th style="text-align:right">20 séances</sc-raw-th>
+                        <sc-raw-th style="min-width:17ch">Position vs MM200</sc-raw-th>
+                        <sc-raw-th style="min-width:13ch">Ligne rangée</sc-raw-th>
+                      </sc-raw-tr></sc-raw-thead>
+                      <sc-raw-tbody>
                         <sc-for list="{{ zTitres }}" as="zt" hint-placeholder-count="6">
-                          <tr>
-                            <td><strong>{{ zt.nom }}</strong></td>
-                            <td class="text-muted">{{ zt.secteur }}</td>
-                            <td style="text-align:right">{{ zt.v20 }}</td>
-                            <td>
+                          <sc-raw-tr>
+                            <sc-raw-td><strong>{{ zt.nom }}</strong></sc-raw-td>
+                            <sc-raw-td class="text-muted">{{ zt.secteur }}</sc-raw-td>
+                            <sc-raw-td style="text-align:right">{{ zt.v20 }}</sc-raw-td>
+                            <sc-raw-td>
                               <span style="display:block;height:5px;background:color-mix(in srgb,var(--color-text) 10%,transparent)"><span style="display:block;height:5px;width:{{ zt.barre }};background:{{ zt.barreFond }}"></span></span>
                               <span style="font-size:11px;line-height:1.4;color:{{ zt.vsCouleur }}">{{ zt.vsTxt }}</span>
-                            </td>
-                            <td><span class="{{ zt.etatCls }}" style="font-size:10px;white-space:nowrap">{{ zt.etat }}</span></td>
-                          </tr>
+                            </sc-raw-td>
+                            <sc-raw-td><span class="{{ zt.etatCls }}" style="font-size:10px;white-space:nowrap">{{ zt.etat }}</span></sc-raw-td>
+                          </sc-raw-tr>
                         </sc-for>
-                      </tbody>
-                    </table>
+                      </sc-raw-tbody>
+                    </sc-raw-table>
                   </div>
                 </div>
               </sc-if>
@@ -2220,27 +2220,27 @@ window.__sivAide = {"entrees":[{"terme":"? Aide","texte":"Les explications de l�
           deux colonnes de moins (la part d'un portefeuille où la ligne n'est pas encore
           rangée n'existe pas, et son déploiement non plus).
         -->
-        <table class="table" style="font-size:13px;width:100%">
-          <tbody>
+        <sc-raw-table class="table" style="font-size:13px;width:100%">
+          <sc-raw-tbody>
             <sc-for list="{{ aRanger }}" as="vl" hint-placeholder-count="5">
-              <tr draggable="true" onDragStart="{{ vl.dragStart }}" onDragEnd="{{ vl.dragEnd }}" onClick="{{ vl.selectionner }}" style="cursor:grab;background:{{ vl.fondSel }}">
-                <td>
+              <sc-raw-tr draggable="true" onDragStart="{{ vl.dragStart }}" onDragEnd="{{ vl.dragEnd }}" onClick="{{ vl.selectionner }}" style="cursor:grab;background:{{ vl.fondSel }}">
+                <sc-raw-td>
                   <strong>{{ vl.nom }}</strong>
                   <span style="display:block;font-size:11px;line-height:1.45" class="text-muted">{{ vl.reglages }} · {{ vl.filtres }} · {{ vl.ut }} · {{ vl.n }} trades</span>
                   <!-- la fenêtre suit la ligne jusque dans le portefeuille : c'est là
                        qu'un chiffre taillé devient une décision -->
                   <span style="display:{{ vl.fenAff }};font-size:10px;line-height:1.45;color:{{ vl.fenHorsCouleur }}">{{ vl.fenNom }} — {{ vl.fenHors }}</span>
-                </td>
-                <td style="text-align:right;width:1%;white-space:nowrap"><strong>{{ vl.rAn }}</strong><span style="display:block;font-size:10px" class="text-muted">R / an</span></td>
-                <td style="text-align:right;width:1%;white-space:nowrap">{{ vl.dd }}<span style="display:block;font-size:10px" class="text-muted">pire creux</span></td>
-                <td style="width:1%">
+                </sc-raw-td>
+                <sc-raw-td style="text-align:right;width:1%;white-space:nowrap"><strong>{{ vl.rAn }}</strong><span style="display:block;font-size:10px" class="text-muted">R / an</span></sc-raw-td>
+                <sc-raw-td style="text-align:right;width:1%;white-space:nowrap">{{ vl.dd }}<span style="display:block;font-size:10px" class="text-muted">pire creux</span></sc-raw-td>
+                <sc-raw-td style="width:1%">
                   <sc-if value="{{ vl.hasAFaire }}" hint-placeholder-val="{{ false }}">
                     <button type="button" class="{{ vl.hasCls }}" disabled="{{ vl.hasOccupe }}" style="cursor:pointer;font-family:var(--font-body);font-size:10px;white-space:nowrap" title="{{ vl.hasAide }}" onClick="{{ vl.lancerHas }}">{{ vl.hasTxt }}</button>
                   </sc-if>
                   <sc-if value="{{ vl.hasVu }}" hint-placeholder-val="{{ true }}">
                     <span class="{{ vl.hasCls }}" style="font-size:10px;white-space:nowrap" title="{{ vl.hasAide }}">{{ vl.hasTxt }}</span>
                   </sc-if>
-                </td>
+                </sc-raw-td>
                 <!--
                   LA DESTINATION DE CETTE LIGNE-CI. Trier, c'est décider laquelle va où :
                   l'action groupée sert à finir, pas à ranger.
@@ -2254,20 +2254,20 @@ window.__sivAide = {"entrees":[{"terme":"? Aide","texte":"Les explications de l�
                   Le clic est arrêté ici : la rangée entière porte la sélection, et ouvrir
                   une liste ne doit pas sélectionner la ligne au passage.
                 -->
-                <td style="text-align:right;width:1%">
+                <sc-raw-td style="text-align:right;width:1%">
                   <select class="input" style="min-height:1.7rem;height:1.7rem;font-size:11px;width:auto;min-width:15ch;padding:0 4px" value="{{ vl.rangerVal }}" onChange="{{ vl.ranger }}" onClick="{{ vl.stopper }}" title="{{ vl.rangerAide }}">
                     <sc-for list="{{ vl.rangerOpts }}" as="dstL" hint-placeholder-count="3">
                       <option value="{{ dstL.v }}">{{ dstL.nom }}</option>
                     </sc-for>
                   </select>
-                </td>
-                <td style="text-align:right;width:1%">
+                </sc-raw-td>
+                <sc-raw-td style="text-align:right;width:1%">
                   <button type="button" class="lien" style="font-size:12px;padding:0 3px;color:var(--color-neutral-500)" title="Écarter cette ligne seule — les autres lignes et le contenu des portefeuilles ne bougent pas." onClick="{{ vl.retirer }}">×</button>
-                </td>
-              </tr>
+                </sc-raw-td>
+              </sc-raw-tr>
             </sc-for>
-          </tbody>
-        </table>
+          </sc-raw-tbody>
+        </sc-raw-table>
         </div>
         </sc-if>
       </section>
@@ -2461,29 +2461,29 @@ window.__sivAide = {"entrees":[{"terme":"? Aide","texte":"Les explications de l�
             </div>
             <sc-if value="{{ mesuresOuvertes }}" hint-placeholder-val="{{ false }}">
               <div style="overflow:auto">
-                <table class="table" style="font-size:13px;width:100%">
-                  <thead><tr>
-                    <th>Instrument</th><th style="text-align:right">UT</th><th style="text-align:right">Trades</th>
-                    <th style="text-align:right">R net</th><th style="text-align:right">PF</th>
-                    <th style="text-align:right">Segments</th><th style="text-align:right">Durée moy.</th>
-                    <th>État</th><th style="text-align:right">Frais</th>
-                  </tr></thead>
-                  <tbody>
+                <sc-raw-table class="table" style="font-size:13px;width:100%">
+                  <sc-raw-thead><sc-raw-tr>
+                    <sc-raw-th>Instrument</sc-raw-th><sc-raw-th style="text-align:right">UT</sc-raw-th><sc-raw-th style="text-align:right">Trades</sc-raw-th>
+                    <sc-raw-th style="text-align:right">R net</sc-raw-th><sc-raw-th style="text-align:right">PF</sc-raw-th>
+                    <sc-raw-th style="text-align:right">Segments</sc-raw-th><sc-raw-th style="text-align:right">Durée moy.</sc-raw-th>
+                    <sc-raw-th>État</sc-raw-th><sc-raw-th style="text-align:right">Frais</sc-raw-th>
+                  </sc-raw-tr></sc-raw-thead>
+                  <sc-raw-tbody>
                     <sc-for list="{{ ps.lignes }}" as="vm" hint-placeholder-count="5">
-                      <tr>
-                        <td>{{ vm.nom }}</td>
-                        <td style="text-align:right">{{ vm.ut }}</td>
-                        <td style="text-align:right">{{ vm.n }}</td>
-                        <td style="text-align:right">{{ vm.total }}</td>
-                        <td style="text-align:right">{{ vm.pf }}</td>
-                        <td style="text-align:right">{{ vm.segs }}</td>
-                        <td style="text-align:right">{{ vm.duree }}</td>
-                        <td><span class="{{ vm.etatCls }}" style="font-size:10px" title="{{ vm.etatAide }}">{{ vm.etatTxt }}</span></td>
-                        <td style="text-align:right">{{ vm.frais }}</td>
-                      </tr>
+                      <sc-raw-tr>
+                        <sc-raw-td>{{ vm.nom }}</sc-raw-td>
+                        <sc-raw-td style="text-align:right">{{ vm.ut }}</sc-raw-td>
+                        <sc-raw-td style="text-align:right">{{ vm.n }}</sc-raw-td>
+                        <sc-raw-td style="text-align:right">{{ vm.total }}</sc-raw-td>
+                        <sc-raw-td style="text-align:right">{{ vm.pf }}</sc-raw-td>
+                        <sc-raw-td style="text-align:right">{{ vm.segs }}</sc-raw-td>
+                        <sc-raw-td style="text-align:right">{{ vm.duree }}</sc-raw-td>
+                        <sc-raw-td><span class="{{ vm.etatCls }}" style="font-size:10px" title="{{ vm.etatAide }}">{{ vm.etatTxt }}</span></sc-raw-td>
+                        <sc-raw-td style="text-align:right">{{ vm.frais }}</sc-raw-td>
+                      </sc-raw-tr>
                     </sc-for>
-                  </tbody>
-                </table>
+                  </sc-raw-tbody>
+                </sc-raw-table>
               </div>
             </sc-if>
             <span style="font-size:11px;line-height:1.5;max-width:96ch" class="text-muted">La part du portefeuille suppose que les lignes tournent sur la même période et que la taille de position est recalculée à chaque trade. Le creux du portefeuille est celui de sa pire ligne, pas la somme des creux : deux lignes ne traversent pas leur mauvaise passe le même mois.</span>
@@ -2559,74 +2559,74 @@ window.__sivAide = {"entrees":[{"terme":"? Aide","texte":"Les explications de l�
               </sc-if>
               <sc-if value="{{ ps.aBh }}" hint-placeholder-val="{{ true }}">
                 <div style="overflow-x:auto">
-                  <table class="table" style="font-size:13px">
-                    <thead><tr>
-                      <th style="width:26%"></th>
-                      <th style="text-align:center;border-left:1px solid var(--color-divider)">Votre stratégie<span class="{{ ps.bhGagneStrat }}" style="display:block;width:fit-content;margin:3px auto 0;font-family:var(--font-body);font-size:9px;font-weight:400;letter-spacing:.04em">{{ ps.bhGagneStratTxt }}</span></th>
-                      <th style="text-align:center;border-left:1px solid var(--color-divider)">Acheter et garder<span class="{{ ps.bhGagneDet }}" style="display:block;width:fit-content;margin:3px auto 0;font-family:var(--font-body);font-size:9px;font-weight:400;letter-spacing:.04em">{{ ps.bhGagneDetTxt }}</span></th>
-                      <th style="text-align:center;border-left:1px solid var(--color-divider)" title="Le même achat conservé chez votre courtier : spread, commission et portage de chaque nuit déduits.">{{ ps.bhCfdCol }}</th>
-                      <th style="text-align:center;border-left:1px solid var(--color-divider)" title="{{ ps.bhCashAide }}">{{ ps.bhCashCol }}<span class="{{ ps.bhGagneCash }}" style="display:block;width:fit-content;margin:3px auto 0;font-family:var(--font-body);font-size:9px;font-weight:400;letter-spacing:.04em">{{ ps.bhGagneCashTxt }}</span></th>
-                      <th style="text-align:center" title="{{ ps.bhMixAide }}">{{ ps.bhMixCol }}<span class="{{ ps.bhGagneMix }}" style="display:block;width:fit-content;margin:3px auto 0;font-family:var(--font-body);font-size:9px;font-weight:400;letter-spacing:.04em">{{ ps.bhGagneMixTxt }}</span></th>
-                    </tr></thead>
-                    <tbody>
-                      <tr>
-                        <td title="Ce que le capital devient sur toute la période, gains réinvestis.">Ce que ça rend en tout</td>
-                        <td style="text-align:center;border-left:1px solid var(--color-divider)"><strong style="font-family:var(--font-heading);font-size:28px;line-height:1.05">{{ ps.bhStratPct }}</strong></td>
-                        <td style="text-align:center;border-left:1px solid var(--color-divider)"><strong style="font-family:var(--font-heading);font-size:28px;line-height:1.05">{{ ps.bhDetPct }}</strong></td>
-                        <td style="text-align:center;border-left:1px solid var(--color-divider)"><strong style="font-family:var(--font-heading);font-size:28px;line-height:1.05">{{ ps.bhCfdPct }}</strong></td>
-                        <td style="text-align:center;border-left:1px solid var(--color-divider)"><strong style="font-family:var(--font-heading);font-size:28px;line-height:1.05">{{ ps.bhCashPct }}</strong></td>
-                        <td style="text-align:center"><strong style="font-family:var(--font-heading);font-size:28px;line-height:1.05">{{ ps.bhMixPct }}</strong></td>
-                      </tr>
-                      <tr>
-                        <td title="Pour la stratégie et le mélange : moyenne simple, le total divisé par les années — à mise fixe il n'y a rien à composer. Pour la détention et le sans risque : taux composé, puisque c'est le même capital qui grossit.">Par an</td>
-                        <td style="text-align:center;border-left:1px solid var(--color-divider)">{{ ps.bhStratAn }}</td>
-                        <td style="text-align:center;border-left:1px solid var(--color-divider)">{{ ps.bhDetAn }}<sc-if value="{{ ps.aBhDeparts }}" hint-placeholder-val="{{ false }}"><span class="text-muted" style="display:block;font-size:11px" title="{{ ps.bhDepartsAide }}">{{ ps.bhDepartsTxt }}</span></sc-if></td>
-                        <td style="text-align:center;border-left:1px solid var(--color-divider)">{{ ps.bhCfdAn }}</td>
-                        <td style="text-align:center;border-left:1px solid var(--color-divider)">{{ ps.bhCashAn }}</td>
-                        <td style="text-align:center">{{ ps.bhMixAn }}</td>
-                      </tr>
-                      <tr>
-                        <td title="La stratégie est chiffrée à mise fixe : 1 R vaut toujours le même montant, jamais réévalué. Composer la mise sur un capital qui grossit donnerait un total spectaculaire mais inatteignable — les lots devraient grossir dans la même proportion. La détention, elle, est par nature composée : c'est le même prix qui monte.">En euros <span class="text-muted" style="font-weight:400">{{ ps.bhCapital }}</span></td>
-                        <td style="text-align:center;border-left:1px solid var(--color-divider)"><strong style="font-size:15px">{{ ps.bhEurStrat }}</strong></td>
-                        <td style="text-align:center;border-left:1px solid var(--color-divider)"><strong style="font-size:15px">{{ ps.bhEurDet }}</strong></td>
-                        <td style="text-align:center;border-left:1px solid var(--color-divider)"><strong style="font-size:15px">{{ ps.bhEurCfd }}</strong></td>
-                        <td style="text-align:center;border-left:1px solid var(--color-divider)"><strong style="font-size:15px">{{ ps.bhCashEur }}</strong></td>
-                        <td style="text-align:center"><strong style="font-size:15px">{{ ps.bhMixEur }}</strong></td>
-                      </tr>
-                      <tr>
-                        <td title="La pire perte qu'il fallait traverser sans abandonner. Pour la stratégie, elle est déduite de sa plus longue série de pertes d'affilée — pas d'une courbe d'équité datée, que le scan ne conserve pas : le vrai creux est donc un peu plus profond. La détention, elle, n'a ni stop ni objectif : elle subit le creux du marché en entier."><strong>Ce qu'il fallait encaisser</strong></td>
-                        <td style="text-align:center;border-left:1px solid var(--color-divider)">{{ ps.bhStratDD }}<span class="text-muted" style="display:block;font-size:11px">{{ ps.bhDDEurStrat }}</span></td>
-                        <td style="text-align:center;border-left:1px solid var(--color-divider)">{{ ps.bhDetDD }}<span class="text-muted" style="display:block;font-size:11px">{{ ps.bhDDEurDet }}</span></td>
-                        <td style="text-align:center;border-left:1px solid var(--color-divider)" title="{{ ps.bhEurCfdAide }}">{{ ps.bhCfdDD }}<span class="text-muted" style="display:block;font-size:11px">{{ ps.bhDDEurCfd }}</span></td>
-                        <td style="text-align:center;border-left:1px solid var(--color-divider)">aucun</td>
-                        <td style="text-align:center" title="{{ ps.bhMixAide }}">{{ ps.bhMixDD }}<span class="text-muted" style="display:block;font-size:11px">{{ ps.bhMixDDEur }}</span></td>
-                      </tr>
-                      <tr>
-                        <td title="Rendement annuel divisé par le pire creux, en moyenne simple pour toutes les colonnes — c'est la ligne qui les compare entre elles, elle ne peut pas mélanger deux conventions. Au-dessus de 1, vous gagnez plus par an que ce que vous risquez de perdre en chemin."><strong>Rendement par unité de creux</strong><span class="text-muted" style="display:block;font-size:10px;font-weight:400;line-height:1.4">ce que rapporte chaque euro de creux — le seul chiffre qui compare deux choses inégalement risquées</span></td>
-                        <td style="text-align:center;border-left:1px solid var(--color-divider)"><strong>{{ ps.bhStratRatio }}</strong></td>
-                        <td style="text-align:center;border-left:1px solid var(--color-divider)"><strong>{{ ps.bhDetRatio }}</strong></td>
-                        <td style="text-align:center;border-left:1px solid var(--color-divider)"><strong>{{ ps.bhCfdRatio }}</strong></td>
-                        <td style="text-align:center;border-left:1px solid var(--color-divider)" class="text-muted">sans objet</td>
-                        <td style="text-align:center"><strong>{{ ps.bhMixRatio }}</strong></td>
-                      </tr>
-                      <tr>
-                        <td title="Part du temps où le capital est réellement en position. Le reste du temps, il est disponible pour autre chose.">Capital immobilisé</td>
-                        <td style="text-align:center;border-left:1px solid var(--color-divider)">{{ ps.bhStratExpo }}</td>
-                        <td style="text-align:center;border-left:1px solid var(--color-divider)">tout du long</td>
-                        <td style="text-align:center;border-left:1px solid var(--color-divider)" class="text-muted">idem</td>
-                        <td style="text-align:center;border-left:1px solid var(--color-divider)" class="text-muted">disponible à tout moment</td>
-                        <td style="text-align:center">{{ ps.bhMixImmo }}</td>
-                      </tr>
-                      <tr>
-                        <td class="text-muted" title="Chaque colonne est annualisée sur sa propre fenêtre : les trades ne couvrent pas toujours toute la série de cotations.">Période mesurée</td>
-                        <td style="text-align:center;border-left:1px solid var(--color-divider)" class="text-muted">{{ ps.bhFenStrat }}</td>
-                        <td style="text-align:center;border-left:1px solid var(--color-divider)" class="text-muted">{{ ps.bhFenDet }}</td>
-                        <td style="text-align:center;border-left:1px solid var(--color-divider)" class="text-muted">{{ ps.bhFenDet }}</td>
-                        <td style="text-align:center;border-left:1px solid var(--color-divider)" class="text-muted">{{ ps.bhFenDet }}</td>
-                        <td style="text-align:center" class="text-muted" title="{{ ps.bhFenMixAide }}">{{ ps.bhFenMix }}</td>
-                      </tr>
-                    </tbody>
-                  </table>
+                  <sc-raw-table class="table" style="font-size:13px">
+                    <sc-raw-thead><sc-raw-tr>
+                      <sc-raw-th style="width:26%"></sc-raw-th>
+                      <sc-raw-th style="text-align:center;border-left:1px solid var(--color-divider)">Votre stratégie<span class="{{ ps.bhGagneStrat }}" style="display:block;width:fit-content;margin:3px auto 0;font-family:var(--font-body);font-size:9px;font-weight:400;letter-spacing:.04em">{{ ps.bhGagneStratTxt }}</span></sc-raw-th>
+                      <sc-raw-th style="text-align:center;border-left:1px solid var(--color-divider)">Acheter et garder<span class="{{ ps.bhGagneDet }}" style="display:block;width:fit-content;margin:3px auto 0;font-family:var(--font-body);font-size:9px;font-weight:400;letter-spacing:.04em">{{ ps.bhGagneDetTxt }}</span></sc-raw-th>
+                      <sc-raw-th style="text-align:center;border-left:1px solid var(--color-divider)" title="Le même achat conservé chez votre courtier : spread, commission et portage de chaque nuit déduits.">{{ ps.bhCfdCol }}</sc-raw-th>
+                      <sc-raw-th style="text-align:center;border-left:1px solid var(--color-divider)" title="{{ ps.bhCashAide }}">{{ ps.bhCashCol }}<span class="{{ ps.bhGagneCash }}" style="display:block;width:fit-content;margin:3px auto 0;font-family:var(--font-body);font-size:9px;font-weight:400;letter-spacing:.04em">{{ ps.bhGagneCashTxt }}</span></sc-raw-th>
+                      <sc-raw-th style="text-align:center" title="{{ ps.bhMixAide }}">{{ ps.bhMixCol }}<span class="{{ ps.bhGagneMix }}" style="display:block;width:fit-content;margin:3px auto 0;font-family:var(--font-body);font-size:9px;font-weight:400;letter-spacing:.04em">{{ ps.bhGagneMixTxt }}</span></sc-raw-th>
+                    </sc-raw-tr></sc-raw-thead>
+                    <sc-raw-tbody>
+                      <sc-raw-tr>
+                        <sc-raw-td title="Ce que le capital devient sur toute la période, gains réinvestis.">Ce que ça rend en tout</sc-raw-td>
+                        <sc-raw-td style="text-align:center;border-left:1px solid var(--color-divider)"><strong style="font-family:var(--font-heading);font-size:28px;line-height:1.05">{{ ps.bhStratPct }}</strong></sc-raw-td>
+                        <sc-raw-td style="text-align:center;border-left:1px solid var(--color-divider)"><strong style="font-family:var(--font-heading);font-size:28px;line-height:1.05">{{ ps.bhDetPct }}</strong></sc-raw-td>
+                        <sc-raw-td style="text-align:center;border-left:1px solid var(--color-divider)"><strong style="font-family:var(--font-heading);font-size:28px;line-height:1.05">{{ ps.bhCfdPct }}</strong></sc-raw-td>
+                        <sc-raw-td style="text-align:center;border-left:1px solid var(--color-divider)"><strong style="font-family:var(--font-heading);font-size:28px;line-height:1.05">{{ ps.bhCashPct }}</strong></sc-raw-td>
+                        <sc-raw-td style="text-align:center"><strong style="font-family:var(--font-heading);font-size:28px;line-height:1.05">{{ ps.bhMixPct }}</strong></sc-raw-td>
+                      </sc-raw-tr>
+                      <sc-raw-tr>
+                        <sc-raw-td title="Pour la stratégie et le mélange : moyenne simple, le total divisé par les années — à mise fixe il n'y a rien à composer. Pour la détention et le sans risque : taux composé, puisque c'est le même capital qui grossit.">Par an</sc-raw-td>
+                        <sc-raw-td style="text-align:center;border-left:1px solid var(--color-divider)">{{ ps.bhStratAn }}</sc-raw-td>
+                        <sc-raw-td style="text-align:center;border-left:1px solid var(--color-divider)">{{ ps.bhDetAn }}<sc-if value="{{ ps.aBhDeparts }}" hint-placeholder-val="{{ false }}"><span class="text-muted" style="display:block;font-size:11px" title="{{ ps.bhDepartsAide }}">{{ ps.bhDepartsTxt }}</span></sc-if></sc-raw-td>
+                        <sc-raw-td style="text-align:center;border-left:1px solid var(--color-divider)">{{ ps.bhCfdAn }}</sc-raw-td>
+                        <sc-raw-td style="text-align:center;border-left:1px solid var(--color-divider)">{{ ps.bhCashAn }}</sc-raw-td>
+                        <sc-raw-td style="text-align:center">{{ ps.bhMixAn }}</sc-raw-td>
+                      </sc-raw-tr>
+                      <sc-raw-tr>
+                        <sc-raw-td title="La stratégie est chiffrée à mise fixe : 1 R vaut toujours le même montant, jamais réévalué. Composer la mise sur un capital qui grossit donnerait un total spectaculaire mais inatteignable — les lots devraient grossir dans la même proportion. La détention, elle, est par nature composée : c'est le même prix qui monte.">En euros <span class="text-muted" style="font-weight:400">{{ ps.bhCapital }}</span></sc-raw-td>
+                        <sc-raw-td style="text-align:center;border-left:1px solid var(--color-divider)"><strong style="font-size:15px">{{ ps.bhEurStrat }}</strong></sc-raw-td>
+                        <sc-raw-td style="text-align:center;border-left:1px solid var(--color-divider)"><strong style="font-size:15px">{{ ps.bhEurDet }}</strong></sc-raw-td>
+                        <sc-raw-td style="text-align:center;border-left:1px solid var(--color-divider)"><strong style="font-size:15px">{{ ps.bhEurCfd }}</strong></sc-raw-td>
+                        <sc-raw-td style="text-align:center;border-left:1px solid var(--color-divider)"><strong style="font-size:15px">{{ ps.bhCashEur }}</strong></sc-raw-td>
+                        <sc-raw-td style="text-align:center"><strong style="font-size:15px">{{ ps.bhMixEur }}</strong></sc-raw-td>
+                      </sc-raw-tr>
+                      <sc-raw-tr>
+                        <sc-raw-td title="La pire perte qu'il fallait traverser sans abandonner. Pour la stratégie, elle est déduite de sa plus longue série de pertes d'affilée — pas d'une courbe d'équité datée, que le scan ne conserve pas : le vrai creux est donc un peu plus profond. La détention, elle, n'a ni stop ni objectif : elle subit le creux du marché en entier."><strong>Ce qu'il fallait encaisser</strong></sc-raw-td>
+                        <sc-raw-td style="text-align:center;border-left:1px solid var(--color-divider)">{{ ps.bhStratDD }}<span class="text-muted" style="display:block;font-size:11px">{{ ps.bhDDEurStrat }}</span></sc-raw-td>
+                        <sc-raw-td style="text-align:center;border-left:1px solid var(--color-divider)">{{ ps.bhDetDD }}<span class="text-muted" style="display:block;font-size:11px">{{ ps.bhDDEurDet }}</span></sc-raw-td>
+                        <sc-raw-td style="text-align:center;border-left:1px solid var(--color-divider)" title="{{ ps.bhEurCfdAide }}">{{ ps.bhCfdDD }}<span class="text-muted" style="display:block;font-size:11px">{{ ps.bhDDEurCfd }}</span></sc-raw-td>
+                        <sc-raw-td style="text-align:center;border-left:1px solid var(--color-divider)">aucun</sc-raw-td>
+                        <sc-raw-td style="text-align:center" title="{{ ps.bhMixAide }}">{{ ps.bhMixDD }}<span class="text-muted" style="display:block;font-size:11px">{{ ps.bhMixDDEur }}</span></sc-raw-td>
+                      </sc-raw-tr>
+                      <sc-raw-tr>
+                        <sc-raw-td title="Rendement annuel divisé par le pire creux, en moyenne simple pour toutes les colonnes — c'est la ligne qui les compare entre elles, elle ne peut pas mélanger deux conventions. Au-dessus de 1, vous gagnez plus par an que ce que vous risquez de perdre en chemin."><strong>Rendement par unité de creux</strong><span class="text-muted" style="display:block;font-size:10px;font-weight:400;line-height:1.4">ce que rapporte chaque euro de creux — le seul chiffre qui compare deux choses inégalement risquées</span></sc-raw-td>
+                        <sc-raw-td style="text-align:center;border-left:1px solid var(--color-divider)"><strong>{{ ps.bhStratRatio }}</strong></sc-raw-td>
+                        <sc-raw-td style="text-align:center;border-left:1px solid var(--color-divider)"><strong>{{ ps.bhDetRatio }}</strong></sc-raw-td>
+                        <sc-raw-td style="text-align:center;border-left:1px solid var(--color-divider)"><strong>{{ ps.bhCfdRatio }}</strong></sc-raw-td>
+                        <sc-raw-td style="text-align:center;border-left:1px solid var(--color-divider)" class="text-muted">sans objet</sc-raw-td>
+                        <sc-raw-td style="text-align:center"><strong>{{ ps.bhMixRatio }}</strong></sc-raw-td>
+                      </sc-raw-tr>
+                      <sc-raw-tr>
+                        <sc-raw-td title="Part du temps où le capital est réellement en position. Le reste du temps, il est disponible pour autre chose.">Capital immobilisé</sc-raw-td>
+                        <sc-raw-td style="text-align:center;border-left:1px solid var(--color-divider)">{{ ps.bhStratExpo }}</sc-raw-td>
+                        <sc-raw-td style="text-align:center;border-left:1px solid var(--color-divider)">tout du long</sc-raw-td>
+                        <sc-raw-td style="text-align:center;border-left:1px solid var(--color-divider)" class="text-muted">idem</sc-raw-td>
+                        <sc-raw-td style="text-align:center;border-left:1px solid var(--color-divider)" class="text-muted">disponible à tout moment</sc-raw-td>
+                        <sc-raw-td style="text-align:center">{{ ps.bhMixImmo }}</sc-raw-td>
+                      </sc-raw-tr>
+                      <sc-raw-tr>
+                        <sc-raw-td class="text-muted" title="Chaque colonne est annualisée sur sa propre fenêtre : les trades ne couvrent pas toujours toute la série de cotations.">Période mesurée</sc-raw-td>
+                        <sc-raw-td style="text-align:center;border-left:1px solid var(--color-divider)" class="text-muted">{{ ps.bhFenStrat }}</sc-raw-td>
+                        <sc-raw-td style="text-align:center;border-left:1px solid var(--color-divider)" class="text-muted">{{ ps.bhFenDet }}</sc-raw-td>
+                        <sc-raw-td style="text-align:center;border-left:1px solid var(--color-divider)" class="text-muted">{{ ps.bhFenDet }}</sc-raw-td>
+                        <sc-raw-td style="text-align:center;border-left:1px solid var(--color-divider)" class="text-muted">{{ ps.bhFenDet }}</sc-raw-td>
+                        <sc-raw-td style="text-align:center" class="text-muted" title="{{ ps.bhFenMixAide }}">{{ ps.bhFenMix }}</sc-raw-td>
+                      </sc-raw-tr>
+                    </sc-raw-tbody>
+                  </sc-raw-table>
                 </div>
                 <sc-if value="{{ ps.aBhPartOpt }}" hint-placeholder-val="{{ false }}">
                   <div style="display:flex;gap:10px 14px;align-items:center;flex-wrap:wrap">
@@ -2639,28 +2639,28 @@ window.__sivAide = {"entrees":[{"terme":"? Aide","texte":"Les explications de l�
                   <details>
                     <summary style="cursor:pointer;font-size:12px" class="text-muted">Détail par instrument</summary>
                     <div style="overflow-x:auto;padding-top:8px">
-                      <table class="table" style="font-size:13px">
-                        <thead><tr>
-                          <th>Instrument</th>
-                          <th style="text-align:center;border-left:1px solid var(--color-divider)">Période</th>
-                          <th style="text-align:center;border-left:1px solid var(--color-divider)">Détention</th>
-                          <th style="text-align:center">Par an</th>
-                          <th style="text-align:center;border-left:1px solid var(--color-divider)">Pire creux</th>
-                          <th style="text-align:center;border-left:1px solid var(--color-divider)">En CFD</th>
-                        </tr></thead>
-                        <tbody>
+                      <sc-raw-table class="table" style="font-size:13px">
+                        <sc-raw-thead><sc-raw-tr>
+                          <sc-raw-th>Instrument</sc-raw-th>
+                          <sc-raw-th style="text-align:center;border-left:1px solid var(--color-divider)">Période</sc-raw-th>
+                          <sc-raw-th style="text-align:center;border-left:1px solid var(--color-divider)">Détention</sc-raw-th>
+                          <sc-raw-th style="text-align:center">Par an</sc-raw-th>
+                          <sc-raw-th style="text-align:center;border-left:1px solid var(--color-divider)">Pire creux</sc-raw-th>
+                          <sc-raw-th style="text-align:center;border-left:1px solid var(--color-divider)">En CFD</sc-raw-th>
+                        </sc-raw-tr></sc-raw-thead>
+                        <sc-raw-tbody>
                           <sc-for list="{{ ps.bhRows }}" as="bh" hint-placeholder-count="2">
-                            <tr>
-                              <td>{{ bh.nom }}<span class="text-muted" style="display:block;font-size:10px">{{ bh.sym }}</span></td>
-                              <td style="text-align:center;border-left:1px solid var(--color-divider)">{{ bh.ans }}</td>
-                              <td style="text-align:center;border-left:1px solid var(--color-divider)"><strong>{{ bh.brut }}</strong></td>
-                              <td style="text-align:center">{{ bh.an }}</td>
-                              <td style="text-align:center;border-left:1px solid var(--color-divider)">{{ bh.creux }}</td>
-                              <td style="text-align:center;border-left:1px solid var(--color-divider)" title="{{ bh.cfdAide }}">{{ bh.cfd }}</td>
-                            </tr>
+                            <sc-raw-tr>
+                              <sc-raw-td>{{ bh.nom }}<span class="text-muted" style="display:block;font-size:10px">{{ bh.sym }}</span></sc-raw-td>
+                              <sc-raw-td style="text-align:center;border-left:1px solid var(--color-divider)">{{ bh.ans }}</sc-raw-td>
+                              <sc-raw-td style="text-align:center;border-left:1px solid var(--color-divider)"><strong>{{ bh.brut }}</strong></sc-raw-td>
+                              <sc-raw-td style="text-align:center">{{ bh.an }}</sc-raw-td>
+                              <sc-raw-td style="text-align:center;border-left:1px solid var(--color-divider)">{{ bh.creux }}</sc-raw-td>
+                              <sc-raw-td style="text-align:center;border-left:1px solid var(--color-divider)" title="{{ bh.cfdAide }}">{{ bh.cfd }}</sc-raw-td>
+                            </sc-raw-tr>
                           </sc-for>
-                        </tbody>
-                      </table>
+                        </sc-raw-tbody>
+                      </sc-raw-table>
                     </div>
                   </details>
                 </sc-if>
@@ -2732,28 +2732,28 @@ window.__sivAide = {"entrees":[{"terme":"? Aide","texte":"Les explications de l�
               <sc-if value="{{ oCout }}" hint-placeholder-val="{{ false }}">
                 <div style="border-top:1px solid var(--color-divider);padding:12px 16px;display:flex;flex-direction:column;gap:10px">
               <div style="overflow-x:auto">
-                <table class="table" style="font-size:13px">
-                  <thead><tr>
-                    <th>Instrument</th>
-                    <th style="text-align:center;border-left:1px solid var(--color-divider)">Stop utilisé</th>
-                    <th style="text-align:center">Nuits</th>
-                    <th style="text-align:center;border-left:1px solid var(--color-divider)">Spread</th>
-                    <th style="text-align:center">Coût total</th>
-                    <th style="text-align:center;border-left:1px solid var(--color-divider)">Part du R</th>
-                  </tr></thead>
-                  <tbody>
+                <sc-raw-table class="table" style="font-size:13px">
+                  <sc-raw-thead><sc-raw-tr>
+                    <sc-raw-th>Instrument</sc-raw-th>
+                    <sc-raw-th style="text-align:center;border-left:1px solid var(--color-divider)">Stop utilisé</sc-raw-th>
+                    <sc-raw-th style="text-align:center">Nuits</sc-raw-th>
+                    <sc-raw-th style="text-align:center;border-left:1px solid var(--color-divider)">Spread</sc-raw-th>
+                    <sc-raw-th style="text-align:center">Coût total</sc-raw-th>
+                    <sc-raw-th style="text-align:center;border-left:1px solid var(--color-divider)">Part du R</sc-raw-th>
+                  </sc-raw-tr></sc-raw-thead>
+                  <sc-raw-tbody>
                     <sc-for list="{{ ps.coutRows }}" as="cq" hint-placeholder-count="2">
-                      <tr>
-                        <td>{{ cq.nom }}</td>
-                        <td style="text-align:center;border-left:1px solid var(--color-divider)">{{ cq.stop }}</td>
-                        <td style="text-align:center">{{ cq.nuits }}</td>
-                        <td style="text-align:center;border-left:1px solid var(--color-divider)">{{ cq.spread }}</td>
-                        <td style="text-align:center">{{ cq.total }}</td>
-                        <td style="text-align:center;border-left:1px solid var(--color-divider)"><strong>{{ cq.partR }}</strong><span class="text-muted" style="display:block;font-size:10px">{{ cq.euros }}</span></td>
-                      </tr>
+                      <sc-raw-tr>
+                        <sc-raw-td>{{ cq.nom }}</sc-raw-td>
+                        <sc-raw-td style="text-align:center;border-left:1px solid var(--color-divider)">{{ cq.stop }}</sc-raw-td>
+                        <sc-raw-td style="text-align:center">{{ cq.nuits }}</sc-raw-td>
+                        <sc-raw-td style="text-align:center;border-left:1px solid var(--color-divider)">{{ cq.spread }}</sc-raw-td>
+                        <sc-raw-td style="text-align:center">{{ cq.total }}</sc-raw-td>
+                        <sc-raw-td style="text-align:center;border-left:1px solid var(--color-divider)"><strong>{{ cq.partR }}</strong><span class="text-muted" style="display:block;font-size:10px">{{ cq.euros }}</span></sc-raw-td>
+                      </sc-raw-tr>
                     </sc-for>
-                  </tbody>
-                </table>
+                  </sc-raw-tbody>
+                </sc-raw-table>
               </div>
             <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding-top:8px;border-top:1px solid var(--color-divider)">
               <span style="font-size:11px;letter-spacing:.06em;text-transform:uppercase" class="text-muted" title="{{ ps.correlAide }}">Redondance</span>
@@ -3501,32 +3501,32 @@ window.__sivAide = {"entrees":[{"terme":"? Aide","texte":"Les explications de l�
           </sc-if>
 
           <div style="overflow-x:auto">
-          <table class="table" style="font-size:13px">
-            <thead><tr>
-              <th>#</th><th>Instrument &amp; réglages</th>
-              <th style="text-align:right">Trades</th>
-              <th style="text-align:right">R net</th>
-              <th style="text-align:right">Gain / perte</th>
-              <th style="text-align:right">Creux</th>
-              <th style="text-align:right">Époques</th>
-              <th style="min-width:19ch">Mesurée sur</th>
-              <th>État</th>
-              <th title="Parmi les conditions balayées, celle que la configuration retenue a effectivement gardée. Trois têtes qui gardent trois conditions différentes ne se lisent pas comme trois têtes qui gardent la même.">Filtre balayé retenu</th>
-            </tr></thead>
-            <tbody>
+          <sc-raw-table class="table" style="font-size:13px">
+            <sc-raw-thead><sc-raw-tr>
+              <sc-raw-th>#</sc-raw-th><sc-raw-th>Instrument &amp; réglages</sc-raw-th>
+              <sc-raw-th style="text-align:right">Trades</sc-raw-th>
+              <sc-raw-th style="text-align:right">R net</sc-raw-th>
+              <sc-raw-th style="text-align:right">Gain / perte</sc-raw-th>
+              <sc-raw-th style="text-align:right">Creux</sc-raw-th>
+              <sc-raw-th style="text-align:right">Époques</sc-raw-th>
+              <sc-raw-th style="min-width:19ch">Mesurée sur</sc-raw-th>
+              <sc-raw-th>État</sc-raw-th>
+              <sc-raw-th title="Parmi les conditions balayées, celle que la configuration retenue a effectivement gardée. Trois têtes qui gardent trois conditions différentes ne se lisent pas comme trois têtes qui gardent la même.">Filtre balayé retenu</sc-raw-th>
+            </sc-raw-tr></sc-raw-thead>
+            <sc-raw-tbody>
               <sc-for list="{{ scanRows }}" as="r" hint-placeholder-count="8">
-                <tr style="cursor:pointer" onClick="{{ r.ouvrir }}">
-                  <td class="text-muted">{{ r.rang }}</td>
-                  <td>
+                <sc-raw-tr style="cursor:pointer" onClick="{{ r.ouvrir }}">
+                  <sc-raw-td class="text-muted">{{ r.rang }}</sc-raw-td>
+                  <sc-raw-td>
                     <strong style="display:block;color:var(--color-accent-700)">{{ r.sym }}</strong>
                     <span class="text-muted" style="font-size:11px;line-height:1.4">{{ r.reglages }}<sc-if value="{{ r.aVariante }}" hint-placeholder-val="{{ true }}"> · {{ r.variante }}</sc-if></span>
-                  </td>
-                  <td style="text-align:right">{{ r.n }}</td>
-                  <td style="text-align:right;font-family:var(--font-heading);font-size:15px">{{ r.total }}</td>
-                  <td style="text-align:right">{{ r.pf }}</td>
-                  <td style="text-align:right">{{ r.dd }}</td>
-                  <td style="text-align:right">{{ r.segs }}</td>
-                  <td>
+                  </sc-raw-td>
+                  <sc-raw-td style="text-align:right">{{ r.n }}</sc-raw-td>
+                  <sc-raw-td style="text-align:right;font-family:var(--font-heading);font-size:15px">{{ r.total }}</sc-raw-td>
+                  <sc-raw-td style="text-align:right">{{ r.pf }}</sc-raw-td>
+                  <sc-raw-td style="text-align:right">{{ r.dd }}</sc-raw-td>
+                  <sc-raw-td style="text-align:right">{{ r.segs }}</sc-raw-td>
+                  <sc-raw-td>
                     <span style="font-size:11px;line-height:1.3;display:block">{{ r.fenNom }}</span>
                     <span style="display:flex;height:5px;width:100%;gap:1px;margin:3px 0">
                       <span style="width:{{ r.fenAvant }};background:var(--color-divider)"></span>
@@ -3534,20 +3534,20 @@ window.__sivAide = {"entrees":[{"terme":"? Aide","texte":"Les explications de l�
                       <span style="width:{{ r.fenApres }};background:var(--color-divider)"></span>
                     </span>
                     <span style="font-size:10px;line-height:1.35;color:{{ r.fenHorsCouleur }};display:{{ r.fenHorsAff }}">{{ r.fenHors }}</span>
-                  </td>
-                  <td>
+                  </sc-raw-td>
+                  <sc-raw-td>
                     <span class="tag {{ r.tagClass }}" title="{{ r.etatAide }}">{{ r.etat }}</span>
                     <span style="font-size:10px;line-height:1.35;display:{{ r.fenSousAff }}" class="text-muted">{{ r.fenSous }}</span>
-                  </td>
-                  <td>
+                  </sc-raw-td>
+                  <sc-raw-td>
                     <sc-for list="{{ r.fTags }}" as="ft" hint-placeholder-count="1">
                       <span class="tag {{ ft.cls }}" style="font-size:10px" title="{{ ft.aide }}">{{ ft.txt }}</span>
                     </sc-for>
-                  </td>
-                </tr>
+                  </sc-raw-td>
+                </sc-raw-tr>
               </sc-for>
-            </tbody>
-          </table>
+            </sc-raw-tbody>
+          </sc-raw-table>
           </div>
         <sc-if value="{{ aScanVide }}" hint-placeholder-val="{{ false }}">
         <div class="blueprint" style="padding:14px 16px;display:flex;gap:14px;align-items:center;flex-wrap:wrap">
@@ -4209,23 +4209,23 @@ window.__sivAide = {"entrees":[{"terme":"? Aide","texte":"Les explications de l�
           </div>
             <sc-if value="{{ ouvFlux }}" hint-placeholder-val="{{ true }}">
           <div style="overflow-x:auto">
-          <table class="table" style="font-size:12px">
-            <thead><tr><th>Flux</th><th>Réglages</th><th style="text-align:right">Trades</th><th style="text-align:right">R net</th><th style="text-align:right">Pire creux</th><th style="text-align:right">Segments +</th><th style="text-align:right">Spread</th><th>Lecture</th></tr></thead>
-            <tbody>
+          <sc-raw-table class="table" style="font-size:12px">
+            <sc-raw-thead><sc-raw-tr><sc-raw-th>Flux</sc-raw-th><sc-raw-th>Réglages</sc-raw-th><sc-raw-th style="text-align:right">Trades</sc-raw-th><sc-raw-th style="text-align:right">R net</sc-raw-th><sc-raw-th style="text-align:right">Pire creux</sc-raw-th><sc-raw-th style="text-align:right">Segments +</sc-raw-th><sc-raw-th style="text-align:right">Spread</sc-raw-th><sc-raw-th>Lecture</sc-raw-th></sc-raw-tr></sc-raw-thead>
+            <sc-raw-tbody>
               <sc-for list="{{ fluxRows }}" as="fx" hint-placeholder-count="2">
-                <tr>
-                  <td><strong>{{ fx.label }}</strong><span class="text-muted" style="display:block;font-size:10px">{{ fx.sym }}</span></td>
-                  <td class="text-muted">{{ fx.reglages }}</td>
-                  <td style="text-align:right">{{ fx.n }}</td>
-                  <td style="text-align:right">{{ fx.total }}</td>
-                  <td style="text-align:right">{{ fx.dd }}</td>
-                  <td style="text-align:right">{{ fx.segs }}</td>
-                  <td style="text-align:right">{{ fx.spread }}</td>
-                  <td><span class="tag {{ fx.tag }}">{{ fx.etat }}</span></td>
-                </tr>
+                <sc-raw-tr>
+                  <sc-raw-td><strong>{{ fx.label }}</strong><span class="text-muted" style="display:block;font-size:10px">{{ fx.sym }}</span></sc-raw-td>
+                  <sc-raw-td class="text-muted">{{ fx.reglages }}</sc-raw-td>
+                  <sc-raw-td style="text-align:right">{{ fx.n }}</sc-raw-td>
+                  <sc-raw-td style="text-align:right">{{ fx.total }}</sc-raw-td>
+                  <sc-raw-td style="text-align:right">{{ fx.dd }}</sc-raw-td>
+                  <sc-raw-td style="text-align:right">{{ fx.segs }}</sc-raw-td>
+                  <sc-raw-td style="text-align:right">{{ fx.spread }}</sc-raw-td>
+                  <sc-raw-td><span class="tag {{ fx.tag }}">{{ fx.etat }}</span></sc-raw-td>
+                </sc-raw-tr>
               </sc-for>
-            </tbody>
-          </table>
+            </sc-raw-tbody>
+          </sc-raw-table>
           </div>
           <p style="margin:0;font-size:11px" class="text-muted">Deux courtiers ne produisent pas les mêmes bougies H1 : fuseau serveur, heures de session, agrégation des ticks, traitement des dividendes. Si les deux lignes se ressemblent, la configuration tient au-delà du flux ; si elles divergent, elle vit du bruit d'un seul courtier.</p>
             </sc-if>
@@ -4259,21 +4259,21 @@ window.__sivAide = {"entrees":[{"terme":"? Aide","texte":"Les explications de l�
         <div style="display:flex;flex-direction:column;gap:10px">
           <div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase" class="text-muted">La même configuration ailleurs — {{ ailleursResume }}</div>
           <div style="overflow-x:auto">
-          <table class="table" style="font-size:13px">
-            <thead><tr><th>Instrument</th><th style="text-align:right">Trades</th><th style="text-align:right">R net</th><th style="text-align:right">Pire creux</th><th style="text-align:right">Segments +</th><th>Lecture</th></tr></thead>
-            <tbody>
+          <sc-raw-table class="table" style="font-size:13px">
+            <sc-raw-thead><sc-raw-tr><sc-raw-th>Instrument</sc-raw-th><sc-raw-th style="text-align:right">Trades</sc-raw-th><sc-raw-th style="text-align:right">R net</sc-raw-th><sc-raw-th style="text-align:right">Pire creux</sc-raw-th><sc-raw-th style="text-align:right">Segments +</sc-raw-th><sc-raw-th>Lecture</sc-raw-th></sc-raw-tr></sc-raw-thead>
+            <sc-raw-tbody>
               <sc-for list="{{ ailleursRows }}" as="al" hint-placeholder-count="6">
-                <tr>
-                  <td><strong>{{ al.sym }}</strong></td>
-                  <td style="text-align:right">{{ al.n }}</td>
-                  <td style="text-align:right">{{ al.total }}</td>
-                  <td style="text-align:right">{{ al.dd }}</td>
-                  <td style="text-align:right">{{ al.segs }}</td>
-                  <td><span class="tag {{ al.tag }}">{{ al.etat }}</span></td>
-                </tr>
+                <sc-raw-tr>
+                  <sc-raw-td><strong>{{ al.sym }}</strong></sc-raw-td>
+                  <sc-raw-td style="text-align:right">{{ al.n }}</sc-raw-td>
+                  <sc-raw-td style="text-align:right">{{ al.total }}</sc-raw-td>
+                  <sc-raw-td style="text-align:right">{{ al.dd }}</sc-raw-td>
+                  <sc-raw-td style="text-align:right">{{ al.segs }}</sc-raw-td>
+                  <sc-raw-td><span class="tag {{ al.tag }}">{{ al.etat }}</span></sc-raw-td>
+                </sc-raw-tr>
               </sc-for>
-            </tbody>
-          </table>
+            </sc-raw-tbody>
+          </sc-raw-table>
           </div>
           <p style="margin:0;font-size:13px;max-width:80ch" class="text-muted">Aucun réglage n'a été retouché. Si la configuration ne survit qu'ici, elle a été taillée pour cet historique.</p>
         </div>
@@ -4327,30 +4327,30 @@ window.__sivAide = {"entrees":[{"terme":"? Aide","texte":"Les explications de l�
             </div>
           </sc-if>
           <div style="max-height:340px;overflow:auto">
-          <table class="table" style="font-size:12px">
-            <thead><tr>
-              <th style="position:sticky;top:0;z-index:2;background:var(--color-bg)">#</th>
-              <th style="position:sticky;top:0;z-index:2;background:var(--color-bg)">Entrée</th>
-              <th style="position:sticky;top:0;z-index:2;background:var(--color-bg)">Sortie</th>
-              <th style="position:sticky;top:0;z-index:2;background:var(--color-bg)">Motif</th>
-              <th style="position:sticky;top:0;z-index:2;background:var(--color-bg);text-align:right">Durée</th>
-              <th style="position:sticky;top:0;z-index:2;background:var(--color-bg);text-align:right">R net</th>
-              <th style="position:sticky;top:0;z-index:2;background:var(--color-bg);text-align:right">Cumul</th>
-            </tr></thead>
-            <tbody>
+          <sc-raw-table class="table" style="font-size:12px">
+            <sc-raw-thead><sc-raw-tr>
+              <sc-raw-th style="position:sticky;top:0;z-index:2;background:var(--color-bg)">#</sc-raw-th>
+              <sc-raw-th style="position:sticky;top:0;z-index:2;background:var(--color-bg)">Entrée</sc-raw-th>
+              <sc-raw-th style="position:sticky;top:0;z-index:2;background:var(--color-bg)">Sortie</sc-raw-th>
+              <sc-raw-th style="position:sticky;top:0;z-index:2;background:var(--color-bg)">Motif</sc-raw-th>
+              <sc-raw-th style="position:sticky;top:0;z-index:2;background:var(--color-bg);text-align:right">Durée</sc-raw-th>
+              <sc-raw-th style="position:sticky;top:0;z-index:2;background:var(--color-bg);text-align:right">R net</sc-raw-th>
+              <sc-raw-th style="position:sticky;top:0;z-index:2;background:var(--color-bg);text-align:right">Cumul</sc-raw-th>
+            </sc-raw-tr></sc-raw-thead>
+            <sc-raw-tbody>
               <sc-for list="{{ dJournal }}" as="jt" hint-placeholder-count="8">
-                <tr>
-                  <td class="text-muted">{{ jt.i }}</td>
-                  <td style="white-space:nowrap">{{ jt.entree }}</td>
-                  <td style="white-space:nowrap">{{ jt.sortie }}</td>
-                  <td><span class="{{ jt.cls }}">{{ jt.motif }}</span><sc-if value="{{ jt.aEvts }}" hint-placeholder-val="{{ false }}"><span class="tag tag-outline" style="font-size:9px;margin-inline-start:6px;white-space:nowrap">{{ jt.evtsTxt }}</span></sc-if></td>
-                  <td style="text-align:right;white-space:nowrap">{{ jt.duree }}</td>
-                  <td style="text-align:right;white-space:nowrap;font-weight:600;color:{{ jt.couleur }}">{{ jt.r }}</td>
-                  <td style="text-align:right;white-space:nowrap" class="text-muted">{{ jt.cum }}</td>
-                </tr>
+                <sc-raw-tr>
+                  <sc-raw-td class="text-muted">{{ jt.i }}</sc-raw-td>
+                  <sc-raw-td style="white-space:nowrap">{{ jt.entree }}</sc-raw-td>
+                  <sc-raw-td style="white-space:nowrap">{{ jt.sortie }}</sc-raw-td>
+                  <sc-raw-td><span class="{{ jt.cls }}">{{ jt.motif }}</span><sc-if value="{{ jt.aEvts }}" hint-placeholder-val="{{ false }}"><span class="tag tag-outline" style="font-size:9px;margin-inline-start:6px;white-space:nowrap">{{ jt.evtsTxt }}</span></sc-if></sc-raw-td>
+                  <sc-raw-td style="text-align:right;white-space:nowrap">{{ jt.duree }}</sc-raw-td>
+                  <sc-raw-td style="text-align:right;white-space:nowrap;font-weight:600;color:{{ jt.couleur }}">{{ jt.r }}</sc-raw-td>
+                  <sc-raw-td style="text-align:right;white-space:nowrap" class="text-muted">{{ jt.cum }}</sc-raw-td>
+                </sc-raw-tr>
               </sc-for>
-            </tbody>
-          </table>
+            </sc-raw-tbody>
+          </sc-raw-table>
           </div>
           <p class="card-body" style="margin:0;font-size:11px">{{ dJournalNote }}</p>
         </div>
@@ -4379,22 +4379,22 @@ window.__sivAide = {"entrees":[{"terme":"? Aide","texte":"Les explications de l�
               <p class="card-body" style="margin:0;font-size:12px;max-width:96ch">{{ cmpVerdict }}</p>
               <sc-if value="{{ aCmpRows }}" hint-placeholder-val="{{ false }}">
                 <div style="max-height:260px;overflow:auto">
-                  <table class="table" style="font-size:12px">
-                    <thead><tr>
-                      <th style="position:sticky;top:0;z-index:2;background:var(--color-bg)">Entrée</th>
-                      <th style="position:sticky;top:0;z-index:2;background:var(--color-bg)">Côté</th>
-                      <th style="position:sticky;top:0;z-index:2;background:var(--color-bg)">Ce que ça veut dire</th>
-                    </tr></thead>
-                    <tbody>
+                  <sc-raw-table class="table" style="font-size:12px">
+                    <sc-raw-thead><sc-raw-tr>
+                      <sc-raw-th style="position:sticky;top:0;z-index:2;background:var(--color-bg)">Entrée</sc-raw-th>
+                      <sc-raw-th style="position:sticky;top:0;z-index:2;background:var(--color-bg)">Côté</sc-raw-th>
+                      <sc-raw-th style="position:sticky;top:0;z-index:2;background:var(--color-bg)">Ce que ça veut dire</sc-raw-th>
+                    </sc-raw-tr></sc-raw-thead>
+                    <sc-raw-tbody>
                       <sc-for list="{{ cmpRows }}" as="cr" hint-placeholder-count="4">
-                        <tr>
-                          <td style="white-space:nowrap">{{ cr.quand }}</td>
-                          <td><span class="{{ cr.cls }}">{{ cr.cote }}</span></td>
-                          <td class="text-muted">{{ cr.note }}</td>
-                        </tr>
+                        <sc-raw-tr>
+                          <sc-raw-td style="white-space:nowrap">{{ cr.quand }}</sc-raw-td>
+                          <sc-raw-td><span class="{{ cr.cls }}">{{ cr.cote }}</span></sc-raw-td>
+                          <sc-raw-td class="text-muted">{{ cr.note }}</sc-raw-td>
+                        </sc-raw-tr>
                       </sc-for>
-                    </tbody>
-                  </table>
+                    </sc-raw-tbody>
+                  </sc-raw-table>
                 </div>
               </sc-if>
             </div>
@@ -4408,38 +4408,38 @@ window.__sivAide = {"entrees":[{"terme":"? Aide","texte":"Les explications de l�
             <span style="font-size:12px" class="text-muted">{{ dAnResume }}</span>
           </div>
           <div style="overflow-x:auto">
-          <table class="table" style="font-size:13px">
-            <thead>
-              <tr>
-                <th>Année</th>
-                <th style="text-align:right">Trades</th>
-                <th style="text-align:right" title="Sorties sur objectif atteint">TP</th>
-                <th style="text-align:right" title="Sorties sur stop initial">SL</th>
-                <th style="text-align:right" title="Sorties sur stop déplacé ; entre parenthèses les stops sautés par un écart de cotation">BE</th>
-                <th style="text-align:right">% gagnants</th>
-                <th style="text-align:right" title="R accumulé sur l'année">R</th>
-                <th style="text-align:right" title="R moyen par trade">R moyen</th>
-                <th style="text-align:right" title="Pire creux de l'année, en R">Creux</th>
-                <th style="text-align:right" title="Part du meilleur trade dans le gain de l'année : au-delà de 25 %, l'année tient sur un coup">Poids du meilleur</th>
-              </tr>
-            </thead>
-            <tbody>
+          <sc-raw-table class="table" style="font-size:13px">
+            <sc-raw-thead>
+              <sc-raw-tr>
+                <sc-raw-th>Année</sc-raw-th>
+                <sc-raw-th style="text-align:right">Trades</sc-raw-th>
+                <sc-raw-th style="text-align:right" title="Sorties sur objectif atteint">TP</sc-raw-th>
+                <sc-raw-th style="text-align:right" title="Sorties sur stop initial">SL</sc-raw-th>
+                <sc-raw-th style="text-align:right" title="Sorties sur stop déplacé ; entre parenthèses les stops sautés par un écart de cotation">BE</sc-raw-th>
+                <sc-raw-th style="text-align:right">% gagnants</sc-raw-th>
+                <sc-raw-th style="text-align:right" title="R accumulé sur l'année">R</sc-raw-th>
+                <sc-raw-th style="text-align:right" title="R moyen par trade">R moyen</sc-raw-th>
+                <sc-raw-th style="text-align:right" title="Pire creux de l'année, en R">Creux</sc-raw-th>
+                <sc-raw-th style="text-align:right" title="Part du meilleur trade dans le gain de l'année : au-delà de 25 %, l'année tient sur un coup">Poids du meilleur</sc-raw-th>
+              </sc-raw-tr>
+            </sc-raw-thead>
+            <sc-raw-tbody>
               <sc-for list="{{ dAnLignes }}" as="ay" hint-placeholder-count="5">
-                <tr title="{{ ay.alerte }}">
-                  <td style="font-family:var(--font-heading);font-weight:600">{{ ay.an }}</td>
-                  <td style="text-align:right">{{ ay.n }}</td>
-                  <td style="text-align:right">{{ ay.tp }}</td>
-                  <td style="text-align:right">{{ ay.sl }}</td>
-                  <td style="text-align:right">{{ ay.be }}</td>
-                  <td style="text-align:right">{{ ay.win }}</td>
-                  <td style="text-align:right;font-weight:600;color:{{ ay.couleur }}">{{ ay.total }}</td>
-                  <td style="text-align:right">{{ ay.moyenne }}</td>
-                  <td style="text-align:right">{{ ay.dd }}</td>
-                  <td style="text-align:right">{{ ay.poids }}</td>
-                </tr>
+                <sc-raw-tr title="{{ ay.alerte }}">
+                  <sc-raw-td style="font-family:var(--font-heading);font-weight:600">{{ ay.an }}</sc-raw-td>
+                  <sc-raw-td style="text-align:right">{{ ay.n }}</sc-raw-td>
+                  <sc-raw-td style="text-align:right">{{ ay.tp }}</sc-raw-td>
+                  <sc-raw-td style="text-align:right">{{ ay.sl }}</sc-raw-td>
+                  <sc-raw-td style="text-align:right">{{ ay.be }}</sc-raw-td>
+                  <sc-raw-td style="text-align:right">{{ ay.win }}</sc-raw-td>
+                  <sc-raw-td style="text-align:right;font-weight:600;color:{{ ay.couleur }}">{{ ay.total }}</sc-raw-td>
+                  <sc-raw-td style="text-align:right">{{ ay.moyenne }}</sc-raw-td>
+                  <sc-raw-td style="text-align:right">{{ ay.dd }}</sc-raw-td>
+                  <sc-raw-td style="text-align:right">{{ ay.poids }}</sc-raw-td>
+                </sc-raw-tr>
               </sc-for>
-            </tbody>
-          </table>
+            </sc-raw-tbody>
+          </sc-raw-table>
           </div>
           <div style="font-size:12px" class="text-muted">Les années de moins de 5 trades ne comptent pas dans le décompte des années positives. Une seule année qui porte tout le résultat, ou un meilleur trade au-delà de 25 % du gain, sont les deux signes les plus fréquents d'un résultat qui ne se reproduira pas.</div>
         </div>
@@ -4471,38 +4471,38 @@ window.__sivAide = {"entrees":[{"terme":"? Aide","texte":"Les explications de l�
                       <button type="button" style="cursor:pointer;border:none;background:none;padding:0;font:inherit;font-size:11px;color:var(--color-accent-700);text-decoration:underline;text-underline-offset:2px" onClick="{{ tr2.basculer }}">Replier</button>
                     </div>
                     <div style="overflow-x:auto">
-                      <table class="table" style="font-size:12px;width:100%">
-                        <thead><tr>
-                          <th>Réglages</th>
-                          <th style="text-align:right;width:1%">R net</th>
-                          <th style="text-align:right;width:1%">Creux</th>
-                          <th style="text-align:right;width:1%">Trades</th>
-                          <th style="width:1%">Hasard</th>
-                          <th style="width:1%"></th>
-                        </tr></thead>
-                        <tbody>
+                      <sc-raw-table class="table" style="font-size:12px;width:100%">
+                        <sc-raw-thead><sc-raw-tr>
+                          <sc-raw-th>Réglages</sc-raw-th>
+                          <sc-raw-th style="text-align:right;width:1%">R net</sc-raw-th>
+                          <sc-raw-th style="text-align:right;width:1%">Creux</sc-raw-th>
+                          <sc-raw-th style="text-align:right;width:1%">Trades</sc-raw-th>
+                          <sc-raw-th style="width:1%">Hasard</sc-raw-th>
+                          <sc-raw-th style="width:1%"></sc-raw-th>
+                        </sc-raw-tr></sc-raw-thead>
+                        <sc-raw-tbody>
                           <sc-for list="{{ tr2.combis }}" as="cb" hint-placeholder-count="6">
-                            <tr style="background:{{ cb.fond }}">
-                              <td>
+                            <sc-raw-tr style="background:{{ cb.fond }}">
+                              <sc-raw-td>
                                 <strong style="font-size:12px;line-height:1.3">{{ cb.reglages }}</strong>
                                 <span style="display:block;font-size:10px;line-height:1.4" class="text-muted">{{ cb.souLigne }}</span>
-                              </td>
-                              <td style="text-align:right;width:1%;white-space:nowrap"><strong style="font-family:var(--font-heading)">{{ cb.total }}</strong></td>
-                              <td style="text-align:right;width:1%;white-space:nowrap">{{ cb.dd }}</td>
-                              <td style="text-align:right;width:1%;white-space:nowrap">{{ cb.n }}</td>
-                              <td style="width:1%;white-space:nowrap"><span style="font-size:11px;color:{{ cb.hasCouleur }}" title="{{ cb.hasTousAide }}">{{ cb.hasChiffre }}</span></td>
-                              <td style="text-align:right;width:1%;white-space:nowrap">
+                              </sc-raw-td>
+                              <sc-raw-td style="text-align:right;width:1%;white-space:nowrap"><strong style="font-family:var(--font-heading)">{{ cb.total }}</strong></sc-raw-td>
+                              <sc-raw-td style="text-align:right;width:1%;white-space:nowrap">{{ cb.dd }}</sc-raw-td>
+                              <sc-raw-td style="text-align:right;width:1%;white-space:nowrap">{{ cb.n }}</sc-raw-td>
+                              <sc-raw-td style="width:1%;white-space:nowrap"><span style="font-size:11px;color:{{ cb.hasCouleur }}" title="{{ cb.hasTousAide }}">{{ cb.hasChiffre }}</span></sc-raw-td>
+                              <sc-raw-td style="text-align:right;width:1%;white-space:nowrap">
                                 <sc-if value="{{ cb.estAffichee }}" hint-placeholder-val="{{ true }}">
                                   <span style="font-size:10px" class="text-muted" title="{{ cb.voirAide }}">affichée</span>
                                 </sc-if>
                                 <sc-if value="{{ cb.aVoir }}" hint-placeholder-val="{{ false }}">
                                   <button type="button" class="btn btn-ghost" style="min-height:1.5rem;font-size:10px;padding-inline:9px" title="{{ cb.voirAide }}" onClick="{{ cb.voir }}">Voir</button>
                                 </sc-if>
-                              </td>
-                            </tr>
+                              </sc-raw-td>
+                            </sc-raw-tr>
                           </sc-for>
-                        </tbody>
-                      </table>
+                        </sc-raw-tbody>
+                      </sc-raw-table>
                     </div>
                     <sc-if value="{{ tr2.aReste }}" hint-placeholder-val="{{ false }}">
                       <button type="button" style="cursor:pointer;border:none;background:none;padding:0;align-self:flex-start;font:inherit;font-size:11px;color:var(--color-accent-700);text-decoration:underline;text-underline-offset:2px" onClick="{{ tr2.toutAfficher }}">{{ tr2.resteTxt }}</button>
@@ -4566,19 +4566,19 @@ window.__sivAide = {"entrees":[{"terme":"? Aide","texte":"Les explications de l�
               </sc-for>
             </div>
             <div style="overflow-x:auto">
-            <table class="table" style="font-size:12px">
-              <thead><tr>
-                <th>Instrument</th>
-                <th style="text-align:right">Votre résultat</th>
-                <th style="text-align:left">Part des tirages au hasard qui font aussi bien<span style="display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border:1px solid currentColor;font-size:9px;line-height:1;opacity:.55;margin-inline-start:4px;vertical-align:middle;cursor:help" title="On rejoue le même stop et la même sécurisation, mais en entrant à des dates tirées au sort. Cette part EST le p-value : sous 1 % la règle se distingue nettement, sous 5 % elle se distingue, jusqu'à 20 % c'est douteux, au-delà entrer au hasard aurait donné le même résultat.">?</span></th>
-                <th style="text-align:left">Verdict<span style="display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border:1px solid currentColor;font-size:9px;line-height:1;opacity:.55;margin-inline-start:4px;vertical-align:middle;cursor:help" title="Corrigé du nombre de tests effectués (Benjamini-Hochberg) : sur les configurations contrôlées ici, on trie les p-value et on ne retient que celles qui passent un seuil resserré, en tolérant 5 % de fausses découvertes parmi les retenues. Attention : cette correction porte sur les lignes contrôlées, pas sur les milliers de configurations du scan parmi lesquelles vous avez cueilli celles-ci — ce risque de sélection reste entier, et il est rappelé sous chaque verdict.">?</span></th>
-              </tr></thead>
-              <tbody>
+            <sc-raw-table class="table" style="font-size:12px">
+              <sc-raw-thead><sc-raw-tr>
+                <sc-raw-th>Instrument</sc-raw-th>
+                <sc-raw-th style="text-align:right">Votre résultat</sc-raw-th>
+                <sc-raw-th style="text-align:left">Part des tirages au hasard qui font aussi bien<span style="display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border:1px solid currentColor;font-size:9px;line-height:1;opacity:.55;margin-inline-start:4px;vertical-align:middle;cursor:help" title="On rejoue le même stop et la même sécurisation, mais en entrant à des dates tirées au sort. Cette part EST le p-value : sous 1 % la règle se distingue nettement, sous 5 % elle se distingue, jusqu'à 20 % c'est douteux, au-delà entrer au hasard aurait donné le même résultat.">?</span></sc-raw-th>
+                <sc-raw-th style="text-align:left">Verdict<span style="display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border:1px solid currentColor;font-size:9px;line-height:1;opacity:.55;margin-inline-start:4px;vertical-align:middle;cursor:help" title="Corrigé du nombre de tests effectués (Benjamini-Hochberg) : sur les configurations contrôlées ici, on trie les p-value et on ne retient que celles qui passent un seuil resserré, en tolérant 5 % de fausses découvertes parmi les retenues. Attention : cette correction porte sur les lignes contrôlées, pas sur les milliers de configurations du scan parmi lesquelles vous avez cueilli celles-ci — ce risque de sélection reste entier, et il est rappelé sous chaque verdict.">?</span></sc-raw-th>
+              </sc-raw-tr></sc-raw-thead>
+              <sc-raw-tbody>
                 <sc-for list="{{ hasardRows }}" as="hz" hint-placeholder-count="4">
-                  <tr>
-                    <td style="padding-inline-start:{{ hz.decalage }}"><strong>{{ hz.sym }}</strong><span class="{{ hz.roleCls }}" style="margin-inline-start:6px;font-size:9px;letter-spacing:.04em" title="{{ hz.roleAide }}">{{ hz.roleTxt }}</span><span style="display:block;font-size:11px;line-height:1.4;font-weight:600;color:var(--color-accent-700)">{{ hz.reglages }}</span><span class="text-muted" style="display:block;font-size:10px;line-height:1.4">{{ hz.nom }}</span></td>
-                    <td style="text-align:right;white-space:nowrap"><strong>{{ hz.total }}</strong><span style="display:block;font-size:10px;opacity:.75">{{ hz.totalParTrade }}</span></td>
-                    <td style="min-width:200px" title="{{ hz.aide }}">
+                  <sc-raw-tr>
+                    <sc-raw-td style="padding-inline-start:{{ hz.decalage }}"><strong>{{ hz.sym }}</strong><span class="{{ hz.roleCls }}" style="margin-inline-start:6px;font-size:9px;letter-spacing:.04em" title="{{ hz.roleAide }}">{{ hz.roleTxt }}</span><span style="display:block;font-size:11px;line-height:1.4;font-weight:600;color:var(--color-accent-700)">{{ hz.reglages }}</span><span class="text-muted" style="display:block;font-size:10px;line-height:1.4">{{ hz.nom }}</span></sc-raw-td>
+                    <sc-raw-td style="text-align:right;white-space:nowrap"><strong>{{ hz.total }}</strong><span style="display:block;font-size:10px;opacity:.75">{{ hz.totalParTrade }}</span></sc-raw-td>
+                    <sc-raw-td style="min-width:200px" title="{{ hz.aide }}">
                       <div style="display:flex;gap:10px;align-items:baseline">
                         <strong style="font-family:var(--font-heading);font-size:22px;line-height:1;min-width:5.5ch">{{ hz.taux }}</strong>
                         <span style="font-size:12px;line-height:1.35">{{ hz.lecture }}<span class="text-muted" style="display:block;font-size:10px">{{ hz.tauxDetail }}</span></span>
@@ -4586,12 +4586,12 @@ window.__sivAide = {"entrees":[{"terme":"? Aide","texte":"Les explications de l�
                       <div style="margin-top:6px;height:4px;background:var(--color-neutral-200)">
                         <div style="height:4px;width:{{ hz.barre }};background:{{ hz.barreCouleur }}"></div>
                       </div>
-                    </td>
-                    <td style="min-width:150px"><span class="{{ hz.tag }}">{{ hz.verdict }}</span><span class="{{ hz.etatCls }}" style="margin-inline-start:5px;font-size:9px;letter-spacing:.03em" title="{{ hz.etatMotif }}">{{ hz.etat }}</span><sc-if value="{{ hz.aCroisement }}" hint-placeholder-val="{{ true }}"><span style="display:block;font-size:11px;line-height:1.45;margin-top:4px" title="{{ hz.croisementAide }}">{{ hz.croisement }}</span></sc-if><span class="{{ hz.corrCls }}" style="display:block;font-size:10px;line-height:1.4;margin-top:3px">{{ hz.corrTxt }}</span><span class="text-muted" style="display:block;font-size:10px;line-height:1.4;margin-top:2px">{{ hz.selTxt }}</span></td>
-                  </tr>
+                    </sc-raw-td>
+                    <sc-raw-td style="min-width:150px"><span class="{{ hz.tag }}">{{ hz.verdict }}</span><span class="{{ hz.etatCls }}" style="margin-inline-start:5px;font-size:9px;letter-spacing:.03em" title="{{ hz.etatMotif }}">{{ hz.etat }}</span><sc-if value="{{ hz.aCroisement }}" hint-placeholder-val="{{ true }}"><span style="display:block;font-size:11px;line-height:1.45;margin-top:4px" title="{{ hz.croisementAide }}">{{ hz.croisement }}</span></sc-if><span class="{{ hz.corrCls }}" style="display:block;font-size:10px;line-height:1.4;margin-top:3px">{{ hz.corrTxt }}</span><span class="text-muted" style="display:block;font-size:10px;line-height:1.4;margin-top:2px">{{ hz.selTxt }}</span></sc-raw-td>
+                  </sc-raw-tr>
                 </sc-for>
-              </tbody>
-            </table>
+              </sc-raw-tbody>
+            </sc-raw-table>
             </div>
             <p class="card-body" style="margin:0;font-size:12px">Les conditions d'entrée ne sont pas appliquées aux tirages : une entrée au hasard ne peut pas, par définition, respecter une condition. Ce qui est comparé, c'est la valeur du <strong>moment</strong> d'entrée choisi par votre règle.</p>
           </div>
@@ -4935,22 +4935,22 @@ window.__sivAide = {"entrees":[{"terme":"? Aide","texte":"Les explications de l�
               <p class="card-body" style="margin:0;font-size:12px;max-width:96ch">{{ bcmpVerdict }}</p>
               <sc-if value="{{ aBcmpRows }}" hint-placeholder-val="{{ false }}">
                 <div style="max-height:260px;overflow:auto">
-                  <table class="table" style="font-size:12px">
-                    <thead><tr>
-                      <th style="position:sticky;top:0;z-index:2;background:var(--color-bg)">Entrée</th>
-                      <th style="position:sticky;top:0;z-index:2;background:var(--color-bg)">Côté</th>
-                      <th style="position:sticky;top:0;z-index:2;background:var(--color-bg)">Ce que ça veut dire</th>
-                    </tr></thead>
-                    <tbody>
+                  <sc-raw-table class="table" style="font-size:12px">
+                    <sc-raw-thead><sc-raw-tr>
+                      <sc-raw-th style="position:sticky;top:0;z-index:2;background:var(--color-bg)">Entrée</sc-raw-th>
+                      <sc-raw-th style="position:sticky;top:0;z-index:2;background:var(--color-bg)">Côté</sc-raw-th>
+                      <sc-raw-th style="position:sticky;top:0;z-index:2;background:var(--color-bg)">Ce que ça veut dire</sc-raw-th>
+                    </sc-raw-tr></sc-raw-thead>
+                    <sc-raw-tbody>
                       <sc-for list="{{ bcmpRows }}" as="br" hint-placeholder-count="4">
-                        <tr>
-                          <td style="white-space:nowrap">{{ br.quand }}</td>
-                          <td><span class="{{ br.cls }}">{{ br.cote }}</span></td>
-                          <td class="text-muted">{{ br.note }}</td>
-                        </tr>
+                        <sc-raw-tr>
+                          <sc-raw-td style="white-space:nowrap">{{ br.quand }}</sc-raw-td>
+                          <sc-raw-td><span class="{{ br.cls }}">{{ br.cote }}</span></sc-raw-td>
+                          <sc-raw-td class="text-muted">{{ br.note }}</sc-raw-td>
+                        </sc-raw-tr>
                       </sc-for>
-                    </tbody>
-                  </table>
+                    </sc-raw-tbody>
+                  </sc-raw-table>
                 </div>
               </sc-if>
             </div>
@@ -15530,7 +15530,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260913.11';
+  VERSION_APP = '260913.12';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les

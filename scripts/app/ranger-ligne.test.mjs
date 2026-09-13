@@ -14,7 +14,13 @@ const source = (f) => {
 const sectionARanger = (txt) => {
   const i = txt.indexOf("{{ aRanger }}");
   assert.ok(i > 0, "le tableau « À ranger » doit exister");
-  return txt.slice(i, txt.indexOf("</table>", i));
+  // les tables du gabarit s'écrivent en sc-raw-* depuis que l'analyseur HTML reposait
+  // les sc-for hors des vraies tables (voir gabarit-contenu-restreint.test.mjs) ; quand
+  // la borne a disparu, ce bloc courait jusqu'au bout du fichier et deux de ces gardes
+  // sont tombées sur du balisage qui n'était pas le leur — c'est ce qui a signalé l'oubli
+  const j = txt.indexOf("</sc-raw-table>", i);
+  assert.ok(j > i, "la fin du tableau « À ranger » doit exister — s'il a changé de forme, réancrez ici");
+  return txt.slice(i, j);
 };
 
 for (const f of FICHIERS) {
