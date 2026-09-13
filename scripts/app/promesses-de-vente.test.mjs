@@ -436,9 +436,45 @@ test("les textes qui vivent chez le prestataire ont leur source DANS le dépôt"
   assert.ok(iT > 0, `${MOD} ne déclare plus le type TexteRecopie`);
   const valeurs = src.slice(src.indexOf("};", iT) + 2);
   const textes = [...valeurs.matchAll(/texte: ([A-Za-z_]+|"[^"]*")/g)].map((m) => m[1]);
-  assert.ok(textes.length >= 6,
-    `${MOD} ne déclare plus que ${textes.length} textes : il en faut un par endroit où un `
-    + "texte engageant est recopié chez le prestataire.");
+
+  // ————— CE QUI SE DÉRIVE SE DÉRIVE ; CE QUI S'ÉNUMÈRE LE DIT —————
+  //
+  // Les quatre libellés d'article se DÉRIVENT des plans déclarés dans l'application : aucune
+  // liste, donc aucune hypothèse, et un cinquième plan est attrapé tout seul.
+  //
+  // LES QUATRE AUTRES N'ONT PAS DE SOURCE DONT LES DÉRIVER. La promesse de renvoi de clé vit
+  // en prose sur /tarifs, et chercher un mot dans de la prose pour conclure qu'un texte
+  // existe serait la règle 1 exactement — une intention pour un résultat. On les énumère
+  // donc, et c'est le seul endroit de ce fichier qui le fasse.
+  //
+  // LE COÛT EST RÉEL ET IL EST ÉCRIT : un cinquième texte d'après-vente naîtrait hors de
+  // portée de cette liste. On le dit pour que ce soit un choix visible et non un oubli — une
+  // garde qui énumère sans le dire finit par se lire comme une garde qui découvre.
+  const declares = [...src.matchAll(/export const (\w+): TexteRecopie =/g)].map((m) => m[1]);
+  for (const [nom, quoi] of [
+    ["DESCRIPTION_FACTURE", "la description portée par la facture, qui prouve le prix payé"],
+    ["COURRIEL_CONFIRMATION", "le courriel de confirmation, qui porte le lien de gestion — seul chemin de résiliation promis"],
+    ["RENVOI_DE_CLE", "le renvoi d’une clé perdue, que /tarifs promet noir sur blanc"],
+    ["REPONSE_REMBOURSEMENT", "la réponse à une demande de remboursement, qui doit dire que la clé reste ouverte"],
+  ]) {
+    assert.ok(declares.includes(nom),
+      `${MOD} n’a plus de texte pour ${quoi}.\n\nCelui-là est recopié à la main, sans version `
+      + "ni diff ni relecture : c’est la dérive la plus silencieuse qui soit, et personne ne "
+      + "s’en aperçoit jusqu’au jour où deux clients comparent ce qu’on leur a répondu.\n\n"
+      + `Rétablissez ${nom}, ou retirez du site la promesse qu’il tient.`);
+  }
+
+  // ————— TOUT TEXTE DÉCLARÉ EST INSCRIT DANS LA LISTE À PLAT —————
+  // Un `TexteRecopie` déclaré et jamais inscrit serait invisible : ni `enAttente()` ni les
+  // gardes qui parcourent la liste ne le verraient, et il partirait sans être passé par la
+  // marque. Celle-ci est structurelle, et elle n'énumère rien.
+  const iPlat = src.indexOf("TEXTES_RECOPIES: readonly TexteRecopie[]");
+  assert.ok(iPlat > 0, `${MOD} ne déclare plus la liste à plat`);
+  const plat = src.slice(iPlat, src.indexOf("];", iPlat));
+  const oublies = declares.filter((n) => !new RegExp(`\\b${n}\\b`).test(plat));
+  assert.deepEqual(oublies, [],
+    `déclarés dans ${MOD} mais absents de TEXTES_RECOPIES : ${oublies.join(" · ")}. Un texte `
+    + "hors de la liste échappe à la marque et aux gardes — il partirait sans avoir été relu.");
 
   if (enAttente) {
     const relus = textes.filter((t) => t !== "EN_ATTENTE_DU_STATUT");

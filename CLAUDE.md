@@ -77,7 +77,7 @@ supprimé : l'occupation réelle du navigateur est bien celle des deux.
 | `Vena.solo.html` | **artefact**, régénéré par `npm run app:solo` — ne jamais l'éditer à la main |
 | `Export_H1_Vena.mq5`, `Vena_Releve.mq5` | scripts MT5 téléchargés par l'utilisateur |
 | `aide-index.json` | **artefact**, régénéré par `npm run app:aide` après tout changement de `title=` |
-| `src/lib/textes-recopies.ts` | **la source** des textes recopiés chez le prestataire de paiement — vide et marquée tant que le statut n'est pas tranché |
+| `src/lib/textes-recopies.ts` | **la source** des textes qui engagent et qu'aucune garde n'atteint — vente et après-vente, recopiés à la main ; vide et marquée tant que le statut n'est pas tranché |
 
 À chaque livraison : `npm run app:version` avant `npm run app:solo` — voir « La version
 affichée est une date » plus bas.
@@ -699,17 +699,25 @@ revenu, et elle le dit.
 #### Et la surface déborde du dépôt — on déplace la source, on n'invente pas une garde
 
 La découverte atteint tout ce qui est versionné. **Les phrases qui engagent le plus n'y
-seront pas** : le libellé de l'article de chaque lien de paiement — celui qui porte le
-renoncement au droit de rétractation —, la description de la facture, le courriel de
-confirmation qui porte le lien de gestion, donc le seul chemin de résiliation que le site
-promet. Ils habitent le tableau de bord du prestataire de paiement. **Pas d'API, pas de
-lecture, aucune vérification possible**, et ce sont les plus engageants de tous.
+seront pas**, et elles se répartissent en deux familles que rien ne distingue du point de
+vue d'une garde :
+
+| | Ce que c'est | Ce qui les rend dangereuses |
+|---|---|---|
+| **La vente** | le libellé de l'article de chaque lien de paiement — celui qui porte le renoncement —, la description de la facture, le courriel de confirmation qui porte le lien de gestion | recopiées **une fois** dans un tableau de bord, puis plus jamais relues |
+| **L'après-vente** | le renvoi d'une clé perdue, la réponse à une demande de remboursement | **réécrites à chaque demande**, à la main, sans version ni diff ni relecture |
+
+**Le module a failli s'appeler « les textes de Revolut », et c'était nommer un LIEU au lieu
+d'une PROPRIÉTÉ** — la moitié du sujet serait restée dehors. Ce qui les réunit, c'est que
+chacun **engage** et qu'aucun n'est **atteignable par une garde**, parce qu'il est recopié à
+la main. La seconde famille est la plus exposée des deux : une dérive y est invisible
+jusqu'au jour où deux clients comparent ce qu'on leur a répondu.
 
 **Le remède n'est pas une garde, c'est un déplacement de la source.** Ces textes sont
-écrits dans le dépôt — `src/lib/textes-recopies.ts` — et le tableau de bord n'en est que le
-**miroir recopié**. Ils redeviennent alors lisibles comme n'importe quelle autre phrase :
-ils sont dans `src/`, dans des chaînes, et les gardes les voient sans qu'on ait rien à leur
-apprendre. Une divergence cesse d'être muette.
+écrits dans le dépôt — `src/lib/textes-recopies.ts` — et le tableau de bord comme la boîte
+de courrier n'en sont que le **miroir recopié**. Ils redeviennent alors lisibles comme
+n'importe quelle autre phrase : ils sont dans `src/`, dans des chaînes, et les gardes les
+voient sans qu'on ait rien à leur apprendre. Une divergence cesse d'être muette.
 
 > **Ce qu'on ne peut pas vérifier, on fait en sorte qu'il n'y ait rien à inventer quand on
 > le recopie.**
@@ -717,17 +725,32 @@ apprendre. Une divergence cesse d'être muette.
 **Le module est vide, et il est marqué** (`EN_ATTENTE_DU_STATUT`) : la formule du
 renoncement, la forme de la facture et l'identité du vendeur dépendent de l'arbitrage en
 cours. Y écrire une formule plausible serait **pire que ne rien écrire** — elle aurait
-l'autorité du dépôt sans avoir été relue, et c'est précisément ce qu'un test refuse.
+l'autorité du dépôt sans avoir été relue, et serait recopiée telle quelle. **La case vide
+est plus honnête que la case vraisemblable**, et un test la tient.
 
-Trois choses le tiennent, et aucune n'énumère :
+Quatre choses le tiennent :
 
 - **un libellé par plan**, et les plans sont **lus dans l'application** : ajouter un
   cinquième plan là-bas fait tomber le test ici, en nommant la constante qui manque ;
+- **tout texte déclaré est inscrit dans la liste à plat** — sinon il échappe à la marque et
+  aux gardes, et partirait sans avoir été relu ;
 - **la marque est reliée à sa condition** (règle 6) — tant que `RENONCE_TXT` porte son
-  « À COMPLÉTER », les textes doivent porter le leur ; le jour où il ne le porte plus, le
-  test échoue et dit quoi remplir, puis où le recopier ;
+  « À COMPLÉTER », les textes portent le leur ; le jour où il ne le porte plus, le test
+  échoue, dit quoi remplir et où le recopier ;
 - **le module est dans la surface découverte** : une promesse fausse écrite dedans est
   attrapée par les gardes ordinaires, sans que ce fichier soit nommé nulle part.
+
+**Et la consigne de recopie ne vit qu'ici.** Elle n'est pas doublée dans PASSATION.md :
+deux copies divergent, et la divergence est muette. Portée par la garde, elle arrive au
+seul moment où elle sert — quand la marque tombe — et **elle ne peut pas être périmée,
+puisqu'elle n'existe qu'au moment d'agir**.
+
+**La partie énumérée est nommée comme telle.** Les quatre libellés d'article se dérivent ;
+les quatre autres textes n'ont aucune source dont les dériver — chercher un mot dans la
+prose de `/tarifs` pour conclure qu'un texte existe serait la règle 1 exactement. Ils sont
+donc listés, et le test **écrit son propre angle mort** : un cinquième texte d'après-vente
+naîtrait hors de portée de cette liste. Une garde qui énumère sans le dire finit par se
+lire comme une garde qui découvre.
 
 ## Le démarrage se chronomètre — mesurer à vide ne mesure personne
 

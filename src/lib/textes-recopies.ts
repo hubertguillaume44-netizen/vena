@@ -1,9 +1,15 @@
-// ————— LES TEXTES QUI ENGAGENT LE PLUS VIVENT HORS DU DÉPÔT —————
+// ————— LES TEXTES QUI ENGAGENT ET QUE LA GARDE NE PEUT PAS ATTEINDRE —————
+//
+// C'EST LA DÉFINITION DU MODULE, et elle est plus large que son premier jet. Il a failli
+// s'appeler « les textes de Revolut » : c'était nommer un LIEU au lieu d'une PROPRIÉTÉ, et
+// la moitié du sujet serait restée dehors. Ce qui les réunit n'est pas l'endroit, c'est que
+// chacun ENGAGE et qu'aucun n'est atteignable par une garde — parce qu'il est RECOPIÉ À LA
+// MAIN, dans un tableau de bord ou dans une boîte de courrier.
 //
 // La garde des promesses de vente lit maintenant tout `src/` et l'application : plus
 // aucune hypothèse implicite sur l'endroit où une promesse peut naître — À L'INTÉRIEUR DU
 // DÉPÔT. Or les phrases qui engagent le plus n'y seront pas. Elles habiteront le tableau
-// de bord du prestataire de paiement :
+// de bord du prestataire de paiement. LA VENTE, d'abord :
 //
 //   · le LIBELLÉ DE L'ARTICLE de chaque lien de paiement — c'est lui, et lui seul, qui
 //     porte le renoncement au droit de rétractation. Pas la case de l'application, qui
@@ -14,6 +20,10 @@
 //   · le COURRIEL DE CONFIRMATION, qui porte aussi le lien de gestion de l'abonnement —
 //     c'est-à-dire le seul endroit d'où la résiliation part réellement, et /tarifs comme
 //     l'accueil le promettent désormais par écrit.
+//
+// L'APRÈS-VENTE ensuite, et c'est le plus exposé des deux : le renvoi d'une clé perdue et
+// la réponse à une demande de remboursement, réécrits à la main à chaque fois. Voir plus
+// bas — ils n'ont ni version, ni diff, ni relecture.
 //
 // AUCUNE GARDE NE LES ATTEINDRA JAMAIS LÀ-BAS. Pas d'API, pas de lecture, pas de
 // vérification possible — et ce sont les plus engageants de tous. C'est la surface qui
@@ -106,7 +116,48 @@ export const COURRIEL_CONFIRMATION: TexteRecopie = {
   texte: EN_ATTENTE_DU_STATUT,
 };
 
-/** Tous, à plat. La garde les parcourt sans en énumérer aucun. */
+// ————— ET L'APRÈS-VENTE, QUI EST LE PLUS EXPOSÉ DES DEUX —————
+//
+// LE MODULE N'EST PAS « LES TEXTES DE REVOLUT ». C'est « les textes qui engagent et que la
+// garde ne peut pas atteindre ». Les six précédents sont recopiés une fois dans un tableau
+// de bord et n'y bougent plus. Ceux-ci sont RÉÉCRITS À CHAQUE FOIS, à la main, dans une
+// boîte de courrier, par quelqu'un qui ne relira pas ce qu'il avait écrit la fois d'avant.
+//
+// C'est la dérive la plus silencieuse qui soit : pas de version, pas de diff, pas de
+// relecture, et chaque envoi un peu différent du précédent. Personne ne s'en aperçoit —
+// jusqu'au jour où deux clients comparent ce qu'on leur a répondu.
+//
+// Les deux engagent pour de bon :
+//
+//   · le RENVOI DE CLÉ est la contrepartie de ce que /tarifs promet noir sur blanc — le
+//     registre des ventes existe précisément pour ça, et c'est ce qui rend acceptable
+//     qu'une facture soit conservée. La promesse est écrite ; la réponse ne l'est pas ;
+//   · la RÉPONSE À UNE DEMANDE DE REMBOURSEMENT doit dire que LA CLÉ RESTE OUVERTE. Une
+//     clé est délivrée à la seconde du paiement et ne se révoque jamais : rembourser ne
+//     reprend rien. Le dire est une obligation, et l'improviser au cas par cas est le
+//     meilleur moyen de finir par ne pas le dire.
+
+/**
+ * Le courriel qui renvoie une clé perdue, retrouvée dans le registre des ventes par
+ * l'adresse de l'achat. C'est la promesse que /tarifs tient explicitement.
+ */
+export const RENVOI_DE_CLE: TexteRecopie = {
+  ou: "à la main, depuis la boîte de contact — à chaque demande",
+  engage: "tient la promesse de /tarifs : le registre permet de renvoyer une clé perdue",
+  texte: EN_ATTENTE_DU_STATUT,
+};
+
+/**
+ * La réponse à une demande de remboursement. Elle doit dire que la clé reste ouverte :
+ * rembourser ne reprend rien, et le passer sous silence serait tromper.
+ */
+export const REPONSE_REMBOURSEMENT: TexteRecopie = {
+  ou: "à la main, depuis la boîte de contact — à chaque demande",
+  engage: "dit que la clé reste ouverte après remboursement, puisqu’elle ne se révoque pas",
+  texte: EN_ATTENTE_DU_STATUT,
+};
+
+/** Tous, à plat. Un texte déclaré et non inscrit ici serait invisible : la garde le refuse. */
 export const TEXTES_RECOPIES: readonly TexteRecopie[] = [
   ARTICLE_LANCEMENT_MOIS,
   ARTICLE_LANCEMENT_AN,
@@ -114,6 +165,8 @@ export const TEXTES_RECOPIES: readonly TexteRecopie[] = [
   ARTICLE_NORMAL_AN,
   DESCRIPTION_FACTURE,
   COURRIEL_CONFIRMATION,
+  RENVOI_DE_CLE,
+  REPONSE_REMBOURSEMENT,
 ];
 
 /** Vrai tant que rien n'a été relu. Aucun de ces textes ne se recopie avant que ce soit faux. */
