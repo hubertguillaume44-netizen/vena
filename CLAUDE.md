@@ -415,7 +415,7 @@ d'URL est fabricable par l'acheteur, et son absence ne prouve rien non plus, alo
 charge de la preuve pèse sur le **vendeur**. La case à cocher reste, et sa fonction reste
 entière : elle fait **consentir**. C'est la facture qui **prouve**.
 
-## Les neuf règles, dans l'ordre où elles se servent
+## Les dix règles, dans l'ordre où elles se servent
 
 Elles viennent toutes d'un défaut réel de ce dépôt, et chacune est détaillée plus bas.
 
@@ -433,6 +433,8 @@ Elles viennent toutes d'un défaut réel de ce dépôt, et chacune est détaill�
    règle 7 vue depuis l'amont, au moment où l'on nomme.
 9. **Un angle mort qu'on ne peut pas fermer se déclare dans la garde elle-même** — sinon la
    garde suivante hérite d'une confiance qu'elle n'a pas méritée.
+10. **Le cas VIDE est le plus faible des tests** — c'est celui où la moitié des bugs
+    d'état ne peuvent pas se produire, et c'est celui qu'on écrit spontanément.
 
 Les quatre dernières sont nées le même jour, sur la même garde. Elles ferment par
 **construction** ce que les cinq premières ne fermaient que par **vigilance** — ou, quand
@@ -500,6 +502,25 @@ Le refus vit donc **au seul endroit par lequel une série entre dans le stockage
 
 `scripts/app/etancheite-exemples.test.mjs` fait tourner **le vrai code** contre un faux
 stockage, dans les trois espaces.
+
+**Troisième occurrence, et c'est elle qui donne son nom à la figure : `deposes`.** Le
+correctif d'un chemin — `reprendreSeries` cessant d'emporter les dix séries d'exemple —
+laissait **quatre autres écritures** libres de refaire la même faute, et l'une d'elles la
+faisait déjà : une purge de place remettait `deposes` à vide, alors que ces séries ne sont
+écrites nulle part et ne libèrent pas un octet. La garde écrite pour l'occasion, « les
+exemples survivent à une série à soi », éprouvait **le chemin réparé**.
+
+> **Une garde sur un chemin ferme un CAS ; une porte unique ferme la CLASSE.**
+
+Les cinq écritures passent donc par `deposesApres`, et la porte **décide sur un résultat** :
+elle ne demande à personne « faut-il garder les exemples ? » — un drapeau rouvrirait le trou
+au premier appelant qui l'oublie — elle regarde ce qui est vrai, les séries d'exemple
+effectivement posées dans `this.dfs`. `poserExemples` les y met avant d'appeler ;
+`retirerExemples` les en retire avant d'appeler ; les quatre autres n'ont rien à savoir.
+
+La seule écriture qui ne passe pas par elle, `ETAT_DERIVE` au changement de compte, est
+**déclarée comme exception et vérifiée** : le test lit que `reprendreSeries()` la suit et
+repose les dix, plutôt que de le croire.
 
 **La sonde d'idempotence** passe la migration **deux fois** et compare le stockage entier
 entre les deux passages : le second ne doit rien retravailler, ni rebalayer les blocs de
@@ -802,6 +823,30 @@ péremption**. Le jour où une source dont dériver apparaît, la note dit exact
 remplacer. Un angle mort passé sous silence ne se rouvre jamais, parce que personne ne sait
 qu'il est là.
 
+### Le cas VIDE est le plus faible des tests, et c'est celui qu'on écrit
+
+`reprendreSeries` remplaçait `deposes` par le seul index du compte et emportait les dix
+séries d'exemple qu'elle venait d'y mettre. Le défaut a vécu des mois sans se montrer, pour
+une raison qui vaut mieux qu'une anecdote : **à zéro série, la sortie anticipée passe AVANT
+l'écriture fautive.** Le seul cas éprouvé était celui où le bug ne peut pas se produire.
+
+Ce n'est pas un hasard de ce fichier-là. **Un état vide est, par construction, celui où la
+moitié des bugs d'état ne peuvent pas arriver** : pas de fusion, pas de remplacement, pas de
+collision, pas d'ordre entre deux écritures. Et c'est le test qu'on écrit spontanément —
+c'est le plus court à mettre en place, il ne demande aucun semis, et il passe du premier
+coup. Tout y invite.
+
+> **Un test à vide prouve qu'un chemin s'exécute. Il ne prouve presque rien sur ce qu'il
+> fait aux données qui étaient déjà là.**
+
+Le seuil, ici, n'était même pas 55 séries : **une** suffisait. Une éprouve peuplée ne
+demande donc pas un gros semis — elle demande qu'il y ait **un** élément d'avance, ce qui
+est le minimum pour qu'une fusion, un remplacement ou un ordre existent.
+
+La même forme se relit dans « mesurer à vide ne mesure personne » plus bas : un navigateur
+vide n'est la condition de personne, et un état vide n'est pas le cas d'usage. Les deux
+disent qu'un décor sans contenu ne mesure que le décor.
+
 ## Le démarrage se chronomètre — mesurer à vide ne mesure personne
 
 Un chargement lent a d'abord été attribué au **poids du fichier**. Mesuré : 2,46 Mo bruts,
@@ -841,6 +886,18 @@ deux coûts sans rapport : une lecture de base d'un côté, du calcul de fil pri
 l'autre — les confondre dirait « 4 s » sans dire s'il faut décoder plus tard ou calculer
 autrement. Les sorties anticipées sont mesurées elles aussi : sans ça, le cas « rien en
 mémoire » ne laisserait aucune trace, et c'est précisément celui auquel on compare.
+
+**Et ces marques ont déjà sauvé un diagnostic, pas une performance.** En cherchant à
+reproduire une perte de séries, deux semis de sonde sont tombés à côté — le champ `b` au
+lieu de `l` pour les bas, puis l'espace `.perso.ic` quand le compte réel était
+`.client.fxpro`. Les deux fois, la sonde rendait **« 0 série » sans se plaindre** : une
+mesure fausse qui a l'air d'une mesure, le pire mode de panne d'un diagnostic. C'est
+`vena:reprendreSeries 0 série`, posée dans le produit, qui l'a dit — pas une assertion de
+test, qui aurait simplement échoué sans dire que c'était la sonde qui avait tort.
+
+> **Une instrumentation posée dans le produit attrape une mesure fausse ; une sonde de test
+> ne peut attraper que le produit.** C'est l'argument pour en garder, et il ne se voit que
+> le jour où on en a besoin.
 
 **Avant tout nombre, savoir ce qui a été chronométré.** Le tableau ci-dessus écarte les
 deux jalons de 405 ms à 5 317 ms — un facteur treize selon la définition. « Page blanche »

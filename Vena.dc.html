@@ -8723,7 +8723,7 @@ GROUPES = {
           + 'Supprimez des bougies dont vous n\u2019avez plus besoin (colonne Bougies de l\u2019onglet Mes instruments), puis redéposez celles-ci : '
           + nonGardes.join(', ') : ''));
     this.setState((p) => ({
-      deposes: [...new Set([...(p.deposes || []), ...ajoutes])],
+      deposes: this.deposesApres(p.deposes, (d) => [...d, ...ajoutes]),
       btSym: ajoutes.length ? ajoutes[0] : p.btSym,
       depotEnCours: null,
       ecritureRefusee: nonGardes.length ? true : p.ecritureRefusee,
@@ -10572,6 +10572,35 @@ GROUPES = {
   // Maintenant elles sont EN MÉMOIRE, visibles depuis n'importe quel compte, et leurs
   // frais viennent de la table du générateur. Rien n'est écrit, donc rien n'est à
   // migrer, à exporter, ni à peser — et « supprimer » n'a plus besoin d'être définitif.
+  // ————— UNE SEULE PORTE D'ÉCRITURE POUR `deposes` —————
+  //
+  // LE CAS RÉPARÉ N'ÉTAIT QUE LE PREMIER DE CINQ. `reprendreSeries` remplaçait `deposes`
+  // et emportait les dix séries d'exemple ; corriger CETTE ligne laissait les quatre
+  // autres écritures libres de refaire exactement la même chose — et l'une d'elles le
+  // faisait déjà, dans la libération d'espace : `deposes: []` sur une purge de place,
+  // alors que ces séries ne sont pas stockées et ne libèrent rien.
+  //
+  // C'est la géométrie déjà appliquée deux fois dans ce fichier : le refus d'écriture des
+  // séries d'exemple décidé PLUS HAUT que la clé, le renoncement exigé dans l'unique
+  // fonction qui ouvre un lien de paiement. Une garde posée sur un chemin ferme un CAS ;
+  // une porte unique ferme la CLASSE.
+  //
+  // ELLE DÉCIDE SUR UN RÉSULTAT, JAMAIS SUR UNE INTENTION (règle 1). Elle ne demande pas
+  // à l'appelant « veux-tu garder les exemples ? » — un drapeau rouvrirait le trou au
+  // premier appelant qui l'oublie. Elle regarde ce qui est VRAI : les séries d'exemple
+  // effectivement posées en mémoire, `this.dfs`. `poserExemples` les y met avant
+  // d'appeler ; `retirerExemples` les en retire avant d'appeler. Aucun des deux n'a rien
+  // à déclarer, et les quatre autres appelants n'ont pas à y penser.
+  //
+  // LA SEULE ÉCRITURE QUI NE PASSE PAS PAR ICI est `ETAT_DERIVE`, le remise à zéro de
+  // l'état dérivé au changement de compte — et elle est immédiatement suivie de
+  // `reprendreSeries()`, qui repose les dix. Le test le vérifie plutôt que de le croire.
+  deposesApres(anciennes, calcul) {
+    const voulues = (calcul(anciennes || []) || []).filter((x) => !estExemple(x));
+    const posees = SYM_EXEMPLES.filter((sym) => !!(this.dfs || {})[sym]);
+    return [...new Set([...voulues, ...posees])];
+  }
+
   poserExemples() {
     if (!this.M) return;
     const tout = seriesExemple();
@@ -10588,7 +10617,8 @@ GROUPES = {
       }
     }
     this.setState((p) => ({
-      deposes: [...new Set([...(p.deposes || []), ...SYM_EXEMPLES])],
+      // les dix viennent d'entrer dans `this.dfs` : la porte les y voit et les réattache
+      deposes: this.deposesApres(p.deposes, (d) => d),
       seriesRev: (p.seriesRev || 0) + 1 }), () => this.recadrerBtSym());
   }
 
@@ -10601,7 +10631,9 @@ GROUPES = {
       if (this.diag) delete this.diag[sym];
     }
     this.setState((p) => ({
-      deposes: (p.deposes || []).filter((x) => !estExemple(x)),
+      // les dix viennent de sortir de `this.dfs` : la porte n'a plus rien à réattacher,
+      // et son propre filtre écarte ce qui traînerait
+      deposes: this.deposesApres(p.deposes, (d) => d),
       seriesRev: (p.seriesRev || 0) + 1 }), () => this.recadrerBtSym());
   }
 
@@ -15462,7 +15494,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260913.9';
+  VERSION_APP = '260913.10';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -16986,7 +17018,7 @@ GROUPES = {
     let touche = false;
     for (const nn of noms) if (mc[nn]) { delete mc[nn]; touche = true; }
     if (touche) this.ecrireCouv(mc);
-    this.setState((p) => ({ deposes: (p.deposes || []).filter((x) => !noms.has(x)),
+    this.setState((p) => ({ deposes: this.deposesApres(p.deposes, (d) => d.filter((x) => !noms.has(x))),
       seriesRev: (p.seriesRev || 0) + 1 }));
     if (this.state.inventaire) await this.inventaireStockage();
     await this.mesurerPlace();
@@ -17223,8 +17255,15 @@ GROUPES = {
       this.setState({ hasardFaits: {} });
     }
     if (p.type === 'series' && p.compte === this.compteActif) {
-      this.dfs = {};
-      this.setState((q) => ({ deposes: [], seriesRev: (q.seriesRev || 0) + 1 }));
+      // ————— UNE PURGE DE PLACE NE TOUCHE PAS À CE QUI N'OCCUPE AUCUNE PLACE —————
+      // `this.dfs = {}` emportait aussi les dix séries d'exemple, qui ne sont écrites
+      // nulle part et ne libèrent donc pas un octet. On garde leurs bougies en mémoire,
+      // et la porte les réattache à `deposes`.
+      const gardes = {};
+      for (const sym of SYM_EXEMPLES) if ((this.dfs || {})[sym]) gardes[sym] = this.dfs[sym];
+      this.dfs = gardes;
+      this.setState((q) => ({ deposes: this.deposesApres(q.deposes, () => []),
+        seriesRev: (q.seriesRev || 0) + 1 }));
     }
     this.setState({ libEnCours: null, libFait: 0, libTotal: 0,
       libLibere: (cles.length || 0) });
@@ -17622,8 +17661,7 @@ GROUPES = {
       // (`poserExemples`) ne prouve rien sur ce que le reste du programme fait ensuite
       // de ce qu'il a produit. Le remplacement garde son sens — les séries d'un autre
       // compte ne doivent pas survivre — et ne porte que sur les séries DÉPOSÉES.
-      this.setState((p) => ({
-        deposes: [...new Set([...idx, ...(p.deposes || []).filter(estExemple)])] }));
+      this.setState((p) => ({ deposes: this.deposesApres(p.deposes, () => idx) }));
     }
     return n;
   }

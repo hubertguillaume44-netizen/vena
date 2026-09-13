@@ -38,8 +38,20 @@ function jourDe(v) { return String(v).split(".")[0]; }
 
 test("la version est une date AAMMJJ, avec un rang seulement si le jour se répète", () => {
   const v = version("Vena.dc.html");
-  assert.match(v, /^\d{6}(\.[2-9]\d*)?$/,
-    `« ${v} » n’est ni six chiffres, ni six chiffres suivis d’un rang`);
+  // ————— LE RANG SE LIT COMME UN NOMBRE, PAS COMME UN PREMIER CHIFFRE —————
+  //
+  // Le motif disait `\.[2-9]\d*` pour « un rang commence à 2, la première livraison du
+  // jour reste nue ». C'était vrai TANT QUE LE RANG TENAIT SUR UN CHIFFRE : la dixième
+  // livraison du jour, « 260913.10 », a été refusée parce que son premier chiffre est 1.
+  // Une classe de caractères approchait la condition au lieu de la dire — la règle 1 au
+  // niveau d'une expression régulière. On lit donc le nombre, et on le compare.
+  const m = /^(\d{6})(?:\.(\d+))?$/.exec(v);
+  assert.ok(m, `« ${v} » n’est ni six chiffres, ni six chiffres suivis d’un rang`);
+  if (m[2] !== undefined) {
+    assert.ok(!/^0/.test(m[2]), `« ${v} » : un rang ne se remplit pas de zéros`);
+    assert.ok(Number(m[2]) >= 2,
+      `« ${v} » : la PREMIÈRE livraison du jour reste nue, le rang commence donc à 2`);
+  }
   const [aa, mm, jj] = [v.slice(0, 2), v.slice(2, 4), v.slice(4, 6)].map(Number);
   assert.ok(mm >= 1 && mm <= 12, `mois ${mm} impossible dans « ${v} »`);
   assert.ok(jj >= 1 && jj <= 31, `jour ${jj} impossible dans « ${v} »`);

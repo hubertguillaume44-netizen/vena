@@ -94,25 +94,85 @@ test("un filtre capable de tout cacher sans se montrer ne se restaure pas", () =
   }
 });
 
-test("les dix séries d’exemple survivent à un compte qui a déjà des séries", () => {
-  // ————— LE CAS « BEAUCOUP DE SÉRIES À SOI » N'AVAIT JAMAIS ÉTÉ ÉPROUVÉ —————
+test("aucune écriture de `deposes` ne peut perdre les séries d’exemple", () => {
+  // ————— UNE PORTE FERME LA CLASSE ; UNE GARDE SUR UN CHEMIN NE FERME QU'UN CAS —————
   //
-  // `poserExemples()` ajoute les dix à `deposes` ; quinze lignes plus bas, la reprise
-  // REMPLAÇAIT `deposes` par le seul index du compte et les emportait. Le défaut ne se
-  // voyait QUE chez quelqu'un qui a des séries à lui : à zéro série, la sortie anticipée
-  // passe avant et rien n'est remplacé — le seul cas testé était celui où le bug n'existe
-  // pas. Constaté à 55 séries, provenance « Séries d'exemple » sans compteur ni ligne.
+  // La première version de ce test disait « les exemples survivent à une série à soi » :
+  // elle éprouvait `reprendreSeries`, et LAISSAIT LIBRES les quatre autres écritures de
+  // `deposes`. L'une d'elles faisait déjà exactement la même faute — `deposes: []` dans
+  // la libération d'espace, alors que ces séries ne sont stockées nulle part et ne
+  // libèrent pas un octet.
   //
-  // C'est LA CARTE LUE EST CELLE QU'ON RÉÉCRIT, une fois de plus : un producteur propre
-  // ne prouve rien sur ce que le reste du programme fait de ce qu'il a produit.
+  // L'énoncé juste n'est pas « ce chemin-là préserve » mais « AUCUN chemin ne peut
+  // perdre ». C'est la géométrie du refus d'écriture posé plus haut que la clé, et du
+  // renoncement exigé dans l'unique fonction qui ouvre un paiement.
+  const porte = bloc("deposesApres(anciennes, calcul) {", "  poserExemples() {");
+  assert.match(porte, /\.filter\(\(x\) => !estExemple\(x\)\)/,
+    "la porte doit écarter les exemples de ce que l’appelant propose");
+  assert.match(porte, /SYM_EXEMPLES\.filter\(\(sym\) => !!\(this\.dfs \|\| \{\}\)\[sym\]\)/,
+    "la porte doit réattacher les exemples POSÉS — un résultat observable (this.dfs), "
+    + "jamais un drapeau que l’appelant déclare : un drapeau rouvre le trou au premier "
+    + "appelant qui l’oublie");
+  assert.ok(!/sansExemples|garderExemples|avecExemples/.test(porte),
+    "la porte ne doit prendre aucun drapeau de l’appelant : elle décide sur le résultat");
+
+  // ————— ET TOUT LE MONDE PASSE PAR ELLE —————
+  // On lit les `setState` du fichier : celui qui écrit `deposes` doit l’écrire par la
+  // porte. Ajouter une sixième écriture en la recopiant fait tomber ce test.
+  const hors = [];
+  for (let i = SOURCE.indexOf("this.setState("); i > 0; i = SOURCE.indexOf("this.setState(", i + 1)) {
+    const suite = SOURCE.slice(i, i + 700);
+    const j = suite.indexOf("deposes:");
+    if (j < 0) continue;
+    // la borne : on ne dépasse pas le setState suivant
+    const k = suite.indexOf("this.setState(", 1);
+    if (k > 0 && j > k) continue;
+    if (/deposes: this\.deposesApres\(/.test(suite.slice(j, j + 60))) continue;
+    hors.push(SOURCE.slice(0, i).split("\n").length);
+  }
+  assert.deepEqual(hors, [],
+    "des `setState` écrivent `deposes` sans passer par la porte, aux lignes : "
+    + hors.join(", ") + ".\n\nÉcrivez `deposes: this.deposesApres(p.deposes, (d) => …)`. "
+    + "Sans ça, votre écriture emportera les dix séries d’exemple — c’est arrivé deux fois, "
+    + "et la seconde fois pendant qu’on réparait la première.");
+
+  // ————— LA SEULE EXCEPTION EST DÉCLARÉE, ET VÉRIFIÉE —————
+  // `ETAT_DERIVE` remet `deposes` à zéro au changement de compte. C'est légitime À LA
+  // CONDITION que les dix soient reposées juste après : on ne le croit pas, on le lit.
+  const chg = bloc("...this.ETAT_DERIVE, hasardFaits: {} }, ok));", "this.migrerGrille();");
+  assert.match(chg, /await this\.reprendreSeries\(\);/,
+    "`ETAT_DERIVE` vide `deposes` sans passer par la porte : c’est tenable tant que "
+    + "`reprendreSeries()` suit et repose les dix. S’il ne suit plus, faites passer la "
+    + "remise à zéro par la porte.");
+
+  // ————— ET UNE PURGE DE PLACE NE TOUCHE PAS À CE QUI N'OCCUPE AUCUNE PLACE —————
+  const lib = bloc("if (p.type === 'series' && p.compte === this.compteActif) {", "await this.inventaireStockage();");
+  assert.ok(!/this\.dfs = \{\};/.test(lib),
+    "la libération d’espace vide `this.dfs` en entier, exemples compris — or leurs bougies "
+    + "ne sont écrites nulle part et ne libèrent pas un octet. Gardez-les.");
+  assert.match(lib, /for \(const sym of SYM_EXEMPLES\) if \(\(this\.dfs \|\| \{\}\)\[sym\]\) gardes\[sym\] = this\.dfs\[sym\];/);
+});
+
+test("le cas VIDE est le plus faible des tests — on éprouve donc le cas peuplé", () => {
+  // ————— LE SEUL CAS JAMAIS TESTÉ ÉTAIT CELUI OÙ LE BUG N'EXISTE PAS —————
+  //
+  // À zéro série, `reprendreSeries` sort par la sortie anticipée AVANT d'écrire `deposes` :
+  // le remplacement fautif ne s'exécutait pas. Il suffisait d'UNE série à soi. Un état
+  // vide est précisément celui où la moitié des bugs d'état ne peuvent pas se produire —
+  // et c'est le test qu'on écrit spontanément.
   const corps = bloc("async reprendreSeries() {", "  oublierSeries() {");
-  assert.ok(!/this\.setState\(\{ deposes: \[\.\.\.new Set\(idx\)\] \}\)/.test(corps),
-    "la reprise remplace `deposes` par le seul index du compte : elle efface les dix séries "
-    + "d’exemple que `poserExemples()` vient d’y mettre. Gardez celles qui sont posées — "
-    + "`(p.deposes || []).filter(estExemple)`.");
-  assert.match(corps, /deposes: \[\.\.\.new Set\(\[\.\.\.idx, \.\.\.\(p\.deposes \|\| \[\]\)\.filter\(estExemple\)\]\)\]/,
-    "les séries d’exemple posées doivent survivre au remplacement");
-  // le remplacement garde son sens : les séries d'un AUTRE compte ne survivent pas
-  assert.ok(!/\.\.\.\(p\.deposes \|\| \[\]\),/.test(corps),
-    "une fusion complète ferait réapparaître les séries du compte précédent (197 au lieu de 79)");
+  const iPose = corps.indexOf("this.poserExemples();");
+  const iSortie = corps.indexOf("if (!idx.length || !this.M)");
+  const iEcrit = corps.indexOf("deposes: this.deposesApres");
+  assert.ok(iPose > 0 && iSortie > iPose,
+    "les dix doivent entrer AVANT la sortie anticipée : un compte sans aucune série est "
+    + "celui qui en a le plus besoin");
+  assert.ok(iEcrit > iSortie,
+    "l’écriture de `deposes` est APRÈS la sortie anticipée — c’est ce qui rendait le cas "
+    + "vide aveugle au défaut. Si cet ordre change, relisez ce test avec lui.");
+  // la marque de chronométrage couvre la sortie anticipée : sans elle, le cas « rien en
+  // mémoire » ne laisserait aucune trace, et c'est à lui qu'on compare
+  assert.match(corps, /fini\('0 série'\); return 0;/,
+    "la sortie anticipée doit être mesurée elle aussi : c’est cette marque qui a dit, deux "
+    + "fois, qu’un semis de diagnostic tombait à côté");
 });
