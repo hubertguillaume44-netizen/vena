@@ -414,7 +414,7 @@ d'URL est fabricable par l'acheteur, et son absence ne prouve rien non plus, alo
 charge de la preuve pèse sur le **vendeur**. La case à cocher reste, et sa fonction reste
 entière : elle fait **consentir**. C'est la facture qui **prouve**.
 
-## Les cinq règles, dans l'ordre où elles se servent
+## Les sept règles, dans l'ordre où elles se servent
 
 Elles viennent toutes d'un défaut réel de ce dépôt, et chacune est détaillée plus bas.
 
@@ -424,6 +424,13 @@ Elles viennent toutes d'un défaut réel de ce dépôt, et chacune est détaill�
 3. **On interdit le code, pas le récit du code.**
 4. **Quand l'explication contredit l'étiquette, c'est l'étiquette qui est le défaut.**
 5. **Une affirmation sur un fichier se relit avant d'être rapportée.**
+6. **Une marque temporaire est reliée à la condition qui la justifie** — sinon elle devient
+   un commentaire permanent que plus personne ne lit.
+7. **La surface se découvre, elle ne s'énumère pas** — un périmètre écrit à la main porte
+   toujours une hypothèse implicite.
+
+Les deux dernières sont nées le même jour, sur la même garde, et elles ferment par
+**construction** deux trous que les cinq premières ne fermaient que par **vigilance**.
 
 ## Le défaut a un nom : demander une INTENTION pour prédire un RÉSULTAT
 
@@ -574,6 +581,31 @@ son nom. Le rendu peut être mis en forme comme on veut autour.
 clair dans le rendu en laissant la constante derrière laisserait la garde verte sur un
 texte que plus personne n'affiche. Elle vérifie donc aussi que la constante **est rendue**.
 
+#### La fragmentation en littéraux est revenue deux fois — et la sortie est écrite d'avance
+
+`parNom` lit **le premier littéral** de la déclaration, et rien de plus. Une phrase écrite
+en morceaux concaténés lui livre donc son début et lui cache sa fin — c'est-à-dire, deux
+fois sur deux, **la preuve, qui vient après la promesse** :
+
+| | Ce que la garde lisait | Ce qui lui restait invisible |
+|---|---|---|
+| `mentionLancement` | « Tarif de lancement — garanti tant que… » | « …inscrit sur votre facture » |
+| `SANS_COMPTE` | « …aucun compte à créer. » | « …il reste la facture et son registre » |
+
+Les deux fois, le remède a été de **réécrire la phrase en un seul littéral** — aujourd'hui
+avec un `// prettier-ignore`, parce que la ligne dépasse la largeur du formateur.
+
+**Ça tient par discipline, et il faut le savoir.** Rien n'empêche quelqu'un de couper la
+phrase de bonne foi : un formateur, une relecture, une insertion. **Si le cas revient une
+troisième fois, la conclusion n'est pas un troisième `prettier-ignore` — c'est que `parNom`
+doit concaténer les littéraux adjacents avant de lire.** C'est encore *changer de forme
+plutôt qu'ajouter un motif* : la prise cesse d'être « le premier littéral » pour devenir
+« tout ce que la déclaration produit », et la façon dont elle est coupée cesse d'exister
+pour la garde.
+
+On ne le fait pas avant, parce que deux occurrences se réparent moins cher qu'elles ne se
+généralisent — mais le seuil est posé, et il se reconnaîtra.
+
 ### Une affirmation sur un fichier se relit avant d'être rapportée
 
 Un commentaire a été annoncé comme écrit alors que le script qui le posait s'était arrêté
@@ -601,6 +633,67 @@ partage pas. Le seuil, lui, n'est **pas** exempté : `vieux` ne pilote que l'ét
 phrase et deux encres — aucun comportement — donc c'est le verdict qui change, pas la
 mesure. Les deux encres d'alerte suivent le verdict (`vieux && !estExemple(sel)`), sans
 quoi les dix porteraient la couleur d'alerte sans porter le mot.
+
+### Une marque temporaire est reliée à la condition qui la justifie
+
+Une marque — « À COMPLÉTER », « à trancher », « provisoire » — dit *ne me prends pas pour
+du texte relu*. Elle est vraie le jour où on l'écrit. Elle ne le reste que tant que la
+raison de son existence tient, et **rien, dans son écriture, ne la fait tomber quand cette
+raison disparaît**. Elle devient alors une consigne périmée : elle a l'autorité des vraies
+et n'a plus de contenu.
+
+C'est **la même famille que « `_ds/` n'est pas dans le dépôt »**, restée en place après que
+le problème eut été réglé, et qui envoyait chercher une panne qui n'existait plus. La
+différence tient en un mot : là c'était de la **vigilance** — quelqu'un devait penser à
+relire —, ici c'est de la **construction**.
+
+Le cas réel : l'accueil annonce quatorze jours de rétractation ; le chemin de paiement fait
+renoncer l'acheteur à ce droit. Laquelle cède dépend d'un arbitrage juridique en cours. La
+phrase de l'accueil est donc marquée par son nom — `RETRACTATION_A_TRANCHER` — comme le
+libellé du renoncement l'est par son texte, `RENONCE_TXT = 'À COMPLÉTER…'`.
+
+**Et les deux marques sont liées par une garde.** Elle lit `RENONCE_TXT` : tant qu'il porte
+son « À COMPLÉTER », elle exige la marque de l'accueil ; **le jour où il ne le porte plus,
+elle échoue** et redemande de trancher la phrase de l'accueil. La condition qui justifie la
+marque est devenue la condition qui la tient en vie.
+
+> **Une marque temporaire qu'aucune garde ne relie à sa condition est un commentaire
+> permanent.** Écrire la marque est la moitié du geste ; écrire ce qui la retirera est
+> l'autre.
+
+Le piège que ça fermerait mal se voit dans la garde elle-même : la branche « la condition a
+disparu » ne passe pas en silence, elle appelle `assert.fail` avec les deux issues
+possibles écrites en toutes lettres. Une garde qui deviendrait vide se tairait ; celle-là
+parle.
+
+### La surface se découvre, elle ne s'énumère pas
+
+Une garde a un **périmètre** : les fichiers qu'elle lit. Écrit à la main, ce périmètre est
+une hypothèse — et comme elle n'est écrite nulle part, personne ne la révise. Le jour où
+elle cesse d'être vraie, **la garde ne tombe pas : elle reste verte en ne regardant plus
+qu'une partie de la surface.** C'est la règle 2 appliquée au périmètre plutôt qu'au code.
+
+La même garde l'a fait **deux fois de suite**, et c'est ce qui rend le cas instructif :
+
+| Périmètre | L'hypothèse, jamais écrite | Ce qui lui échappait |
+|---|---|---|
+| `tarifs.tsx` | « les promesses de vente vivent sur la page de vente » | l'accueil, qui garde un résumé des trois formules, promettait encore « rien n'est conservé sur vous, pas même votre achat » |
+| `src/routes/` | « les promesses vivent dans les routes » | `SiteFooter`, dans `src/components/`, porte l'avertissement de risque — **rendu sur toutes les pages du site** |
+
+**Corriger le premier périmètre en en écrivant un second, c'est déplacer le défaut, pas le
+fermer** — exactement ce que `this.essai` → `aMoi` avait fait un chantier plus tôt. La
+sortie n'est pas de remonter d'un cran : c'est de **retirer le périmètre**. Tout `src/` est
+lu, récursivement. Le code moteur n'a aucune raison de porter une promesse commerciale, et
+s'il finit par en porter une, c'est précisément ce qu'on veut voir.
+
+**La preuve qu'il fallait est une mutation qui n'énumère rien** : on crée une route neuve
+portant une promesse absolue, et la garde l'attrape sans que ce fichier ait été nommé nulle
+part. Une garde par liste ne peut pas passer cette épreuve — c'est ce qui distingue une
+découverte d'un périmètre simplement plus large.
+
+**Et la découverte se garde elle-même.** Elle vérifie qu'elle atteint toujours les deux
+fichiers d'où le défaut est venu ; si elle ne les atteint plus, c'est qu'un périmètre est
+revenu, et elle le dit.
 
 ## Le démarrage se chronomètre — mesurer à vide ne mesure personne
 

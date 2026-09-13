@@ -104,12 +104,28 @@ export function SiteHeader({
   );
 }
 
+// ————— UNE PHRASE QUI ENGAGE, ET ELLE EST RENDUE SUR TOUTES LES PAGES —————
+//
+// C'est l'avertissement de risque : ni conseil, ni gestion, et le trading fait perdre de
+// l'argent. Il engage autant qu'un prix, et davantage que la plupart des phrases de
+// /tarifs — mais il vivait en TEXTE JSX NU dans un composant partagé, donc doublement
+// hors de portée des gardes : par la forme (une chaîne, jamais du texte entre balises) et
+// par le lieu (la découverte s'arrêtait à src/routes/).
+//
+// Le lieu était la deuxième hypothèse implicite de la même garde. La première était « les
+// promesses vivent sur /tarifs » ; celle-ci était « les promesses vivent dans les routes »,
+// aussi fausse et moins visible — une promesse écrite dans un composant partagé se lit sur
+// TOUTES les pages. La découverte va désormais chercher src/ en entier.
+//
+// La phrase est nommée et rendue telle quelle : le rendu ne change pas d'un caractère,
+// seule la prise des gardes change.
+// prettier-ignore
+const AVERTISSEMENT_RISQUE = "Véna — simulateur de stratégies trading. Outil d’analyse, ni conseil en investissement ni service de gestion. Le trading fait perdre de l’argent à la majorité de ceux qui s’y essaient.";
+
 export function SiteFooter() {
   return (
     <footer className="border-t border-line px-5 py-8 text-center text-xs text-muted md:px-8">
-      Véna — simulateur de stratégies trading. Outil d’analyse, ni conseil en
-      investissement ni service de gestion. Le trading fait perdre de l’argent à la majorité
-      de ceux qui s’y essaient.{" "}
+      {AVERTISSEMENT_RISQUE}{" "}
       <Link to="/visiteurs" className="text-ink/70 underline decoration-line underline-offset-2">
         Fréquentation
       </Link>

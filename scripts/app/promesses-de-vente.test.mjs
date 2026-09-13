@@ -30,14 +30,40 @@ const TARIFS = lire("src/routes/tarifs.tsx");
 // LA SURFACE SE DÉCOUVRE, ELLE NE S'ÉNUMÈRE PAS. Une liste écrite à la main aurait le même
 // défaut une route plus tard : la prochaine page naîtrait hors de portée sans que rien ne
 // le dise. On lit le répertoire.
-const DOSSIER_ROUTES = new URL("src/routes/", RACINE);
-const ROUTES = readdirSync(DOSSIER_ROUTES)
-  .filter((n) => n.endsWith(".tsx"))
-  .sort()
-  .map((n) => [`src/routes/${n}`, lire(`src/routes/${n}`)]);
+//
+// ————— ET LA DÉCOUVERTE S'ÉTAIT ARRÊTÉE UN ÉTAGE TROP TÔT —————
+//
+// Première version : src/routes/ seulement. C'était la MÊME faute une strate plus loin.
+// L'hypothèse « les promesses vivent sur /tarifs » avait simplement été remplacée par
+// « les promesses vivent dans les routes » — aussi implicite, aussi fausse, et moins
+// visible. `SiteFooter` porte l'avertissement de risque, qui engage autant qu'un prix et
+// qui est rendu sur TOUTES les pages du site ; il vit dans src/components/, hors de portée.
+//
+// On ne remonte donc pas d'un cran — on retire le périmètre. Tout src/ est lu, récursivement,
+// .ts comme .tsx : le code moteur n'a aucune raison de porter une promesse commerciale, et
+// s'il finit par en porter une, c'est précisément ce qu'on veut voir. Un périmètre écrit à
+// la main a TOUJOURS une hypothèse implicite ; le seul moyen de ne pas en avoir est de ne
+// pas en écrire.
+function marcher(rel) {
+  const sorti = [];
+  for (const e of readdirSync(new URL(rel, RACINE), { withFileTypes: true }).sort((a, b) =>
+    a.name < b.name ? -1 : 1,
+  )) {
+    if (e.isDirectory()) sorti.push(...marcher(`${rel}${e.name}/`));
+    else if (/\.tsx?$/.test(e.name)) sorti.push([rel + e.name, lire(rel + e.name)]);
+  }
+  return sorti;
+}
 
-/** Toutes les surfaces que l'acheteur lit : les routes du site, et l'application. */
-const SURFACES = [...ROUTES, ["Vena.dc.html", APP]];
+/** Toutes les surfaces que l'acheteur lit : le site en entier, et l'application. */
+const SURFACES = [...marcher("src/"), ["Vena.dc.html", APP]];
+
+// La découverte doit rester une découverte : si elle cesse d'atteindre les deux endroits
+// d'où le défaut est venu, c'est qu'elle a repris un périmètre.
+for (const attendu of ["src/routes/index.tsx", "src/components/site-header.tsx"]) {
+  if (!SURFACES.some(([n]) => n === attendu))
+    throw new Error(`la découverte n'atteint plus ${attendu} : le périmètre est revenu`);
+}
 // ————— ON INTERDIT LE CODE, PAS LE RÉCIT DU CODE — ET ON ARRÊTE DE COURIR APRÈS —————
 //
 // Ces gardes interdisent des phrases. Les commentaires qui racontent POURQUOI elles
@@ -98,6 +124,9 @@ const ANCRES = [
   ["src/routes/index.tsx", "données de marché ne quittent jamais votre navigateur"],
   ["src/routes/index.tsx", "Le mensuel s’arrête quand vous voulez"],
   ["src/routes/index.tsx", "Quatorze jours pour changer d’avis"],
+  // l'avertissement de risque est rendu sur TOUTES les pages, depuis un composant partagé.
+  // Il vivait en texte JSX nu : les gardes ne le voyaient pas, et ne le disaient pas.
+  ["src/components/site-header.tsx", "ni conseil en investissement ni service de gestion"],
 ];
 
 test("la copie commerciale vit dans des littéraux — sinon les gardes sont aveugles", () => {
