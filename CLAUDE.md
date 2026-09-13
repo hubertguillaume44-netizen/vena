@@ -94,10 +94,9 @@ répertoire de fonctions. **Il fait foi contre l'interface Netlify — sur ces t
 **UNE RÈGLE DIT OÙ ELLE S'ARRÊTE, SINON ELLE SE LIT COMME UNE GARANTIE GÉNÉRALE.** C'est
 la même famille que la garde qui éprouvait le producteur au lieu du consommateur : une
 consigne vraie sur son domaine, prise pour vraie partout. Ce fichier ne couvre **pas** la
-branche construite, ni l'activation des constructions, ni les variables d'environnement —
-trois réglages qui vivent dans l'interface, que rien dans le dépôt ne peut contredire, et
-dont le premier a déjà figé un déploiement pendant deux jours pendant que `main` avançait.
-Voir « Ce que `netlify.toml` ne tient pas » plus bas.
+branche construite, ni l'activation des constructions, ni **le verrou de publication** —
+ni les variables d'environnement. Quatre réglages qui vivent dans l'interface, que rien
+dans le dépôt ne peut contredire. Voir « Ce que `netlify.toml` ne tient pas » plus bas.
 
 Un réglage posé dans
 une interface ne se relit pas, ne se révise pas en revue, et personne ne sait qu'il existe
@@ -120,14 +119,25 @@ publié, présence des deux fonctions, et une redirection forcée par chemin dé
 
 ### Ce que `netlify.toml` NE tient pas, et qui a déjà fait défaut
 
-**La branche construite n'est pas dans ce fichier.** `netlify.toml` porte la commande, le
-répertoire publié et les fonctions — mais la *production branch* est un réglage de
-l'interface, et rien dans le dépôt ne peut la contredire. C'est exactement le trou que la
-section ci-dessus dénonce, une strate plus bas : le fichier fait foi sur ce qu'il couvre,
-et il ne couvre pas ça.
+**Ni la branche, ni l'activation des constructions, ni le VERROU DE PUBLICATION.**
+`netlify.toml` porte la commande, le répertoire publié et les fonctions. Ces trois-là sont
+des réglages d'interface, et rien dans le dépôt ne peut les contredire — exactement le trou
+que la section ci-dessus dénonce, une strate plus bas.
 
-Un déploiement figé pendant deux jours l'a montré. Ce que le dépôt prouvait alors, et qui
-reste la façon de trancher :
+**LE VERROU DE PUBLICATION EST LE PLUS SOURNOIS DES TROIS, et c'est lui qui a mordu.** Un
+déploiement est resté figé deux jours : sept constructions étaient parties, et **toutes
+avaient réussi** — c'est la publication automatique qui était verrouillée. La version en
+ligne restait sur `main@eeca9d5` pendant que les suivantes s'empilaient en réserve.
+
+Retenir la forme, parce qu'elle se reproduira : **tout est vert, et rien n'arrive.** Une
+construction verte ne prouve pas une mise en ligne ; un journal de constructions réussies
+n'est pas un journal de publications. C'est la règle 1 déguisée en tableau de bord — « la
+construction a-t-elle réussi ? » est une intention, « la version en ligne a-t-elle
+changé ? » est le résultat. La seule preuve est **ce que sert l'adresse publique**, et sur
+cette application c'est le numéro du pied de page.
+
+Ce que le dépôt prouvait alors, et qui reste la façon de trancher — en sachant désormais
+qu'aucune de ces vérifications n'atteint le verrou :
 
 | Vérification | Commande |
 |---|---|
@@ -513,6 +523,18 @@ reconnaître une chaîne ne demande de comprendre aucun langage.
 
 > **Quand une garde demande un correctif de plus, changer de forme — pas ajouter un
 > motif.** Le deuxième rustine est le signal ; le troisième est déjà trop tard.
+
+### Une grille dont le nombre de colonnes porte du sens s'ÉCRIT, elle ne se calcule pas
+
+Les quatre gestes MT5 se lisent **par rangs** : deux et deux. Confiés à `auto-fit`, ils ont
+été placés en **trois** colonnes sur un écran large — le navigateur a fait son travail, il
+ne pouvait pas savoir que le nombre portait du sens.
+
+C'est la même famille que déléguer une décision à un motif : un algorithme de placement
+optimise l'occupation, pas la lecture. Quand le compte de colonnes dit quelque chose, il
+s'écrit (`repeat(2, …)`), et le repli en une colonne se demande explicitement par une
+requête de média. `auto-fit` reste le bon outil quand le nombre n'a **pas** de sens — une
+liste de cartes équivalentes.
 
 **Et une forme pauvre a un angle mort qu'il faut garder, pas taire.** Le texte écrit en
 clair entre deux balises JSX n'est pas une chaîne : les gardes ne le verraient pas, et

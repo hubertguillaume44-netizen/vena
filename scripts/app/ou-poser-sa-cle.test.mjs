@@ -105,3 +105,38 @@ test("la clé de licence n’apparaît jamais en clair dans l’application rend
   assert.ok(!/\bc\b(?!\.trim|\s*=|\s*\|\|)/.test(corps.replace(/const c = [^;]+;/, "")),
     "le code complet circule encore dans le producteur de la clé masquée");
 });
+
+test("l’échéance de la licence se lit en dehors du bandeau d’arrivée", () => {
+  // ————— UN DÉFAUT MESURÉ, PAS SUPPOSÉ —————
+  //
+  // `licEcheance` n'existait qu'à UN endroit : le cadre « Licence active » de « Mes
+  // instruments ». Or ce cadre vit dans `aCompteVide` — au premier dépôt il s'efface, et
+  // l'échéance avec lui. Un abonné annuel n'avait plus aucun moyen de savoir jusqu'à quand
+  // sa licence court, au moment précis où il se met au travail.
+  //
+  // LE CADRE N'EST PAS DÉPLACÉ POUR AUTANT : c'est une confirmation de PASSAGE, et qu'elle
+  // s'efface quand on travaille est juste. Ce qui manquait, c'est l'état DURABLE, et sa
+  // place est le tiroir — ouvrable depuis les trois pages, à tout moment.
+  //
+  // La garde tient la distinction : au moins un rendu de l'échéance DEHORS.
+  const i = APP.indexOf('<sc-if value="{{ aCompteVide }}"');
+  const j = APP.indexOf('<sc-if value="{{ aInviteNom }}"', i);
+  assert.ok(i > 0 && j > i, "le bandeau d’arrivée ne se délimite plus");
+
+  const rendus = [...APP.matchAll(/\{\{ licEcheance \}\}/g)].map((m) => m.index);
+  assert.ok(rendus.length > 0, "l’échéance n’est plus rendue nulle part");
+  const dehors = rendus.filter((k) => k < i || k >= j);
+  assert.ok(dehors.length > 0,
+    "l’échéance n’est rendue QUE dans le bandeau d’arrivée, qui disparaît au premier "
+    + "dépôt : un abonné annuel ne saurait plus jusqu’à quand sa licence court. "
+    + "Rendez-la aussi dans la section Licence du tiroir, ouvrable à tout moment.");
+
+  // et elle y est accompagnée des deux autres faits, lus des MÊMES producteurs — deux
+  // affichages d'un seul fait, jamais deux faits à tenir d'accord
+  const tiroir = APP.slice(0, i);
+  for (const p of ["licCleMasquee", "licEcheance", "licEspace"]) {
+    assert.ok(tiroir.includes("{{ " + p + " }}"),
+      `« ${p} » ne figure pas dans le tiroir : l’état durable doit porter les trois faits, `
+      + "et les lire des mêmes producteurs que le cadre d’arrivée.");
+  }
+});

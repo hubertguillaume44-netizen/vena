@@ -762,6 +762,47 @@
               — une clé seule ne s'ouvre pas. Chacun porte son libellé plutôt qu'un texte
               d'attente qui disparaît à la première frappe.
             -->
+            <!--
+              ————— L'ÉTAT DURABLE DE LA LICENCE VIT ICI, ET PAS DANS LA PAGE —————
+
+              Le cadre « Licence active » de « Mes instruments » est une CONFIRMATION DE
+              PASSAGE : il dit « c'est bon, vous êtes entré », et il s'efface au premier
+              dépôt — ce qui est juste, on ne confirme pas une entrée à quelqu'un qui
+              travaille depuis une heure.
+
+              Mais il portait `licEcheance` TOUT SEUL dans l'application. Au premier
+              dépôt, l'échéance disparaissait donc partout, et un abonné annuel n'avait
+              plus aucun moyen de savoir jusqu'à quand sa licence court — au moment
+              précis où il se met au travail.
+
+              L'état durable a sa place ICI : là où le champ de la clé vit déjà, là où on
+              vient chercher son échéance, ouvrable depuis les trois pages et à tout
+              moment. Mêmes valeurs, mêmes producteurs que le cadre : deux affichages
+              d'un seul fait, jamais deux faits à tenir d'accord.
+            -->
+            <sc-if value="{{ licValide }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:9px;padding-bottom:11px;border-bottom:1px solid var(--color-divider)">
+                <div style="display:flex;gap:9px;align-items:center">
+                  <span style="width:8px;height:8px;flex:none;background:var(--color-accent)"></span>
+                  <span style="font-size:10.5px;letter-spacing:.12em;text-transform:uppercase" class="text-muted">Licence active</span>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:6px">
+                  <div style="display:flex;gap:10px;align-items:baseline;justify-content:space-between">
+                    <span style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#5d5d60;flex:none">Clé</span>
+                    <span style="font-size:12.5px;font-variant-numeric:tabular-nums;text-align:right">{{ licCleMasquee }}</span>
+                  </div>
+                  <div style="display:flex;gap:10px;align-items:baseline;justify-content:space-between">
+                    <span style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#5d5d60;flex:none">Échéance</span>
+                    <span style="font-size:12.5px;text-align:right">{{ licEcheance }}</span>
+                  </div>
+                  <div style="display:flex;gap:10px;align-items:baseline;justify-content:space-between">
+                    <span style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#5d5d60;flex:none">Espace</span>
+                    <span style="font-size:12.5px;text-align:right">{{ licEspace }}</span>
+                  </div>
+                </div>
+                <span style="font-size:11px;line-height:1.5" class="text-muted">Vérifiée <strong>ici même</strong>, par sa signature : aucune requête ne part. Elle ne s’épuise pas et ne se révoque pas — reposez-la sur un autre navigateur quand vous voulez.</span>
+              </div>
+            </sc-if>
             <sc-if value="{{ licSaisie }}" hint-placeholder-val="{{ true }}">
               <div style="display:flex;flex-direction:column;gap:8px;padding-bottom:11px;border-bottom:1px solid var(--color-divider)">
                 <span style="font-size:10.5px;letter-spacing:.12em;text-transform:uppercase" class="text-muted">J’ai une clé</span>
@@ -15392,7 +15433,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260913.7';
+  VERSION_APP = '260913.8';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
