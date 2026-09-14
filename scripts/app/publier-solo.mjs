@@ -20,7 +20,7 @@
  *   node scripts/app/publier-solo.mjs
  */
 import { execFileSync } from "node:child_process";
-import { copyFileSync, existsSync, mkdirSync, readFileSync, statSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
 const RACINE = path.resolve(new URL("../../", import.meta.url).pathname);
@@ -58,6 +58,16 @@ if (!existsSync(distDir)) {
 mkdirSync(path.dirname(SORTIE), { recursive: true });
 copyFileSync(SOLO, SORTIE);
 
+// 3 bis. LE MANIFESTE DE VERSION — /app/version.json, { "version": "260913.x" }.
+//    La page le lit à son montage et se compare à lui : c'est la seule façon pour elle
+//    de dire « une version plus récente est en ligne » — le dépôt dit ce qui est poussé,
+//    le manifeste dit ce qui est SERVI, et le verrou de publication vit dans cet écart.
+//    Il DÉRIVE de vSource, la version déjà vérifiée contre l'artefact trois lignes plus
+//    haut : jamais écrit à la main, donc jamais divergent. netlify.toml le sert en
+//    no-store — quelques octets peuvent se permettre ce que 2,4 Mo ne peuvent pas.
+writeFileSync(path.join(path.dirname(SORTIE), "version.json"),
+  JSON.stringify({ version: vSource }) + "\n");
+
 // 4. LE HABILLAGE. L'application charge sa feuille de style et son paquet depuis
 //    `_ds/…/`, qui ne sont PAS dans le dépôt. Sans eux la page se charge, mais la mise
 //    en page s'effondre : textes superposés, dialogue par-dessus l'accroche. Ce n'est
@@ -93,4 +103,4 @@ if (vSource < ecritLe) {
 }
 
 const mo = (statSync(SORTIE).size / 1048576).toFixed(2);
-console.log(`[publier-solo] dist/app/index.html — ${mo} Mo, version ${vSource}, servi tel quel sous /app.`);
+console.log(`[publier-solo] dist/app/index.html — ${mo} Mo, version ${vSource}, servi tel quel sous /app (+ version.json).`);

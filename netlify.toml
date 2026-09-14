@@ -85,3 +85,15 @@
   to = "/.netlify/functions/usage"
   status = 200
   force = true
+
+# ————— LE MANIFESTE DE VERSION, SERVI SANS CACHE —————
+#
+# /app/version.json fait quelques octets et n'existe que pour être relu : la page se
+# compare à lui au montage pour dire « une version plus récente est en ligne ». Un
+# manifeste en cache dirait la version d'hier — exactement ce qu'il existe pour ne pas
+# faire. Le fichier de 2,4 Mo, lui, garde le cache par défaut : c'est le manifeste qui
+# porte la fraîcheur, pas l'application.
+[[headers]]
+  for = "/app/version.json"
+  [headers.values]
+    Cache-Control = "no-store"

@@ -240,6 +240,12 @@
 <div style="min-height:100vh;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body);padding-bottom:{{ sansSauvPad }}">
 
   <div id="om-sticky" style="position:sticky;top:0;z-index:45">
+  <sc-if value="{{ aMajServie }}" hint-placeholder-val="{{ false }}">
+  <div style="background:var(--color-neutral-200);padding:6px 32px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;border-bottom:1px solid var(--color-divider)">
+    <span style="font-size:12px;flex:1;min-width:220px">{{ majServieTxt }}</span>
+    <button type="button" class="btn btn-ghost" style="min-height:1.8rem;font-size:11px;padding:0 10px" onClick="{{ recharger }}" title="Recharge la page pour ouvrir la version servie. Vos données ne bougent pas : elles sont dans ce navigateur, pas dans la page.">Recharger</button>
+  </div>
+  </sc-if>
   <sc-if value="{{ aSauvEtat }}" hint-placeholder-val="{{ false }}">
   <div style="background:var(--color-neutral-200);padding:6px 32px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;border-bottom:1px solid var(--color-divider)">
     <span style="font-size:12px;flex:1;min-width:220px">{{ sauvEtat }}</span>
@@ -901,6 +907,13 @@
                   <span style="font-size:10.5px;line-height:1.4" class="text-muted">des nombres, jamais un nom d’instrument ni un résultat</span>
                 </span>
                 <span style="font-size:11.5px;white-space:nowrap" class="text-muted">{{ etatPorteUsage }}</span>
+              </div>
+              <div style="display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;padding:7px 0;border-bottom:1px solid var(--color-divider)">
+                <span style="display:flex;flex-direction:column;gap:1px;flex:1;min-width:16ch">
+                  <span style="font-size:12.5px;line-height:1.4">Manifeste de version</span>
+                  <span style="font-size:10.5px;line-height:1.4" class="text-muted">au chargement, une requête vers le site lui-même (version.json) — rien dedans, aucune donnée ne sort ; hors ligne, rien ne part et rien ne s’affiche</span>
+                </span>
+                <span style="font-size:11.5px;white-space:nowrap" class="text-muted">lecture seule — le site, pas un tiers</span>
               </div>
               <div style="display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;padding:7px 0;border-bottom:1px solid var(--color-divider)">
                 <span style="display:flex;flex-direction:column;gap:1px;flex:1;min-width:16ch">
@@ -6693,7 +6706,7 @@ class Component extends DCLogic {
     res: null, seg: null, courbe: [], varianteRatee: false, ligneAttendue: null, cfgLigne: null, ecartLigne: '', scanN: 0, scanRev: 0, archives: [], scanVu: null, scanEnCours: false, scanTestes: 0,
     tradesMin: 40, segMin: 3, marche: null, tri: 'total', erreur: null, recherche: '', parSymbole: 1,
     deposes: [], survol: false, messageDepot: null, spreadSaisi: null, swapSaisi: null,
-    manquePlace: null, filetPropose: false,
+    manquePlace: null, filetPropose: false, majServie: null,
     typeSecu: 'be_progressif', beSeuil1: 30, beNiveau1: -50, beSeuil2: 50, beNiveau2: 0,
     beSeuil3: 0, beNiveau3: 0, trailingPct: 1.5, secuPrudent: false,
     fZone: false, utZone: 'D1', zoneTouches: 3, zoneTol: 0.5, zoneMarge: 1, zoneMemoire: 250,
@@ -11494,10 +11507,46 @@ GROUPES = {
     try { document.removeEventListener('keydown', this._panEchap); } catch (e) {}
     if (this._battement) clearInterval(this._battement);
   }
+  // ————— LA PAGE PEUT DIRE SI ELLE EST LA VERSION SERVIE — ET SE TAIT SINON —————
+  //
+  // `publier-solo` écrit /app/version.json à côté de l'artefact, dérivé de VERSION_APP
+  // — même source, donc ils ne peuvent pas diverger — et netlify.toml le sert sans
+  // cache, ce que le fichier de 2,4 Mo ne peut pas se permettre. On compare CE QUI EST
+  // SERVI à ce qu'on est : un résultat, pas une intention. Jamais le dépôt — il dit ce
+  // qui est poussé, le manifeste dit ce qui est servi, et le verrou de publication vit
+  // précisément dans cet écart (deux jours à servir eeca9d5 pendant que main avançait).
+  //
+  // TROIS ISSUES, ET LA TROISIÈME EST LA PLUS IMPORTANTE :
+  //   · égales           → rien : le silence est le cas normal ;
+  //   · servie plus neuve → « Une version plus récente est en ligne. Rechargez. » ;
+  //   · lecture en échec  → RIEN. Un fichier ouvert en file://, un avion, un pare-feu :
+  //     « version inconnue » transformerait le mode hors ligne — l'usage recommandé —
+  //     en avertissement permanent. L'absence d'information n'est pas une information.
+  //
+  // ET UN QUATRIÈME CAS, RESSERRÉ EXPRÈS : servie PLUS ANCIENNE que moi — un fichier
+  // téléchargé plus neuf que le site — se tait aussi. « Une version plus récente est en
+  // ligne » serait alors un mensonge inversé : le mot « récente » exige la comparaison,
+  // pas la seule différence.
+  async verifierVersionServie() {
+    let servie = '';
+    try {
+      const r = await fetch('version.json', { cache: 'no-store' });
+      if (!r.ok) return;
+      servie = String((await r.json() || {}).version || '');
+    } catch (e) { return; }
+    // un manifeste illisible ne juge pas — même silence que l'absence
+    if (!/^\d{6}(\.\d+)?$/.test(servie)) return;
+    const n = (v) => { const [j, r2] = String(v).split('.'); return [Number(j), Number(r2 || 0)]; };
+    const [jS, rS] = n(servie), [jM, rM] = n(this.VERSION_APP);
+    if (jS > jM || (jS === jM && rS > rM)) this.setState({ majServie: servie });
+  }
+
   async componentDidMount() {
     // le signal de quota trouve enfin un lecteur. Un refus survenu AVANT ce moment —
     // pendant la migration, par exemple — est remis ici par `poserSignalQuota`.
     poserSignalQuota((q) => this.setState({ manquePlace: q }));
+    // sans await : le verdict peut arriver quand il veut, rien n'en dépend
+    this.verifierVersionServie();
     window.addEventListener('beforeunload', this.quitter);
     this.suivreHauteurEntete();
     // un redimensionnement peut faire sortir un panneau déjà ouvert
@@ -15504,7 +15553,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260913.15';
+  VERSION_APP = '260914';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -20455,6 +20504,12 @@ GROUPES = {
             // une porte est OUVERTE quand elle peut faire sortir quelque chose : la clé
             // d'actualités déclenche des appels, le compteur d'usage en envoie. La
             // sauvegarde chiffrée et le diagnostic n'écrivent qu'un fichier sur le disque.
+            // La cinquième porte — le manifeste de version — est LISTÉE plus bas mais
+            // ne compte pas ici : le compteur compte les portes qui peuvent faire
+            // sortir des DONNÉES, et celle-là n'emporte rien — une requête vers le
+            // site lui-même, sans paramètre, au chargement. La compter afficherait
+            // « 1 porte ouverte » en permanence chez tout le monde, sans action
+            // possible — une alerte que personne ne peut lever.
             const cleN = !!this.lireCleNews();
             const usage = !!(this.lireUsage() || {}).actif;
             const nPortes = (cleN ? 1 : 0) + (usage ? 1 : 0);
@@ -20935,6 +20990,9 @@ GROUPES = {
       // ses trois textes, le compte des non-testés et `fermerBandeau`. L'état
       // terminé vit dans la barre d'exécution, en entier, et le compte des
       // non-testés y a suivi (voir `barDroiteSous`).
+      aMajServie: !!s.majServie,
+      majServieTxt: 'Une version plus récente est en ligne (' + (s.majServie || '') + '). Rechargez.',
+      recharger: () => location.reload(),
       reglagesRejoues: s.reglagesRejoues || '',
       aReglagesRejoues: !!s.reglagesRejoues,
       fermerRejoue: () => this.setState({ reglagesRejoues: null }),

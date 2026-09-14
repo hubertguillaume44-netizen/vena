@@ -610,6 +610,13 @@
    ]
   },
   {
+   "terme": "Recharger",
+   "texte": "Recharge la page pour ouvrir la version servie. Vos données ne bougent pas : elles sont dans ce navigateur, pas dans la page.",
+   "vues": [
+    "Toutes les pages"
+   ]
+  },
+  {
    "terme": "réglage fin…",
    "texte": "Escaliers à la carte, stop suiveur et distances : le réglage fin complet.",
    "vues": [
