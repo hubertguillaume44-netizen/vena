@@ -30,7 +30,16 @@ Trois familles sont gelées. Les renommer casserait des données déjà chez l'u
 | Constante | Où | Pourquoi elle est gelée |
 |---|---|---|
 | Le **numéro magique** (`magicDe`) | robot MQL5, journal | Il identifie les positions ouvertes chez le courtier. Un robot qui perd son magique perd la trace de ses propres positions. Il ne hache que la configuration et le compte — le nom de l'application n'y entre pas, et ne doit jamais y entrer. |
-| **`SIV_`** : `SIV_trades_`, `SIV_NIV_`, `SIV_PAN_`, la marque d'ordre `SIV_<stamp>` | protocole MT5 | Étiquettes écrites par les robots **déjà compilés** et lues par l'application. Les basculer remplirait `Common\Files` de deux orthographes du même fichier — le symptôme même qu'on corrige — et couperait la trace des robots en place. |
+| **`SIV_trades_`**, **`SIV_NIV_`** (et le repli `SIVTRADE;` du même journal) | protocole MT5 | Étiquettes écrites par les robots **déjà compilés** et RELUES — le fichier par l'application, les objets par le robot. Les basculer remplirait `Common\Files` de deux orthographes du même fichier — le symptôme même qu'on corrige — et couperait la trace des robots en place. |
+
+La marque d'ordre `SIV_<stamp>` et le préfixe de panneau `SIV_PAN_` ont été **dégelés**
+(livraison 260914.2) sur une raison MESURÉE, pas déclarée : la marque n'est jamais relue
+(les appariements passent tous par `POSITION_MAGIC`/`DEAL_MAGIC`, aucun
+`POSITION_COMMENT` dans le robot) et le préfixe de panneau n'est relu que par le robot
+qui l'écrit. Ils s'écrivent `VNA_<stamp>` et `VNA_PAN_`, avec un **balayage unique** de
+l'ancien `SIV_PAN_` à `OnInit` — un terminal fermé brutalement laisse les objets de
+l'ancien robot sous le panneau neuf. `scripts/mt5/nom-genere.test.mjs` remesure tout
+cela sur le source émis, et tient l'exception des gelés.
 | Les **signatures de journal** | Journal, reproductibilité | Une signature enregistrée sous l'ancien nom doit rester valide et recalculable. |
 
 ## Ce qui accepte les deux noms, sans date limite

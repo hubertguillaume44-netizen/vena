@@ -51,6 +51,9 @@ test("l’ancien nom ne survit que dans la migration et l’import de sauvegarde
     // qu'elle le déplace. L'exclure d'ici ne l'affaiblit pas — il ne décrit rien
     // d'autre que le mécanisme que cette règle autorise.
     if (r === "scripts/app/stockage-plein.test.mjs") continue;
+    // même raison : cette garde-là a l'ancien nom pour SUJET — elle vérifie qu'il
+    // n'agit plus dans le source MQL5 émis, et doit pouvoir l'épeler pour le chercher
+    if (r === "scripts/mt5/nom-genere.test.mjs") continue;
     const lignes = readFileSync(p, "utf8").split("\n");
     lignes.forEach((l, i) => {
       if (!ANCIEN.test(l)) return;
@@ -103,17 +106,32 @@ test("le numéro magique ne dépend pas du nom de l’application", () => {
   assert.ok(!/vena|Véna|sivula/i.test(corps), "aucun nom d’application dans le hachage");
 });
 
-test("les étiquettes du protocole MT5 restent SIV_", () => {
+test("les étiquettes GELÉES du protocole MT5 restent SIV_ — les autres sont parties", () => {
   const robot = readFileSync(path.join(RACINE, "robot-mt5.js"), "utf8");
-  // écrites par les robots DÉJÀ COMPILÉS et lues par l’application : les basculer
-  // couperait la trace des robots en place
-  for (const gele of ["'SIV_' + stamp", '"SIV_trades_"', '"SIV_NIV_"', 'PAN_PREF "SIV_PAN_"']) {
+  // GELÉES : écrites par les robots DÉJÀ COMPILÉS et RELUES (le fichier par
+  // l'application, les objets par le robot) — les basculer couperait la trace des
+  // robots en place
+  for (const gele of ['"SIV_trades_"', '"SIV_NIV_"']) {
     assert.ok(robot.includes(gele), "étiquette de protocole perdue : " + gele);
   }
+  // DÉGELÉES (livraison 260914.2), et la raison est MESURÉE, pas déclarée : la marque
+  // d'ordre n'est jamais relue (aucun POSITION_COMMENT/DEAL_COMMENT — l'appariement
+  // passe par le magique) et le préfixe de panneau n'est relu que par le robot qui
+  // l'écrit, avec un balayage unique de l'ancien à OnInit. Le détail vit dans
+  // scripts/mt5/nom-genere.test.mjs, qui remesure sur le source ÉMIS.
+  assert.ok(robot.includes("const marque = 'VNA_' + stamp;"),
+    "la marque des ordres doit être VNA_<build>");
+  assert.ok(robot.includes('PAN_PREF "VNA_PAN_"'),
+    "le préfixe du panneau doit être VNA_PAN_");
   const page = readFileSync(path.join(RACINE, "Vena.dc.html"), "utf8");
   assert.match(page, /\/\^SIV_trades_\/i/, "l’application doit continuer de reconnaître SIV_trades_");
   // le NOM du fichier de robot, lui, est machine : sans accent, sinon nomRobot le mange
   assert.match(robot, /return \['Vena', cfg\.sym,/, "le nom du robot exporté doit être « Vena », sans accent");
+  // et l'étiquette du compte ENTRE dans ce nom : la substitution vise le préfixe RÉEL
+  // « Vena_ » — écrite « Véna_ », elle ne correspondait jamais, et le compte
+  // disparaissait des noms de fichiers en silence
+  assert.match(page, /\.replace\(\/\^Vena_\/, 'Vena_' \+ this\.etiquetteCompte\(\)/,
+    "l’étiquette du compte doit entrer dans le nom du fichier exporté");
 });
 
 test("une sauvegarde de l’ancienne version reste importable", () => {

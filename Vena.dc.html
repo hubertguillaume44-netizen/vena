@@ -7685,7 +7685,7 @@ class Component extends DCLogic {
     const marque = this.fenMarque(this.fenetreDeLigne(v));
     // le compte, juste après « Véna » : c'est la première chose qu'on lit dans
     // MQL5\\Experts quand deux courtiers ont reçu la même configuration
-    const nomFichier = mod.nomRobot(v, stamp).replace(/^Véna_/, 'Véna_' + this.etiquetteCompte() + '_')
+    const nomFichier = mod.nomRobot(v, stamp).replace(/^Vena_/, 'Vena_' + this.etiquetteCompte() + '_')
       + (marque ? '_' + marque : '') + '.mq5';
     {
       const m = this.lireLive();
@@ -15553,7 +15553,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260914';
+  VERSION_APP = '260914.2';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les

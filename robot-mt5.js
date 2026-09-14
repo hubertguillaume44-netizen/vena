@@ -80,12 +80,14 @@ export function genererMQ5(cfg, ctx = {}) {
   const nom = nomRobot(cfg, stamp);
   // Le commentaire d'ordre est tronqué à 31 caractères par MT5 : le nom complet y perdait
   // son horodatage. On y met une étiquette courte, l'horodatage en tête.
-  // « SIV_ » NE CHANGE PAS, au même titre que le numéro magique. C'est une étiquette de
-  // protocole, pas une marque : elle est écrite par les robots déjà compilés et lue par
-  // cette application. La faire basculer à « VEN_ » remplirait le dossier Common\Files
-  // de deux orthographes du même fichier — exactement le symptôme qu'on corrige — et
-  // couperait la trace des robots en place. Elle est gelée.
-  const marque = 'SIV_' + stamp;
+  // « VNA_ » a remplacé l'ancien préfixe, et ce renommage-là est MESURÉ sans risque :
+  // tous les appariements de positions et de deals passent par POSITION_MAGIC /
+  // DEAL_MAGIC == InpMagic, et le commentaire d'ordre n'est jamais relu — aucun
+  // POSITION_COMMENT, DEAL_COMMENT ni ORDER_COMMENT dans le robot. C'est une étiquette
+  // pour l'œil humain dans l'historique du courtier, pas un identifiant. Rien de commun
+  // avec SIV_trades_ et SIV_NIV_, qui restent gelés : eux sont écrits par les robots
+  // déjà compilés et relus (fichier par l'application, objets par le robot lui-même).
+  const marque = 'VNA_' + stamp;
   const vente = cfg.sens === 'vente';
   const periode = nb(cfg.periode, 20);
   const sl = nb(cfg.sl, 1);
@@ -123,7 +125,7 @@ export function genererMQ5(cfg, ctx = {}) {
   // La licence est NOMINATIVE et le robot la porte : en-tête, empreinte de
   // démarrage, journal de conformité. Jamais dans un commentaire d'ordre — le
   // courtier n'a pas à connaître l'e-mail du client (la marque d'ordre reste
-  // SIV_<stamp>). C'est du frein social au prêt de code : prêter son code, c'est
+  // VNA_<stamp>). C'est du frein social au prêt de code : prêter son code, c'est
   // inscrire son adresse dans les robots que l'autre compile.
   const lic = ctx.licence && ctx.licence.email ? ctx.licence : null;
   const licTxt = !lic ? 'sans licence (essai)'
@@ -142,10 +144,16 @@ export function genererMQ5(cfg, ctx = {}) {
 
   // Creux de référence de CETTE configuration, pas celui du portefeuille : afficher
   // un chiffre emprunté à un autre calcul serait une affirmation sans support.
+  // « réf. » et l'encre grise séparent la référence FIGÉE de la mesure du chiffre
+  // vivant du compte — deux natures sous une même encre, c'est la famille « périmée ».
   const ddLigne = Number(cfg.dd);
   const refCreux = Number.isFinite(ddLigne) && ddLigne !== 0
-    ? ' · mesure : ' + Math.round(Math.abs(ddLigne)) + ' pertes d\u2019affilée au pire'
+    ? 'réf. ' + Math.round(Math.abs(ddLigne)) + ' pertes d\u2019affilée au pire'
     : '';
+  const refCreuxCourt = refCreux
+    ? 'réf. ' + Math.round(Math.abs(ddLigne)) + ' pertes' : '';
+  const dureeTxt = nb(etat.btDureeMax, 0) > 0
+    ? nb(etat.btDureeMax, 0) + ' bougies H1' : 'aucune';
   const tests = [];
   const resume = [];
 
@@ -238,7 +246,7 @@ export function genererMQ5(cfg, ctx = {}) {
 
   return `//+------------------------------------------------------------------+
 //|  ${nom}
-//|  Généré par Véna · build ${stamp} (UTC) · marque des ordres : SIV_${stamp}
+//|  Généré par Véna · build ${stamp} (UTC) · marque des ordres : ${marque}
 //|
 //|  Instrument      : ${esc(cfg.sym)}
 //|  Sens            : ${vente ? 'VENTE à découvert' : 'ACHAT'}
@@ -618,6 +626,14 @@ int OnInit()
    trade.SetExpertMagicNumber(InpMagic);
    trade.SetDeviationInPoints(InpSlippagePoints);
    trade.SetTypeFillingBySymbol(_Symbol);
+   // Balayage UNIQUE de l'ancien préfixe de panneau : OnDeinit nettoie le sien, mais
+   // un terminal fermé brutalement, ou un .ex5 remplacé à chaud, laisse les objets de
+   // l'ancien robot affichés SOUS le panneau neuf. Cette ligne pourra partir le jour
+   // où plus aucun robot d'avant le build 260914 ne peut être posé sur un graphique —
+   // une condition que rien ici ne peut mesurer : elle reste, au prix d'un appel au
+   // démarrage. La garde du dépôt (scripts/mt5/nom-genere.test.mjs) la relie à sa
+   // condition : tant que PAN_PREF ne s'écrit plus « SIV_PAN_ », ce balayage existe.
+   ObjectsDeleteAll(0, "SIV_PAN_");
    // Empreinte : sans elle, impossible de savoir quelle version a réellement tourné
    // quand un ancien .ex5 traîne dans MQL5\\Experts.
    // arguments séparés par des virgules : MQL5 n'accepte PAS la juxtaposition de
@@ -1453,44 +1469,95 @@ void DessinerNiveaux()
 
 // Le tableau est dessiné en OBJETS (cadre + libellés) et non par Comment() : le
 // commentaire se superpose aux bougies et reste illisible sur fond sombre.
-#define PAN_PREF "SIV_PAN_"
-#define PAN_MAX  16
-// Les lignes sont d'abord mises en tampon, puis mesurées : la police est réduite et le
-// cadre dimensionné sur la ligne la plus longue, sinon le texte sortait du graphique.
-string g_lig[PAN_MAX];
-string g_court[PAN_MAX];
-color  g_col[PAN_MAX];
-int    g_nlig   = 0;
-int    g_taille = 9;
+// Le préfixe suit le nom neuf ; l'ancien « SIV_PAN_ » est balayé UNE fois à OnInit.
+#define PAN_PREF "VNA_PAN_"
+#define PAN_MAX  16   // rangées
+#define PAN_OBJ  48   // cellules — une rangée en porte jusqu'à quatre
+// Chaque cellule porte sa taille, son gras et sa colonne : MQL5 les accepte par objet
+// (OBJPROP_FONTSIZE, OBJPROP_XDISTANCE, police « Consolas Bold ») — c'est Ligne() qui
+// imposait une taille et une couleur uniques. Les colonnes s'alignent par TextGetSize.
+// Colonne 0 : le flux de gauche. 1 à 3 : les colonnes de chiffres, calées à DROITE
+// sous leurs en-têtes. 4 et 5 : la valeur et sa référence, calées à GAUCHE après les
+// libellés. Une rangée s'ouvre quand la colonne n'avance plus (colonne <= précédente).
+string g_txt[PAN_OBJ];
+string g_court[PAN_OBJ];
+color  g_col[PAN_OBJ];
+int    g_tai[PAN_OBJ];
+bool   g_gras[PAN_OBJ];
+int    g_cln[PAN_OBJ];
+int    g_rng[PAN_OBJ];
+int    g_nobj = 0;
+int    g_nlig = 0;
+int    g_sep[PAN_MAX];
+bool   g_rangPleine = false;
 
-void Ligne(string texte, color couleur, string court = "")
+void Ligne(string texte, color couleur, string court, int taille, bool gras, int colonne)
 {
-   if(g_nlig >= PAN_MAX) return;
-   g_lig[g_nlig]   = texte;
-   g_court[g_nlig] = (court == "" ? texte : court);
-   g_col[g_nlig]   = couleur;
-   g_nlig++;
+   bool nouvelle = (g_nobj == 0 || colonne <= g_cln[g_nobj - 1]);
+   if(nouvelle) g_rangPleine = (g_nlig >= PAN_MAX || g_nobj >= PAN_OBJ);
+   if(g_rangPleine || g_nobj >= PAN_OBJ)
+   {
+      // Une rangée perdue SANS UN MOT est un état vide déguisé : le panneau a l'air
+      // complet, il manque une ligne, et rien ne le dit. On le dit — une fois.
+      static bool dit = false;
+      if(!dit) { dit = true; Print("Tableau de bord : plafond PAN_MAX (", PAN_MAX,
+                                   ") atteint, rangée ignorée : ", texte); }
+      return;
+   }
+   if(nouvelle) g_nlig++;
+   g_txt[g_nobj]   = texte;
+   g_court[g_nobj] = (court == "" ? texte : court);
+   g_col[g_nobj]   = couleur;
+   g_tai[g_nobj]   = taille;
+   g_gras[g_nobj]  = gras;
+   g_cln[g_nobj]   = colonne;
+   g_rng[g_nobj]   = g_nlig - 1;
+   g_nobj++;
 }
 
-void PanneauLigne(int idx, string texte, color couleur)
+// Un filet de 1 px (OBJ_RECTANGLE_LABEL) sous la rangée courante : des tirets
+// coûteraient une rangée de PAN_MAX et se désaligneraient au changement de taille.
+void Separateur() { if(g_nlig > 0) g_sep[g_nlig - 1] = 1; }
+
+void PanneauCellule(int idx, string texte, color couleur, int x, int y, int taille, bool gras)
 {
-   string nom = PAN_PREF + "L" + IntegerToString(idx);
+   string nom = PAN_PREF + "O" + IntegerToString(idx);
    if(ObjectFind(0, nom) < 0)
    {
       ObjectCreate(0, nom, OBJ_LABEL, 0, 0, 0);
       ObjectSetInteger(0, nom, OBJPROP_CORNER, CORNER_LEFT_UPPER);
       ObjectSetInteger(0, nom, OBJPROP_SELECTABLE, false);
       ObjectSetInteger(0, nom, OBJPROP_HIDDEN, true);
-      ObjectSetString(0, nom, OBJPROP_FONT, "Consolas");
    }
-   ObjectSetInteger(0, nom, OBJPROP_XDISTANCE, 12);
-   ObjectSetInteger(0, nom, OBJPROP_YDISTANCE, 14 + idx * (g_taille + 7));
-   ObjectSetInteger(0, nom, OBJPROP_FONTSIZE, g_taille);
+   ObjectSetString(0, nom, OBJPROP_FONT, gras ? "Consolas Bold" : "Consolas");
+   ObjectSetInteger(0, nom, OBJPROP_XDISTANCE, x);
+   ObjectSetInteger(0, nom, OBJPROP_YDISTANCE, y);
+   ObjectSetInteger(0, nom, OBJPROP_FONTSIZE, taille);
    ObjectSetInteger(0, nom, OBJPROP_COLOR, couleur);
    ObjectSetString(0, nom, OBJPROP_TEXT, texte);
 }
 
-void PanneauFond(int nLignes, int largeur)
+void PanneauFilet(int r, int x, int y, int largeur)
+{
+   string nom = PAN_PREF + "S" + IntegerToString(r);
+   if(ObjectFind(0, nom) < 0)
+   {
+      ObjectCreate(0, nom, OBJ_RECTANGLE_LABEL, 0, 0, 0);
+      ObjectSetInteger(0, nom, OBJPROP_CORNER, CORNER_LEFT_UPPER);
+      ObjectSetInteger(0, nom, OBJPROP_SELECTABLE, false);
+      ObjectSetInteger(0, nom, OBJPROP_HIDDEN, true);
+      ObjectSetInteger(0, nom, OBJPROP_BACK, false);
+      ObjectSetInteger(0, nom, OBJPROP_BGCOLOR, C'62,67,76');
+      ObjectSetInteger(0, nom, OBJPROP_BORDER_TYPE, BORDER_FLAT);
+      ObjectSetInteger(0, nom, OBJPROP_COLOR, C'62,67,76');
+   }
+   ObjectSetInteger(0, nom, OBJPROP_XDISTANCE, x);
+   ObjectSetInteger(0, nom, OBJPROP_YDISTANCE, y);
+   ObjectSetInteger(0, nom, OBJPROP_XSIZE, largeur);
+   ObjectSetInteger(0, nom, OBJPROP_YSIZE, 1);
+}
+
+void PanneauFond(int largeur, int hauteur)
 {
    string nom = PAN_PREF + "FOND";
    if(ObjectFind(0, nom) < 0)
@@ -1507,45 +1574,101 @@ void PanneauFond(int nLignes, int largeur)
    ObjectSetInteger(0, nom, OBJPROP_XDISTANCE, 6);
    ObjectSetInteger(0, nom, OBJPROP_YDISTANCE, 6);
    ObjectSetInteger(0, nom, OBJPROP_XSIZE, largeur);
-   ObjectSetInteger(0, nom, OBJPROP_YSIZE, 16 + nLignes * (g_taille + 7));
+   ObjectSetInteger(0, nom, OBJPROP_YSIZE, hauteur);
+}
+
+int PanneauTaille(int i, int reduc) { return MathMax(6, g_tai[i] - reduc); }
+
+int PanneauLargeur(int i, int reduc, bool court)
+{
+   uint w = 0, h = 0;
+   TextSetFont("Consolas", -PanneauTaille(i, reduc) * 10, g_gras[i] ? FW_BOLD : 0);
+   TextGetSize(court ? g_court[i] : g_txt[i], w, h);
+   return (int)w;
 }
 
 void PanneauDessiner()
 {
    int large = (int)ChartGetInteger(0, CHART_WIDTH_IN_PIXELS);
-   // Deux jeux de libellés : le complet, et une version abrégée pour les graphiques
-   // étroits (fenêtre non redimensionnable, panneaux MT5 ancrés). On rétrécit d'abord la
-   // police sur le texte complet ; s'il ne rentre toujours pas à 8 pt, on passe aux
-   // abrégés plutôt que de descendre à une taille illisible.
-   int taille = InpTaillePolice, plusLong = 0;
-   bool court = false;
-   for(int essai = 0; essai < 2; essai++)
+   int X0 = 12, GAP = 16;
+   // Deux ressorts contre un graphique étroit, dans cet ordre : réduire toutes les
+   // tailles d'un cran commun (jusqu'à trois), puis passer aux libellés abrégés.
+   int reduc = 0; bool court = false;
+   int wc[6]; int wLab = 0; int contenu = 0;
+   for(int essai = 0; essai < 8; essai++)
    {
-      court = (essai == 1);
-      taille = InpTaillePolice;
-      for(;; taille--)
+      reduc = essai % 4; court = (essai >= 4);
+      ArrayInitialize(wc, 0); wLab = 0;
+      for(int i = 0; i < g_nobj; i++)
       {
-         TextSetFont("Consolas", -taille * 10);
-         plusLong = 0;
-         for(int k = 0; k < g_nlig; k++)
+         int w = PanneauLargeur(i, reduc, court);
+         if(w > wc[g_cln[i]]) wc[g_cln[i]] = w;
+         // la colonne des valeurs s'ancre après les libellés qui EN ONT une : la plus
+         // longue ligne de gauche (le pied) ne doit pas pousser les valeurs au large
+         if(g_cln[i] == 4 && i > 0 && g_cln[i - 1] == 0)
          {
-            uint w = 0, h = 0;
-            TextGetSize(court ? g_court[k] : g_lig[k], w, h);
-            if((int)w > plusLong) plusLong = (int)w;
+            int wl = PanneauLargeur(i - 1, reduc, court);
+            if(wl > wLab) wLab = wl;
          }
-         if(large <= 0 || plusLong + 30 <= large) break;
-         if(taille <= (court ? 6 : 8)) break;
       }
-      if(large <= 0 || plusLong + 30 <= large) break;
+      contenu = wc[0];
+      int wTable = wc[0] + GAP + wc[1] + GAP + wc[2] + GAP + wc[3];
+      int wRef   = wLab + GAP + wc[4] + (wc[5] > 0 ? GAP + wc[5] : 0);
+      if(wTable > contenu) contenu = wTable;
+      if(wRef   > contenu) contenu = wRef;
+      if(large <= 0 || X0 + contenu + X0 <= large) break;
    }
-   g_taille = taille;
 
-   // Le fond est posé AVANT les libellés : MQL5 peint les objets dans leur ordre de
-   // création, donc un rectangle opaque créé en dernier recouvrait tout le texte.
-   PanneauFond(g_nlig, plusLong + 20);
-   for(int k = 0; k < g_nlig; k++) PanneauLigne(k, court ? g_court[k] : g_lig[k], g_col[k]);
-   for(int k = g_nlig; k < PAN_MAX; k++) ObjectDelete(0, PAN_PREF + "L" + IntegerToString(k));
-   g_nlig = 0;
+   // Le fond se pose AVANT les cellules : MQL5 peint les objets dans leur ordre de
+   // création, et un rectangle opaque créé en dernier recouvrait tout le texte. Sa
+   // hauteur se calcule donc d'abord — la plus haute cellule de chaque rangée.
+   int hauteur = 8;
+   for(int r = 0; r < g_nlig; r++)
+   {
+      int hMax = 0;
+      for(int i = 0; i < g_nobj; i++)
+         if(g_rng[i] == r && PanneauTaille(i, reduc) > hMax) hMax = PanneauTaille(i, reduc);
+      hauteur += hMax + 7;
+      if(g_sep[r] == 1) hauteur += 9;
+   }
+   PanneauFond(contenu + 2 * X0, hauteur + 8);
+
+   int xFin3 = X0 + contenu;
+   int xFin2 = xFin3 - wc[3] - GAP;
+   int xFin1 = xFin2 - wc[2] - GAP;
+   int x4 = X0 + wLab + GAP;
+   int x5 = x4 + wc[4] + GAP;
+   int y = 14;
+   for(int r = 0; r < g_nlig; r++)
+   {
+      int hMax = 0;
+      for(int i = 0; i < g_nobj; i++)
+         if(g_rng[i] == r && PanneauTaille(i, reduc) > hMax) hMax = PanneauTaille(i, reduc);
+      for(int i = 0; i < g_nobj; i++)
+      {
+         if(g_rng[i] != r) continue;
+         int t = PanneauTaille(i, reduc);
+         int x = X0;
+         if(g_cln[i] >= 1 && g_cln[i] <= 3)
+         {
+            int w = PanneauLargeur(i, reduc, court);
+            x = (g_cln[i] == 1 ? xFin1 : g_cln[i] == 2 ? xFin2 : xFin3) - w;
+         }
+         if(g_cln[i] == 4) x = x4;
+         if(g_cln[i] == 5) x = x5;
+         // ligne de base partagée : une petite cellule s'aligne au pied de la grande
+         PanneauCellule(i, court ? g_court[i] : g_txt[i], g_col[i], x, y + (hMax - t), t, g_gras[i]);
+      }
+      y += hMax + 7;
+      if(g_sep[r] == 1) { PanneauFilet(r, X0 - 4, y + 1, contenu + 8); y += 9; }
+   }
+
+   // les cellules d'un état plus bavard (12 rangées) ne survivent pas à l'état arrêté
+   for(int k = g_nobj; k < PAN_OBJ; k++) ObjectDelete(0, PAN_PREF + "O" + IntegerToString(k));
+   for(int r = 0; r < PAN_MAX; r++)
+      if(r >= g_nlig || g_sep[r] != 1) ObjectDelete(0, PAN_PREF + "S" + IntegerToString(r));
+   g_nobj = 0; g_nlig = 0; g_rangPleine = false;
+   ArrayInitialize(g_sep, 0);
    ChartRedraw(0);
 }
 
@@ -1592,6 +1715,30 @@ int NbTradesDepuis(datetime debut)
 
 void Tableau()
 {
+   color vert = C'110,200,130', rouge = C'225,110,110', gris = C'170,175,185', blanc = C'235,238,242';
+   int corps = InpTaillePolice;
+
+   bool algo   = (bool)TerminalInfoInteger(TERMINAL_TRADE_ALLOWED);
+   bool permis = (bool)MQLInfoInteger(MQL_TRADE_ALLOWED);
+   bool prete  = (bool)AccountInfoInteger(ACCOUNT_TRADE_EXPERT);
+   bool marche = (algo && permis && prete);
+
+   // ── Qui je suis, et si je tourne. L'état est LA SEULE couleur pleine du panneau :
+   // le vert qui décorait six lignes sur dix ne signalait plus rien.
+   Ligne("${esc(cfg.sym)} ${vente ? 'VENTE' : 'ACHAT'}", blanc, "${esc(cfg.sym)}", corps + 6, true, 0);
+   Ligne(marche ? "● EN MARCHE" : "● ARRETE", marche ? vert : rouge, "", corps + 6, true, 3);
+   Separateur();
+
+   if(!marche)
+   {
+      // Arrêté, le panneau se réduit au geste qui le débloque : neuf lignes de
+      // chiffres inertes se liraient comme des chiffres qui bougent encore.
+      Ligne("Activez le bouton Algo Trading pour le relancer", blanc,
+            "Activez Algo Trading", corps, false, 0);
+      PanneauDessiner();
+      return;
+   }
+
    MqlDateTime t; TimeToStruct(TimeCurrent(), t);
    MqlDateTime j = t; j.hour = 0; j.min = 0; j.sec = 0;
    datetime debutJour = StructToTime(j);
@@ -1602,12 +1749,9 @@ void Tableau()
    double capital = AccountInfoDouble(ACCOUNT_EQUITY);
    double risque  = solde * InpRisquePct / 100.0;
 
-   double pnlJour  = PnlDepuis(debutJour);
-   double pnlMois  = PnlDepuis(debutMois);
-   double pnlTotal = PnlDepuis(0);
-
-   string pos = "aucune position ouverte";
-   string posCourt = "aucune position";
+   // ── La position en cours : le R d'abord, en grand — c'est l'unité dans laquelle
+   // la configuration a été mesurée — l'euro en second.
+   bool ouverte = false;
    for(int i = PositionsTotal() - 1; i >= 0; i--)
    {
       if(PositionGetTicket(i) <= 0) continue;
@@ -1615,58 +1759,72 @@ void Tableau()
       if(PositionGetInteger(POSITION_MAGIC) != (long)InpMagic) continue;
       double gain = PositionGetDouble(POSITION_PROFIT);
       double enR = (risque > 0.0) ? gain / risque : 0.0;
-      pos = StringFormat("Position : depuis %s · %+.2f R (%+.2f EUR) · stop %.2f · objectif %.2f",
-                         TimeToString((datetime)PositionGetInteger(POSITION_TIME), TIME_DATE | TIME_MINUTES),
-                         enR, gain,
-                         PositionGetDouble(POSITION_SL), PositionGetDouble(POSITION_TP));
-      posCourt = StringFormat("Pos : %+.2f R (%+.0f EUR) · stop %.2f", enR, gain,
-                              PositionGetDouble(POSITION_SL));
+      Ligne(StringFormat("%+.2f R", enR), blanc, "", corps + 10, true, 0);
+      Ligne(StringFormat("%+.2f EUR", gain), gris, StringFormat("%+.0f EUR", gain), corps, false, 3);
+      Ligne(StringFormat("depuis %s · stop %.2f · objectif %.2f",
+            TimeToString((datetime)PositionGetInteger(POSITION_TIME), TIME_DATE | TIME_MINUTES),
+            PositionGetDouble(POSITION_SL), PositionGetDouble(POSITION_TP)), gris,
+            StringFormat("stop %.2f · obj %.2f",
+            PositionGetDouble(POSITION_SL), PositionGetDouble(POSITION_TP)), corps, false, 0);
+      ouverte = true;
       break;
    }
+   if(!ouverte) Ligne("Aucune position ouverte", gris, "Aucune position", corps, false, 0);
 
-   bool algo   = (bool)TerminalInfoInteger(TERMINAL_TRADE_ALLOWED);
-   bool permis = (bool)MQLInfoInteger(MQL_TRADE_ALLOWED);
-   bool prete  = (bool)AccountInfoInteger(ACCOUNT_TRADE_EXPERT);
-   string etat = (algo && permis && prete) ? "EN MARCHE" : "ARRETE — activez le bouton Trading Algo";
-   string etatCourt = (algo && permis && prete) ? "EN MARCHE" : "ARRETE (Trading Algo)";
+   // ── Les résultats : les unités sont dites UNE fois, en tête de colonne. L'espace
+   // seul ouvre la rangée des en-têtes — une cellule de colonne 1 posée après une
+   // colonne 0 continuerait la rangée précédente.
+   double pnlJour  = PnlDepuis(debutJour);
+   double pnlMois  = PnlDepuis(debutMois);
+   double pnlTotal = PnlDepuis(0);
+   int nTotal = NbTradesDepuis(0);
+   Ligne(" ", gris, "", corps, false, 0);
+   Ligne("EUR", gris, "", corps, false, 1);
+   Ligne("%", gris, "", corps, false, 2);
+   Ligne("TRADES", gris, "T", corps, false, 3);
+   Ligne("Aujourd'hui", blanc, "Jour", corps, true, 0);
+   Ligne(StringFormat("%+.2f", pnlJour), blanc, StringFormat("%+.0f", pnlJour), corps, true, 1);
+   Ligne(StringFormat("%+.2f", (solde > 0.0 ? pnlJour / solde * 100.0 : 0.0)), blanc, "", corps, true, 2);
+   Ligne(IntegerToString(NbTradesDepuis(debutJour)), blanc, "", corps, true, 3);
+   Ligne("Ce mois", blanc, "Mois", corps, true, 0);
+   Ligne(StringFormat("%+.2f", pnlMois), blanc, StringFormat("%+.0f", pnlMois), corps, true, 1);
+   Ligne(StringFormat("%+.2f", (solde > 0.0 ? pnlMois / solde * 100.0 : 0.0)), blanc, "", corps, true, 2);
+   Ligne(IntegerToString(NbTradesDepuis(debutMois)), blanc, "", corps, true, 3);
+   Ligne("Depuis le début", blanc, "Total", corps, true, 0);
+   Ligne(StringFormat("%+.2f", pnlTotal), blanc, StringFormat("%+.0f", pnlTotal), corps, true, 1);
+   Ligne(StringFormat("%+.2f", (solde > 0.0 ? pnlTotal / solde * 100.0 : 0.0)), blanc, "", corps, true, 2);
+   Ligne(IntegerToString(nTotal), blanc, "", corps, true, 3);
+   Separateur();
 
-   // creux courant : pic d'équité moins équité actuelle
+   // ── Le risque et la mesure. « réf. » et le gris séparent la référence FIGÉE de
+   // la mesure du chiffre vivant du compte : deux natures, deux encres.
    if(capital > g_pic) g_pic = capital;
    double creux = (g_pic > 0.0) ? (capital / g_pic - 1.0) * 100.0 : 0.0;
    double creuxEur = capital - g_pic;
-
-   // rythme réellement observé, comparable au nombre de trades de la mesure
-   int    nTotal = NbTradesDepuis(0);
    double jours  = (g_lancement > 0) ? (double)(TimeCurrent() - g_lancement) / 86400.0 : 0.0;
    double parAn  = (jours > 7.0) ? nTotal * 365.25 / jours : 0.0;
 
-   color vert = C'110,200,130', rouge = C'225,110,110', gris = C'170,175,185', blanc = C'235,238,242';
-   Ligne("VÉNA · ${nom}", blanc, "VÉNA");
-   Ligne("Etat : " + etat, (etat == "EN MARCHE" ? vert : rouge), "Etat : " + etatCourt);
-   Ligne("${esc(cfg.sym)} ${vente ? 'VENTE' : 'ACHAT'} · ${esc(cfg.ligne)} ${periode} · stop ${sl} % · R/R ${rr}", gris,
-         "${esc(cfg.sym)} ${vente ? 'VENTE' : 'ACHAT'} · stop ${sl} % · R/R ${rr}");
-   Ligne(StringFormat("Risque par trade : %.2f EUR = 1 R  (%.2f %% du capital)",
-         risque, InpRisquePct), blanc,
-         StringFormat("1 R = %.0f EUR (%.2f %%)", risque, InpRisquePct));
-   Ligne(pos, (pos == "aucune position ouverte" ? gris : blanc), posCourt);
-   Ligne(StringFormat("Creux actuel : %.2f %% (%+.2f EUR)%s", creux, creuxEur, "${refCreux}"), gris,
-         StringFormat("Creux : %.2f %% (%+.0f EUR)", creux, creuxEur));
-   Ligne(StringFormat("Rythme : %.1f trades/an · mesure : ${nb(cfg.n, 0)} trades, ${nb(cfg.rAn, 0).toFixed(1)} R/an${mesureVieille ? ' (a remesurer)' : ''}", parAn), gris,
-         StringFormat("Rythme : %.1f/an (mesure ${nb(cfg.rAn, 0).toFixed(1)} R/an)", parAn));
-   Ligne(StringFormat("Aujourd'hui : %+.2f EUR (%+.2f %%) · %d trade(s)",
-         pnlJour, (solde > 0.0 ? pnlJour / solde * 100.0 : 0.0), NbTradesDepuis(debutJour)),
-         (pnlJour >= 0.0 ? vert : rouge),
-         StringFormat("Jour : %+.0f EUR · %d t", pnlJour, NbTradesDepuis(debutJour)));
-   Ligne(StringFormat("Ce mois : %+.2f EUR (%+.2f %%) · %d trade(s)",
-         pnlMois, (solde > 0.0 ? pnlMois / solde * 100.0 : 0.0), NbTradesDepuis(debutMois)),
-         (pnlMois >= 0.0 ? vert : rouge),
-         StringFormat("Mois : %+.0f EUR · %d t", pnlMois, NbTradesDepuis(debutMois)));
-   Ligne(StringFormat("Depuis le debut : %+.2f EUR (%+.2f %%) · %d trade(s) · %+.1f R",
-         pnlTotal, (solde > 0.0 ? pnlTotal / solde * 100.0 : 0.0), nTotal,
-         (risque > 0.0 ? pnlTotal / risque : 0.0)),
-         (pnlTotal >= 0.0 ? vert : rouge),
-         StringFormat("Total : %+.0f EUR · %d t · %+.1f R", pnlTotal, nTotal,
-                      (risque > 0.0 ? pnlTotal / risque : 0.0)));
+   Ligne("1 R", blanc, "", corps, false, 0);
+   Ligne(StringFormat("%.2f EUR", risque), blanc, StringFormat("%.0f EUR", risque), corps, false, 4);
+   Ligne(StringFormat("%.2f %% du capital", InpRisquePct), gris,
+         StringFormat("%.2f %%", InpRisquePct), corps, false, 5);
+   Ligne("Creux", blanc, "", corps, false, 0);
+   Ligne(StringFormat("%.2f %% (%+.2f EUR)", creux, creuxEur), blanc,
+         StringFormat("%.2f %%", creux), corps, false, 4);
+${refCreux ? `   Ligne("${refCreux}", gris, "${refCreuxCourt}", corps, false, 5);
+` : ''}   Ligne("Rythme", blanc, "", corps, false, 0);
+   Ligne(StringFormat("%.1f trades/an", parAn), blanc, StringFormat("%.1f/an", parAn), corps, false, 4);
+   Ligne("réf. ${nb(cfg.rAn, 0).toFixed(1)} R/an sur ${nb(cfg.n, 0)} trades${mesureVieille ? ' (à remesurer)' : ''}", gris,
+         "réf. ${nb(cfg.rAn, 0).toFixed(1)} R/an", corps, false, 5);
+   Separateur();
+
+   // ── Le pied : la configuration, puis l'identité du build. Le nom de fichier ne
+   // vit plus ici — il sert à gérer des fichiers, pas à surveiller un robot : la
+   // configuration et le build suffisent à dire de quel export vient ce panneau.
+   Ligne("${esc(cfg.ligne)} ${periode} · stop ${sl} % · R/R ${rr} · durée max ${dureeTxt}", gris,
+         "${esc(cfg.ligne)} ${periode} · stop ${sl} % · R/R ${rr}", corps - 1, false, 0);
+   Ligne("VÉNA · build ${stamp} · ordres marqués ${marque}", gris,
+         "VÉNA · build ${stamp}", corps - 1, false, 0);
    PanneauDessiner();
 }
 
