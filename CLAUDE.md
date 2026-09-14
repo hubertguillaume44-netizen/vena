@@ -575,6 +575,28 @@ reconnaître une chaîne ne demande de comprendre aucun langage.
 > **Quand une garde demande un correctif de plus, changer de forme — pas ajouter un
 > motif.** Le deuxième rustine est le signal ; le troisième est déjà trop tard.
 
+#### Cinq morsures plus tard : le point commun n'est pas le motif, c'est la PREMIÈRE OCCURRENCE
+
+Le seuil disait « le deuxième rustine est le signal » — on en est à la cinquième morsure,
+et chaque remède a été local : dépouiller `//`, puis `/* */`, puis `{/* */}`, changer de
+forme pour la chaîne de caractères, puis réancrer la garde du manifeste. Relues ensemble,
+elles partagent autre chose que la syntaxe des commentaires : **quatre sur cinq
+cherchaient « la première apparition de X »** — et la première apparition de X est
+presque toujours dans le commentaire qui explique X, **parce qu'un correctif s'explique
+au-dessus du code qu'il corrige**. La note de `champsSession` citait `'familleFiltre'`
+qu'elle venait de retirer ; le commentaire de `publier-solo` citait « 260913.x » au-dessus
+de l'écriture du manifeste. La prose précède le code par construction : chercher la
+première occurrence, c'est chercher la prose.
+
+> **Une garde qui lit du source s'ancre sur ce qui AGIT — un appel, une affectation, une
+> déclaration — jamais sur un nom de fichier ou une chaîne qui peut vivre dans de la
+> prose.** `writeFileSync(path.join(path.dirname(SORTIE), "version.json")` ne peut pas
+> apparaître dans une explication sans être du code ; `'version.json'` seul, si.
+
+Ce n'est pas une règle de plus, c'est le critère d'ancrage de celle-ci : la forme que la
+prose ne peut pas imiter était déjà l'énoncé — un appel complet, avec ses parenthèses et
+ses arguments, est la plus courante de ces formes, et la plus courte à écrire.
+
 ### Une grille dont le nombre de colonnes porte du sens s'ÉCRIT, elle ne se calcule pas
 
 Les quatre gestes MT5 se lisent **par rangs** : deux et deux. Confiés à `auto-fit`, ils ont
