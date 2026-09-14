@@ -1773,26 +1773,29 @@ void Tableau()
 
    // ── Les résultats : les unités sont dites UNE fois, en tête de colonne. L'espace
    // seul ouvre la rangée des en-têtes — une cellule de colonne 1 posée après une
-   // colonne 0 continuerait la rangée précédente.
+   // colonne 0 continuerait la rangée précédente. La colonne du milieu est le R, pas
+   // le pour-cent : EUR et % disent la même chose à un facteur près (le capital, que
+   // l'utilisateur connaît) ; le R dit autre chose — la comparaison à la mesure, dans
+   // l'unité où la configuration a été validée, la même que la position et la réf.
    double pnlJour  = PnlDepuis(debutJour);
    double pnlMois  = PnlDepuis(debutMois);
    double pnlTotal = PnlDepuis(0);
    int nTotal = NbTradesDepuis(0);
    Ligne(" ", gris, "", corps, false, 0);
    Ligne("EUR", gris, "", corps, false, 1);
-   Ligne("%", gris, "", corps, false, 2);
+   Ligne("R", gris, "", corps, false, 2);
    Ligne("TRADES", gris, "T", corps, false, 3);
    Ligne("Aujourd'hui", blanc, "Jour", corps, true, 0);
    Ligne(StringFormat("%+.2f", pnlJour), blanc, StringFormat("%+.0f", pnlJour), corps, true, 1);
-   Ligne(StringFormat("%+.2f", (solde > 0.0 ? pnlJour / solde * 100.0 : 0.0)), blanc, "", corps, true, 2);
+   Ligne(StringFormat("%+.2f", (risque > 0.0 ? pnlJour / risque : 0.0)), blanc, "", corps, true, 2);
    Ligne(IntegerToString(NbTradesDepuis(debutJour)), blanc, "", corps, true, 3);
    Ligne("Ce mois", blanc, "Mois", corps, true, 0);
    Ligne(StringFormat("%+.2f", pnlMois), blanc, StringFormat("%+.0f", pnlMois), corps, true, 1);
-   Ligne(StringFormat("%+.2f", (solde > 0.0 ? pnlMois / solde * 100.0 : 0.0)), blanc, "", corps, true, 2);
+   Ligne(StringFormat("%+.2f", (risque > 0.0 ? pnlMois / risque : 0.0)), blanc, "", corps, true, 2);
    Ligne(IntegerToString(NbTradesDepuis(debutMois)), blanc, "", corps, true, 3);
    Ligne("Depuis le début", blanc, "Total", corps, true, 0);
    Ligne(StringFormat("%+.2f", pnlTotal), blanc, StringFormat("%+.0f", pnlTotal), corps, true, 1);
-   Ligne(StringFormat("%+.2f", (solde > 0.0 ? pnlTotal / solde * 100.0 : 0.0)), blanc, "", corps, true, 2);
+   Ligne(StringFormat("%+.2f", (risque > 0.0 ? pnlTotal / risque : 0.0)), blanc, "", corps, true, 2);
    Ligne(IntegerToString(nTotal), blanc, "", corps, true, 3);
    Separateur();
 

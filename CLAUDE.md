@@ -606,6 +606,15 @@ Ce n'est pas une règle de plus, c'est le critère d'ancrage de celle-ci : la fo
 prose ne peut pas imiter était déjà l'énoncé — un appel complet, avec ses parenthèses et
 ses arguments, est la plus courante de ces formes, et la plus courte à écrire.
 
+**Sixième morsure, et le critère d'ancrage ne pouvait pas la couvrir** : la découverte de
+`nom-vena` a attrapé `nom-genere.test.mjs` — la garde qui cherche l'ancien nom dans le
+source émis, et qui doit donc l'épeler pour le chercher. La prose n'était pas un
+commentaire, c'était le **motif de recherche lui-même**. C'est la limite de la règle :
+**une garde qui cherche une chaîne interdite s'exclut elle-même de la découverte,
+explicitement et avec sa raison** — comme `stockage-plein.test.mjs`, qui sème l'ancien
+préfixe pour éprouver la migration. L'exclusion nominative n'est pas un périmètre qui
+revient : elle ne retire qu'un fichier dont l'interdit est le sujet.
+
 ### Une grille dont le nombre de colonnes porte du sens s'ÉCRIT, elle ne se calcule pas
 
 Les quatre gestes MT5 se lisent **par rangs** : deux et deux. Confiés à `auto-fit`, ils ont
