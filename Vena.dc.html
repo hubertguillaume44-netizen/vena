@@ -5731,6 +5731,10 @@
       <span style="font-size:12px;flex:1;min-width:38ch;line-height:1.4"><strong>{{ sauvExpTxt }}{{ sauvExpQuand }}</strong>{{ sauvExpSuite }}</span>
     </sc-if>
     <button type="button" style="cursor:pointer;border:none;background:var(--color-bg);color:var(--color-accent-900);font-family:var(--font-body);font-size:12px;padding:5px 12px;white-space:nowrap" onClick="{{ sansSauvAgir }}">{{ sansSauvBouton }}</button>
+    <sc-if value="{{ aSansSauvExporter }}" hint-placeholder-val="{{ false }}">
+      <button type="button" style="cursor:pointer;background:none;border:1px solid color-mix(in srgb,var(--color-bg) 45%,transparent);color:var(--color-bg);font-family:var(--font-body);font-size:12px;padding:4px 11px;white-space:nowrap" onClick="{{ sansSauvExporter }}" title="Écrit tout — séries, scans, portefeuilles, journal — dans un fichier téléchargé, tout de suite.">Exporter mes données</button>
+    </sc-if>
+    <button type="button" style="cursor:pointer;background:none;border:1px solid color-mix(in srgb,var(--color-bg) 45%,transparent);color:var(--color-bg);font-family:var(--font-body);font-size:12px;padding:4px 11px;white-space:nowrap" onClick="{{ sansSauvImporter }}" title="Recharge un fichier « Exporter mes données » — le retour après une perte, ou depuis un autre navigateur. Le fichier est examiné avant d’écraser quoi que ce soit.">Importer mes données</button>
     <span style="width:1px;align-self:stretch;background:color-mix(in srgb,var(--color-bg) 30%,transparent)"></span>
     <button type="button" style="cursor:pointer;background:none;border:1px solid color-mix(in srgb,var(--color-bg) 45%,transparent);color:var(--color-bg);font-family:var(--font-body);font-size:12px;padding:4px 11px;white-space:nowrap" onClick="{{ ouvrirAvis }}">Donner mon avis</button>
     <button type="button" style="cursor:pointer;background:none;border:1px solid color-mix(in srgb,var(--color-bg) 45%,transparent);color:var(--color-bg);font-family:var(--font-body);font-size:12px;padding:4px 11px;white-space:nowrap" onClick="{{ ouvrirAide }}" title="Les explications de l’application, cherchables">? Aide</button>
@@ -15531,7 +15535,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260915.6';
+  VERSION_APP = '260915.7';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -17819,8 +17823,10 @@ GROUPES = {
       });
       await this.idbSet(h);
       this.handleAuto = h;
+      // sauverAuto pose lui-même autoMsg : null en cas de succès, et un message en
+      // cas de refus — l'effacer ici essuyait le refus à l'instant où il venait
+      // d'être dit, et l'écran ne changeait pas après le choix du fichier
       await this.sauverAuto(true);
-      this.setState({ autoMsg: null });
     } catch (e) {
       const nom = (e && e.name) || '';
       // AbortError = l'utilisateur a fermé le sélecteur, rien à dire.
@@ -18027,14 +18033,22 @@ GROUPES = {
   async reprendreFichierAuto() {
     const h = await this.idbGet();
     if (!h) return;
+    // la poignée est rétablie AVANT la question de permission : si celle-ci jette,
+    // le fichier reste « choisi » — sans quoi le bandeau de perte revenait à chaque
+    // ouverture alors que le fichier existe. Second lieu de naissance du même
+    // symptôme que les sorties muettes de sauverAuto, un moment plus tôt.
+    this.handleAuto = h;
     try {
       const p = await h.queryPermission({ mode: 'readwrite' });
-      this.handleAuto = h;
       this.setState({ autoNom: h.name,
         autoMsg: p === 'granted' ? null
           : 'Sauvegarde automatique en attente : cliquez « Réautoriser » pour reprendre l\u2019écriture dans ' + h.name + '.',
         autoAttente: p !== 'granted' });
-    } catch (e) {}
+    } catch (e) {
+      this.setState({ autoNom: h.name, autoAttente: true,
+        autoMsg: 'La permission d\u2019écrire dans ' + (h.name || 'le fichier')
+          + ' n\u2019a pas pu être vérifiée : cliquez « Réautoriser ».' });
+    }
   }
   async reautoriserAuto() {
     if (!this.handleAuto) return this.choisirFichierAuto();
@@ -18075,8 +18089,21 @@ GROUPES = {
     if (!h) return;
     try {
       if ((await h.queryPermission({ mode: 'readwrite' })) !== 'granted') {
-        if (!force) { this.setState({ autoAttente: true }); return; }
-        if ((await h.requestPermission({ mode: 'readwrite' })) !== 'granted') { this.setState({ autoAttente: true }); return; }
+        // ————— AUCUNE SORTIE MUETTE : un échec qui ressemble à une absence
+        // d'action est la famille du bouton MT5. Les deux refus disent ce qui
+        // s'est passé et ce qui reste à faire, dans autoMsg, qui est déjà rendu.
+        if (!force) {
+          this.setState({ autoAttente: true,
+            autoMsg: 'Le navigateur n\u2019accorde plus l\u2019écriture dans ' + (h.name || 'le fichier')
+              + ' : cliquez « Réautoriser » pour reprendre la sauvegarde automatique.' });
+          return;
+        }
+        if ((await h.requestPermission({ mode: 'readwrite' })) !== 'granted') {
+          this.setState({ autoAttente: true,
+            autoMsg: 'Le navigateur n\u2019a pas accordé l\u2019écriture dans ' + (h.name || 'le fichier')
+              + ' : cliquez « Réautoriser » pour réessayer.' });
+          return;
+        }
       }
       const w = await h.createWritable();
       await w.write(JSON.stringify({ outil: 'vena', version: 1, date: new Date().toISOString(),
@@ -19921,13 +19948,34 @@ GROUPES = {
           // « Plus tard » a disparu : un bouton qui referme un avertissement de perte de
           // données est un bouton pour perdre ses données. À sa place, l'action que la
           // dernière phrase du texte réclame sans donner le moyen de la faire.
+          // ————— LES TROIS GESTES, UN SEUL ACCENT —————
+          // Le bandeau parle de perdre ses données et n'offrait qu'un geste sur trois.
+          // La hiérarchie : la protection durable en accent (le fichier de sauvegarde),
+          // la copie ponctuelle et le retour après une perte en filet, dans cet ordre —
+          // la majorité qui lit ce bandeau a encore ses données. L'import appartient à
+          // ce bandeau : c'est le geste de quelqu'un qui rouvre l'application vide
+          // après avoir perdu son espace navigateur, et qui ne se voyait proposer que
+          // de protéger ce qu'il n'a plus. (L'ancienne note écartait un CHAMP de
+          // fichier, qui grisait les CSV tendus à cet endroit ; ceci est un bouton
+          // nommé, qui ouvre le même circuit que l'import du tiroir — l'EXAMEN
+          // compris : tous les points d'import y passent.)
+          // Quand l'accent est déjà « Exporter mes données » (vue réduite ou
+          // intégrée), le filet d'export disparaît — deux boutons du même nom
+          // seraient deux vérités. L'import, lui, reste dans les deux cas : il ne
+          // dépend d'aucune API réservée.
+          aSansSauvExporter: !(reduit || integre),
+          sansSauvExporter: () => this.exporterTout(),
+          sansSauvImporter: () => {
+            const inp = document.createElement('input');
+            inp.type = 'file';
+            inp.accept = 'application/json,.json,.vena,.sivula';
+            inp.onchange = () => { const f2 = inp.files && inp.files[0]; if (f2) this.examinerImport(f2); };
+            inp.click();
+          },
           // la même trace, pour le tiroir Intendance — lisible même quand le pied ne
           // s'affiche pas (compte démo, autosauvegarde active)
           tirExportTxt: t > 0 ? expTete + quand + expSuite
             : 'Jamais exporté — rien de ce qui est ici n\u2019existe ailleurs que dans ce navigateur.',
-          // pas de « Fichier à importer » ici : n'acceptant que le JSON de sauvegarde,
-          // il grisait les CSV qu'on tend à cet endroit — l'import vit dans le tiroir,
-          // à côté de la sauvegarde chiffrée, où son voisinage dit ce qu'il attend
         };
       })(),
       ...(() => {
@@ -26791,8 +26839,9 @@ GROUPES = {
         return p.join(' · ');
       })(),
       exporterTout: () => { this.exporterTout(); },
-      // Les DEUX points d'import passent par l'examen : celui-ci écrasait encore en
-      // silence, et c'est le même fichier, le même danger.
+      // TOUS les points d'import passent par l'examen — le tiroir ici, l'arrivée,
+      // et le bandeau de perte : celui-ci écrasait encore en silence, et c'est le
+      // même fichier, le même danger.
       importerTout: (e) => { const f = e.target.files && e.target.files[0];
         if (f) this.examinerImport(f); e.target.value = ''; },
       sauvMsg: s.sauvMsg || '',

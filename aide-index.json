@@ -344,6 +344,13 @@
    ]
   },
   {
+   "terme": "Exporter mes données",
+   "texte": "Écrit tout — séries, scans, portefeuilles, journal — dans un fichier téléchargé, tout de suite.",
+   "vues": [
+    "Toutes les pages"
+   ]
+  },
+  {
    "terme": "Fermer",
    "texte": "Masque ce rang. Le prochain refus le fera revenir.",
    "vues": [
@@ -406,6 +413,13 @@
    "texte": "Ce que le courtier prend sur chaque trade, en pourcentage du risque unitaire — le coût moyen de l’instrument rapporté à votre stop.",
    "vues": [
     "Historique"
+   ]
+  },
+  {
+   "terme": "Importer mes données",
+   "texte": "Recharge un fichier « Exporter mes données » — le retour après une perte, ou depuis un autre navigateur. Le fichier est examiné avant d’écraser quoi que ce soit.",
+   "vues": [
+    "Toutes les pages"
    ]
   },
   {
