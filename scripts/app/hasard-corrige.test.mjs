@@ -142,6 +142,29 @@ test("l'épinglée à la main porte un p NON corrigé, nommé comme tel", () => 
     + "qui prétend corriger une sélection que personne ne connaît");
 });
 
+test("la phrase de lecture de la carte décide son verbe sur le verdict du hasard", () => {
+  // « est la seule qui apporte vraiment » a désigné un gagnant dans un tableau dont
+  // aucune case ne se distinguait du hasard — le défaut que tout ce chantier visait,
+  // revenu par une ligne de commentaire automatique. Le chiffre était bon, le verbe
+  // débordait. Ce qui AGIT : la lecture du verdict de la gagnante, et le verbe
+  // conditionné dessus. Mutation : pousser « apporte vraiment » sans lire db.fort
+  // (ou retirer la lecture de decisionDe) fait tomber ce test.
+  const i = APP.indexOf("const db = gain.rb ? this.decisionDe(gain.rb) : null;");
+  assert.ok(i > 0,
+    "la phrase de lecture ne lit plus le verdict du hasard de la configuration "
+    + "gagnante : elle redésignerait un gagnant dans un champ de bruit — et elle "
+    + "parlerait pareil sur un univers réel dont rien ne tient");
+  const bloc = APP.slice(i, i + 2200);
+  const iCond = bloc.indexOf("lectures.push(db && db.fort");
+  const iVerbe = bloc.indexOf("apporte vraiment");
+  assert.ok(iCond > 0 && iVerbe > iCond,
+    "« apporte vraiment » doit vivre DERRIÈRE db.fort : le verbe n'est mérité que si "
+    + "le contrôle du hasard retient la gagnante");
+  assert.ok(bloc.includes("un écart de R net, pas un enseignement."),
+    "la branche non retenue doit dire ce qu'elle compare — un écart de R net — au "
+    + "lieu de se taire : le silence effacerait une mesure juste");
+});
+
 test("l'angle mort de la grille est déclaré, ET rendu à l'écran", () => {
   // « une dette déclarée sans sa gravité se classe toute seule en bas de la pile » :
   // la déclaration vit dans une constante nommée, et la garde vérifie qu'elle est

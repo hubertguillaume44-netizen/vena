@@ -15567,7 +15567,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260915.4';
+  VERSION_APP = '260915.5';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -21900,18 +21900,41 @@ GROUPES = {
         }
         // la meilleure condition, et ce qu'elle apporte par rapport à « Sans filtre »
         const gain = cols.filter((c) => c !== 'aucun').map((c) => {
-          let b = -Infinity, ref = -Infinity;
+          let b = -Infinity, ref = -Infinity, rb = null, rref = null;
           for (const sym of syms) { const m = agg.par.get(sym); if (!m) continue;
             const e = m.get(c), a = m.get('aucun');
-            if (e && e.total > b) b = e.total;
-            if (a && a.total > ref) ref = a.total; }
-          return { c, b, ref };
+            if (e && e.total > b) { b = e.total; rb = e.r; }
+            if (a && a.total > ref) { ref = a.total; rref = a.r; } }
+          return { c, b, ref, rb, rref };
         }).filter((x) => Number.isFinite(x.b) && Number.isFinite(x.ref)).sort((a, b) => b.b - a.b)[0];
         if (gain) {
-          lectures.push(gain.b > gain.ref
-            ? (this.VARIANTES_FILTRE[gain.c] || [gain.c])[0] + ' est la seule qui apporte vraiment : '
-              + sgc(gain.b) + ' R contre ' + sgc(gain.ref) + ' au meilleur sans filtre.'
-            : 'Aucune condition ne fait mieux que « Sans filtre » : le résultat vient de la ligne et du stop, pas du filtre.');
+          if (gain.b <= gain.ref) {
+            lectures.push('Aucune condition ne fait mieux que « Sans filtre » : le résultat vient de la ligne et du stop, pas du filtre.');
+          } else {
+            // ————— LE VERBE SE DÉCIDE SUR LE VERDICT DU HASARD, PAS SUR LE R NET —————
+            // « est la seule qui apporte vraiment » a désigné un gagnant dans un tableau
+            // dont aucune case ne se distinguait du hasard : 3 961 configurations
+            // mesurées, aucune retenue, et treize R d'écart entre deux configurations
+            // que le contrôle écartait toutes les deux. Le chiffre était bon, le verbe
+            // débordait — la même famille que « périmée » : quand l'explication doit
+            // contredire l'étiquette, c'est l'étiquette qui est le défaut. « Apporte »
+            // n'est mérité que si la gagnante se distingue du hasard ; sinon la phrase
+            // dit ce qu'elle compare, un écart de R net, et ce que le contrôle en dit.
+            const db = gain.rb ? this.decisionDe(gain.rb) : null;
+            const dr = gain.rref ? this.decisionDe(gain.rref) : null;
+            const chiffres = sgc(gain.b) + ' R contre ' + sgc(gain.ref) + ' au meilleur sans filtre';
+            lectures.push(db && db.fort
+              ? (this.VARIANTES_FILTRE[gain.c] || [gain.c])[0] + ' est la seule qui apporte vraiment : '
+                + chiffres + ', et le contrôle du hasard la retient.'
+              : (this.VARIANTES_FILTRE[gain.c] || [gain.c])[0] + ' porte le meilleur R net — '
+                + chiffres + ' — mais '
+                + (db && db.controle
+                  ? (dr && dr.controle && !dr.fort
+                    ? 'le contrôle du hasard écarte ces deux configurations'
+                    : 'le contrôle du hasard écarte cette configuration')
+                  : 'le contrôle du hasard ne l\u2019a pas encore tranchée')
+                + ' : un écart de R net, pas un enseignement.');
+          }
         }
         if (attendus.length) {
           lectures.push(this.pl(attendus.length, 'instrument reste', 'instruments restent')
