@@ -102,6 +102,15 @@ html = remplacer(html, "new URL('./scan-worker.js', location.href)", "window.__s
 const b64 = {};
 for (const [k, v] of Object.entries(modules)) b64[k] = Buffer.from(v, "utf8").toString("base64");
 
+// Les deux scripts MT5 que le tiroir offre au téléchargement. Énumérés — leur seule
+// autre source serait la prose du gabarit, et chercher un nom dans de la prose serait
+// la règle 1 ; un TROISIÈME script naîtrait hors de portée de cette liste, et la garde
+// le dit dans son message.
+const scriptsMt5 = {};
+for (const f of ["Vena_Releve.mq5", "Export_H1_Vena.mq5"]) {
+  scriptsMt5[f] = Buffer.from(lire(f), "utf8").toString("base64");
+}
+
 const preambule = `<script>
 // Construit par scripts/app/solo.mjs — ne pas modifier ce fichier, modifier la source.
 (function () {
@@ -136,6 +145,11 @@ window.__sivNouv = ${JSON.stringify(JSON.parse(lire("nouveautes.json")))};
 // Les explications extraites à la construction voyagent de même : sans elles le panneau
 // d'aide serait vide dans le fichier unique.
 window.__sivAide = ${JSON.stringify(JSON.parse(lire("aide-index.json")))};
+// Les deux scripts MT5 voyagent de même, en base64 : une requête de voisin est
+// bloquée en « file:// » et rend 404 sous /app — le bouton « Les deux scripts MT5 »
+// lit cette table et n'émet plus aucune requête. Octets identiques aux fichiers du
+// dépôt, vérifiés par scripts/app/scripts-mt5-embarques.test.mjs.
+window.__venaScripts = ${JSON.stringify(scriptsMt5)};
 </script>
 `;
 html = remplacer(html, "<head>", "<head>\n" + preambule, "Vena.dc.html");

@@ -438,7 +438,7 @@
   },
   {
    "terme": "Les deux scripts MT5",
-   "texte": "Vena_Releve.mq5 (spreads, swaps, minimum de stop) et Export_H1_Vena.mq5 (les bougies, H1 ou M1 selon son réglage). Servis tels quels, sans rien d’injecté : à compiler une fois.",
+   "texte": "Vena_Releve.mq5 (spreads, swaps, minimum de stop) et Export_H1_Vena.mq5 (les bougies, H1 ou M1 selon son réglage). Embarqués dans cette page, octets identiques au dépôt, sans rien d’injecté : à compiler une fois.",
    "vues": [
     "Mes instruments"
    ]

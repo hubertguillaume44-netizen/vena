@@ -1418,7 +1418,7 @@
           <span class="tag tag-neutral" style="font-size:10px;white-space:nowrap;flex:none">une seule fois</span>
           <span style="font-size:12.5px;line-height:1.5;flex:1;min-width:22ch">Les deux scripts dans <code>MQL5\Scripts</code>, compilés (F7)</span>
           <sc-if value="{{ aScriptsFait }}" hint-placeholder-val="{{ false }}"><span class="tag tag-neutral" style="font-size:10px;white-space:nowrap;flex:none">fait</span></sc-if>
-          <button class="{{ scriptsCls }}" type="button" style="min-height:2rem;font-size:12px;padding-inline:12px;flex:none" onClick="{{ telechargerScripts }}" title="Vena_Releve.mq5 (spreads, swaps, minimum de stop) et Export_H1_Vena.mq5 (les bougies, H1 ou M1 selon son réglage). Servis tels quels, sans rien d’injecté : à compiler une fois.">Les deux scripts MT5</button>
+          <button class="{{ scriptsCls }}" type="button" style="min-height:2rem;font-size:12px;padding-inline:12px;flex:none" onClick="{{ telechargerScripts }}" title="Vena_Releve.mq5 (spreads, swaps, minimum de stop) et Export_H1_Vena.mq5 (les bougies, H1 ou M1 selon son réglage). Embarqués dans cette page, octets identiques au dépôt, sans rien d’injecté : à compiler une fois.">Les deux scripts MT5</button>
         </div>
 
         <span style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:13px 0 2px" class="text-muted">À chaque mise à jour de vos données</span>
@@ -15531,7 +15531,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260915.5';
+  VERSION_APP = '260915.6';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -20762,9 +20762,10 @@ GROUPES = {
             this.setState({ mt5Copie: 'symboles_' + this.etiquetteCompte() + '.txt écrit — ' + noms.length
               + ' instrument(s). Placez-le dans MQL5\\Files\\vena\\ (MT5 : Fichier > Ouvrir le dossier de données).' });
           },
-          // Les scripts sont servis TELS QUELS depuis le dépôt : aucune valeur n'y est
-          // injectée, donc rien à regénérer et rien qui puisse diverger de ce qui est
-          // versionné. Un ZIP « stocké » — sans compression — évite d'embarquer une
+          // Les scripts voyagent DANS le fichier construit : aucune valeur n'y est
+          // injectée, et les octets embarqués sont vérifiés IDENTIQUES aux fichiers
+          // versionnés (scripts-mt5-embarques.test.mjs) — rien qui puisse diverger.
+          // Un ZIP « stocké » — sans compression — évite d'embarquer une
           // bibliothèque pour deux fichiers texte.
           // La notice se replie — repliée de base : cinq étapes qu'on lit une fois à
           // l'installation, puis qu'on rouvre à chaque mise à jour. Le glisser-déposer
@@ -20773,41 +20774,33 @@ GROUPES = {
           ouvMt5V: !!s.ouvMt5,
           basculerMt5: () => this.setState({ ouvMt5: !this.state.ouvMt5 }, () => this.ecrireSession()),
           chevronMt5: s.ouvMt5 ? '▾ replier' : '▸ déplier',
-          telechargerScripts: async () => {
-            const noms2 = ['Vena_Releve.mq5', 'Export_H1_Vena.mq5'];
-            const fichiers = [];
-            for (const n of noms2) {
-              try {
-                const r = await fetch('./' + n);
-                if (!r.ok) throw new Error(r.status);
-                fichiers.push([n, new Uint8Array(await r.arrayBuffer())]);
-              } catch (e) { /* on dira lesquels manquent */ }
-            }
-            if (!fichiers.length) {
-              this.setState({ mt5Copie: 'Les deux scripts ne sont pas à côté de cette page : '
-                + 'prenez Vena_Releve.mq5 et Export_H1_Vena.mq5 dans le dossier de Véna, '
-                + 'à côté de ce fichier HTML.' });
+          telechargerScripts: () => {
+            // ————— AUCUNE REQUÊTE : LES SCRIPTS VOYAGENT DANS LE FICHIER —————
+            // La requête de voisin ne pouvait pas marcher dans le mode recommandé :
+            // « file:// » la bloque quoi qu'il y ait dans le dossier, et /app ne
+            // copie pas les deux .mq5 — deux échecs distincts, le même bouton mort.
+            // solo.mjs les embarque donc comme React, l'aide et le journal des
+            // livraisons : window.__venaScripts, octets identiques aux fichiers du
+            // dépôt. Le ZIP se construit depuis la mémoire, rien ne peut manquer —
+            // le repli à deux téléchargements et le message d'absence sont partis
+            // avec la cause qui les justifiait.
+            const table = (typeof window !== 'undefined' && window.__venaScripts) || null;
+            if (!table) {
+              // la SOURCE ouverte sans passer par solo.mjs : la table n'existe que
+              // dans le fichier construit — exception déclarée, personne ne reçoit
+              // ce fichier-ci
+              this.setState({ mt5Copie: 'Fichier de travail : les scripts MT5 ne voyagent que dans le fichier construit par « npm run app:solo ». Prenez Vena_Releve.mq5 et Export_H1_Vena.mq5 à la racine du dépôt.' });
               return;
             }
-            try {
-              const a = document.createElement('a');
-              a.href = URL.createObjectURL(this.zipStocke(fichiers));
-              a.download = 'scripts-mt5-vena.zip';
-              a.click();
-              setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-            } catch (e) {
-              // le ZIP a échoué : deux téléchargements successifs valent mieux que rien
-              for (const [n, bin] of fichiers) {
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(new Blob([bin], { type: 'text/plain' }));
-                a.download = n;
-                a.click();
-                await new Promise((z) => setTimeout(z, 350));
-              }
-            }
-            this.setState({ mt5Copie: fichiers.length + ' script(s) téléchargé(s) — '
-              + 'à placer dans MQL5\\Scripts, puis à compiler dans MetaEditor (F7). Une seule fois.'
-              + (fichiers.length < 2 ? ' Un des deux n’a pas pu être lu.' : '') });
+            const fichiers = Object.entries(table).map(([n, b64]) =>
+              [n, Uint8Array.from(atob(b64), (c) => c.charCodeAt(0))]);
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(this.zipStocke(fichiers));
+            a.download = 'scripts-mt5-vena.zip';
+            a.click();
+            setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+            this.setState({ mt5Copie: fichiers.length + ' scripts téléchargés — '
+              + 'à placer dans MQL5\\Scripts, puis à compiler dans MetaEditor (F7). Une seule fois.' });
           },
         };
       })(),
