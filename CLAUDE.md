@@ -424,7 +424,7 @@ d'URL est fabricable par l'acheteur, et son absence ne prouve rien non plus, alo
 charge de la preuve pèse sur le **vendeur**. La case à cocher reste, et sa fonction reste
 entière : elle fait **consentir**. C'est la facture qui **prouve**.
 
-## Les douze règles, dans l'ordre où elles se servent
+## Les treize règles, dans l'ordre où elles se servent
 
 Elles viennent toutes d'un défaut réel de ce dépôt, et chacune est détaillée plus bas.
 
@@ -449,13 +449,17 @@ Elles viennent toutes d'un défaut réel de ce dépôt, et chacune est détaill�
     du bruit.
 12. **Un mot relatif n'est vrai que depuis un référentiel stable** — un élément engendré,
     figé ou collant n'a ni « depuis quand » ni « depuis où ».
+13. **Une mutation se défait par le mécanisme qui l'a faite** — jamais par une
+    restauration de dépôt, qui ne distingue pas la mutation du travail en cours.
 
 Les règles 6 à 9 sont nées le même jour, sur la même garde. Elles ferment par
 **construction** ce que les cinq premières ne fermaient que par **vigilance** — ou, quand
 rien ne peut le fermer, elles l'écrivent. La onzième est née de la panne la plus large du
 dépôt : toutes les tables vides, tous les tests verts. La douzième unifie deux corrections
 d'affichage nées à un jour d'écart — « hier » sur une fenêtre figée, « ci-dessous » depuis
-une barre collante.
+une barre collante. La treizième est née d'un incident évité de justesse : un
+`git checkout --` posé pour défaire une mutation aurait emporté le correctif même qu'elle
+éprouvait.
 
 ## Le défaut a un nom : demander une INTENTION pour prédire un RÉSULTAT
 
@@ -1025,6 +1029,39 @@ libellé de l'élément plutôt que sa position. Voir « Aucun mot relatif sur u
 figée » plus bas pour l'instance fondatrice, et sa garde de rendu dans
 `rendu-gabarit.test.mjs` — qui lit l'écran, pas le code, parce qu'un mot relatif est un
 défaut d'AFFICHAGE : il n'existe que rendu.
+
+### Une mutation se défait par le mécanisme qui l'a faite
+
+Le cas réel, évité de justesse : pour éprouver la garde du verbe de la carte, une
+mutation avait été posée dans `Vena.dc.html` par échange de chaîne — et la restauration
+prévue était `git checkout -- Vena.dc.html`. Le fichier portait aussi, **non committé**,
+le correctif même que la garde éprouvait : la restauration l'aurait emporté avec la
+mutation, silencieusement. Le garde-fou de l'environnement a refusé la commande ; il
+n'était pas garanti.
+
+C'est la règle 1 sous une forme neuve : `git checkout --` dit « remets ce fichier comme
+il était au dernier commit ». **L'intention est « annule ma mutation » ; le résultat est
+« annule tout ce que je n'ai pas committé ».** Les deux coïncident tant qu'on travaille
+sur du code committé, et divergent exactement dans le cas où on éprouve son propre
+correctif — c'est-à-dire le cas normal de la règle 2, puisqu'une garde neuve se vérifie
+par mutation AVANT d'être livrée.
+
+> **Un échange de chaîne s'annule par l'échange inverse ; jamais par une restauration de
+> dépôt, qui ne distingue pas la mutation du travail en cours.**
+
+La forme sûre, celle des mutations de cette séance : l'échange aller avec une assertion
+de compte (la chaîne mutée doit exister, une fois), le test qu'on regarde tomber, puis
+**l'échange inverse** avec la même assertion — la restauration est vérifiée comme
+l'aller, et elle ne touche que ce que la mutation a touché. Une mutation marquée
+(`/*MUT*/` dans la chaîne d'échange) rend l'inverse inambigu.
+
+Et c'est le **second cas de la même séance où l'outil de vérification était plus
+dangereux que ce qu'il vérifiait** — après la garde de rendu, verte pendant la panne
+totale parce que son banc n'exerçait pas la branche en panne. Une garde qui ne regarde
+pas est aveugle ; un geste de vérification qui déborde son objet est pire, il détruit.
+Cette règle-ci ne se ferme que par vigilance : aucune garde du dépôt ne voit un geste
+de séance, et le garde-fou d'environnement n'appartient pas au dépôt. C'est précisément
+pourquoi elle est écrite.
 
 ## Le démarrage se chronomètre — mesurer à vide ne mesure personne
 
