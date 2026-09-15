@@ -3856,7 +3856,6 @@
               </sc-for>
             </div>
             <button class="btn btn-ghost" type="button" style="min-height:1.7rem;font-size:11px;padding-inline:9px" onClick="{{ basculerFiltre }}" title="Remet à zéro les curseurs ci-dessous : plus aucun résultat n’est écarté de l’affichage. Vos scans ne sont pas touchés.">{{ basculerFiltreTxt }}</button>
-            <button class="btn btn-ghost" type="button" style="min-height:1.7rem;font-size:11px;padding-inline:9px" onClick="{{ basculerLot }}" title="Le contrôle du hasard en série, sur un lot de configurations. Il ne sert plus au quotidien — chaque fiche porte son propre contrôle — mais il reste pour balayer un scan entier d’un coup.">{{ lotTxt }}</button>
           </div>
 
           <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px 20px">
@@ -3880,15 +3879,23 @@
               <sc-for list="{{ ongletsCumul }}" as="oc" hint-placeholder-count="7">
                 <button type="button" class="{{ oc.cls }}" style="cursor:pointer;border:none;font-family:var(--font-body)" title="{{ oc.aide }}" onClick="{{ oc.choisir }}">{{ oc.nom }}</button>
               </sc-for>
-              <button class="btn btn-secondary" type="button" style="min-height:1.9rem;font-size:11px;padding-inline:11px;margin-inline-start:auto" onClick="{{ lancerLot }}" disabled="{{ lotBloque }}" title="{{ boutonLotAide }}">{{ boutonLot }}</button>
+              <div style="display:flex;gap:6px;align-items:center;margin-inline-start:auto">
+                <sc-for list="{{ corBoutons }}" as="cbn" hint-placeholder-count="2">
+                  <button class="btn btn-secondary" type="button" style="min-height:1.9rem;font-size:11px;padding-inline:11px" onClick="{{ cbn.pousser }}" disabled="{{ cbn.bloque }}" title="{{ cbn.aide }}">{{ cbn.nom }}</button>
+                </sc-for>
+              </div>
               <label style="display:flex;align-items:center;gap:6px;font-size:11px" class="text-muted" title="{{ aideTirages }}">tirages au hasard<input class="input" type="number" min="200" max="20000" step="100" style="min-height:1.9rem;height:1.9rem;font-size:13px;padding:0 6px;width:11ch" value="{{ nTiragesVal }}" onChange="{{ setNTirages }}" onBlur="{{ finNTirages }}" title="{{ aideTirages }}"></label>
             </div>
             <!--
-              LA RÈGLE, écrite. C'est elle qui explique pourquoi un bouton disparaît quand
-              le contrôle est déjà fait au nombre demandé : sans elle, l'interface a l'air
-              bloquée alors qu'elle dit « c'est déjà mesuré ».
+              LA RÈGLE, écrite : le contrôle du hasard n'a plus de bouton — il se calcule
+              pendant le scan et se complète tout seul pour les scans d'avant. Le nombre
+              de tirages vaut pour toute la page, JAMAIS pour une carte : réglable par
+              carte, il permettrait de pousser le seul instrument qui a failli passer.
             -->
-            <span style="font-size:11px;line-height:1.5;margin-top:-6px" class="text-muted">Le nombre de tirages vaut pour toute la page. Montez-le et les fiches déjà contrôlées proposent de pousser plus loin.</span>
+            <span style="font-size:11px;line-height:1.5;margin-top:-6px" class="text-muted">Le contrôle du hasard, corrigé de la sélection, se calcule pendant le scan — entrées au hasard sur vos prix, jamais un mélange des prix. Le nombre de tirages vaut pour toute la page ; pousser AJOUTE des tirages, il ne recommence rien.</span>
+            <sc-if value="{{ aCorMsg }}" hint-placeholder-val="{{ false }}">
+              <span style="font-size:11px;color:var(--color-accent-700)">{{ corMsg }}</span>
+            </sc-if>
 
             <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(470px,1fr));gap:12px">
               <sc-for list="{{ toutesRows }}" as="tr2" hint-placeholder-count="9">
@@ -3981,22 +3988,21 @@
                           <span style="font-family:var(--font-heading);font-size:15px;line-height:1.15">{{ tr2.pireAnTxt }}</span>
                         </div>
                         <!--
-                          LE HASARD EST UNE MESURE, PAS UNE INCISE : le seul chiffre qui
-                          dise si la configuration vaut mieux qu'entrer au hasard garde
-                          sa case et son lien « pousser à N tirages ».
+                          LE HASARD EST UNE MESURE, PAS UNE INCISE — et c'est désormais
+                          le verdict CORRIGÉ DE LA SÉLECTION : le meilleur des têtes de
+                          classement contre le meilleur de leurs rejeux au hasard,
+                          calculé pendant le scan. Plus de bouton : une carte sans
+                          verdict est une carte dont le calcul arrive.
                         -->
                         <div style="display:flex;flex-direction:column;gap:1px;min-width:0">
                           <span style="font-size:9px;letter-spacing:.06em;text-transform:uppercase" class="text-muted">Hasard</span>
                           <strong style="font-family:var(--font-heading);font-size:15px;line-height:1.15;color:{{ tr2.hasCouleur }}" title="{{ tr2.hasTousAide }}">{{ tr2.hasChiffre }}</strong>
-                          <sc-if value="{{ tr2.hasardAFaire }}" hint-placeholder-val="{{ false }}">
-                            <button type="button" style="cursor:pointer;border:none;background:none;padding:0;font:inherit;font-size:10px;text-align:left;color:var(--color-accent-700);text-decoration:underline;text-underline-offset:2px" disabled="{{ tr2.hasardOccupe }}" title="{{ tr2.hasPousserAide }}" onClick="{{ tr2.lancerHasard }}">{{ tr2.hasPousserTxt }}</button>
-                          </sc-if>
                           <sc-if value="{{ tr2.hasardIci }}" hint-placeholder-val="{{ false }}">
                             <span style="font-size:10px" class="text-muted">contrôle en cours…</span>
                           </sc-if>
                         </div>
                         <div style="display:flex;flex-direction:column;gap:1px;min-width:0">
-                          <span style="font-size:9px;letter-spacing:.06em;text-transform:uppercase" class="text-muted">Verdict du tirage</span>
+                          <span style="font-size:9px;letter-spacing:.06em;text-transform:uppercase" class="text-muted" title="{{ tr2.hasTousAide }}">{{ tr2.hasTitre }}</span>
                           <span style="font-size:11px;line-height:1.35;color:{{ tr2.hasCouleur }}" title="{{ tr2.hasardPhrase }}">{{ tr2.hasMot }}</span>
                         </div>
                       </div>
@@ -4457,6 +4463,17 @@
                       </span>
                       <button type="button" style="cursor:pointer;border:none;background:none;padding:0;font:inherit;font-size:11px;color:var(--color-accent-700);text-decoration:underline;text-underline-offset:2px" onClick="{{ tr2.basculer }}">Replier</button>
                     </div>
+                    <!--
+                      LES DEUX MAXIMA, FACE À FACE — c'est la phrase du verdict corrigé,
+                      dépliée. La liste « prises seules » est montrée SANS verdict : elle
+                      enseigne pourquoi on ne peut pas les retenir une à une.
+                    -->
+                    <sc-if value="{{ tr2.aCorPanneau }}" hint-placeholder-val="{{ false }}">
+                      <div style="display:flex;flex-direction:column;gap:2px;font-size:11px;line-height:1.5;padding:7px 9px;background:var(--color-neutral-100);border:1px solid var(--color-divider)">
+                        <span>{{ tr2.corReel }} {{ tr2.corNul }}</span>
+                        <span class="text-muted">{{ tr2.corSeulesTxt }}</span>
+                      </div>
+                    </sc-if>
                     <div style="overflow-x:auto">
                       <sc-raw-table class="table" style="font-size:12px;width:100%">
                         <sc-raw-thead><sc-raw-tr>
@@ -4511,81 +4528,6 @@
             <p style="margin:0;font-size:12px" class="text-muted">{{ ficheLigneUnique }}</p>
         </div>
 
-        <sc-if value="{{ aPanneauHasard }}" hint-placeholder-val="{{ false }}">
-        <div class="blueprint" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px">
-          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
-          <div style="display:flex;flex-direction:column;gap:3px">
-            <span style="margin:0;font-family:var(--font-heading);font-size:28px;line-height:1.1;letter-spacing:-.005em">Contrôle du hasard<span style="display:block;width:13px;height:13px;border:1px solid currentColor;font-size:9px;line-height:11px;text-align:center;opacity:.55;margin:2px auto 0;cursor:help" title="On garde vos prix, votre stop, votre objectif et votre durée, et on remplace seulement le moment des entrées par des dates tirées au sort — autant de trades que votre configuration en a pris. Un avantage réel doit battre ces tirages.">?</span></span>
-            <span style="font-size:12px;max-width:92ch" class="text-muted">Votre scan garde le meilleur de milliers d'essais. Le hasard aussi produit un meilleur. Ce cadre compare les deux.</span>
-            <button type="button" onClick="{{ basculerH4 }}" title="Replier ou déplier ce cadre" style="cursor:pointer;border:none;background:none;padding:0;font:inherit;font-size:11px;opacity:.55;margin-inline-start:auto;white-space:nowrap;color:inherit">{{ chevronH4 }}</button>
-          </div>
-          <sc-if value="{{ ouvH4 }}" hint-placeholder-val="{{ true }}">
-          <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
-            <button class="btn btn-primary" type="button" onClick="{{ controlerHasard }}" disabled="{{ hasardEnCours }}">{{ hasardBouton }}</button>
-            <div class="field" style="width:210px">
-              <label>Contrôler<span style="display:block;width:13px;height:13px;border:1px solid currentColor;font-size:9px;line-height:11px;text-align:center;opacity:.55;margin:2px auto 0;cursor:help" title="Soit vos configurations validées, soit toutes les configurations d'un instrument — pour voir si l'avantage tient sur tout un voisinage ou sur une seule ligne.">?</span></label>
-              <select class="input" style="min-height:1.7rem;height:1.7rem;font-size:12px;padding:0 6px" value="{{ hasardInstr }}" onChange="{{ setHasardInstr }}">
-                <sc-for list="{{ hasardInstrs }}" as="hi" hint-placeholder-count="3">
-                  <option value="{{ hi.v }}">{{ hi.nom }}</option>
-                </sc-for>
-              </select>
-            </div>
-            <label style="display:flex;gap:7px;align-items:flex-start;font-size:12px;line-height:1.4;max-width:32ch;cursor:pointer">
-              <input type="checkbox" style="margin-top:2px" checked="{{ hasardVariantes }}" onChange="{{ setHasardVariantes }}">
-              <span>Tester aussi les 10 premières variantes de mes configs validées<span style="display:block" class="text-muted">{{ hasardVariantesAide }}</span></span>
-            </label>
-            <div class="field" style="width:150px">
-              <label>Tirages par configuration<span style="display:block;width:13px;height:13px;border:1px solid currentColor;font-size:9px;line-height:11px;text-align:center;opacity:.55;margin:2px auto 0;cursor:help" title="Combien de fois on rejoue chaque configuration avec des entrées au hasard. Il en faut au moins vingt fois le nombre de configurations contrôlées pour que le verdict corrigé puisse conclure : 200 pour une poignée de lignes, 1 000 dès que vous testez les variantes.">?</span></label>
-              <input class="input" type="number" style="min-height:1.9rem;height:1.9rem;font-size:13px;padding:0 6px;width:11ch" min="200" max="20000" step="100" value="{{ nTiragesVal }}" onChange="{{ setNTirages }}" onBlur="{{ finNTirages }}" title="{{ aideTirages }}">
-            </div>
-            <span style="font-size:12px;max-width:60ch;line-height:1.5" class="text-muted">{{ hasardPorte }} {{ tiragesPortee }}</span>
-          </div>
-          <sc-if value="{{ aHasardMsg }}" hint-placeholder-val="{{ false }}">
-            <span style="font-size:12px;color:var(--color-accent-700)">{{ hasardMsg }}</span>
-          </sc-if>
-          <sc-if value="{{ aHasard }}" hint-placeholder-val="{{ false }}">
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <strong style="font-family:var(--font-heading);font-size:17px;line-height:1.25">{{ hasardVerdict }}</strong>
-            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-              <span style="font-size:12px;letter-spacing:.06em;text-transform:uppercase" class="text-muted">Classer par</span>
-              <sc-for list="{{ hasardCols }}" as="hc" hint-placeholder-count="4">
-                <button type="button" class="{{ hc.cls }}" style="cursor:pointer;border:none;font-family:var(--font-body)" title="Classer les lignes par ce critère" onClick="{{ hc.trier }}">{{ hc.nom }}</button>
-              </sc-for>
-            </div>
-            <div style="overflow-x:auto">
-            <sc-raw-table class="table" style="font-size:12px">
-              <sc-raw-thead><sc-raw-tr>
-                <sc-raw-th>Instrument</sc-raw-th>
-                <sc-raw-th style="text-align:right">Votre résultat</sc-raw-th>
-                <sc-raw-th style="text-align:left">Part des tirages au hasard qui font aussi bien<span style="display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border:1px solid currentColor;font-size:9px;line-height:1;opacity:.55;margin-inline-start:4px;vertical-align:middle;cursor:help" title="On rejoue le même stop et la même sécurisation, mais en entrant à des dates tirées au sort. Cette part EST le p-value : sous 1 % la règle se distingue nettement, sous 5 % elle se distingue, jusqu'à 20 % c'est douteux, au-delà entrer au hasard aurait donné le même résultat.">?</span></sc-raw-th>
-                <sc-raw-th style="text-align:left">Verdict<span style="display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border:1px solid currentColor;font-size:9px;line-height:1;opacity:.55;margin-inline-start:4px;vertical-align:middle;cursor:help" title="Corrigé du nombre de tests effectués (Benjamini-Hochberg) : sur les configurations contrôlées ici, on trie les p-value et on ne retient que celles qui passent un seuil resserré, en tolérant 5 % de fausses découvertes parmi les retenues. Attention : cette correction porte sur les lignes contrôlées, pas sur les milliers de configurations du scan parmi lesquelles vous avez cueilli celles-ci — ce risque de sélection reste entier, et il est rappelé sous chaque verdict.">?</span></sc-raw-th>
-              </sc-raw-tr></sc-raw-thead>
-              <sc-raw-tbody>
-                <sc-for list="{{ hasardRows }}" as="hz" hint-placeholder-count="4">
-                  <sc-raw-tr>
-                    <sc-raw-td style="padding-inline-start:{{ hz.decalage }}"><strong>{{ hz.sym }}</strong><span class="{{ hz.roleCls }}" style="margin-inline-start:6px;font-size:9px;letter-spacing:.04em" title="{{ hz.roleAide }}">{{ hz.roleTxt }}</span><span style="display:block;font-size:11px;line-height:1.4;font-weight:600;color:var(--color-accent-700)">{{ hz.reglages }}</span><span class="text-muted" style="display:block;font-size:10px;line-height:1.4">{{ hz.nom }}</span></sc-raw-td>
-                    <sc-raw-td style="text-align:right;white-space:nowrap"><strong>{{ hz.total }}</strong><span style="display:block;font-size:10px;opacity:.75">{{ hz.totalParTrade }}</span></sc-raw-td>
-                    <sc-raw-td style="min-width:200px" title="{{ hz.aide }}">
-                      <div style="display:flex;gap:10px;align-items:baseline">
-                        <strong style="font-family:var(--font-heading);font-size:22px;line-height:1;min-width:5.5ch">{{ hz.taux }}</strong>
-                        <span style="font-size:12px;line-height:1.35">{{ hz.lecture }}<span class="text-muted" style="display:block;font-size:10px">{{ hz.tauxDetail }}</span></span>
-                      </div>
-                      <div style="margin-top:6px;height:4px;background:var(--color-neutral-200)">
-                        <div style="height:4px;width:{{ hz.barre }};background:{{ hz.barreCouleur }}"></div>
-                      </div>
-                    </sc-raw-td>
-                    <sc-raw-td style="min-width:150px"><span class="{{ hz.tag }}">{{ hz.verdict }}</span><span class="{{ hz.etatCls }}" style="margin-inline-start:5px;font-size:9px;letter-spacing:.03em" title="{{ hz.etatMotif }}">{{ hz.etat }}</span><sc-if value="{{ hz.aCroisement }}" hint-placeholder-val="{{ true }}"><span style="display:block;font-size:11px;line-height:1.45;margin-top:4px" title="{{ hz.croisementAide }}">{{ hz.croisement }}</span></sc-if><span class="{{ hz.corrCls }}" style="display:block;font-size:10px;line-height:1.4;margin-top:3px">{{ hz.corrTxt }}</span><span class="text-muted" style="display:block;font-size:10px;line-height:1.4;margin-top:2px">{{ hz.selTxt }}</span></sc-raw-td>
-                  </sc-raw-tr>
-                </sc-for>
-              </sc-raw-tbody>
-            </sc-raw-table>
-            </div>
-            <p class="card-body" style="margin:0;font-size:12px">Les conditions d'entrée ne sont pas appliquées aux tirages : une entrée au hasard ne peut pas, par définition, respecter une condition. Ce qui est comparé, c'est la valeur du <strong>moment</strong> d'entrée choisi par votre règle.</p>
-          </div>
-          </sc-if>
-          </sc-if>
-        </div>
-        </sc-if>
       </section>
     </div>
     </sc-if>
@@ -6648,6 +6590,9 @@ function baremeExemples() {
 // ————— FIN DU GÉNÉRATEUR D'EXEMPLES —————
 
 const CAPITAL_DEFAUT = 10000; // exemple, pas un chiffre d'utilisateur
+// 500 tirages par défaut (le brief du contrôle corrigé) : déclaré HORS de l'état,
+// comme le capital — un nombre nu dans l'état se lirait comme un réglage personnel
+const TIRAGES_DEFAUT = 500;
 
 class Component extends DCLogic {
   // ————— ENTRER, C'EST ARRIVER SUR SES DONNÉES —————
@@ -6678,7 +6623,7 @@ class Component extends DCLogic {
     // LA FENÊTRE DE MESURE. « tout » est le comportement d'avant, et le défaut : un
     // scan existant, fait sans fenêtre, est réputé porter sur tout l'historique.
     fenMode: 'tout', fenDu: '2020-01-01', fenAu: '', fenMotifOuvert: null, fenMotifs: {},
-    coupureRegime: '2022-01-01', nTirages: 200, hasard: null, pleinRegime: false, workersOk: false, gSens: ['achat'], gLectures: ['favorable', 'prudente'], btSens: 'achat', gSecus: ['aucune'], gTemps: ['jamais'], gDurees: '10 20 40', btDureeMax: 0,
+    coupureRegime: '2022-01-01', nTirages: TIRAGES_DEFAUT, hasard: null, hasardCor: {}, corMsg: null, corRev: 0, pleinRegime: false, workersOk: false, gSens: ['achat'], gLectures: ['favorable', 'prudente'], btSens: 'achat', gSecus: ['aucune'], gTemps: ['jamais'], gDurees: '10 20 40', btDureeMax: 0,
     gTrailing: '0,1 0,15 0,2 0,25 0,5 0,75 1,0 1,25 1,5 1,75 2,0',
     gPeriodeMa: '50 100 200', gLigneMtf: ['mediane'], gPeriodeMtf: '9 26',
     gLignePente: ['mediane'], gPenteRecul: '3 5 8 10 15 20',
@@ -6728,7 +6673,7 @@ class Component extends DCLogic {
     // Aucune devise présumée non plus : commDevise() retombe déjà sur 'EUR' quand la
     // clé manque, et le sélecteur de devise reste à la main du client.
     commDev: {}, pfs: null, pfActif: 0, favoris: null, valides: [], dragSym: null, dragDepuis: null, dragPf: null, selSym: null, ajoutSym: '',
-    ddMax: 0, winMin: 0, oosMin: 0, detail: null, ficheMsg: null, modeTable: 'lecture', ouvLot: false, btPanneau: '', panScan: '', pfMesures: false, sonScan: false,
+    ddMax: 0, winMin: 0, oosMin: 0, detail: null, ficheMsg: null, modeTable: 'lecture', btPanneau: '', panScan: '', pfMesures: false, sonScan: false,
     manqCoches: [], manqMsg: null, grpTout: [],
     ctrlEnCours: false, ctrlMsg: null, ctrlOk: null,
     robuste: null, ailleurs: null, correl: null, calculEnCours: null, recalcul: null,
@@ -7240,13 +7185,15 @@ class Component extends DCLogic {
   // Le verdict du hasard d'une ligne, lu sur son meilleur contrôle. `null` tant qu'aucun
   // contrôle n'existe : c'est ce qui distingue « pas encore fait » de « fait, et voilà ».
   verdictHasard(r) {
-    const f = this.meilleurHasardFait(r);
+    const f = this.meilleurHasardFait(r) || this.teteFaite(r);
     // Sous 200 tirages, le test ne peut pas descendre sous « une chance sur 200 » : il ne
     // peut donc pas distinguer une configuration, seulement la condamner. Un contrôle
     // aussi grossier est traité comme absent — sinon il figeait la ligne sur un « non »
     // que rien ne permettait de prononcer, et retirait le bouton qui aurait pu le lever.
     if (!f || !f.tirages || f.tirages < 200) return null;
-    const p = f.auDessus / f.tirages;
+    // « jamais battu en N tirages » veut dire « moins d'une fois sur N+1 », pas
+    // « jamais » : sans le +1, un 0/500 s'affichait comme une certitude
+    const p = (f.auDessus + 1) / (f.tirages + 1);
     const bh = this.seuilBHDecision();
     return { p, tirages: f.tirages, auDessus: f.auDessus, bh,
       verdict: p <= bh.c1 ? 'se distingue nettement' : p <= bh.c5 ? 'se distingue'
@@ -7318,58 +7265,6 @@ class Component extends DCLogic {
           ? ' Le test ne peut pas descendre sous '
             + (plancher < 0.01 ? '0,01' : plancher.toFixed(2).replace('.', ',')) + ' % à ce nombre de tirages.'
           : '') };
-  }
-  // Contrôle des lignes AFFICHÉES, aux deux nombres de tirages des colonnes. Les lignes
-  // déjà contrôlées sont sautées : la série n'est même pas chargée.
-  // `tirages` donné : on contrôle À CE NOMBRE-LÀ, celui du champ de la barre, qui vaut
-  // pour toute la page. Sans argument, on retombe sur les deux colonnes du tableau des
-  // mesures, qui comparent deux nombres pour la même configuration.
-  async controlerAffichees(tirages) {
-    if (!this.M || this.state.hasardEnCours) return;
-    const nA = Math.max(50, Number(this.state.hasardA) || 500);
-    const nB = Math.max(50, Number(this.state.hasardB) || 1000);
-    const nombres = tirages
-      ? [Math.max(200, Number(tirages) || 200)]
-      : [...new Set([nA, nB])];
-    // Toutes les configurations AFFICHÉES, y compris celles dépliées sous un groupe :
-    // le contrôle ne couvrait que les lignes de tête, donc les cellules des sous-lignes
-    // restaient vides sans que rien ne l'explique.
-    const vues = new Set(); const lignes = [];
-    const ajouter = (r) => {
-      if (!r || r.sansDonnees || (r.n || 0) < 5) return;
-      const k = this.cleFine(r);
-      if (vues.has(k)) return;
-      vues.add(k); lignes.push(r);
-    };
-    for (const r of this._ciblesHasard || []) ajouter(r);
-    // Appelé depuis la barre, le bouton annonce un nombre de fiches VISIBLES : y ajouter
-    // toutes les configurations repliées de chaque groupe ferait mentir son libellé —
-    // mesuré, il promettait 4 contrôles et en lançait 675. Le mode à deux colonnes, lui,
-    // porte bien sur tout ce que le tableau des mesures affiche.
-    if (!tirages) {
-      for (const l of (this._retenuesParSym || new Map()).values()) for (const r of l) ajouter(r);
-    }
-    const taches = [];
-    for (const r of lignes) {
-      for (const t of nombres) {
-        // Une seule règle, partout : on saute le nombre de tirages DÉJÀ joué sur cette
-        // configuration, et lui seul. Le tirage est déterministe — le refaire au même
-        // nombre redonnerait le même chiffre — mais un autre nombre, même plus petit,
-        // produit un second contrôle que la fiche affiche à côté du premier.
-        if (this.hasardFait(this.cleHasardFait(r, t))) continue;
-        taches.push([r, t]);
-      }
-    }
-    if (!taches.length) {
-      this.setState({ hasardMsg: 'Toutes les lignes affichées sont déjà contrôlées à '
-        + nombres.join(' et ') + ' tirages.' });
-      return;
-    }
-    this.setState({ hasardEnCours: true, hasardMsg: null, hasardFait: 0, hasardTotal: taches.length });
-    const neuves = await this.tirerHasard(taches);
-    if (Object.keys(neuves).length) this.noterHasard(neuves);
-    this.setState({ hasardEnCours: false, hasardFait: taches.length,
-      hasardMsg: Object.keys(neuves).length + ' contrôle(s) ajouté(s).' });
   }
   // Le tirage lui-même, pour une liste de [ligne, nombre de tirages]. Extrait pour que le
   // contrôle groupé et le contrôle d'UNE ligne fassent exactement le même calcul : deux
@@ -7603,7 +7498,7 @@ class Component extends DCLogic {
         + ' : ' + bloquants.join(', ') + ' n\u2019a pas d\u2019équivalent MQL5 fidèle. Livrer le robot sans ce réglage donnerait un nombre de trades différent de la mesure.' });
       return false;
     }
-    const f = this.meilleurHasardFait(v);
+    const f = this.meilleurHasardFait(v) || this.teteFaite(v);
     const hasard = f && f.tirages
       ? (f.auDessus === 0 ? '0 % sur ' + f.tirages + ' tirages'
         : (f.auDessus / f.tirages * 100).toFixed(2).replace('.', ',') + ' % sur ' + f.tirages + ' tirages')
@@ -9576,8 +9471,9 @@ GROUPES = {
       // autre compte : son historique n'a rien à voir avec ce qui est en mémoire
       this._serieSet = null; this._scanPrec = null; this._poseT = 0;
       // tout l'état dérivé des données de l'autre compte tombe d'un coup
-      await new Promise((ok) => this.setState({ ...this.ETAT_DERIVE, hasardFaits: {} }, ok));
+      await new Promise((ok) => this.setState({ ...this.ETAT_DERIVE, hasardFaits: {}, hasardCor: {} }, ok));
       await this.chargerHasardFaits();
+      await this.chargerHasardCor();
       await this.chargerBaremes();
       this.setState({ chargeCompte: { nom: this.nomCourtier(cle), etape: 'bougies', t0: tCharge } });
       await this.reprendreSeries();
@@ -11497,6 +11393,7 @@ GROUPES = {
     // critère de tri retiré : une session qui le portait encore retombe sur le R net
     if (this.state.triCumul === 'totalBas') { this.setState({ triCumul: 'total' }); return; }
     if (this.state.vue === 'historique' && !this.state.scanEnCours) this.mesurerBasses();
+    if (this.state.vue === 'historique' && !this.state.scanEnCours) this.completerCor();
   }
   componentWillUnmount() {
     try { for (const ro of this._roEntete || []) ro.disconnect(); } catch (e) {}
@@ -11625,6 +11522,7 @@ GROUPES = {
     }
     if (session) await new Promise((r) => this.setState(session, r));
     await this.chargerHasardFaits();
+    await this.chargerHasardCor();
     const scanSauve = await this.lireScanComplet();
     if (scanSauve && !this.blocDepasse(scanSauve)) {
       this.appliquerScan(this.reprendreScan(scanSauve), { scanDate: scanSauve.date });
@@ -12281,14 +12179,13 @@ GROUPES = {
       // Les deux segments restent donc restaurés. Ce qui les rendait dangereux n'était pas
       // la restauration mais le SILENCE de la liste vide, et c'est ça qui est corrigé —
       // voir `instrAucunTxt`, qui nomme les filtres actifs et offre de les effacer.
-      'vue', 'derniereVue', 'modeTable', 'ouvLot', 'sonScan', 'tri', 'ddMax', 'winMin', 'oosMin', 'zoneMarche',
+      'vue', 'derniereVue', 'modeTable', 'sonScan', 'tri', 'ddMax', 'winMin', 'oosMin', 'zoneMarche',
       'fenMode', 'fenDu', 'fenAu', 'etapeScan',
       'coupureRegime', 'pleinRegime', 'gEntrees', 'gLignes', 'gFiltres', 'gSens', 'gLectures', 'gSecus', 'gTemps', 'gDurees', 'gTrailing', 'gEchelles', 'gPeriodeMa', 'gLigneMtf', 'gPeriodeMtf',
       'gLignePente', 'gPenteRecul', 'triCumul', 'tTradesMin', 'tSegMin', 'tDdMax', 'tWinMin', 'tOosMin', 'tWfMin', 'tDureeMax', 'sPrudent',
       'capital', 'pfActif', 'comm', 'commDev', 'nuitsSaisi', 'patrimoine',
       // les contrôles du hasard déjà faits : sans persistance, chaque rechargement
       // relançait la série et la grille pour des lignes déjà jugées
-      'hasardA', 'hasardB',
       // le nombre de tirages : un réglage qu'on change en connaissance de cause, et qui
       // ne doit pas retomber à sa valeur d'usine au rechargement suivant
       'nTirages',
@@ -14840,6 +14737,18 @@ GROUPES = {
           this.jetPartiel(archivesProv);
         }
       }
+      // ————— LE CONTRÔLE CORRIGÉ, PENDANT LE SCAN —————
+      // À la fin de chaque instrument, les cœurs portent encore ses bougies : le
+      // verdict de la carte est prêt avec elle, sans bouton et sans second passage.
+      // Un échec ne casse pas le scan — le calcul de fond reprendra à l'affichage.
+      if (!this._stopScan && out.some((r) => r && r.sym === sym)) {
+        try {
+          this.setState({ corMsg: 'contrôle du hasard : ' + this.nomComplet(sym) });
+          await this.calculerCor(sym, Math.max(200, Number(this.state.nTirages) || 500),
+            { lignes: [...(this._scanPrec || []), ...out] });
+        } catch (e) { /* le verdict manquant se complètera en arrière-plan */ }
+        this.setState({ corMsg: null });
+      }
       await this.cederLeFil(); // laisse la page respirer, sans minuterie
     }
     } catch (e) {
@@ -15026,108 +14935,6 @@ GROUPES = {
     for (let i = 0; i < v.length; i++) { x ^= v.charCodeAt(i); x = Math.imul(x, 16777619); }
     return this.cleConfig(r) + '|' + (x >>> 0).toString(36);
   }
-  // Les configurations à contrôler : les validées d'abord, retrouvées dans l'historique
-  // COMPLET du compte — pas seulement dans ce que les seuils d'affichage laissent voir —
-  // puis les meilleures lignes du tableau pour compléter jusqu'à huit.
-  // L'instrument choisi n'a de sens que dans le scan regardé : changer de pastille le
-  // rend caduc, et le laisser en place mettait le moteur en mode instrument sur un
-  // symbole absent pendant que le menu, lui, retombait sur « configurations validées ».
-  instrHasard() {
-    const seul = this.state.hasardInstr;
-    if (!seul) return null;
-    const m = this._retenuesParSym;
-    if (m && m.size) { const l = m.get(seul); return l && l.length ? seul : null; }
-    const vu = this.state.scanVu;
-    return this.lignesScan.some((r) => r && r.sym === seul && (!vu || r._sid === vu)) ? seul : null;
-  }
-  poolHasard() {
-    const brut = (this._scanBrut || []).filter((r) => r && !r.sansDonnees && (r.n || 0) >= 5);
-    // Mode instrument : toutes les configurations d'un seul instrument, sans passer par
-    // la validation. C'est la façon de voir si un avantage tient sur tout un voisinage
-    // plutôt que sur une ligne — y compris avant d'avoir validé quoi que ce soit.
-    const seul = this.instrHasard();
-    if (seul) {
-      const vu = this.state.scanVu;
-      // les configurations telles que le tableau les retient : mêmes seuils, même ordre.
-      // Piocher dans tout le scan faisait remonter des lignes absentes de l'écran.
-      const duTableau = (this._retenuesParSym || new Map()).get(seul);
-      const l = (duTableau && duTableau.length
-        ? duTableau.filter((r) => r && !r.sansDonnees && (r.n || 0) >= 5)
-        : brut.filter((r) => r.sym === seul && (!vu || r._sid === vu)))
-        .slice()
-        .sort((a, b) => (Number(b.total) || 0) - (Number(a.total) || 0));
-      // la case garde son sens ici : décochée, seule la meilleure configuration de
-      // l'instrument est contrôlée ; cochée, ses 10 meilleures — le nombre annoncé
-      const cap = this.state.hasardVariantes ? 10 : 1;
-      const vus = new Set(); const cibles = [];
-      for (const r of l) {
-        const k = this.cleFine(r);
-        if (vus.has(k)) continue;
-        vus.add(k); cibles.push(r);
-        if (cibles.length >= cap) break;
-      }
-      const clesV = new Set(this.normValides(this.state.valides).map((x) => this.cleValide(x)));
-      const validees = cibles.filter((r) => clesV.has(this.cleConfig(r)));
-      // le nombre de validées du compte est rapporté tel quel : le mode instrument ne
-      // les contrôle pas en priorité, mais prétendre qu'il n'y en a aucune est faux
-      return { cibles, instrument: seul, nDansInstr: l.length, validees,
-        nValidees: validees.length, nValidesCompte: clesV.size,
-        nVariantes: 0, absentes: 0, masquees: 0, approx: 0, nDispo: brut.length };
-    }
-    const affichables = new Set(((this._ciblesHasard || [])).map((r) => this.cleFine(r)));
-    const trouvees = [];
-    let absentes = 0, masquees = 0, approx = 0;
-    for (const v of this.normValides(this.state.valides)) {
-      const six = this.cleValide(v);
-      let cands = brut.filter((r) => this.cleConfig(r) === six);
-      const nom = v.filtreNom || v.filtre;
-      if (nom) {
-        const exact = cands.filter((r) => (r.filtreNom || r.filtre || '') === nom);
-        if (exact.length) cands = exact;
-      }
-      if (!cands.length) { absentes++; continue; }
-      // validé avant que la variante soit conservée : plusieurs lignes partagent les six
-      // réglages et rien ne permet de trancher — on prend la meilleure et on le signale
-      if (!nom && cands.length > 1) approx++;
-      cands.sort((a, b) => (Number(b.total) || 0) - (Number(a.total) || 0));
-      const r = cands[0];
-      if (!affichables.has(this.cleFine(r))) masquees++;
-      trouvees.push(r);
-    }
-    const vues = new Set();
-    const validees = [];
-    for (const r of trouvees) {
-      const k = this.cleFine(r);
-      if (vues.has(k)) continue;
-      vues.add(k);
-      validees.push(r);
-    }
-    // Variantes : les autres configurations du MÊME instrument qu'une validée. Une
-    // config seule à passer le test au milieu de ses voisines qui échouent est un pic
-    // isolé — donc du surajustement, pas un avantage.
-    const variantes = [];
-    if (this.state.hasardVariantes) {
-      const symsV = new Set(validees.map((r) => r.sym));
-      for (const sym of symsV) {
-        const soeurs = brut
-          .filter((r) => r.sym === sym && !vues.has(this.cleFine(r)))
-          .sort((a, b) => (Number(b.total) || 0) - (Number(a.total) || 0))
-          .slice(0, 10);
-        for (const r of soeurs) { vues.add(this.cleFine(r)); variantes.push(r); }
-      }
-    }
-    const reste = (this._ciblesHasard || [])
-      .filter((r) => r && !r.sansDonnees && (r.n || 0) >= 5 && !vues.has(this.cleFine(r)));
-    const socle = [...validees, ...variantes];
-    return { cibles: [...socle, ...reste.slice(0, Math.max(0, 8 - socle.length))],
-      nValidees: validees.length, nVariantes: variantes.length,
-      absentes, masquees, approx, nDispo: brut.length };
-  }
-  // Réglages EXACTS de la ligne : ceux du scan qui l'a produite, plus sa variante, plus
-  // sa lecture. Repartir de l'état courant du panneau appliquait des filtres et une
-  // sécurisation que le scan n'avait jamais utilisés — le tirage ne mesurait alors plus
-  // la même configuration que la ligne.
-  // Les réglages qui reproduisent une ligne, réduits aux seuls champs de mesure : c'est
   // ce qu'on fige AU MOMENT de la validation. Retrouver la variante dans les archives
   // échouait dès qu'un scan était supprimé, et le Backtest rouvrait alors la ligne sans
   // ses filtres ni sa sécurisation, sous le même intitulé.
@@ -15312,206 +15119,356 @@ GROUPES = {
         : 'Aucun réglage visible ne diffère : la ligne vient probablement d\u2019un scan '
           + 'antérieur à une correction du moteur. Relancez le scan pour la remesurer.');
   }
-  async controlerHasard() {
-    if (!this.M || this.state.hasardEnCours) return;
-    const { cibles, validees } = this.poolHasard();
-    // qui est « votre choix » et qui est une voisine : sans ce marquage, onze lignes
-    // identiques et la comparaison promise par la case à cocher est impossible à faire
-    const clesV = new Set((validees || []).map((r) => this.cleFine(r)));
-    if (!cibles.length) {
-      this.setState({ hasardMsg: 'Aucune configuration exploitable à contrôler : lancez un scan qui retient au moins une configuration de 5 trades.' });
-      return;
-    }
-    const tirages = Number(this.state.nTirages) || 50;
-    this.setState({ hasardEnCours: true, hasardMsg: null, hasardFait: 0, hasardTotal: cibles.length });
-    const out = [];
-    // écrites en une fois à la fin : un setState par ligne ferait autant de rendus
-    const neuves = {};
-    for (let i = 0; i < cibles.length; i++) {
-      const r = cibles[i];
-      this.setState({ hasardFait: i, hasardSym: r.sym });
-      await new Promise((z) => setTimeout(z, 0));
-      // La mémoire est consultée AVANT tout travail : charger la série et énumérer la
-      // grille des variantes sont les étapes coûteuses, et elles s'exécutaient même
-      // quand le résultat était déjà connu. Le résumé suffit : le tirage est
-      // déterministe, donc rien ne dépend des tirages eux-mêmes.
-      const cleF = this.cleHasardFait(r, tirages);
-      const vu = this.hasardFait(cleF);
-      let med, max, auDessus, nMed, nTir, etat = null;
-      if (vu) {
-        ({ med, max, auDessus, nMed } = vu); nTir = vu.tirages; etat = vu.etat || {};
-      } else {
-        let df = null;
-        try { await this.charger(r.sym); df = this.base(r.sym); } catch (e) { continue; }
-        if (!df) continue;
-        etat = this.etatDeLigne(r);
-        // La configuration MESURÉE d'abord ; la reconstruction seulement à défaut. Le
-        // contrôle du hasard comparait sinon le R d'une ligne à des tirages faits sur
-        // une AUTRE configuration — le filtre perdu en route rendait les tirages plus
-        // faciles à battre, donc la ligne plus flatteuse qu'elle n'est.
-        const cfg = this.cfgDeLigne(r)
-          || this.cfgCourante(r.sym, r.periode, r.sl, r.rr, etat, { entree: r.entree, ligne: r.ligne });
-        let res;
-        try {
-          res = this.M.tirageHasard(df, cfg, r.n, tirages, this.graineDe(r));
-        } catch (e) { continue; }
-        const totaux = res.map((x) => x.total).sort((a, b) => a - b);
-        if (!totaux.length) continue;
-        const ns = res.map((x) => x.n).sort((a, b) => a - b);
-        nMed = ns[Math.floor(ns.length / 2)] || 0;
-        med = totaux[Math.floor(totaux.length / 2)];
-        max = totaux[totaux.length - 1];
-        auDessus = totaux.filter((x) => x >= r.total).length;
-        nTir = totaux.length;
-        neuves[cleF] = { auDessus, tirages: nTir, med, max, nMed,
-          etat: { _exact: !!etat._exact } };
-      }
-      out.push({
-        deja: !!vu,
-        sym: r.sym, nom: r.filtreNom || '', n: r.n, total: r.total,
-        // les réglages de la configuration, pas seulement le nom de la variante :
-        // « Pente haussière Médiane 20 » ne dit ni la période, ni le stop, ni le R/R
-        periode: r.periode, sl: r.sl, rr: r.rr, entree: r.entree, ligne: r.ligne,
-        // le verdict des cinq contrôles, pour le croiser avec celui du hasard : les deux
-        // répondent à des questions différentes, et c'est leur croisement qui décide
-        ...(() => { const v = this.verdict(r);
-          return { etat: v.label, etatTag: v.tag, etatMotif: v.motif }; })(),
-        oos: Number(r.oos), tenue: Number(r.tenue),
-        lecture: /lecture basse/i.test(r.filtreNom || '') ? 'basse'
-          : /lecture haute/i.test(r.filtreNom || '') ? 'haute' : null,
-        exact: !!etat._exact,
-        valide: clesV.has(this.cleFine(r)),
-        med, max, auDessus, tirages: nTir, nMed,
-        // R par trade : indépendant du nombre de trades, donc comparable même si
-        // le bras hasard n'a pas pu atteindre le même compte
-        espVous: r.n ? r.total / r.n : 0,
-        espMed: nMed ? med / nMed : 0,
-      });
-    }
-    // Du meilleur au moins bon. Les instruments restent groupés (leur meilleure ligne
-    // décide de la place du groupe), et une validée passe devant ses voisines : sans ça
-    // la comparaison « votre choix contre son voisinage » se lit en sautant des lignes.
-    const meilleurDe = new Map();
-    for (const x of out) {
-      const v = Number(x.total) || 0;
-      if (!meilleurDe.has(x.sym) || v > meilleurDe.get(x.sym)) meilleurDe.set(x.sym, v);
-    }
-    out.sort((a, b) => (meilleurDe.get(b.sym) - meilleurDe.get(a.sym))
-      || (a.sym < b.sym ? -1 : a.sym > b.sym ? 1 : 0)
-      || ((b.valide ? 1 : 0) - (a.valide ? 1 : 0))
-      || ((Number(b.total) || 0) - (Number(a.total) || 0)));
-    if (Object.keys(neuves).length) this.noterHasard(neuves);
-    this.setState({ hasard: out, hasardEnCours: false, hasardFait: cibles.length,
-      hasardDate: Date.now() });
-  }
-  // Le verdict se lit sur la FRÉQUENCE des tirages qui égalent la règle, pas sur le
-  // tirage extrême : exiger de battre le meilleur des 1000 revient à demander p < 0,1 %,
-  // et une configuration à 3 sur 1000 — donc hautement significative — était classée
-  // « dans le bruit ».
-  //
-  // Correction du nombre d'essais : une configuration n'a pas été choisie à l'avance,
-  // c'est la survivante d'un balayage. Sur m tests au seuil de 5 %, environ 0,05 × m
-  // passent par pur hasard. Bonferroni (diviser le seuil par le nombre d'essais) est
-  // ici inapplicable : corriger sur les ~2 000 configurations retenues exigerait 40 000
-  // tirages, donc AUCUNE ligne ne pouvait plus jamais conclure. On applique donc
-  // Benjamini-Hochberg sur la famille réellement contrôlée : on trie les p-value, et
-  // on retient les k premiers tels que p(k) ≤ (k / m) × q — ce qui tolère q de fausses
-  // découvertes parmi les retenues au lieu de n'en tolérer aucune. Le risque de
-  // sélection restant (avoir cueilli ces lignes parmi des milliers) n'est pas corrigé
-  // par le calcul : il est écrit en clair sur chaque ligne.
-  analyseHasard(L) {
-    const list = L || [];
-    const pool = this.essaisHasard();
-    const sig = list.map((x) => x.auDessus + '/' + x.tirages).join(',') + '|' + pool;
-    if (this._bhSig === sig && this._bhVal) return this._bhVal;
-    const items = list.map((x, i) => ({ i, x, p: x && x.tirages ? x.auDessus / x.tirages : null }));
-    const mesures = items.filter((o) => o.p !== null).sort((a, b) => a.p - b.p);
-    const m = mesures.length;
-    // Ex æquo : Benjamini-Hochberg leur donne le MÊME rang — le plus grand du groupe.
-    // Attribuer un rang par index de tableau faisait afficher trois barres différentes
-    // à trois lignes de p identique.
-    for (let i = 0; i < mesures.length;) {
-      let j = i;
-      while (j + 1 < mesures.length && mesures[j + 1].p === mesures[i].p) j++;
-      for (let k = i; k <= j; k++) mesures[k].rang = j + 1;
-      i = j + 1;
-    }
-    // BH au niveau q : on cherche le plus grand rang k tel que p(k) ≤ (k / m) × q ;
-    // tous les rangs jusqu'à k sont retenus. Le seuil DE DÉCISION est (k / m) × q —
-    // une vraie barre, pas le p-value observé d'une autre ligne.
-    const coupe = (q) => {
-      let k = 0;
-      mesures.forEach((o) => { if (o.p <= (o.rang / m) * q) k = o.rang; });
-      return { k, seuil: ((k || 1) / m) * q };
-    };
-    const c5 = m ? coupe(0.05) : { k: 0, seuil: 0.05 };
-    const c1 = m ? coupe(0.01) : { k: 0, seuil: 0.01 };
-    const carte = new Map();
-    for (const o of items) {
-      if (o.p === null) { carte.set(o.x, null); continue; }
-      const t = o.x.tirages;
-      const passe5 = c5.k > 0 && o.rang <= c5.k;
-      const passe1 = c1.k > 0 && o.rang <= c1.k;
-      // DEUX raisons de ne pas pouvoir juger une ligne, et la seconde manquait.
-      //
-      // 1. Le plancher de résolution : avec t tirages, un p ne descend pas sous 1/t. Une
-      //    ligne qui échoue ALORS QU'ELLE EST DÉJÀ AU PLANCHER n'a pas été jugée.
-      //
-      // 2. LA PRÉCISION DU TIRAGE. Un p mesuré par simulation est lui-même une variable
-      //    aléatoire : sur t tirages, p̂ = k/t a un écart-type de √(p(1−p)/t). À 550
-      //    tirages et p̂ ≈ 1,3 %, cet écart-type vaut 0,5 % — la moitié de la mesure. La
-      //    barre à franchir, elle, vaut 0,71 % ou 1,43 % selon le RANG de la ligne. Une
-      //    ligne dont l'intervalle de confiance chevauche sa barre n'est pas jugée : elle
-      //    est tirée à pile ou face.
-      //
-      //    Vu sur US30, deux contrôles de la même configuration : 11 tirages sur 850
-      //    (1,29 %) → « se distingue », puis 7 sur 550 (1,27 %) → « douteux ». Le p n'a
-      //    pas bougé ; c'est le rang qui a changé, donc la barre, parce que la ligne
-      //    voisine est passée de 1,18 % à 1,45 % — un tirage d'écart. Prononcer un
-      //    verdict là-dessus, c'est présenter du bruit de simulation comme une mesure.
-      const barre = (o.rang / m) * 0.05;
-      // écart-type de p̂, pris à la barre : c'est là que la décision se joue
-      const et = Math.sqrt(Math.max(barre, 1 / t) * (1 - barre) / t);
-      const troublePres = Math.abs(o.p - barre) < 2 * et;
-      const indecidable = !passe1 && (
-        (!passe5 && o.p <= 1 / t && (1 / m) * 0.05 < 1 / t) || troublePres);
-      const statut = passe1 ? 'net' : (passe5 && !troublePres) ? 'reel'
-        : indecidable ? 'indecidable'
-        : o.p <= 0.2 ? 'douteux' : 'bruit';
-      // Combien de tirages il FAUDRAIT pour trancher cette barre-là. On veut que deux
-      // écarts-types tiennent dans la moitié de la barre : t ≥ 16 (1−b) / b.
-      const tiragesPour = Math.ceil((16 * (1 - barre)) / Math.max(barre, 1e-6) / 50) * 50;
-      // ce qu'elle aurait valu seule, pour dire ce que la correction a coûté
-      const seule = o.p <= 0.01 ? 'net' : o.p <= 0.05 ? 'reel' : o.p <= 0.2 ? 'douteux' : 'bruit';
-      carte.set(o.x, { p: o.p, m, rang: statut, statut, rangBH: o.rang, tirages: t,
-        // la barre que CETTE ligne devait franchir, à son rang : (rang / m) × q.
-        // Afficher le seuil du rang de coupe la sous-estimait pour tout rang supérieur,
-        // et lui reprochait d'avoir manqué une barre qui n'était pas la sienne.
-        seuil: barre, seuilNet: ((o.rang) / m) * 0.01, indecidable, seule, troublePres,
-        perdu: !passe5 && (seule === 'net' || seule === 'reel'),
-        // Le nombre de tirages annoncé est celui qui TRANCHE, pas celui qui permet
-        // simplement d'atteindre la barre : `m / 0.05` ne garantissait que la résolution.
-        tiragesNec: Math.max(Math.ceil(m / 0.05), tiragesPour), pool });
-    }
-    this._bhSig = sig; this._bhVal = carte;
-    return carte;
-  }
-  rangHasard(x) {
-    if (!x || !x.tirages) return null;
-    return this.analyseHasard(this.state.hasard) .get(x) || null;
-  }
-  // Nombre de configurations retenues par vos seuils : le vrai vivier dans lequel la
-  // ligne a été cueillie. Il ne sert pas au calcul (voir analyseHasard) mais il est
-  // affiché, parce qu'il dit l'ampleur du risque de sélection qui reste.
-  essaisHasard() {
-    return Math.max(1, this._essaisPool || this.state.scanN || 1);
-  }
   // graine dérivée de la configuration : le même contrôle redonne le même verdict
   graineDe(r) {
     const s = [r.sym, r.entree, r.ligne, r.periode, r.sl, r.rr, r.sens].join('|');
     let h = 2166136261;
     for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
     return h >>> 0;
+  }
+  // ————— LE CONTRÔLE DU HASARD CORRIGÉ DE LA SÉLECTION —————
+  //
+  // Le champion d'une carte est le MEILLEUR de N configurations : comparer son chiffre
+  // à des tirages faits sur lui seul compare un maximum à une moyenne — le hasard seul
+  // en fait passer une sur vingt à un seuil de 5 %. Le verdict corrigé compare DEUX
+  // MAXIMA (scan-noyau.js, controleCorrige) : un seul verdict par instrument, donc
+  // rien à choisir, donc rien à négocier.
+  CLE_HASARD_COR = 'vena.hasardcor.v1';
+  TETES_PAR_CRITERE = 3;
+  NOMS_CRITERE = { total: 'R net', pf: 'profit factor', dd: 'pire creux',
+    positifs: 'segments positifs', oos: 'hors échantillon', wfMin: 'pire fenêtre' };
+  // ANGLE MORT, déclaré avec sa magnitude : les têtes sont l'ensemble dont un champion
+  // peut sortir, pas la grille entière — le détail chiffré vit dans ANGLE_MORT_COR.
+  ANGLE_MORT_COR = 'Ce verdict corrige le choix parmi les têtes de classement, pas la '
+    + 'cueillette dans la grille entière du scan. Mesuré une fois, hors produit, sur une '
+    + 'grille de 2 400 combinaisons : le meilleur rejeu de la grille entière dépasse celui '
+    + 'des têtes d\u2019environ 13 R en moyenne, et l\u2019écart croît avec le logarithme de la '
+    + 'taille — de l\u2019ordre de +100 R extrapolé à 64 000 combinaisons (une extrapolation, '
+    + 'pas une mesure). Un « se distingue » ici peut donc ne pas se distinguer de la grille '
+    + 'entière ; refermer cet écart demanderait de rejouer toute la grille sous le hasard, '
+    + 'soit cinq cents fois le scan.';
+  async chargerHasardCor() {
+    let hc = null;
+    try { hc = await this.grosGet(this.cle(this.CLE_HASARD_COR)); } catch (e) { hc = null; }
+    await new Promise((ok) => this.setState({
+      hasardCor: hc && typeof hc === 'object' ? hc : {},
+      corRev: (this.state.corRev || 0) + 1 }, ok));
+  }
+  noterHasardCor(cle, entree) {
+    this.setState((p) => {
+      const m = { ...(p.hasardCor || {}) };
+      // une seule entrée par instrument : quand les têtes changent, l'ancienne ne
+      // décrit plus la sélection que la carte affiche
+      for (const k of Object.keys(m)) if (m[k] && m[k].sym === entree.sym && k !== cle) delete m[k];
+      m[cle] = entree;
+      return { hasardCor: m, corRev: (p.corRev || 0) + 1 };
+    }, () => { this.grosSet(this.cle(this.CLE_HASARD_COR), this.state.hasardCor || {}); });
+  }
+  // L'union des têtes : les meilleures lignes par CHAQUE critère de classement —
+  // l'ensemble dont un champion peut sortir, quel que soit le tri choisi. Une
+  // configuration plus bas dans la pile ne devient jamais le chiffre d'une carte,
+  // donc la corriger ne servirait personne. Fixée sur les lignes EN MÉMOIRE, jamais
+  // sur les lignes affichées : un p qui bouge quand on déplace un curseur de filtre
+  // serait le défaut qu'on corrige, sous sa forme la plus sournoise.
+  tetesDe(lignes) {
+    const N = this.N;
+    if (!N || !lignes || !lignes.length) return [];
+    const vues = new Map();
+    for (const r of lignes) {
+      if (!r || r.sansDonnees || (Number(r.n) || 0) < 5) continue;
+      const k = this.cleConfig(r);
+      if (!vues.has(k)) vues.set(k, r);
+    }
+    const uniques = [...vues.values()];
+    const pris = new Map();
+    for (const c of N.CRITERES_HASARD) {
+      const tri = [...uniques].sort((a, b) => N.scoreHasard(c, b) - N.scoreHasard(c, a));
+      for (const r of tri.slice(0, this.TETES_PAR_CRITERE)) pris.set(this.cleConfig(r), r);
+    }
+    return [...pris.values()];
+  }
+  tetesCourantes(sym) {
+    const s = this.state;
+    return this.memo('tetesSym:' + sym, (s.scanN || 0) + '|' + (s.scanRev || 0),
+      () => this.tetesDe((this.lignesScan || []).filter((r) => r && r.sym === sym)));
+  }
+  // la signature des têtes identifie la SÉLECTION contrôlée : mêmes têtes, même verdict
+  sigTetes(tetes) {
+    const t = tetes.map((r) => this.cleConfig(r) + '@' + (Math.round((Number(r.total) || 0) * 100) / 100))
+      .sort().join(';');
+    let h = 2166136261;
+    for (let i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 16777619); }
+    return (h >>> 0).toString(36);
+  }
+  cleCor(sym, sig) { return sym + '|' + sig; }
+  corDe(sym) {
+    const tetes = this.tetesCourantes(sym);
+    if (!tetes.length) return null;
+    return (this.state.hasardCor || {})[this.cleCor(sym, this.sigTetes(tetes))] || null;
+  }
+  // le p corrigé, au +1 près : « jamais battu en 500 tirages » veut dire « moins d'une
+  // fois sur 501 », pas « jamais » — un 0/500 se lirait comme une certitude que cinq
+  // cents tirages ne peuvent pas donner
+  pCorDe(sym, critere) {
+    const e = this.corDe(sym);
+    if (!e || !e.tirages) return null;
+    const c = e.au && e.au[critere] !== undefined ? critere : 'total';
+    return ((e.au[c] || 0) + 1) / (e.tirages + 1);
+  }
+  motCor(p) {
+    return p <= 0.01 ? 'se distingue nettement' : p <= 0.05 ? 'se distingue'
+      : p <= 0.2 ? 'douteux' : 'le hasard fait aussi bien';
+  }
+  graineCor(cle) {
+    let h = 2166136261;
+    for (let i = 0; i < cle.length; i++) { h ^= cle.charCodeAt(i); h = Math.imul(h, 16777619); }
+    return ((h >>> 0) || 1);
+  }
+  // Calcule (ou POUSSE : depart = tirages déjà faits) le contrôle corrigé d'un
+  // instrument. Les cases (tête, tirage) sont réamorcées par leur graine, donc les
+  // plages s'ajoutent — deux passages donnent le même chiffre.
+  async calculerCor(sym, cible, opts = {}) {
+    if (!this.N || !this.M) return null;
+    const lignes = opts.lignes
+      ? opts.lignes.filter((r) => r && r.sym === sym)
+      : (this.lignesScan || []).filter((r) => r && r.sym === sym);
+    const tetes = opts.lignes ? this.tetesDe(lignes) : this.tetesCourantes(sym);
+    if (!tetes.length) return null;
+    const sig = this.sigTetes(tetes), cle = this.cleCor(sym, sig);
+    const deja = (this.state.hasardCor || {})[cle];
+    const depart = deja && deja.sig === sig ? (deja.tirages || 0) : 0;
+    const fin = Math.max(depart, Math.max(200, Number(cible) || 500));
+    if (fin <= depart) return deja || null;
+    try { await this.charger(sym); } catch (e) { return null; }
+    const dfH1 = this.serieH1(sym);
+    if (!dfH1) return null;
+    // la configuration MESURÉE d'abord, la reconstruction à défaut : perdre le filtre
+    // en route rendrait les tirages plus faciles à battre, donc la carte plus flatteuse
+    const charge = [];
+    for (const r of tetes) {
+      const etat = this.etatDeLigne(r);
+      const cfg = this.cfgDeLigne(r)
+        || this.cfgCourante(r.sym, r.periode, r.sl, r.rr, etat, { entree: r.entree, ligne: r.ligne });
+      if (!cfg) continue;
+      charge.push({ cle: this.cleConfig(r), cfg, n: Number(r.n) || 0,
+        ut: etat.ut || this.state.ut || 'H1',
+        reels: { total: r.total, dd: r.dd, positifs: r.positifs, pf: r.pf,
+          oos: r.oos, wfMin: r.wfMin } });
+    }
+    if (!charge.length) return null;
+    this._corSymEnCours = sym;
+    let res = null;
+    try { res = await this.tirerCor(sym, dfH1, charge, depart, fin, this.graineCor(cle), opts); }
+    finally { this._corSymEnCours = null; }
+    if (!res) return null;
+    const fusion = this.fusionCor(deja && deja.sig === sig ? deja : null, res, charge, fin, cle, sym, sig);
+    this.noterHasardCor(cle, fusion);
+    return fusion;
+  }
+  async tirerCor(sym, dfH1, tetes, depart, fin, graine, opts = {}) {
+    const total = fin - depart;
+    const workers = this.lancerWorkers();
+    let enPar = workers.length >= 1;
+    if (enPar) enPar = await this.preparerWorkers(workers, dfH1, sym);
+    if (enPar) {
+      // une plage de tirages par cœur : les cases sont indépendantes, les plages s'ajoutent
+      const parts = [];
+      const pas = Math.max(1, Math.ceil(total / workers.length));
+      for (let d = depart; d < fin; d += pas) parts.push([d, Math.min(fin, d + pas)]);
+      const morceaux = await new Promise((resolve) => {
+        const out = [];
+        let restants = parts.length;
+        parts.forEach(([d, f], i) => {
+          const w = workers[i % workers.length];
+          const recevoir = (e) => {
+            const m = e.data || {};
+            if (m.type !== 'controle' || m.id !== 'cor' + i) return;
+            w.removeEventListener('message', recevoir);
+            out.push(m);
+            if (--restants === 0) resolve(out);
+          };
+          w.addEventListener('message', recevoir);
+          w.postMessage({ type: 'controle', id: 'cor' + i,
+            tetes: tetes.map((t) => ({ ...t, cfg: JSON.parse(JSON.stringify(t.cfg)) })),
+            depart: d, fin: f, graine });
+        });
+      });
+      if (morceaux.some((m) => m.echec)) return null;
+      return this.additionnerCor(morceaux, tetes.length);
+    }
+    // repli séquentiel, par tranches, la main rendue entre deux
+    const morceaux = [];
+    for (let d = depart; d < fin; d += 25) {
+      const f = Math.min(fin, d + 25);
+      let m = null;
+      try { m = this.N.controleCorrige(dfH1, tetes, d, f, graine); } catch (e) { return null; }
+      morceaux.push(m);
+      if (opts.progres) opts.progres(f - depart, total);
+      await this.cederLeFil();
+    }
+    return this.additionnerCor(morceaux, tetes.length);
+  }
+  additionnerCor(morceaux, nTetes) {
+    const N = this.N;
+    const zero = () => { const z = {}; for (const c of N.CRITERES_HASARD) z[c] = 0; return z; };
+    const somme = { tirages: 0, au: zero(), som: zero(), nulMax: {},
+      auTetes: Array.from({ length: nTetes }, zero) };
+    for (const c of N.CRITERES_HASARD) somme.nulMax[c] = -Infinity;
+    for (const m of morceaux) {
+      somme.tirages += m.tirages || 0;
+      for (const c of N.CRITERES_HASARD) {
+        somme.au[c] += (m.au && m.au[c]) || 0;
+        somme.som[c] += (m.som && m.som[c]) || 0;
+        const v = m.nulMax && Number.isFinite(m.nulMax[c]) ? m.nulMax[c] : -Infinity;
+        if (v > somme.nulMax[c]) somme.nulMax[c] = v;
+      }
+      for (let i = 0; i < nTetes; i++)
+        for (const c of N.CRITERES_HASARD)
+          somme.auTetes[i][c] += (m.auTetes && m.auTetes[i] && m.auTetes[i][c]) || 0;
+    }
+    return somme;
+  }
+  fusionCor(deja, res, tetes, fin, cle, sym, sig) {
+    const N = this.N;
+    const au = {}, som = {}, nulMax = {};
+    for (const c of N.CRITERES_HASARD) {
+      au[c] = ((deja && deja.au && deja.au[c]) || 0) + (res.au[c] || 0);
+      som[c] = ((deja && deja.som && deja.som[c]) || 0) + (res.som[c] || 0);
+      const a = deja && deja.nulMax && Number.isFinite(deja.nulMax[c]) ? deja.nulMax[c] : -Infinity;
+      const b = Number.isFinite(res.nulMax[c]) ? res.nulMax[c] : -Infinity;
+      // -Infinity ne survit pas au JSON : l'absence se relit comme null
+      nulMax[c] = Math.max(a, b) === -Infinity ? null : Math.max(a, b);
+    }
+    const auTetes = tetes.map((t, i) => {
+      const z = {};
+      for (const c of N.CRITERES_HASARD) {
+        const avant = deja && deja.tetes && deja.tetes[i] && deja.tetes[i].au ? (deja.tetes[i].au[c] || 0) : 0;
+        z[c] = avant + ((res.auTetes[i] && res.auTetes[i][c]) || 0);
+      }
+      return { cle: t.cle, n: t.n, reels: t.reels, au: z };
+    });
+    return { sym, sig, tirages: fin, au, som, nulMax, tetes: auTetes, date: Date.now() };
+  }
+  // Les instruments d'un scan ANTÉRIEUR à ce contrôle se complètent en arrière-plan,
+  // un par un, quand la page des résultats est ouverte — le bouton n'existe plus.
+  async completerCor(cible) {
+    if (this._corFond || !this.N || !this.M) return;
+    if (this.state.vue !== 'historique' || this.state.scanEnCours) return;
+    const but = Math.max(200, Number(cible) || Number(this.state.nTirages) || 500);
+    const syms = [...new Set((this.lignesScan || []).map((r) => r && r.sym).filter(Boolean))];
+    const aFaire = syms.filter((sym) => {
+      if (!this.tetesCourantes(sym).length) return false;
+      const e = this.corDe(sym);
+      return !e || (e.tirages || 0) < but;
+    });
+    if (!aFaire.length) return;
+    this._corFond = true;
+    try {
+      for (let i = 0; i < aFaire.length; i++) {
+        if (this.state.vue !== 'historique' || this.state.scanEnCours) break;
+        this.setState({ corMsg: 'hasard corrigé : ' + this.nomComplet(aFaire[i])
+          + ' (' + (i + 1) + ' / ' + aFaire.length + ')' });
+        try { await this.calculerCor(aFaire[i], but); } catch (e) { /* instrument suivant */ }
+      }
+    } finally {
+      this._corFond = false;
+      this.setState({ corMsg: null });
+      // les cœurs ne survivent pas au calcul de fond : un worker vivant garde une
+      // copie des bougies — sauf si un scan les utilise encore
+      if (!this.state.scanEnCours) this.fermerWorkers();
+    }
+  }
+  // Pousser vaut pour TOUTE la page, jamais pour une carte : pousser les tirages du
+  // seul instrument qui a failli passer rouvrirait exactement ce que le maximum
+  // partagé vient de fermer. Et pousser AJOUTE — les 500 premiers tirages restent.
+  pousserCor(cible) {
+    const n = Math.max(200, Math.min(20000, Number(cible) || 500));
+    this.setState({ nTirages: n }, () => { this.ecrireSession(); this.completerCor(n); });
+  }
+  // Les champs de la CARTE : le verdict corrigé de l'instrument, sur le critère du
+  // classement actif — un chiffre qui suit le tri correctement, au lieu de comparer
+  // toujours au R net quel que soit le champion affiché.
+  champsCorCarte(sym, tete) {
+    const s = this.state;
+    const N = this.N;
+    const tri = s.triCumul || 'hasard';
+    const c = N && N.CRITERES_HASARD.includes(tri) ? tri : 'total';
+    const e = this.corDe(sym);
+    if (!e || !e.tirages) {
+      const enCours = !!(s.corMsg || this._corFond || s.scanEnCours);
+      return { hasTitre: 'Verdict · sélection corrigée',
+        hasChiffre: '—',
+        hasMot: enCours ? 'calcul en cours…' : 'pas encore calculé',
+        hasCouleur: 'var(--color-neutral-500)',
+        hasTousAide: 'Le verdict corrigé se calcule pendant le scan. Pour un scan antérieur, il se complète en arrière-plan quand cette page est ouverte.',
+        hasardPhrase: 'hasard corrigé : pas encore calculé' };
+    }
+    const tetes = e.tetes || [];
+    const estTete = !!(tete && tetes.some((t) => t.cle === this.cleConfig(tete)));
+    if (!estTete) {
+      // épinglée à la main (« Voir ») hors des têtes : choisie à l'œil parmi des
+      // centaines — AUCUN N ne décrit cette sélection. Son p est celui d'UNE
+      // configuration, nommé tel quel plutôt que faussement corrigé (règle 9 :
+      // un angle mort qu'on ne peut pas fermer se déclare).
+      const f = tete ? this.meilleurHasardFait(tete) : null;
+      const p1 = f && f.tirages ? (f.auDessus + 1) / (f.tirages + 1) : null;
+      return { hasTitre: 'Verdict · NON corrigé — épinglée à la main',
+        hasChiffre: f && f.tirages ? f.auDessus + ' / ' + f.tirages.toLocaleString('fr-FR') : '—',
+        hasMot: p1 === null ? 'contrôle en cours…' : this.motCor(p1) + ' — seule',
+        hasCouleur: 'var(--color-neutral-700)',
+        hasTousAide: 'Cette configuration a été épinglée à la main (« Voir ») parmi toutes celles de l\u2019instrument : aucun nombre de têtes ne décrit une sélection à l\u2019œil, donc aucune correction honnête n\u2019existe pour elle. Le chiffre est le p à UNE configuration, comparé à ses seuls tirages — optimiste d\u2019autant.',
+        hasardPhrase: f && f.tirages
+          ? f.auDessus + ' des ' + f.tirages + ' tirages font aussi bien — sans correction de la sélection'
+          : 'contrôle de la configuration épinglée en cours' };
+    }
+    const au = (e.au && e.au[c]) || 0;
+    const p = (au + 1) / (e.tirages + 1);
+    const aide = 'À chaque tirage, les ' + tetes.length + ' têtes de classement de cet instrument '
+      + 'sont rejouées avec des entrées au hasard sur un MÊME ordre de dates, et on retient le '
+      + 'meilleur de ces rejeux (critère : ' + (this.NOMS_CRITERE[c] || c) + '). '
+      + au + ' des ' + e.tirages.toLocaleString('fr-FR') + ' tirages font aussi bien que votre meilleure — '
+      + 'p = (' + au + ' + 1) / (' + e.tirages.toLocaleString('fr-FR') + ' + 1) = '
+      + (p * 100).toFixed(p < 0.01 ? 2 : 1).replace('.', ',') + ' %. '
+      + 'Comparer deux MAXIMA corrige la sélection du champion et absorbe la corrélation des '
+      + 'configurations voisines, que Bonferroni compterait comme indépendantes. ' + this.ANGLE_MORT_COR;
+    return {
+      hasTitre: 'Verdict · sélection corrigée · ' + (this.NOMS_CRITERE[c] || c),
+      hasChiffre: au + ' / ' + e.tirages.toLocaleString('fr-FR'),
+      hasMot: this.motCor(p) + (p <= 0.05 ? ' — des têtes rejouées' : ''),
+      hasCouleur: p <= 0.05 ? 'var(--color-accent-700)' : p > 0.2 ? 'var(--color-accent-900)' : 'var(--color-text)',
+      hasTousAide: aide,
+      hasardPhrase: au + ' des ' + e.tirages + ' tirages du meilleur rejeu font aussi bien que la meilleure des ' + tetes.length + ' têtes' };
+  }
+  // les comptes individuels d'une tête, dans la forme que verdictHasard sait lire :
+  // le contrôle corrigé les produit gratuitement, tirage par tirage
+  teteFaite(r) {
+    if (!r || !r.sym) return null;
+    const e = this.corDe(r.sym);
+    if (!e || !e.tirages) return null;
+    const t = (e.tetes || []).find((x) => x.cle === this.cleConfig(r));
+    return t && t.au ? { auDessus: t.au.total || 0, tirages: e.tirages } : null;
+  }
+  // Le panneau du dépli : les deux maxima face à face, et les têtes qui passeraient
+  // SEULES — montrées sans verdict, parce qu'elles montrent précisément pourquoi on
+  // ne peut pas les retenir une à une : chacune a l'air de passer, c'est leur nombre
+  // qui fabrique le maximum.
+  corPanneau(sym) {
+    const e = this.corDe(sym);
+    if (!e || !e.tirages) return { aCorPanneau: false, corReel: '', corNul: '', corSeulesTxt: '' };
+    const tot = (e.tetes || []).map((t) => Number(t.reels && t.reels.total)).filter(Number.isFinite);
+    const reel = tot.length ? Math.max(...tot) : 0;
+    const moy = e.som && Number.isFinite(e.som.total) ? e.som.total / e.tirages : null;
+    const seules = (e.tetes || []).filter((t) => t.au && ((t.au.total + 1) / (e.tirages + 1)) <= 0.05);
+    return {
+      aCorPanneau: true,
+      corReel: 'La meilleure de vos ' + (e.tetes || []).length + ' têtes : ' + this.sgR(reel) + '.',
+      corNul: 'Le meilleur des ' + (e.tetes || []).length + ' rejeux au hasard : '
+        + (moy === null ? '—' : this.sgR(moy) + ' en moyenne par tirage'
+          + (e.nulMax && Number.isFinite(e.nulMax.total) ? ', jusqu\u2019à ' + this.sgR(e.nulMax.total) : '')) + '.',
+      corSeulesTxt: seules.length
+        ? seules.length + ' des ' + (e.tetes || []).length + ' têtes passeraient le seuil de 5 % prises SEULES — c\u2019est exactement pourquoi on ne peut pas les retenir une à une : chacune a l\u2019air de passer, c\u2019est leur nombre qui fabrique le maximum.'
+        : 'Aucune tête ne passerait le seuil de 5 % même prise seule.',
+    };
   }
   // Résumé lisible des filtres d'une configuration : sans lui, un instrument validé
   // ne dit plus avec quelles conditions il a été trouvé — et devient impossible à rejouer.
@@ -15553,7 +15510,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260914.3';
+  VERSION_APP = '260915';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -18039,6 +17996,7 @@ GROUPES = {
       const scanSauve = await this.lireScanComplet();
       // import volontaire : les contrôles de l'espace d'arrivée, pas ceux d'avant
       await this.chargerHasardFaits();
+      await this.chargerHasardCor();
       if (scanSauve) this.appliquerScan(this.reprendreScan(scanSauve));
       const pf = this.lirePf();
       if (pf) this.setState({ pfs: pf.pfs, favoris: pf.favoris, valides: pf.valides || [] });
@@ -18349,6 +18307,7 @@ GROUPES = {
       reg = this.lireRegimes(), pf = this.lirePf();
     this._poseT = 0;
     this.chargerHasardFaits();
+    this.chargerHasardCor();
     if (scanSauve) this.appliquerScan(this.reprendreScan(scanSauve));
     this.baremes = {}; await this.chargerBaremes();
     const nSeries = await this.reprendreSeries();
@@ -18483,6 +18442,7 @@ GROUPES = {
       // import volontaire : le bloc importé fait foi, on repart de zéro
       this._poseT = 0;
       this.chargerHasardFaits();
+      this.chargerHasardCor();
       if (scanSauve) this.appliquerScan(this.reprendreScan(scanSauve));
       this.baremes = {}; await this.chargerBaremes();
       const nSeries = await this.reprendreSeries();
@@ -18909,11 +18869,6 @@ GROUPES = {
     // plus aucune ligne masquée par le tri : la lecture basse est en sous-ligne
     const nMasqueesTri = 0;
     const nBaseToutes = Math.max(0, passe.total - nMasqueesTri);
-    // Le pool de sélection pour la correction du nombre d'essais : les configurations
-    // RETENUES par les seuils, c'est-à-dire celles parmi lesquelles vous avez choisi.
-    // Posé ici, avant que hasardRows le lise dans ce même rendu — le lire depuis la
-    // liste d'affichage donnait « choisie parmi 8 » et un rendu de retard.
-    this._essaisPool = nBaseToutes || histoTout.length || 0;
     const nMasqueesTxt = nMasqueesTri
       ? ' · ' + nMasqueesTri.toLocaleString('fr-FR')
         + ' variante' + (nMasqueesTri > 1 ? 's' : '') + ' en lecture haute masquée'
@@ -20135,8 +20090,7 @@ GROUPES = {
             + (st === 'net' || st === 'reel'
               ? ' Le moment d\u2019entrée que vous avez choisi apporte quelque chose sur la période mesurée.'
               : ' Entrer à des dates au hasard aurait donné un résultat comparable : rien ne montre que la règle apporte quelque chose.'),
-          dvReserve: 'Ce test ne dit pas que la configuration marchera encore. Elle a été cueillie parmi '
-            + this.essaisHasard().toLocaleString('fr-FR') + ' configurations retenues, et ce risque de sélection n\u2019est pas corrigé ici : le contrôle groupé, plus bas, applique la correction et teste aussi ses voisines.',
+          dvReserve: 'Ce test ne dit pas que la configuration marchera encore. Il compare cette seule ligne au hasard : le risque d\u2019avoir cueilli la meilleure parmi toutes celles du scan n\u2019est corrigé que par le verdict « sélection corrigée » que portent les cartes du scan.',
           dvOk: st === 'net' || st === 'reel' ? 'Valider' : 'Valider quand même',
           // la conclusion pratique, dite d'elle-même : c'est la seule chose que
           // l'utilisateur cherche vraiment en lisant ce chiffre
@@ -21125,106 +21079,7 @@ GROUPES = {
           nSecuVariantes: nSecu + (nSecu > 1 ? ' combinaisons sécurisation × durée' : ' combinaison sécurisation × durée'),
         };
       })(),
-      controlerHasard: () => this.controlerHasard(),
-      hasardEnCours: !!s.hasardEnCours,
-      hasardBouton: s.hasardEnCours
-        ? 'Contrôle en cours… ' + (s.hasardFait || 0) + ' / ' + (s.hasardTotal || 0)
-        : 'Contrôler le hasard',
       aHasardMsg: !!s.hasardMsg, hasardMsg: s.hasardMsg,
-      // ce qui sera réellement contrôlé, annoncé avant de lancer
-      // Les instruments du scan REGARDÉ, pas de toute la mémoire : la liste montait à
-      // 47 entrées dont l'essentiel venait de scans qu'on n'a pas sous les yeux.
-      hasardInstrs: [{ v: '', nom: 'Mes configurations validées' },
-        ...[...(this._retenuesParSym || new Map()).keys()].sort()
-          .map((v) => ({ v, nom: this.nomComplet(v) }))],
-      hasardA: Math.max(50, Number(s.hasardA) || 500),
-      hasardB: Math.max(50, Number(s.hasardB) || 1000),
-      setHasardA: (e) => this.setState({ hasardA: Math.max(50, Math.min(20000,
-        Math.round((Number(e.target.value) || 500) / 50) * 50)) }),
-      setHasardB: (e) => this.setState({ hasardB: Math.max(50, Math.min(20000,
-        Math.round((Number(e.target.value) || 1000) / 50) * 50)) }),
-      controlerAffichees: () => this.controlerAffichees(),
-      ...(() => {
-        let n = 0;
-        for (const l of (this._retenuesParSym || new Map()).values()) n += l.length;
-        const nA = Math.max(50, Number(s.hasardA) || 500), nB = Math.max(50, Number(s.hasardB) || 1000);
-        const taches = n * (nA === nB ? 1 : 2);
-        return {
-          boutonAffichees: n ? 'Contrôler les ' + n.toLocaleString('fr-FR') + ' configurations affichées'
-            : 'Contrôler les lignes affichées',
-          aideAffichees: 'Deux nombres de tirages pour la même configuration : si les deux pourcentages divergent, le chiffre n\u2019est pas encore stable. '
-            + (taches
-              ? 'Ce bouton porte sur ' + taches.toLocaleString('fr-FR')
-                + ' tirages complets (têtes de groupe et lignes dépliées) : comptez plusieurs dizaines de minutes au premier passage. Resserrez vos seuils pour en contrôler moins. '
-              : '')
-            + 'Les pourcentages sont bruts ; le verdict sous chacun est corrigé du nombre de configurations contrôlées dans la colonne.',
-        };
-      })(),
-      hasardInstr: this.instrHasard() || '',
-      setHasardInstr: (e) => this.setState({ hasardInstr: e.target.value || null }),
-      hasardPorte: (() => {
-        const p = this.poolHasard();
-        if (p.instrument) {
-          return this.pl(p.cibles.length, 'configuration', 'configurations') + ' de '
-            + this.nomComplet(p.instrument) + ' contrôlée' + (p.cibles.length > 1 ? 's' : '')
-            + (p.nDansInstr > p.cibles.length
-              ? (p.cibles.length === 1 ? ', la meilleure des ' + p.nDansInstr
-                : ', les meilleures sur ' + p.nDansInstr) : '')
-            + (p.cibles.length > 1
-              ? '. Si l\u2019avantage ne tient que sur une seule, c\u2019est un pic isolé.'
-              : '. Cochez la case pour contrôler aussi ses voisines.');
-        }
-        const nV = p.nValidees, nT = p.cibles.length;
-        const bouts = [];
-        if (!nT) bouts.push('Aucune configuration exploitable à contrôler.');
-        else if (!nV) {
-          bouts.push('Les ' + nT + ' premières configurations du tableau ci-dessus sont contrôlées'
-            + ' — validez-en une pour qu\u2019elle passe d\u2019abord.');
-        } else {
-          bouts.push((nV > 1
-            ? nV + ' configurations validées sont contrôlées en priorité, où qu\u2019elles soient dans le tableau'
-            : 'Votre configuration validée est contrôlée en priorité, où qu\u2019elle soit dans le tableau')
-            + (nT > nV ? ', puis les ' + (nT - nV) + ' meilleures autres.' : '.'));
-        }
-        if (p.nVariantes) {
-          bouts.push('Avec ' + p.nVariantes + ' variante' + (p.nVariantes > 1 ? 's' : '')
-            + ' des mêmes instruments : si votre config passe le test et que ses voisines échouent,'
-            + ' c\u2019est un pic isolé, donc du surajustement.');
-        }
-        // une validée hors du tableau reste contrôlée : elle est écartée de l'affichage,
-        // pas de la mémoire. Le dire évite de croire qu'elle a été oubliée.
-        if (p.masquees) {
-          bouts.push(p.masquees > 1
-            ? p.masquees + ' d\u2019entre elles sont écartées du tableau par vos seuils d\u2019affichage : elles sont contrôlées quand même.'
-            : 'L\u2019une d\u2019elles est écartée du tableau par vos seuils d\u2019affichage : elle est contrôlée quand même.');
-        }
-        if (p.approx) {
-          bouts.push(p.approx > 1
-            ? p.approx + ' validées datent d\u2019avant l\u2019enregistrement de la variante : à réglages égaux, la meilleure ligne est prise à leur place.'
-            : 'Une validée date d\u2019avant l\u2019enregistrement de la variante : à réglages égaux, la meilleure ligne est prise à sa place.');
-        }
-        if (p.absentes) {
-          bouts.push(p.absentes > 1
-            ? p.absentes + ' validées ne sont dans aucun scan de ce compte : elles ne peuvent pas être contrôlées.'
-            : 'Une validée n\u2019est dans aucun scan de ce compte : elle ne peut pas être contrôlée.');
-        }
-        return bouts.join(' ');
-      })(),
-      hasardVariantes: !!s.hasardVariantes,
-      setHasardVariantes: (e) => this.setState({ hasardVariantes: !!e.target.checked }),
-      // sans configuration validée, la case n'a rien sur quoi s'appuyer : la laisser
-      // cochable laissait croire que les variantes étaient testées
-      hasardVariantesAide: (() => {
-        const p = this.poolHasard();
-        if (p.instrument) {
-          return s.hasardVariantes
-            ? 'Les 10 meilleures configurations de l\u2019instrument choisi sont contrôlées.'
-            : 'Décochée, seule la meilleure configuration de l\u2019instrument est contrôlée.';
-        }
-        return p.nValidees
-          ? 'Ajoute, pour chaque instrument dont vous avez validé une configuration, ses 10 meilleures voisines.'
-          : 'Sans effet pour l\u2019instant : aucune configuration validée. Les badges « Validée » du tableau sont des verdicts automatiques calculés sur vos seuils — la validation se fait avec le lien « Contrôler puis valider » sous une ligne.';
-      })(),
       nTirages: s.nTirages || 50,
       // pas par 50, plancher à 50 : sous ce seuil le test ne tranche rien
       // Plancher à 200 : un contrôle plus grossier ne peut pas distinguer une
@@ -21237,224 +21092,10 @@ GROUPES = {
         + 'Le test ne peut pas descendre sous « une chance sur ce nombre » : à 200 tirages, rien '
         + 'de plus fin que 0,5 % n\u2019est mesurable. Montez-le pour trancher les cas serrés — le '
         + 'calcul est proportionnel, dix fois plus de tirages, dix fois plus de temps. '
-        + 'C\u2019est le même nombre partout dans la page, et les fiches déjà contrôlées à ce '
-        + 'nombre-là proposent alors de pousser plus loin.',
+        + 'C\u2019est le même nombre pour toute la page, jamais pour une carte — et pousser '
+        + 'AJOUTE des tirages au même flux, il ne recommence rien.',
       ...(() => { const c = this.champNombre('nTirages', 200, 20000, 50);
         return { nTiragesVal: c.val, setNTirages: c.saisir, finNTirages: c.poser }; })(),
-      // ce que le nombre de tirages permet de conclure, en clair
-      tiragesPortee: (() => {
-        const n = s.nTirages || 50;
-        const p = (1 / n * 100);
-        return n + ' tirages : le test ne peut pas descendre sous « une chance sur '
-          + n + ' » (' + (p < 1 ? p.toFixed(1) : Math.round(p)) + ' %). '
-          + (n < 200 ? 'Trop grossier pour trancher une marge faible — montez à 500 ou 1 000.'
-            : n < 500 ? 'Correct pour écarter le bruit, juste pour une marge de 10 %.'
-            : 'Assez fin pour une marge de quelques pour cent.')
-          + ' Le calcul est proportionnel : dix fois plus de tirages, dix fois plus de temps.';
-      })(),
-      aHasard: !!(s.hasard && s.hasard.length),
-      hasardVerdict: (() => {
-        const L = s.hasard || [];
-        if (!L.length) return '';
-        // Trois populations, jamais deux : retenues, écartées, et non tranchables.
-        // Compter un indécidable comme un échec faisait annoncer « aucune ne se
-        // distingue » là où le calcul n'avait rien pu conclure. Le risque de sélection,
-        // lui, est déjà écrit sur chaque ligne : le répéter ici n'ajoutait rien.
-        const V = L.filter((x) => x.valide), A = L.filter((x) => !x.valide);
-        const st = (x) => { const r = this.rangHasard(x); return r ? r.statut : null; };
-        const tient = (x) => { const s = st(x); return s === 'net' || s === 'reel'; };
-        const flouDe = (l) => l.filter((x) => st(x) === 'indecidable').length;
-        const bouts = [];
-        const bilan = (l, quoi) => {
-          const f = flouDe(l), jug = l.length - f, b = l.filter(tient).length;
-          if (!jug) {
-            return 'Aucun verdict n\u2019est calculable sur ' + quoi + ' : ' + L.length
-              + ' tests simultanés demandent plus de tirages.';
-          }
-          return (b === 0
-            ? 'Aucune des ' + jug + ' lignes jugeables parmi ' + quoi + ' ne se distingue du hasard'
-            : b + ' des ' + jug + ' lignes jugeables parmi ' + quoi + ' se distinguent du hasard')
-            + (f ? ', et ' + f + ' ne sont pas tranchables faute de tirages.' : '.');
-        };
-        if (V.length) {
-          bouts.push(bilan(V, V.length > 1 ? 'vos configurations validées' : 'votre configuration validée'));
-        }
-        // chaque population a son bilan : en cumulant validées ET variantes, le second
-        // ne s'affichait jamais et une dizaine de lignes restaient sans résumé
-        if (A.length) {
-          bouts.push(bilan(A, V.length
-            ? 'leurs ' + A.length + ' voisines'
-            : 'les ' + A.length + ' configurations contrôlées'));
-        }
-        // le diagnostic du pic isolé, instrument par instrument
-        if (V.length && A.length) {
-          const isoles = [], tenus = [], muets = [];
-          for (const v of V) {
-            if (!tient(v)) continue;
-            const soeurs = A.filter((x) => x.sym === v.sym);
-            if (!soeurs.length) continue;
-            const jugeables = soeurs.filter((x) => st(x) !== 'indecidable');
-            if (!jugeables.length) { muets.push(v.sym); continue; }
-            const ok = jugeables.filter(tient).length;
-            (ok === 0 ? isoles : tenus).push(v.sym + ' (' + ok + '/' + jugeables.length + ')');
-          }
-          if (isoles.length) {
-            bouts.push('Pic isolé sur ' + isoles.join(', ')
-              + ' : la config passe mais aucune de ses voisines jugeables — c\u2019est du surajustement, pas un avantage.');
-          }
-          if (tenus.length) {
-            bouts.push('Voisinage solide sur ' + tenus.join(', ')
-              + ' : les configurations proches tiennent aussi, l\u2019avantage ne dépend pas d\u2019un réglage précis.');
-          }
-          if (muets.length) {
-            bouts.push('Voisinage non tranchable sur ' + muets.join(', ') + ' : trop peu de tirages.');
-          }
-        }
-        return bouts.join(' ');
-      })(),
-      hasardTri: s.hasardTri || 'defaut',
-      hasardCols: [['defaut', 'Groupé par instrument'], ['total', 'Votre résultat'], ['p', 'Part du hasard'],
-        ['verdict', 'Verdict']].map(([cle, nom]) => ({ cle, nom,
-          cls: (s.hasardTri || 'defaut') === cle ? 'tag tag-accent' : 'tag tag-outline',
-          trier: () => this.setState({ hasardTri: cle }) })),
-      hasardRows: (() => {
-        const tri = s.hasardTri || 'defaut';
-        const l = [...(s.hasard || [])];
-        if (tri === 'total') l.sort((a, b) => (Number(b.total) || 0) - (Number(a.total) || 0));
-        else if (tri === 'p') {
-          const pv = (x) => (x.tirages ? x.auDessus / x.tirages : 2);
-          l.sort((a, b) => pv(a) - pv(b) || (Number(b.total) || 0) - (Number(a.total) || 0));
-        } else if (tri === 'verdict') {
-          const ordre = { net: 0, reel: 1, douteux: 2, indecidable: 3, bruit: 4 };
-          const rg = (x) => { const r = this.rangHasard(x); return r ? (ordre[r.statut] ?? 5) : 5; };
-          l.sort((a, b) => rg(a) - rg(b) || (Number(b.total) || 0) - (Number(a.total) || 0));
-        }
-        return l;
-      })().map((x) => {
-        const f = (v) => (v > 0 ? '+' : '') + v.toFixed(1).replace('.', ',');
-        return {
-          sym: x.sym,
-          // même écriture que dans l'Historique : entrée · ligne période · stop / R-R
-          reglages: (x.periode
-            ? (x.entree ? (ENTREES_TXT[x.entree] || x.entree) + ' · ' : '')
-              + (x.ligne ? (LIGNES_TXT[x.ligne] || x.ligne) + ' ' : '') + x.periode
-              + ' · ' + f(x.sl).replace('+', '') + ' % / ' + f(x.rr).replace('+', '')
-            : '') || '—',
-          nom: (x.nom ? x.nom + ' · ' : '') + x.n + ' trades'
-            + (x.lecture ? ' · lecture ' + x.lecture : '')
-            + (x.exact === false ? ' · grille du scan non mémorisée' : '')
-            + (x.deja ? ' · déjà contrôlée' : ''),
-          roleCls: x.valide ? 'tag tag-accent' : '',
-          roleTxt: x.valide ? 'votre choix' : '',
-          roleAide: x.valide ? 'La configuration que vous avez validée.' : '',
-          etat: x.etat || '—',
-          etatCls: 'tag ' + (x.etatTag || 'tag-neutral'),
-          etatMotif: x.etatMotif || '',
-          ...(() => {
-            const r = this.rangHasard(x);
-            const flou = !r || r.statut === 'indecidable';
-            // MÊME prédicat que le contrôle « Hors échantillon positif » de l'État :
-            // un critère plus permissif ici faisait cohabiter « tient encore » avec le
-            // tag « À revoir — tenue hors échantillon trop faible ».
-            const oos = Number(x.oos), tenue = Number(x.tenue);
-            const mesure = Number.isFinite(oos);
-            const recent = mesure ? (oos > 0 && (Number.isFinite(tenue) ? tenue : 0) >= 50) : null;
-            const fort = !flou && (r.statut === 'net' || r.statut === 'reel');
-            // Deux axes NOMMÉS, pas un verdict global : l'État résume cinq contrôles,
-            // celui-ci n'en croise que deux — l'annoncer évite d'écrire « cas solide »
-            // à côté du tag « Rejetée ».
-            return { aCroisement: !flou && mesure,
-              croisement: flou || !mesure ? ''
-                : (fort ? 'Bat le hasard' : 'Ne se distingue pas du hasard')
-                  + ' · hors échantillon ' + (recent ? 'positif' : 'négatif')
-                  + ' — deux axes seulement, l\u2019État résume les cinq contrôles.',
-              croisementAide: 'Le contrôle du hasard mélange les dates : il ne peut pas voir qu\u2019un avantage s\u2019est éteint. Le hors-échantillon ne voit que ça. Aucun des deux ne remplace l\u2019autre, et ni l\u2019un ni l\u2019autre ne juge le nombre de trades, l\u2019espérance, la validation glissante ou le creux.' };
-          })(),
-          decalage: x.valide ? '0' : '18px',
-          total: f(x.total) + ' R',
-          totalParTrade: f(x.espVous) + ' R / trade',
-          med: f(x.med) + ' R',
-          medParTrade: f(x.espMed) + ' R / trade sur ' + x.nMed + ' trades',
-          max: f(x.max) + ' R',
-          // compte brut, jamais un pourcentage arrondi : « 0 % » pour 1 tirage sur 1000
-          // laissait croire qu'aucun hasard n'avait fait mieux, alors que la colonne
-          // « meilleur hasard » le contredisait juste à côté
-          part: x.tirages
-            ? (x.auDessus === 0 ? 'aucun sur ' + x.tirages
-              : x.auDessus + ' sur ' + x.tirages)
-            : '—',
-          ...(() => {
-            const r = this.rangHasard(x);
-            const rang = r ? r.statut : null;
-            // une décimale sous 10 % : arrondir 3,75 % à « 4 % » faisait lire « p 4 %
-            // contre barre 4 % » sur une ligne qui avait bel et bien échoué
-            const pct = (v) => (v < 0.0001 ? 'moins de 0,01 %'
-              : v < 0.01 ? (v * 100).toFixed(2).replace('.', ',') + ' %'
-              : v < 0.1 ? (v * 100).toFixed(1).replace('.', ',') + ' %'
-              : Math.round(v * 100) + ' %');
-            return {
-              verdict: !rang ? '—' : rang === 'indecidable' ? 'indécidable'
-                : rang === 'net' ? 'se distingue nettement'
-                : rang === 'reel' ? 'se distingue' : rang === 'douteux' ? 'douteux' : 'dans le bruit',
-              // ce que la correction a changé, et ce qu'elle ne corrige pas
-              corrTxt: !r ? '' : r.statut === 'indecidable'
-                // Deux raisons de ne pas trancher, et il faut les distinguer : l'une dit
-                // que le tirage ne descend pas assez bas, l'autre qu'il est trop bruité
-                // pour départager. La seconde est la plus fréquente et la plus trompeuse,
-                // parce que le chiffre a l'air net — 1 %, sur 550 tirages, plus ou moins
-                // un demi-point.
-                ? (r.troublePres
-                    ? 'pas tranchable : ' + pct(r.p) + ' contre une barre à ' + pct(r.seuil)
-                      + ', à ' + r.tirages.toLocaleString('fr-FR') + ' tirages près — il en '
-                      + 'faudrait ' + r.tiragesNec.toLocaleString('fr-FR')
-                    : 'pas tranchable : ' + r.m + ' tests simultanés demandent '
-                      + r.tiragesNec.toLocaleString('fr-FR') + ' tirages')
-                : r.statut === 'net' || r.statut === 'reel'
-                  ? 'tient parmi ' + r.m + ' tests simultanés (barre ' + pct(r.seuil) + ')'
-                  : r.perdu
-                    ? 'passait seule, pas parmi ' + r.m + ' tests simultanés (barre ' + pct(r.seuil) + ')'
-                    : 'échoue déjà avant correction',
-              selTxt: !r ? '' : 'cueillie parmi ' + r.pool.toLocaleString('fr-FR')
-                + ' configurations retenues : ce risque-là n\u2019est pas corrigé',
-              corrCls: !r || r.statut === 'net' || r.statut === 'reel' ? '' : 'text-muted',
-              tag: !rang ? 'tag tag-neutral'
-                : rang === 'net' || rang === 'reel' ? 'tag tag-accent'
-                : rang === 'douteux' || rang === 'indecidable' ? 'tag tag-outline' : 'tag tag-neutral',
-              // la phrase commente le grand pourcentage, donc la fréquence BRUTE ;
-              // le badge, lui, porte le verdict corrigé — les deux ne disent pas la
-              // même chose et c'est justement l'enseignement
-              lecture: !r ? ''
-                : x.auDessus === 0 ? 'le hasard n\u2019y arrive jamais'
-                : r.seule === 'net' ? 'le hasard n\u2019y arrive presque jamais'
-                : r.seule === 'reel' ? 'le hasard y arrive rarement'
-                : r.seule === 'douteux' ? 'le hasard y arrive assez souvent'
-                : r.p > 0.5 ? 'le hasard fait mieux une fois sur deux'
-                : 'le hasard y arrive souvent',
-              barreCouleur: !rang ? 'var(--color-neutral-400)'
-                : rang === 'net' || rang === 'reel' ? 'var(--color-accent)'
-                : rang === 'douteux' || rang === 'indecidable' ? 'var(--color-accent-300)'
-                : 'var(--color-neutral-400)',
-            };
-          })(),
-          // Une colonne qui répétait la même phrase de quatre lignes sur chaque ligne ne
-          // se lit pas : on donne le taux, sa barre, et la conclusion en trois mots.
-          // Le grand chiffre est la part de tirages qui font aussi bien — plus il est
-          // bas, plus la règle apporte quelque chose.
-          taux: !x.tirages ? '—'
-            : x.auDessus === 0 ? '0 %'
-            : (x.auDessus / x.tirages * 100 < 1
-              ? 'moins de 1 %'
-              : Math.round(x.auDessus / x.tirages * 100) + ' %'),
-          tauxDetail: !x.tirages ? ''
-            : x.auDessus === 0 ? 'aucun des ' + x.tirages + ' tirages ne fait aussi bien'
-            : x.auDessus === 1 ? '1 tirage sur ' + x.tirages + ' fait aussi bien'
-            : x.auDessus + ' tirages sur ' + x.tirages + ' font aussi bien',
-          // barre : la part du hasard qui égale votre règle, plafonnée pour rester lisible
-          barre: !x.tirages ? '0%' : Math.min(100, Math.max(2, x.auDessus / x.tirages * 100)) + '%',
-          aide: x.auDessus + ' des ' + x.tirages + ' tirages au sort font aussi bien ou mieux que cette configuration. '
-            + 'Hasard médian ' + f(x.med) + ' R, meilleur tirage ' + f(x.max) + ' R, votre règle ' + f(x.total) + ' R.',
-        };
-      }),
       coeursTxt: (() => {
         if (!s.workersOk) {
           return 'Votre navigateur ne permet pas de sortir le calcul du fil de la page : le scan tourne dans l\u2019onglet, qui restera figé par moments.';
@@ -23702,8 +23343,6 @@ GROUPES = {
       mesuresOuvertes: !!s.pfMesures,
       mesuresTxt: s.pfMesures ? 'masquer les mesures' : 'Toutes les mesures',
       basculerMesures: () => this.setState({ pfMesures: !s.pfMesures }),
-      lotTxt: s.ouvLot ? 'masquer le contrôle en lot' : 'contrôle en lot…',
-      basculerLot: () => this.setState({ ouvLot: !s.ouvLot }),
       setModeLecture: () => this.setState({ modeTable: 'lecture' }),
       setModeComplet: () => this.setState({ modeTable: 'complet' }),
       scanEnCours: s.scanEnCours,
@@ -26779,6 +26418,11 @@ GROUPES = {
         choisir: () => this.setState({ vueLecture: v }, () => this.ecrireSession()),
       })),
       ongletsCumul: [
+        // le classement d'ouverture : les cinq autres trient par performance, donc
+        // mettent en tête ce que la chance a le mieux servi ; celui-ci met en tête
+        // ce qui résiste aux entrées au hasard — le seul critère qui ne se laisse
+        // pas choisir
+        ['hasard', 'Hasard corrigé', 'Classe par le verdict corrigé de la sélection : la part des tirages où le meilleur des têtes rejouées au hasard fait aussi bien que votre meilleure (sur le R net). Les autres colonnes mettent en tête ce que la chance a le mieux servi ; celle-ci met en tête ce qui résiste au hasard.'],
         ['total', 'R net', 'Classe sur le R net de référence, sans filtre.'],
         ['pf', 'Profit factor', 'Somme des gains divisée par la somme des pertes.'],
         ['dd', 'Pire creux', 'Du creux le plus faible au plus profond.'],
@@ -26786,8 +26430,8 @@ GROUPES = {
         ['oos', 'Hors échantillon', 'R de la partie récente, non utilisée pour choisir la configuration.'],
         ['wfMin', 'Pire fenêtre', 'La plus mauvaise des quatre fenêtres de contrôle walk-forward.'],
       ].map(([v, nom, aide]) => ({
-        nom, aide, actif: (s.triCumul || 'total') === v,
-        cls: 'tag ' + ((s.triCumul || 'total') === v ? 'tag-accent' : 'tag-outline'),
+        nom, aide, actif: (s.triCumul || 'hasard') === v,
+        cls: 'tag ' + ((s.triCumul || 'hasard') === v ? 'tag-accent' : 'tag-outline'),
         choisir: () => this.setState({ triCumul: v }),
       })),
       autoAttente: false,
@@ -27507,48 +27151,15 @@ GROUPES = {
             // le nom de variante est ce que les pastilles du scan produisent : c'est la
             // seule écriture qui permette de refaire exactement cette combinaison
             ...(() => {
-              const A = this.celluleHasard(r, Math.max(50, Number(s.hasardA) || 500));
-              const B = this.celluleHasard(r, Math.max(50, Number(s.hasardB) || 1000));
               // La décision croise les deux verdicts : les cinq contrôles ET le hasard.
               // Elle est calculée par `decisionDe` — une seule écriture, que la case du
               // tableau, le bouton de rangement au portefeuille et l'export du robot lisent
               // tous, et qui ne peut donc plus se contredire d'un endroit à l'autre.
               const dec = this.decisionDe(r, v);
               const fin = dec.controle;
-              // Le champ « tirages au hasard » commande la finesse. La case reste un
-              // bouton tant que CE nombre-là n'a pas été tiré sur cette configuration —
-              // pas seulement quand il dépasse le contrôle le plus fin.
-              //
-              // La règle précédente n'autorisait que le plus fin, et interdisait donc de
-              // contrôler à 600 une ligne déjà contrôlée à 1 000. Or c'est exactement ce
-              // qu'on veut faire pour savoir si le pourcentage tient : deux tirages de
-              // tailles différentes qui donnent le même chiffre, c'est un chiffre stable.
-              // Les deux résultats coexistent, la carte les affiche tous les deux.
-              //
-              // Une ligne déjà contrôlée à ce nombre précis n'a rien à recalculer : le
-              // tirage est déterministe, le refaire redonnerait le même chiffre.
-              const tDem = Math.max(200, Number(s.nTirages) || 200);
-              const inedit = !this.hasardFait(this.cleHasardFait(r, tDem));
-              const plusFin = tDem > (dec.tirages || 0);
-              const controlable = inedit && !r.sansDonnees && (Number(r.n) || 0) >= 5;
               return {
-                // la case de décision EST le bouton de contrôle tant que rien n'est mesuré
+                // le contrôle d'une ÉPINGLÉE tourne encore ligne à ligne : ce témoin le dit
                 hasardIci: !!s.hasardEnCours && s.hasardUne === this.cleFine(r),
-                hasardAFaire: controlable && !(s.hasardEnCours && s.hasardUne === this.cleFine(r)),
-                hasardVu: !controlable && !(s.hasardEnCours && s.hasardUne === this.cleFine(r)),
-                hasardOccupe: !!s.hasardEnCours,
-                lancerHasard: (e) => { if (e && e.stopPropagation) e.stopPropagation();
-                  this.controlerUne(r); },
-                // Le bouton de relance vit SOUS LE CHIFFRE du hasard, pas dans le rang
-                // d'action : dès que le verdict est vert, l'action devient « Ranger au
-                // portefeuille » et il n'existait plus AUCUN moyen, sur la fiche, de
-                // rejouer le tirage à un autre nombre — la seule offre était de ranger.
-                hasPousserTxt: (plusFin ? 'pousser à ' : 'refaire à ')
-                  + tDem.toLocaleString('fr-FR') + ' tirages',
-                hasPousserAide: 'Rejoue le contrôle du hasard à ' + tDem.toLocaleString('fr-FR')
-                  + ' tirages. Le résultat s\u2019AJOUTE aux contrôles déjà faits — deux tailles '
-                  + 'de tirage qui donnent le même pourcentage disent que ce pourcentage tient. '
-                  + 'Le nombre se règle dans le champ « tirages au hasard », en haut de la page.',
                 // LA COURBE DE LA FICHE. Elle vient de `pa`, le cumul année par année que
                 // le scan enregistre déjà sur chaque ligne : rien n'est recalculé. Deux
                 // instruments au même R net n'ont pas la même allure, et c'est justement
@@ -27727,8 +27338,6 @@ GROUPES = {
                 hasardPhrase: dec.phrase,
                 aAlerte: !dec.vert && !!fin,
                 alerteTxt: 'Écartée : ' + dec.txt + '.',
-                hasA: A.txt, hasACls: A.cls, hasAAide: A.aide, hasAVerdict: A.verdict || '',
-                hasB: B.txt, hasBCls: B.cls, hasBAide: B.aide, hasBVerdict: B.verdict || '',
                 decTxt: dec.txt, decCls: dec.cls,
                 decAide: dec.aide + (fin && inedit
                   ? ' Cliquez pour refaire le contrôle à ' + tDem.toLocaleString('fr-FR') + ' tirages.' : '') };
@@ -28045,7 +27654,10 @@ GROUPES = {
           pf: (a, b) => (vt(b, 'pf') === Infinity ? -1e9 : vt(b, 'pf')) - (vt(a, 'pf') === Infinity ? -1e9 : vt(a, 'pf')),
           oos: (a, b) => (vt(b, 'oos') ?? -1e9) - (vt(a, 'oos') ?? -1e9),
           wfMin: (a, b) => (vt(b, 'wfMin') ?? -1e9) - (vt(a, 'wfMin') ?? -1e9),
-        }[s.triCumul || 'total'] || ((a, b) => vt(b, 'total') - vt(a, 'total'));
+        // 'hasard' n'a pas de comparateur de LIGNES : dans un groupe, les lignes
+        // retombent sur le R net — le p corrigé est un verdict d'instrument, le
+        // classement des groupes le lit plus bas
+        }[s.triCumul || 'hasard'] || ((a, b) => vt(b, 'total') - vt(a, 'total'));
         // ————— PIC DANS LE BRUIT, OU PLATEAU —————
         //
         // Une configuration excellente entourée de voisines qui échouent est un accident ;
@@ -28147,7 +27759,7 @@ GROUPES = {
           if (dur && (m.nuits ?? 0) > dur) return false;
           return true;
         };
-        const tg = this.memo('triGroupes', sigT + '|' + (s.triCumul || 'total') + '|' + par.size
+        const tg = this.memo('triGroupes', sigT + '|' + (s.triCumul || 'hasard') + '|' + (s.corRev || 0) + '|' + par.size
           + '|' + modeL + '|' + (s.rejeu ? Object.keys(s.rejeu).length : 0), () => {
           let nEc = 0;
           const groupes = Array.from(par.entries())
@@ -28180,8 +27792,20 @@ GROUPES = {
               nEc++;
               return false;
             })
-            .sort((a, b) => (a.meilleur && b.meilleur) ? critere(a.meilleur, b.meilleur)
-              : (a.meilleur ? -1 : b.meilleur ? 1 : 0));
+            .sort((a, b) => {
+              if ((s.triCumul || 'hasard') === 'hasard') {
+                // ce qui résiste au hasard d'abord ; les instruments dont le verdict
+                // n'est pas encore calculé descendent ensemble en bas, sans se mêler
+                const pa = this.pCorDe(a.sym, 'total'), pb = this.pCorDe(b.sym, 'total');
+                if (pa !== null || pb !== null) {
+                  if (pa === null) return 1;
+                  if (pb === null) return -1;
+                  if (pa !== pb) return pa - pb;
+                }
+              }
+              return (a.meilleur && b.meilleur) ? critere(a.meilleur, b.meilleur)
+                : (a.meilleur ? -1 : b.meilleur ? 1 : 0);
+            });
           return { groupes, nEcartes: nEc };
         });
         // posé à chaque rendu depuis la valeur mémoïsée, jamais depuis le producteur
@@ -28230,10 +27854,10 @@ GROUPES = {
                 sansAction: true, avecAction: false,
                 auBacktest: () => {},
                 reglages: 'non testé ou écarté par les filtres', filtres: '',
-                hasA: '—', hasACls: 'text-muted', hasAAide: '', hasAVerdict: '',
-                hasB: '—', hasBCls: 'text-muted', hasBAide: '', hasBVerdict: '',
-                decTxt: 'à contrôler', decCls: 'tag tag-outline',
+                decTxt: 'sans mesure', decCls: 'tag tag-outline',
                 decAide: 'Aucune configuration mesurée pour cet instrument.',
+                ...this.champsCorCarte(g.sym, null),
+                ...this.corPanneau(g.sym),
                 n: '—', total: '—', rAn: '—', dd: '—', duree: '—', segs: '—', pf: '—', oos: '—',
                 periodeTestee: '—', ambiguTxt: 'aucune mesure',
                 aIrrealisable: false, irrealisableTxt: '', irrealisableEtiq: '',
@@ -28243,9 +27867,8 @@ GROUPES = {
                 aJumelle: false, jumTxt: '', jumAide: '', jumCouleur: 'var(--color-text)',
                 aLigneBasse: false, bas: { titre: '' },
                 aVersBasse: false, versBasse: () => {}, versBasseAide: '',
-                hasardIci: false, hasardAFaire: false, hasardVu: true, hasardOccupe: false,
+                hasardIci: false, hasTitre: 'Verdict · sélection corrigée',
                 aValider: false, valider: () => {}, valideTxt: '',
-                lancerHasard: () => {}, hasPousserTxt: '', hasPousserAide: '',
                 aCourbe: false, trace: '', aire: '', zero: 35,
                 aAgir: false, agirTxt: '', agirCls: 'btn btn-ghost', agirAide: '',
                 agirBloque: true, agir: () => {}, opacite: '.62',
@@ -28273,7 +27896,13 @@ GROUPES = {
                   estAffichee: affichee, aVoir: !affichee,
                   fond: affichee ? 'var(--color-accent-100)' : 'transparent',
                   voir: (e) => { if (e && e.stopPropagation) e.stopPropagation();
-                    this.setState({ symVu: { ...(this.state.symVu || {}), [g.sym]: this.cleConfig(r) } }); },
+                    this.setState({ symVu: { ...(this.state.symVu || {}), [g.sym]: this.cleConfig(r) } }, () => {
+                      // une épinglée hors têtes porte un p à UNE configuration, nommé
+                      // « non corrigé » : il se calcule tout seul au moment d'épingler
+                      const cor = this.corDe(g.sym);
+                      const estTete = !!(cor && (cor.tetes || []).some((t) => t.cle === this.cleConfig(r)));
+                      if (!estTete && !this.meilleurHasardFait(r)) this.controlerUne(r);
+                    }); },
                   voirAide: affichee ? 'C\u2019est la configuration que la fiche montre.'
                     : 'Montre cette configuration dans la fiche — courbe, chiffres et réglages — '
                       + 'sans refermer le dépli. Les actions de la fiche porteront sur elle.' };
@@ -28289,6 +27918,10 @@ GROUPES = {
               ancre: 'histo-' + g.sym.replace(/[^A-Za-z0-9]/g, '_'),
               nCombis: g.combis.length + ' config.',
               ...ligne(tete),
+              // le verdict CORRIGÉ de l'instrument recouvre la case Hasard de la carte —
+              // il suit le critère du classement actif, et déclare l'épinglée non corrigée
+              ...this.champsCorCarte(g.sym, tete),
+              ...this.corPanneau(g.sym),
               ...voisinage(g.combis),
               // LE TEXTE EST LE LIEN. « n° 5 au coût · 9 config. mesurées » nommait les
               // huit autres sans donner aucun chemin pour les atteindre ; il devient
@@ -28314,67 +27947,31 @@ GROUPES = {
             };
           });
       })(),
-      // ————— LE CONTRÔLE EN LOT, DANS LA BARRE —————
+      // ————— LE HASARD CORRIGÉ, DANS LA BARRE : POUSSER LES TIRAGES —————
       //
-      // Chaque fiche se contrôlait une par une, au clic sur son propre bouton : avec neuf
-      // fiches à l'écran, neuf clics et neuf attentes pour comparer — et rien ne disait
-      // qu'on pouvait relancer les autres. La méthode existait, elle n'était appelée par
-      // aucun bouton de cette vue.
-      //
-      // Placé APRÈS `toutesRows` dans cet objet, à dessein : c'est ce rendu-là qui
-      // remplit `_ciblesHasard`, et le décompte doit porter sur les fiches réellement
-      // affichées, pas sur celles du rendu précédent.
+      // Le bouton de contrôle a disparu : le contrôle se calcule PENDANT le scan, et
+      // se complète en arrière-plan pour un scan antérieur. Restent le champ — UNE
+      // seule valeur pour toute la page, jamais par carte : pousser les tirages du
+      // seul instrument qui a failli passer rouvrirait la sélection que le maximum
+      // partagé vient de fermer — et deux boutons qui poussent TOUS les instruments.
+      // Pousser AJOUTE : la graine par tirage rend la suite identique aux 500 déjà
+      // joués, et le verdict à 2 000 contient celui à 500.
       ...(() => {
-        const t = Math.max(200, Number(s.nTirages) || 200);
-        // UN NOMBRE DE TIRAGES NON ENCORE JOUÉ APPREND QUELQUE CHOSE, qu'il soit
-        // au-dessus ou en dessous du plus fin déjà enregistré. La règle était monotone
-        // — seul un nombre plus grand était accepté — parce que la fiche n'affichait que
-        // le meilleur contrôle : relancer à 600 une fiche contrôlée à 700 ne changeait
-        // rien à l'écran. La fiche liste maintenant TOUS les contrôles, donc un second
-        // tirage d'une autre taille se voit, et sert : deux tailles qui donnent le même
-        // pourcentage disent que ce pourcentage tient.
-        //
-        // Seul le nombre EXACTEMENT déjà joué reste sauté : le tirage est déterministe,
-        // le refaire redonnerait le même chiffre.
-        const possibles = (this._ciblesHasard || []).filter((r) => r && !r.sansDonnees
-          && (r.n || 0) >= 5);
-        const cibles = possibles.filter((r) => !this.hasardFait(this.cleHasardFait(r, t)));
-        const dejaMax = possibles.reduce((a2, r) => {
-          const f = this.meilleurHasardFait(r);
-          return f && (f.tirages || 0) > a2 ? f.tirages : a2;
-        }, 0);
-        const enCours = !!s.hasardEnCours;
-        return {
-          lotTirages: t,
-          lotBloque: enCours || !cibles.length,
-          lancerLot: () => this.controlerAffichees(t),
-          boutonLot: enCours
-            ? 'Contrôle en cours \u00b7 ' + (s.hasardFait || 0) + ' / ' + (s.hasardTotal || 0)
-            : cibles.length
-              ? (cibles.length === 1 ? 'Contrôler la fiche affichée'
-                : 'Contrôler les ' + cibles.length + ' affichées')
-              : dejaMax
-                ? 'Déjà contrôlées à ' + t.toLocaleString('fr-FR') + ' tirages'
-                : 'Aucune fiche contrôlable',
-          boutonLotAide: cibles.length
-            ? 'Rejoue au hasard ' + (cibles.length === 1 ? 'la configuration affichée'
-              : 'les ' + cibles.length + ' configurations affichées')
-              + ' qui n\u2019ont pas encore été contrôlées à ' + t.toLocaleString('fr-FR')
-              + ' tirages exactement. Chaque contrôle s\u2019ajoute aux précédents et reste lisible sur la fiche : '
-              + 'deux tailles de tirage qui donnent le même pourcentage disent que ce pourcentage tient.'
-              + (dejaMax ? ' Le contrôle le plus fin déjà enregistré est à '
-                + dejaMax.toLocaleString('fr-FR') + ' tirages.' : '')
-            : dejaMax
-              ? 'Toutes les fiches affichées ont déjà été contrôlées à ' + t.toLocaleString('fr-FR')
-                + ' tirages exactement. Le tirage est déterministe : le refaire au même nombre '
-                + 'redonnerait le même chiffre. Changez le nombre pour en jouer un autre.'
-              : 'Aucune des fiches affichées n\u2019a assez de trades pour être rejouée au hasard.',
-        };
+        const syms = [...new Set((this.lignesScan || []).map((r) => r && r.sym).filter(Boolean))];
+        const bouton = (n) => ({
+          nom: 'pousser à ' + n.toLocaleString('fr-FR'),
+          aide: 'Ajoute des tirages jusqu\u2019à ' + n.toLocaleString('fr-FR')
+            + ' pour TOUS les instruments du tableau — jamais pour une seule carte. '
+            + 'Poussé pour tous, le seuil resserre dans les deux sens : certains passent, '
+            + 'd\u2019autres tombent. Les tirages déjà joués sont conservés : le verdict '
+            + 'à ' + n.toLocaleString('fr-FR') + ' contient celui d\u2019avant.',
+          pousser: () => this.pousserCor(n),
+          bloque: !!this._corFond || !!s.scanEnCours
+            || !syms.some((sym) => { const e = this.corDe(sym); return this.tetesCourantes(sym).length && (!e || (e.tirages || 0) < n); }),
+        });
+        return { corBoutons: [bouton(2000), bouton(10000)],
+          aCorMsg: !!s.corMsg, corMsg: s.corMsg || '' };
       })(),
-      sansConfig: (s.fiche && s.fiche.symboles ? s.fiche.symboles.split(' · ').filter(Boolean) : [])
-        .filter((x) => !parSym.has(x)).join(' · '),
-      aSansConfig: !!(this.aScanData && s.fiche && s.fiche.symboles
-        && s.fiche.symboles.split(' · ').filter(Boolean).some((x) => !parSym.has(x))),
       ficheLigneUnique: s.fiche
         ? s.fiche.entree + ' · ' + s.fiche.ligne + ' · ' + s.fiche.ut + ' · ' + s.fiche.grille
           + ' · seuils ' + s.fiche.seuils + ' · ' + this.periodeScan(s.fiche) + ' · ' + (this.essai ? 'séries de démonstration' : 'vos CSV H1')
@@ -28426,7 +28023,6 @@ GROUPES = {
       // Le panneau de contrôle groupé ne s'ouvre plus de lui-même : la décision se prend
       // ligne par ligne, dans sa colonne. Il reste, sous le même mot que les colonnes
       // détaillées, pour contrôler tout un tableau d'un coup et régler le nombre de tirages.
-      aPanneauHasard: !!(this.aScanData && this.state.ouvLot),
       basculerFiltreTxt: 'Ne rien écarter',
       filtresVifs,
       ...this.classementConditions(histoTout),

@@ -169,38 +169,10 @@
    ]
   },
   {
-   "terme": "Chiffres balayés",
-   "texte": "Le contrôle du hasard en série, sur un lot de configurations. Il ne sert plus au quotidien — chaque fiche porte son propre contrôle — mais il reste pour balayer un scan entier d’un coup.",
-   "vues": [
-    "Historique"
-   ]
-  },
-  {
    "terme": "Choisir un fichier de sauvegarde",
    "texte": "Choisit un fichier sur votre disque. Véna y réécrit tout, chaque minute. Aucun vidage de navigateur ne l’atteint.",
    "vues": [
     "Toutes les pages"
-   ]
-  },
-  {
-   "terme": "Classer par",
-   "texte": "Classer les lignes par ce critère",
-   "vues": [
-    "Historique"
-   ]
-  },
-  {
-   "terme": "Classer par",
-   "texte": "On rejoue le même stop et la même sécurisation, mais en entrant à des dates tirées au sort. Cette part EST le p-value : sous 1 % la règle se distingue nettement, sous 5 % elle se distingue, jusqu'à 20 % c'est douteux, au-delà entrer au hasard aurait donné le même résultat.",
-   "vues": [
-    "Historique"
-   ]
-  },
-  {
-   "terme": "Classer par",
-   "texte": "Corrigé du nombre de tests effectués (Benjamini-Hochberg) : sur les configurations contrôlées ici, on trie les p-value et on ne retient que celles qui passent un seuil resserré, en tolérant 5 % de fausses découvertes parmi les retenues. Attention : cette correction porte sur les lignes contrôlées, pas sur les milliers de configurations du scan parmi lesquelles vous avez cueilli celles-ci — ce risque de sélection reste entier, et il est rappelé sous chaque verdict.",
-   "vues": [
-    "Historique"
    ]
   },
   {
@@ -404,6 +376,29 @@
    "texte": "Parmi les conditions balayées, celle que la configuration retenue a effectivement gardée. Trois têtes qui gardent trois conditions différentes ne se lisent pas comme trois têtes qui gardent la même.",
    "vues": [
     "Nouveau scan"
+   ]
+  },
+  {
+   "terme": "Hasard",
+   "texte": "Replier ou déplier cette section",
+   "vues": [
+    "Marché",
+    "Nouveau scan",
+    "Historique"
+   ]
+  },
+  {
+   "terme": "Hasard",
+   "texte": "Le cumul en R, année par année, gradué et daté. Deux instruments au même total n’ont pas la même allure : c’est ce que la colonne d’un tableau ne pouvait pas montrer.",
+   "vues": [
+    "Historique"
+   ]
+  },
+  {
+   "terme": "Hasard",
+   "texte": "Contrat courtier modifié, taille de contrat changée, bougies aberrantes en début de série. Une période simplement mauvaise n’est pas inexploitable : c’est une information, pas un défaut de données.",
+   "vues": [
+    "Historique"
    ]
   },
   {
@@ -695,15 +690,6 @@
   },
   {
    "terme": "Sécurisation",
-   "texte": "Replier ou déplier cette section",
-   "vues": [
-    "Marché",
-    "Nouveau scan",
-    "Historique"
-   ]
-  },
-  {
-   "terme": "Sécurisation",
    "texte": "La lecture des bougies ambiguës : quand stop et objectif tombent dans la même bougie, les deux lectures encadrent le résultat vrai.",
    "vues": [
     "Nouveau scan"
@@ -882,41 +868,6 @@
    "texte": "Bougies, tarifs, scans et réglages sont propres au compte choisi.",
    "vues": [
     "Toutes les pages"
-   ]
-  },
-  {
-   "terme": "Verdict du tirage",
-   "texte": "Le cumul en R, année par année, gradué et daté. Deux instruments au même total n’ont pas la même allure : c’est ce que la colonne d’un tableau ne pouvait pas montrer.",
-   "vues": [
-    "Historique"
-   ]
-  },
-  {
-   "terme": "Verdict du tirage",
-   "texte": "Contrat courtier modifié, taille de contrat changée, bougies aberrantes en début de série. Une période simplement mauvaise n’est pas inexploitable : c’est une information, pas un défaut de données.",
-   "vues": [
-    "Historique"
-   ]
-  },
-  {
-   "terme": "Verdict du tirage",
-   "texte": "On garde vos prix, votre stop, votre objectif et votre durée, et on remplace seulement le moment des entrées par des dates tirées au sort — autant de trades que votre configuration en a pris. Un avantage réel doit battre ces tirages.",
-   "vues": [
-    "Historique"
-   ]
-  },
-  {
-   "terme": "Verdict du tirage",
-   "texte": "Soit vos configurations validées, soit toutes les configurations d'un instrument — pour voir si l'avantage tient sur tout un voisinage ou sur une seule ligne.",
-   "vues": [
-    "Historique"
-   ]
-  },
-  {
-   "terme": "Verdict du tirage",
-   "texte": "Combien de fois on rejoue chaque configuration avec des entrées au hasard. Il en faut au moins vingt fois le nombre de configurations contrôlées pour que le verdict corrigé puisse conclure : 200 pour une poignée de lignes, 1 000 dès que vous testez les variantes.",
-   "vues": [
-    "Historique"
    ]
   },
   {

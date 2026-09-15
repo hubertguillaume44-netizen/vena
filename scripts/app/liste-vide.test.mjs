@@ -139,7 +139,7 @@ test("aucune écriture de `deposes` ne peut perdre les séries d’exemple", () 
   // ————— LA SEULE EXCEPTION EST DÉCLARÉE, ET VÉRIFIÉE —————
   // `ETAT_DERIVE` remet `deposes` à zéro au changement de compte. C'est légitime À LA
   // CONDITION que les dix soient reposées juste après : on ne le croit pas, on le lit.
-  const chg = bloc("...this.ETAT_DERIVE, hasardFaits: {} }, ok));", "this.migrerGrille();");
+  const chg = bloc("...this.ETAT_DERIVE, hasardFaits: {}, hasardCor: {} }, ok));", "this.migrerGrille();");
   assert.match(chg, /await this\.reprendreSeries\(\);/,
     "`ETAT_DERIVE` vide `deposes` sans passer par la porte : c’est tenable tant que "
     + "`reprendreSeries()` suit et repose les dix. S’il ne suit plus, faites passer la "

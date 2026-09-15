@@ -118,3 +118,85 @@ export function mesurerVariante(df, v, periodes, sls, rrs) {
   }
   return { out, echecs };
 }
+
+// ————— LE CONTRÔLE DU HASARD CORRIGÉ DE LA SÉLECTION —————
+//
+// Le champion d'une carte est le MEILLEUR de N configurations mesurées : comparer son
+// chiffre à des tirages faits sur lui seul compare un maximum à une moyenne, et le
+// hasard seul fait passer une configuration sur vingt à un seuil de 5 %. On compare
+// donc DEUX MAXIMA : à chaque tirage, les N têtes sont rejouées avec des entrées au
+// hasard — le null garde les prix et ne détruit que le choix du moment — et c'est le
+// meilleur de ces N rejeux qui doit être battu par le meilleur réel.
+//
+// L'ordre des entrées est PARTAGÉ : chaque tête relit le même flux, réamorcé par la
+// graine du tirage (fluxHasard(graineTirage(graine, k))). Deux configurations voisines
+// entrent donc aux mêmes dates dans le null comme dans le réel, et leur corrélation
+// est absorbée par construction — une correction de Bonferroni les compterait comme
+// deux essais indépendants et serait trop sévère. Réamorcer PAR TÊTE (et non une fois
+// par tirage) rend aussi chaque case (tête, tirage) indépendante de l'ordre des têtes
+// et du découpage en plages : les plages se calculent en parallèle et s'AJOUTENT.
+//
+// ANGLE MORT, déclaré : les têtes sont l'ensemble dont un champion peut sortir —
+// l'union des meilleures par critère de classement — pas la grille entière. Le maximum
+// au hasard sur ~20 têtes sous-estime celui que la grille balayée entière produirait :
+// le p corrigé reste optimiste face à cette sélection profonde, et la refermer
+// demanderait de rejouer toute la grille sous le null (500 × le scan). La magnitude
+// est mesurée hors produit (voir la garde) et portée par le texte de l'écran.
+export const CRITERES_HASARD = ["total", "dd", "positifs", "pf", "oos", "wfMin"];
+// la MÊME direction que le classement de l'écran : plus grand = meilleur, une fois
+// le creux passé en négatif de sa valeur absolue et les absents envoyés au fond
+export function scoreHasard(c, x) {
+  if (c === "dd") return -Math.abs(Number(x.dd) || 0);
+  if (c === "positifs") return Number(x.positifs) || 0;
+  const v = x[c];
+  if (c === "pf") return v === Infinity || !Number.isFinite(v) ? -1e9 : v;
+  return Number.isFinite(v) ? v : -1e9;
+}
+// Les six valeurs d'un jeu de trades, dans la forme que `scoreHasard` attend.
+export function valeursHasard(trades) {
+  const r = M.resume(trades), sg = M.segments(trades, 5);
+  const sup = trades.length ? mesuresSup(trades, r) : { oos: null, wfMin: null };
+  return { total: r.total, dd: r.dd, positifs: sg.positifs, pf: r.pf,
+    oos: sup.oos, wfMin: sup.wfMin };
+}
+// tetes : [{ cle, cfg, n, ut, reels }] — reels = les six valeurs MESURÉES de la tête.
+// Renvoie, pour la plage [depart, fin) : au[c] — tirages où le meilleur nul fait aussi
+// bien que le meilleur réel —, la somme et le pic du meilleur nul (pour l'écran), et
+// les comptes individuels de chaque tête (le panneau « seules, elles passeraient »).
+export function controleCorrige(dfH1, tetes, depart, fin, graine) {
+  const dfs = new Map();
+  const dfDe = (ut) => {
+    const k = ut && ut !== "H1" ? ut : "H1";
+    if (!dfs.has(k)) dfs.set(k, k === "H1" ? dfH1 : M.resampler(dfH1, k));
+    return dfs.get(k);
+  };
+  const reelBest = {};
+  for (const c of CRITERES_HASARD)
+    reelBest[c] = Math.max(...tetes.map((t) => scoreHasard(c, t.reels)));
+  const au = {}, som = {}, nulMax = {};
+  for (const c of CRITERES_HASARD) { au[c] = 0; som[c] = 0; nulMax[c] = -Infinity; }
+  const auTetes = tetes.map(() => {
+    const z = {}; for (const c of CRITERES_HASARD) z[c] = 0; return z;
+  });
+  for (let k = depart; k < fin; k++) {
+    const bestC = {};
+    for (const c of CRITERES_HASARD) bestC[c] = -Infinity;
+    for (let i = 0; i < tetes.length; i++) {
+      const t = tetes[i];
+      // le flux est réamorcé PAR TÊTE : même ordre de dates pour toutes
+      const rnd = M.fluxHasard(M.graineTirage(graine, k));
+      const vals = valeursHasard(M.tirageUn(dfDe(t.ut), t.cfg, t.n, rnd).trades);
+      for (const c of CRITERES_HASARD) {
+        const v = scoreHasard(c, vals);
+        if (v > bestC[c]) bestC[c] = v;
+        if (v >= scoreHasard(c, t.reels)) auTetes[i][c]++;
+      }
+    }
+    for (const c of CRITERES_HASARD) {
+      som[c] += bestC[c];
+      if (bestC[c] > nulMax[c]) nulMax[c] = bestC[c];
+      if (bestC[c] >= reelBest[c]) au[c]++;
+    }
+  }
+  return { tirages: Math.max(0, fin - depart), au, som, nulMax, auTetes };
+}

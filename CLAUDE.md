@@ -1085,6 +1085,55 @@ se lit pas.
 C'est le même déplacement que celui de la garde d'étanchéité : **décider après, pas
 avant.**
 
+## Le contrôle du hasard se corrige de la sélection
+
+Le champion d'une carte est le MEILLEUR de N configurations mesurées ; son ancien
+chiffre le comparait à des tirages faits sur lui seul — **un maximum contre une
+moyenne**, et le hasard seul en fait passer une sur vingt à 5 %. Le verdict corrigé
+(`scan-noyau.js`, `controleCorrige`) compare **deux maxima** : à chaque tirage, les
+têtes de l'instrument sont rejouées avec des entrées au hasard et le meilleur rejeu
+doit être battu par le meilleur réel. `p = (au + 1) / (tirages + 1)` — jamais battu en
+500 tirages veut dire « moins d'une fois sur 501 », pas « jamais ».
+
+**Le null tire les DATES D'ENTRÉE, il ne mélange jamais les prix.** Mélanger détruirait
+la structure des prix ; tirer les dates la garde et ne détruit que le choix du moment —
+la question posée est « le signal choisit-il mieux ses entrées que le hasard ». Le
+brief initial disait « prix mélangés » : c'était un contresens sur le null, corrigé.
+
+**N est l'union des têtes** — les trois meilleures par critère de classement,
+l'ensemble dont un champion peut sortir — **fixée sur les lignes en mémoire, jamais sur
+les lignes affichées** : un p qui bouge quand on déplace un curseur de filtre serait le
+défaut corrigé, sous sa forme la plus sournoise. L'**ordre des entrées est partagé** :
+le flux est réamorcé PAR TÊTE sur la graine du tirage — la corrélation de deux
+configurations voisines est absorbée par construction (Bonferroni les compterait comme
+indépendantes), chaque case (tête, tirage) est indépendante du découpage, donc les
+plages se parallélisent et **pousser AJOUTE** (500 → 2 000 conserve les 500 premiers).
+
+**Plus de bouton.** Le contrôle se calcule pendant le scan (cœurs encore chauds, ~+25 %
+mesuré : un tirage vaut 1,5 combinaison balayée), et se complète en arrière-plan pour
+les scans antérieurs. Le nombre de tirages vaut pour toute la page, jamais pour une
+carte — réglable par carte, il permettrait de pousser le seul instrument qui a failli
+passer. Le cadre « Contrôle du hasard » en lot (et son verdict Benjamini-Hochberg) est
+parti avec : il posait la même question, sans corriger la sélection.
+
+**Une épinglée (« Voir ») hors têtes porte un p à UNE configuration, nommé « NON
+corrigé »** : choisie à l'œil parmi des centaines, aucun N ne décrit cette sélection —
+fabriquer une correction ferait croire qu'on a mesuré une sélection qu'on ne connaît
+pas (règle 9). Son contrôle individuel se lance tout seul à l'épinglage.
+
+**L'angle mort est déclaré AVEC sa magnitude, mesurée** (hors produit, 2 400
+combinaisons × 200 tirages, ordre partagé) : le meilleur rejeu de la grille entière
+dépasse celui des têtes d'**environ 13 R en moyenne à 2 400**, et l'écart croît en
+logarithme de la taille — de l'ordre de **+100 R extrapolé à 64 000** (extrapolation,
+pas mesure). Au-dessus du seuil convenu (25 R), la déclaration vit **dans le verdict
+lui-même** — « se distingue — des têtes rejouées » — pas dans une infobulle. Une dette
+déclarée sans sa gravité se classe toute seule en bas de la pile.
+
+`scripts/app/hasard-corrige.test.mjs` tient les huit gardes, chacune éprouvée par
+mutation — critère actif, +1, valeur de page, plages additives, ordre partagé (deux
+têtes identiques doivent rendre le même tirage), bouton parti, épinglée non corrigée,
+angle mort rendu.
+
 ## Cet univers d'exemple monte, et l'application le dit
 
 Sur ces trois ans, la médiane des dix familles finit à **+39 %**, quatre au-dessus de

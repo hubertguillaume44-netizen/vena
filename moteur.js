@@ -1012,15 +1012,33 @@ function signalBrut(df, e) {
 
 // Contrôle du hasard : mêmes prix, mêmes règles de sortie, mais les entrées sont
 // placées au hasard. Un avantage réel doit battre ces tirages ; sinon le beau chiffre
-// n'est que le meilleur d'un grand nombre d'essais.
-export function tirageHasard(df, cfg, nEntrees, tirages, graine) {
+// n'est que le meilleur d'un grand nombre d'essais. Le null NE mélange PAS les prix —
+// mélanger détruirait la structure des prix ; tirer les dates d'entrée la garde et ne
+// détruit que le choix du moment, qui est précisément ce qu'on éprouve.
+export function fluxHasard(graine) {
   let g = (graine || 1) >>> 0;
-  const rnd = () => {
+  return () => {
     g += 0x6D2B79F5; let x = g;
     x = Math.imul(x ^ (x >>> 15), x | 1);
     x ^= x + Math.imul(x ^ (x >>> 7), x | 61);
     return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
   };
+}
+// La graine d'UN tirage, dérivée de son rang : indépendante de ce que les tirages
+// précédents ont consommé, donc une plage [depart, fin) se calcule seule et un
+// contrôle poussé de 500 à 2 000 AJOUTE des tirages au lieu de tout recommencer.
+export function graineTirage(graine, k) {
+  let h = (((graine || 1) >>> 0) ^ Math.imul(k + 1, 2654435761)) >>> 0;
+  h = Math.imul(h ^ (h >>> 16), 2246822519);
+  h = Math.imul(h ^ (h >>> 13), 3266489917);
+  return ((h ^ (h >>> 16)) >>> 0) || 1;
+}
+// UN tirage : les entrées prises dans l'ordre du flux fourni. Le flux est un paramètre,
+// et c'est ce qui permet le contrôle CORRIGÉ de la sélection : plusieurs configurations
+// rejouées sur le MÊME flux consomment le même ordre de dates — deux configurations
+// voisines entrent aux mêmes moments dans le null comme dans le réel, et leur
+// corrélation est absorbée par construction au lieu d'être corrigée après coup.
+export function tirageUn(df, cfg, nEntrees, rnd) {
   const debut = cfg.debut ? Math.max(1, df.t.findIndex((x) => x >= cfg.debut)) : 1;
   const large = Math.max(1, df.n - debut - 1);
   // Une marque tirée pendant une position ouverte est avalée par le moteur : poser
@@ -1039,25 +1057,29 @@ export function tirageHasard(df, cfg, nEntrees, tirages, graine) {
     }
     return backtester(df, { ...cfg, signal_force: sig, filtres: [] });
   };
+  let marques = nEntrees, trades = tirer(marques);
+  for (let essai = 0; essai < 6 && trades.length < nEntrees; essai++) {
+    // proportionnel au manque, avec une marge : converge en deux passes en pratique
+    marques = Math.ceil(marques * Math.max(1.3, nEntrees / Math.max(1, trades.length)));
+    if (marques >= large) { marques = large; trades = tirer(marques); break; }
+    trades = tirer(marques);
+  }
+  // troncature répartie plutôt que « les premiers » : garder le début écarterait
+  // systématiquement la période la plus récente, donc une époque entière
+  let coupe = trades;
+  if (trades.length > nEntrees && nEntrees > 0) {
+    const pas = trades.length / nEntrees;
+    coupe = [];
+    for (let j = 0; j < nEntrees; j++) coupe.push(trades[Math.floor(j * pas)]);
+  }
+  return { trades: coupe, nMarques: marques, nDispo: trades.length };
+}
+export function tirageHasard(df, cfg, nEntrees, tirages, graine) {
+  const rnd = fluxHasard(graine);
   const out = [];
   for (let k = 0; k < tirages; k++) {
-    let marques = nEntrees, trades = tirer(marques);
-    for (let essai = 0; essai < 6 && trades.length < nEntrees; essai++) {
-      // proportionnel au manque, avec une marge : converge en deux passes en pratique
-      marques = Math.ceil(marques * Math.max(1.3, nEntrees / Math.max(1, trades.length)));
-      if (marques >= large) { marques = large; trades = tirer(marques); break; }
-      trades = tirer(marques);
-    }
-    // troncature répartie plutôt que « les premiers » : garder le début écarterait
-    // systématiquement la période la plus récente, donc une époque entière
-    let coupe = trades;
-    if (trades.length > nEntrees && nEntrees > 0) {
-      const pas = trades.length / nEntrees;
-      coupe = [];
-      for (let j = 0; j < nEntrees; j++) coupe.push(trades[Math.floor(j * pas)]);
-    }
-    const r = resume(coupe);
-    out.push({ ...r, nMarques: marques, nDispo: trades.length });
+    const t = tirageUn(df, cfg, nEntrees, rnd);
+    out.push({ ...resume(t.trades), nMarques: t.nMarques, nDispo: t.nDispo });
   }
   return out;
 }
