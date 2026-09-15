@@ -6695,8 +6695,6 @@ class Component extends DCLogic {
     // clé manque, et le sélecteur de devise reste à la main du client.
     commDev: {}, pfs: null, pfActif: 0, favoris: null, valides: [], dragSym: null, dragDepuis: null, dragPf: null, selSym: null, ajoutSym: '',
     ddMax: 0, winMin: 0, oosMin: 0, detail: null, ficheMsg: null, modeTable: 'lecture', btPanneau: '', panScan: '', pfMesures: false, sonScan: false,
-    manqCoches: [], manqMsg: null, grpTout: [],
-    ctrlEnCours: false, ctrlMsg: null, ctrlOk: null,
     robuste: null, ailleurs: null, correl: null, calculEnCours: null, recalcul: null,
     tTradesMin: 0, tSegMin: 0, tDdMax: 0, tWinMin: 0, tOosMin: -20, tWfMin: -30, tDureeMax: 0,
     // Le TOP classe par R net, et la lecture haute donne toujours un meilleur R que la
@@ -6820,7 +6818,6 @@ class Component extends DCLogic {
     vie: { long: 'licence à vie', court: 'à vie', art: 'la ' },
   };
   // la page de vente désigne ses deux boutons par « mois » et « an »
-  PLAN_ACHETE = { mois: 'mensuel', an: 'annuel' };
   // ————— L'ÉTAT DE PROTECTION DU STOCKAGE, NOMMÉ À UN SEUL ENDROIT —————
   // Trois jeux de libellés décrivaient les mêmes quatre états : celui du tiroir, celui de
   // la carte « Emporter ou remettre », et un troisième entièrement mort. Écrits
@@ -9469,7 +9466,7 @@ GROUPES = {
     res: null, seg: null, courbe: [], detail: null, signature: null, erreur: null,
     marche: null, regime: null, regimes: {}, regimeZone: null,
     hasard: null, robuste: null, ailleurs: null, correl: null, correls: {}, rejeu: null,
-    recalcul: null, calculEnCours: null, ctrlMsg: null, ctrlOk: null,
+    recalcul: null, calculEnCours: null,
     // scan et son historique
     scanN: 0, archives: [], scanVu: null, scanTestes: 0, scanDuree: null,
     scanEchecs: [], elaguees: 0, progression: null, fiche: null,
@@ -14180,70 +14177,6 @@ GROUPES = {
           : 'Réglages du scan non mémorisés (scan lancé avant cette version) : seuls le symbole, la période, le stop et le R/R ont été reportés. La sécurisation en place (' + secuTxt(etatFinal) + ') et les filtres actuels s\u2019appliquent — relancez le scan pour pouvoir le rejouer fidèlement.' },
       () => this.lancerTest());
   }
-  // Contrôle avant / après : rejoue la même grille deux fois sur les premiers
-  // symboles — sans mémoire de calcul, puis avec — et compare chaque configuration
-  // champ par champ. Le gain de temps ne vaut rien si un seul chiffre bouge.
-  async controleMemoire() {
-    if (!this.M || !this.M.memActiver) { this.setState({ ctrlMsg: 'Moteur non chargé.' }); return; }
-    const s = this.state;
-    const sel0 = this.universDuCompte(s.univers);
-    const univers = (sel0.length ? sel0 : [s.btSym]).slice(0, 3);
-    const periodes = this.nombres(s.gPeriodes, [26]);
-    const sls = this.nombres(s.gSls, [1]);
-    const rrs = this.nombres(s.gRrs, [2.5]);
-    const entrees = (s.gEntrees && s.gEntrees.length) ? s.gEntrees : [s.btEntree];
-    const lignes = (s.gLignes && s.gLignes.length) ? s.gLignes : [s.btLigne];
-    this.setState({ ctrlEnCours: true, ctrlMsg: 'Contrôle en cours sur ' + univers.length
-      + ' symbole' + (univers.length > 1 ? 's' : '') + '…' });
-    await new Promise((r) => setTimeout(r, 30));
-    const passe = async (avecMemoire) => {
-      this.M.memActiver(avecMemoire);
-      this.M.memRaz();
-      const res = [];
-      const t0 = performance.now();
-      for (const sym of univers) {
-        await this.charger(sym);
-        const df = this.base(sym);
-        if (!df || df.n < 300) continue;
-        for (const entree of entrees) for (const ligne of lignes) {
-          for (const p of periodes) for (const sl of sls) for (const rr of rrs) {
-            let tr = [];
-            try { tr = this.mesurer(sym, this.cfgCourante(sym, p, sl, rr, null, { entree, ligne }), this.state.ut, df); } catch (e) {}
-            const r = this.M.resume(tr);
-            res.push([sym, entree, ligne, p, sl, rr, tr.length,
-              r.total.toFixed(10), r.dd.toFixed(10), r.winRate.toFixed(10), r.pf.toFixed(10)].join('|'));
-          }
-        }
-        await new Promise((r) => setTimeout(r, 0));
-      }
-      return { res, ms: performance.now() - t0, stats: this.M.memStats() };
-    };
-    try {
-      const sans = await passe(false);
-      const avec = await passe(true);
-      let ecarts = 0, exemple = null;
-      const nb = Math.max(sans.res.length, avec.res.length);
-      for (let i = 0; i < nb; i++) {
-        if (sans.res[i] !== avec.res[i]) { ecarts++; if (!exemple) exemple = (sans.res[i] || '—') + '  ≠  ' + (avec.res[i] || '—'); }
-      }
-      const gain = sans.ms > 0 ? sans.ms / Math.max(1, avec.ms) : 1;
-      this.setState({ ctrlEnCours: false, ctrlOk: ecarts === 0,
-        ctrlMsg: ecarts === 0
-          ? 'Identique : ' + nb.toLocaleString('fr-FR') + ' configurations comparées sur '
-            + univers.length + ' symbole' + (univers.length > 1 ? 's' : '')
-            + ', aucun écart (trades, R total, creux, % gagnants, facteur de profit). '
-            + 'Sans mémoire ' + (sans.ms / 1000).toFixed(1) + ' s, avec mémoire '
-            + (avec.ms / 1000).toFixed(1) + ' s — ' + gain.toFixed(1) + '× plus rapide. '
-            + avec.stats.relus.toLocaleString('fr-FR') + ' calculs d\u2019indicateur évités sur '
-            + (avec.stats.relus + avec.stats.calcules).toLocaleString('fr-FR') + '.'
-          : 'ÉCART DÉTECTÉ : ' + ecarts + ' configuration(s) sur ' + nb
-            + ' diffèrent. Premier écart — ' + exemple });
-    } catch (e) {
-      this.M.memActiver(true);
-      this.setState({ ctrlEnCours: false, ctrlOk: false, ctrlMsg: 'Contrôle interrompu : ' + String((e && e.message) || e) });
-    }
-  }
-
   // ————— Répartition du scan sur les cœurs —————
   // Un seul fil laissait les autres cœurs inactifs pendant tout le scan. Les variantes
   // d'un même instrument sont indépendantes : elles se répartissent sans risque.
@@ -15581,7 +15514,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260915.9';
+  VERSION_APP = '260915.10';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -19532,17 +19465,15 @@ GROUPES = {
             : 'les instruments avec une clé : tout ce que votre courtier exporte.',
         };
       })(),
-      // ————— LE TARIF ET SES QUATRE LIENS REVOLUT, UN SEUL DRAPEAU —————
-      // Créez chez Revolut les quatre plans (lancement mensuel/annuel, normal
-      // mensuel/annuel) et collez les quatre URL d'avance. Quand le tableau de
-      // bord Revolut affiche cinquante abonnés, passez TARIF à 'normal' : un mot
-      // à changer, aucun risque de coller la mauvaise URL au mauvais bouton.
-      // Pas de compteur décompté dans la page : sans serveur, personne ne peut le
-      // savoir ici, et un chiffre invérifiable décrédibiliserait le reste.
-      // Tant qu'une URL est vide, le bouton annonce que le paiement n'est pas
-      // encore ouvert — délivrance manuelle : scripts/licence/signer.mjs.
+      // ————— L'ADRESSE DE CONTACT, LE RENONCEMENT EN ATTENTE, LA LICENCE —————
+      // La page de vente a QUITTÉ l'application : ses producteurs — acheter, prix,
+      // mention de lancement, case de renoncement — n'avaient plus UN SEUL
+      // consommateur dans le gabarit. Deux chemins d'achat dont un invisible,
+      // exactement la situation que le retrait du cadre en lot avait fermée. La
+      // vente vit sur le site (/tarifs) ; restent ici l'adresse de contact, la
+      // constante RENONCE_TXT — la MARQUE que les gardes lisent, règle 6 — et la
+      // carte de licence. Délivrance manuelle : scripts/licence/signer.mjs.
       ...(() => {
-        const TARIF = 'lancement'; // 'lancement' | 'normal' — LE drapeau
         // ————— L'ADRESSE DE CONTACT, À UN SEUL ENDROIT —————
         //
         // Elle était écrite QUATRE fois : deux emplacements, et à chacun le href du
@@ -19562,14 +19493,6 @@ GROUPES = {
         // qui a perdu sa clé — donc déjà contrarié. Sans serveur, un champ de contact
         // serait une porte peinte sur un mur.
         const MAIL_CONTACT = 'venacontact1@gmail.com';
-        const LIENS = {
-          lancement: { mois: '', an: '' },
-          normal: { mois: '', an: '' },
-        };
-        const PRIX = {
-          lancement: { mois: '14,99', an: '149', parMois: '12,42', douze: '179,88' },
-          normal: { mois: '19,99', an: '199', parMois: '16,58', douze: '239,88' },
-        };
         // ————— LE RENONCEMENT EXPRÈS, POSÉ À LA FRONTIÈRE DU PAIEMENT —————
         //
         // LE PROBLÈME, et il est réel. Une clé est délivrée à la seconde du paiement et
@@ -19580,10 +19503,12 @@ GROUPES = {
         // troisième est celle que le droit prévoit — l'acheteur DEMANDE la fourniture
         // immédiate et RECONNAÎT qu'il perd son droit de rétractation, avant de payer.
         //
-        // LA GARDE VIT ICI, dans l'unique fonction par laquelle un lien de paiement
-        // s'ouvre — pas sur chaque bouton. Posée là, elle vaut pour les boutons
-        // d'aujourd'hui et pour ceux que quelqu'un ajoutera : c'est la même géométrie que
-        // le refus d'écriture des séries d'exemple, décidé plus haut que la clé.
+        // LA GARDE A SUIVI LE GESTE. L'unique fonction qui ouvrait un lien de
+        // paiement est partie avec la page de vente : l'application n'ouvre plus
+        // AUCUN lien de paiement — promesses-de-vente l'ancre désormais sur cette
+        // ABSENCE. Le jour où le paiement s'ouvre, côté site, la même géométrie
+        // s'imposera : le refus AVANT l'ouverture, dans l'unique fonction par
+        // laquelle un lien part — jamais sur chaque bouton.
         //
         // CE QUI RESTE À TRANCHER, et qui n'est pas du code :
         //   · le LIBELLÉ exact du renoncement — il attend l'arbitrage de l'éditeur et de
@@ -19604,62 +19529,18 @@ GROUPES = {
         // STRUCTURELLE au lieu d'être déclarative, et elle ne dépend plus de ce que le
         // webhook veut bien transporter.
         //
-        // La case reste, et sa fonction reste entière : elle fait CONSENTIR, en clair,
-        // avant le clic. C'est la facture qui prouve.
+        // La case a quitté l'application avec sa page de vente ; le consentement se
+        // posera là où le paiement s'ouvrira, avec les textes de
+        // src/lib/textes-recopies.ts. C'est la facture qui prouve.
         const RENONCE_TXT = 'À COMPLÉTER avant l\u2019ouverture du paiement : demande de '
           + 'fourniture immédiate du code d\u2019accès, et reconnaissance de la perte du '
           + 'droit de rétractation qui en découle. Libellé à valider.';
-        const aller = (k) => () => {
-          if (!this.state.renonceAccepte) {
-            this.setState({ achatMsg: '__renonce' });
-            return;
-          }
-          const lien = LIENS[TARIF][k];
-          if (lien) {
-            // le lien part TEL QUEL : rien d'ajouté ici ne prouverait quoi que ce soit.
-            // Ce qui doit porter le renoncement, c'est le libellé de l'article configuré
-            // chez le prestataire — donc la facture.
-            window.open(lien, '_blank', 'noopener');
-            return;
-          }
-          // on reste sur la page de vente : le visiteur venait payer, pas naviguer
-          this.setState({ achatMsg: this.nomPlan(this.PLAN_ACHETE[k], 'defini') });
-        };
-        const p = PRIX[TARIF];
         const lic = s.lic;
-        return { acheterMois: aller('mois'), acheterAn: aller('an'),
+        return {
           // le HREF et le TEXTE viennent de la même valeur : c'est tout l'objet de la
           // constante, et les réécrire à la main annulerait la correction
           mailContact: MAIL_CONTACT,
           mailContactHref: 'mailto:' + MAIL_CONTACT,
-          // les prix viennent du DRAPEAU : basculer TARIF change les deux colonnes,
-          // les liens et l'économie annoncée, sans autre modification
-          prixMois: p.mois,
-          prixAn: p.an,
-          prixAnDetail: 'soit ' + p.parMois + ' € par mois — ' + p.an + ' € au lieu de '
-            + p.douze + ' € en douze mensualités',
-          aLancement: TARIF === 'lancement',
-          // ————— « LES CINQUANTE PREMIERS ABONNÉS » EST PARTI —————
-          //
-          // Une rareté chiffrée doit être vraie ET vérifiable. Celle-ci n'était ni l'une
-          // ni l'autre : AUCUN compteur n'existe, et rien n'étant conservé sur les
-          // acheteurs, aucun ne peut exister sans revenir sur cette promesse-là. La page
-          // de vente l'avait déjà écartée pour une autre raison — une rareté chiffrée à
-          // côté de quatorze jours de rétractation se lit comme une pression à décider
-          // vite, et les deux se contredisent à voix haute. Il ne reste que la partie
-          // tenable : le tarif ne remonte pas pour qui en bénéficie.
-          // ————— ET CE QUI REND CETTE PHRASE VRAIE EST NOMMÉ —————
-          // « Le tarif ne remonte pas » n'était tenu par rien : exactement le défaut qu'on
-          // venait de purger ailleurs. Ce qui le tient, c'est le REGISTRE DES VENTES — le
-          // même qu'on a légitimé en resserrant « rien n'est conservé » sur son domaine —
-          // à condition d'y écrire le prix payé. Une ligne de plus dans ce qu'on conserve,
-          // et la promesse cesse d'être verbale : elle se vérifie sur pièce.
-          // EN UNE SEULE CHAÎNE, et ce n'est pas une coquetterie : coupée en trois
-          // littéraux, la promesse (« il ne remonte pas ») et sa preuve (« votre
-          // facture ») ne voyageaient plus ensemble — la garde l'a dit, et elle avait
-          // raison. Une phrase qu'on ne peut pas lire d'un bloc se relit mal, et se
-          // vérifie encore plus mal.
-          mentionLancement: 'Tarif de lancement — garanti tant que votre abonnement court : le prix que vous avez pay\u00e9 est inscrit sur votre facture, c\u2019est lui qui fait foi, et il ne remonte pas.',
           // ————— LE CODE D'ACCÈS : plan et date EN CLAIR, motif en clair au refus —————
           //
           // `licEtatTxt` NOMME le titulaire, et c'est voulu — ne le retirez pas par
@@ -19766,20 +19647,7 @@ GROUPES = {
             this.setState({ lic: null, licMsg: null });
           },
           // le renoncement : sa case, son libellé, et le refus qui va avec
-          renonceVal: !!s.renonceAccepte,
-          renonceTxt: RENONCE_TXT,
-          basculerRenonce: () => this.setState((q) => ({ renonceAccepte: !q.renonceAccepte,
-            achatMsg: q.achatMsg === '__renonce' ? null : q.achatMsg })),
-          aAchatMsg: !!s.achatMsg,
-          achatMsgTxt: s.achatMsg === '__renonce'
-            ? 'Cochez la case au-dessus avant de payer : le code d\u2019acc\u00e8s part '
-              + 'imm\u00e9diatement, et cette case est ce qui l\u2019autorise.'
-            : s.achatMsg
-            ? 'Le paiement n\u2019est pas encore ouvert pour ' + s.achatMsg
-              + '. En attendant, les trois instruments gratuits fonctionnent déjà sur vos propres données — '
-              + 'et vous garderez tout ce que vous y aurez mesuré.'
-            : '',
-          fermerAchatMsg: () => this.setState({ achatMsg: null }) };
+        };
       })(),
       // le compte de découverte est un compte comme les autres : rien de spécial à
       // faire, il suffit d'y aller
@@ -21843,12 +21711,6 @@ GROUPES = {
           * this.nombres(s.gPeriodes, [26]).length * this.nombres(s.gSls, [1]).length
           * this.nombres(s.gRrs, [2.5]).length;
       })(),
-      controleMemoire: () => this.controleMemoire(),
-      ctrlLib: s.ctrlEnCours ? 'Contrôle en cours…' : 'Contrôler (avant / après)',
-      ctrlOccupe: !!s.ctrlEnCours,
-      aCtrlMsg: !!s.ctrlMsg,
-      ctrlMsg: s.ctrlMsg || '',
-      ctrlCouleur: s.ctrlMsg && s.ctrlOk === false ? 'var(--color-accent-900)' : 'inherit',
       grilleStandard: () => this.maj({ ut: 'H1', gPeriodes: '5 6 7 8 9 10 15 20 26',
         gSls: '0,5 0,6 0,7 0,8 0,9 1,0 1,1 1,2 1,3 1,4 1,5 2,0 2,5 3,0',
         gRrs: '1,5 2,0 2,5 3,0 3,5 4,0' }),
@@ -26224,126 +26086,6 @@ GROUPES = {
           + (ecart ? ' · ' + this.pl(ecart, 'instrument masqué', 'instruments masqués') + ', '
             + (seul ? 'ce compte ne les porte pas.'
               : 'aucun de vos ' + this.COURTIERS.length + ' comptes ne les porte.') : '.');
-      })(),
-      ...(() => {
-        if (s.vue !== 'symboles') return { aManquants: false, manquants: [], manquantsResume: '', exporterManquants: () => {} };
-        // symboles présents chez les courtiers mais sans historique dans Véna
-        const dejaLa = new Set();
-        for (const sym of this.SYMBOLES) for (const [cle] of this.COURTIERS) {
-          const l = this.ligneCourtier(cle, sym);
-          if (l) dejaLa.add(cle + '|' + l.sym);
-        }
-        const q = (s.rechSym || '').trim().toLowerCase();
-        const par = new Map();
-        const ordreC = new Map();
-        let total = 0, iC = -1;
-        for (const [cle, nomC] of this.COURTIERS) {
-          iC++;
-          // le compte choisi ne propose que ses propres instruments à télécharger
-          if (this.compteActif !== 'tous' && cle !== this.compteActif) continue;
-          const tb = (this.baremes || {})[cle];
-          if (!tb) continue;
-          for (const k of Object.keys(tb)) {
-            if (dejaLa.has(cle + '|' + k)) continue;
-            const l = tb[k];
-            if (q && !k.toLowerCase().includes(q) && !(l.desc || '').toLowerCase().includes(q)) continue;
-            const seg = (l.chemin || '').split('\\').filter(Boolean);
-            // chez certains courtiers, cryptos, métaux et calculations sont éclatés en dizaines de
-            // sous-dossiers : on les regroupe sous leur famille de premier niveau
-            const t0 = seg[0] || '';
-            const fam = /crypto/i.test(t0) ? 'Crypto'
-              : /metal/i.test(t0) ? 'Métaux'
-              : /calculation/i.test(t0) ? 'Calculations'
-              : (seg.slice(0, 2).join(' · ') || 'Autres');
-            const gr = nomC + ' — ' + fam;
-            if (!par.has(gr)) { par.set(gr, []); ordreC.set(gr, iC); }
-            par.get(gr).push({ sym: k, nom: l.desc || this.nomComplet(k),
-              aide: (l.desc || k) + ' · spread ' + l.spread_pct.toFixed(4).replace('.', ',') + ' %' });
-            total++;
-          }
-        }
-        // les groupes d'un même courtier se suivent ; à l'intérieur, du plus fourni au moins fourni
-        const groupes = [...par.entries()].sort((a, b) =>
-          (ordreC.get(a[0]) - ordreC.get(b[0])) || (b[1].length - a[1].length));
-        const coches = new Set(s.manqCoches || []);
-        const basculerUn = (id) => () => {
-          const suite = new Set(coches);
-          if (suite.has(id)) suite.delete(id); else suite.add(id);
-          this.setState({ manqCoches: [...suite] });
-        };
-        const nomsCoches = () => {
-          const out = [];
-          for (const [nom, liste] of groupes) for (const x of liste) {
-            if (coches.has(nom + '|' + x.sym)) out.push({ groupe: nom, ...x });
-          }
-          return out;
-        };
-        const telecharger = (nom, texte, type) => {
-          const b = new Blob([texte], { type });
-          const a = document.createElement('a');
-          a.href = URL.createObjectURL(b);
-          a.download = nom;
-          a.click();
-        };
-        return {
-          aManquants: total > 0,
-          manquantsResume: total + ' symboles disponibles chez vos courtiers n\u2019ont pas encore d\u2019historique ici'
-            + (q ? ' (filtrés par votre recherche)' : '') + '. Cochez ceux que vous voulez exporter depuis MT4.',
-          nCoches: coches.size,
-          aCoches: coches.size > 0,
-          cochesTxt: coches.size + (coches.size > 1 ? ' instruments cochés' : ' instrument coché'),
-          viderCoches: () => this.setState({ manqCoches: [] }),
-          exporterCoches: () => {
-            const sel = nomsCoches();
-            if (!sel.length) return;
-            telecharger('vena-symboles-coches.txt', sel.map((x) => x.sym).join('\n'), 'text/plain');
-          },
-          copierCoches: () => {
-            const sel = nomsCoches();
-            if (!sel.length) return;
-            const txt = sel.map((x) => x.sym).join('\n');
-            if (navigator.clipboard) navigator.clipboard.writeText(txt).then(
-              () => this.setState({ manqMsg: sel.length + ' noms copiés.' }),
-              () => this.setState({ manqMsg: 'Copie refusée par le navigateur.' }));
-          },
-          manqMsg: s.manqMsg || '',
-          aManqMsg: !!s.manqMsg,
-          manquants: groupes.map(([nom, liste]) => {
-            const ouvert = s.grpManquant === nom;
-            const tout = (s.grpTout || []).includes(nom);
-            const visibles = tout ? liste : liste.slice(0, 120);
-            const tousCoches = visibles.length > 0 && visibles.every((x) => coches.has(nom + '|' + x.sym));
-            return { nom, compte: this.pl(liste.length, 'symbole', 'symboles'), ouvert, chevron: ouvert ? '\u25be' : '\u25b8',
-              basculer: () => this.setState({ grpManquant: ouvert ? null : nom }),
-              cocherGroupe: () => {
-                const suite = new Set(coches);
-                for (const x of visibles) { if (tousCoches) suite.delete(nom + '|' + x.sym); else suite.add(nom + '|' + x.sym); }
-                this.setState({ manqCoches: [...suite] });
-              },
-              libGroupe: tousCoches ? 'Tout décocher' : 'Tout cocher',
-              nCochesGroupe: (() => { const k = visibles.filter((x) => coches.has(nom + '|' + x.sym)).length;
-                return k ? k + ' coché' + (k > 1 ? 's' : '') : ''; })(),
-              liste: visibles.map((x) => ({ ...x,
-                coche: coches.has(nom + '|' + x.sym),
-                basculer: basculerUn(nom + '|' + x.sym),
-                bord: coches.has(nom + '|' + x.sym) ? 'var(--color-accent)' : 'color-mix(in srgb,var(--color-text) 20%,transparent)',
-                fond: coches.has(nom + '|' + x.sym) ? 'var(--color-accent-100)' : 'transparent' })),
-              aReste: liste.length > 120,
-              resteTxt: tout ? 'Les ' + liste.length + ' symboles du groupe sont affichés.'
-                : '… et ' + (liste.length - 120) + ' autres non affichés.',
-              libTout: tout ? 'N\u2019afficher que les 120 premiers' : 'Afficher les ' + liste.length + ' symboles',
-              voirTout: () => {
-                const suite = new Set(s.grpTout || []);
-                if (tout) suite.delete(nom); else suite.add(nom);
-                this.setState({ grpTout: [...suite] });
-              } };
-          }),
-          exporterManquants: () => {
-            const l = ['courtier_groupe;symbole;description'];
-            for (const [nom, liste] of groupes) for (const x of liste) l.push(nom + ';' + x.sym + ';' + x.aide);
-            telecharger('vena-instruments-a-telecharger.csv', l.join('\n'), 'text/csv');
-          },
-        };
       })(),
       groupesSyms: (s.vue !== 'symboles' ? [] : Object.entries(this.GROUPES_AFFICHES)).map(([nom, tous]) => {
         const q = (s.rechSym || '').trim().toLowerCase();

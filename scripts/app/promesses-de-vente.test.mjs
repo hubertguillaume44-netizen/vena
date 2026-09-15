@@ -181,29 +181,24 @@ test("l’adresse de contact vit sur la page de vente, et les deux restent d’a
     `deux adresses différentes : ${site[1]} sur le site, ${app[1]} dans l’outil`);
 });
 
-test("aucun lien de paiement ne s’ouvre sans le renoncement exprès", () => {
-  // LA GARDE EST À LA FRONTIÈRE : dans l'unique fonction par laquelle un lien de paiement
-  // s'ouvre, pas sur chaque bouton. Posée là, elle vaut pour les boutons d'aujourd'hui et
-  // pour ceux que quelqu'un ajoutera.
-  const i = APP.indexOf("const aller = (k) => () => {");
-  assert.ok(i > 0, "la fonction d’ouverture du paiement a disparu");
-  const corps = APP.slice(i, APP.indexOf("\n        };", i));
-  const iGarde = corps.indexOf("this.state.renonceAccepte");
-  const iOuvre = corps.indexOf("window.open(");
-  assert.ok(iGarde > 0, "le renoncement n’est plus exigé avant le paiement");
-  assert.ok(iGarde < iOuvre, "le refus doit précéder l’ouverture du lien, pas la suivre");
-  // ————— ET RIEN N'EST AJOUTÉ À L'ADRESSE DE PAIEMENT —————
-  //
-  // Une première version y faisait voyager l'horodatage du consentement (`?renonce=`).
-  // C'était une fausse preuve : un paramètre d'URL est fabricable par l'acheteur, et son
-  // absence ne prouve rien non plus — or la charge de la preuve pèse sur le VENDEUR. Ce
-  // qui prouve, c'est le libellé de l'article, qui part dans une facture émise par un
-  // tiers et conservée dix ans. La case fait consentir ; la facture prouve.
-  assert.ok(!/renonce=/.test(corps),
-    "le consentement repart dans l’adresse de paiement : une valeur que le client contrôle "
-    + "ne prouve rien, et la preuve doit être portée par le libellé de l’article");
-  assert.match(corps, /window\.open\(lien, /,
-    "le lien de paiement doit partir tel quel, sans rien qu’on y aurait ajouté");
+test("l’application n’ouvre plus aucun lien de paiement : la vente vit sur le site", () => {
+  // LA GARDE A SUIVI LE GESTE, et elle le dit. Elle exigeait le renoncement AVANT
+  // window.open, dans l'unique fonction `aller()` par laquelle un lien de paiement
+  // s'ouvrait. Cette fonction est partie avec la page de vente de l'application —
+  // ses producteurs n'avaient plus un seul consommateur dans le gabarit, deux
+  // chemins d'achat dont un invisible. La garde se réancre donc sur l'ABSENCE :
+  // aucun lien de paiement ne s'ouvre d'ici. La doctrine, elle, n'a pas bougé et
+  // reste ancrée par le test voisin sur la note au-dessus de RENONCE_TXT : le
+  // renoncement vit dans le LIBELLÉ DE L'ARTICLE (la facture prouve), jamais dans
+  // l'adresse. Le jour où le paiement s'ouvre — côté site, avec textes-recopies —
+  // la garde d'origine se réécrit là-bas, dans la même géométrie.
+  assert.ok(!APP.includes("const LIENS = {"),
+    "des liens de paiement sont revenus dans l’application : la vente vit sur le "
+    + "site, et deux chemins d’achat dont un invisible est la situation qu’on a fermée");
+  assert.ok(!APP.includes("window.open(lien"),
+    "une ouverture de lien de paiement est revenue dans l’application sans sa "
+    + "garde : le renoncement doit précéder l’ouverture, dans l’unique fonction "
+    + "par laquelle un lien part — relisez la note au-dessus de RENONCE_TXT");
 
   // le libellé est un EMPLACEMENT, pas une formule validée : tant qu'il porte sa marque,
   // personne ne le prendra pour du texte relu
@@ -260,7 +255,6 @@ test("le tarif gelé s’appuie sur le registre, pas sur la parole", () => {
   // tarif » parce que la tournure ne correspondait pas au motif.
   for (const [ou, src, nom] of [
     ["/tarifs", TARIFS, "TARIF_GELE"],
-    ["l’application", APP, "mentionLancement"],
   ]) {
     const dit = parNom(src, nom);
     assert.ok(dit,
@@ -284,9 +278,10 @@ test("le tarif gelé s’appuie sur le registre, pas sur la parole", () => {
     "TARIF_GELE n’est plus rendue : la phrase a probablement été recopiée en clair dans le "
     + "JSX. Rendez la constante — `<p>{TARIF_GELE}</p>` — sinon cette garde surveille un "
     + "texte que plus personne n’affiche.");
-  // `mentionLancement` n'est pas encore rendue dans l'application : les boutons d'achat
-  // attendent l'ouverture du paiement. On ne l'exige donc pas, et on le dit plutôt que de
-  // laisser croire que la garde le couvre.
+  // `mentionLancement` est partie avec la page de vente de l'application : une
+  // constante jamais rendue est exactement le texte mort que cette garde pourchasse.
+  // La phrase du tarif gelé n'a plus qu'UNE source, TARIF_GELE sur /tarifs — nommée
+  // ET rendue, vérifiées toutes deux ci-dessus.
   // et la fonction de licence dit ce que le registre doit porter, pour qui viendra après
   const fn = lire("netlify/functions/licence.mjs");
   assert.match(fn, /PRIX PAYÉ/,
@@ -376,21 +371,25 @@ test("les textes qui vivent chez le prestataire ont leur source DANS le dépôt"
   const MOD = "src/lib/textes-recopies.ts";
   const src = lire(MOD);
 
-  // ————— UN LIBELLÉ PAR PLAN, ET LES PLANS SONT LUS DANS L'APPLICATION —————
-  // Un plan sans son libellé est un plan qui se vend sans porter le renoncement. Les noms
-  // attendus sont DÉRIVÉS des plans déclarés, jamais énumérés ici : en ajouter un cinquième
-  // dans l'application fait tomber ce test, ce qu'aucune liste écrite à la main ne ferait.
-  const iL = APP.indexOf("const LIENS = {");
-  assert.ok(iL > 0, "les plans de paiement ont disparu de l’application");
-  const blocL = APP.slice(iL, APP.indexOf("};", iL));
-  const plans = [...blocL.matchAll(/(\w+): \{ mois: '[^']*', an: '[^']*' \}/g)].map((m) => m[1]);
-  assert.ok(plans.length > 0, "aucun plan lu dans LIENS : le format a changé, relisez-le");
-  for (const plan of plans) {
-    for (const duree of ["MOIS", "AN"]) {
-      const nom = `ARTICLE_${plan.toUpperCase()}_${duree}`;
+  // ————— UN LIBELLÉ PAR PLAN — DURÉES LUES SUR LE SITE, PHASES DANS LE MODULE —————
+  // La dérivation lisait `const LIENS` dans l'application ; la page de vente en est
+  // partie, et la garde se RÉANCRE sur ce qui vend : les DURÉES payantes viennent des
+  // formules de /tarifs — une troisième durée payante exigerait ses libellés sans
+  // qu'aucune liste d'ici ne change — et les PHASES de tarif viennent de PHASES_TARIF,
+  // déclarée dans le module même, leur seule source machine-lisible restante (son
+  // angle mort est déclaré sur place).
+  const durees = [...TARIFS.matchAll(/cle: "(\w+)"/g)].map((m) => m[1]).filter((d) => d !== "gratuit");
+  assert.ok(durees.length >= 2, "les formules payantes de /tarifs ne se lisent plus (cle: \"…\") : réancrez");
+  const mP = src.match(/PHASES_TARIF = \[([^\]]+)\]/);
+  assert.ok(mP, MOD + " ne déclare plus PHASES_TARIF : les phases de tarif n’ont plus de source dans le dépôt");
+  const phases = [...mP[1].matchAll(/"(\w+)"/g)].map((m) => m[1]);
+  assert.ok(phases.length >= 2, "PHASES_TARIF ne déclare plus ses deux phases");
+  for (const phase of phases) {
+    for (const duree of durees) {
+      const nom = `ARTICLE_${phase.toUpperCase()}_${duree.toUpperCase()}`;
       assert.ok(new RegExp(`\\b${nom}\\b`).test(src),
-        `le plan « ${plan} / ${duree.toLowerCase()} » existe dans l’application mais n’a pas de `
-        + `libellé d’article dans ${MOD}. Un plan sans libellé se vend sans porter le `
+        `le plan « ${phase} / ${duree} » existe (phases du module × durées de /tarifs) mais n’a `
+        + `pas de libellé d’article dans ${MOD}. Un plan sans libellé se vend sans porter le `
         + `renoncement : ajoutez ${nom}.`);
     }
   }

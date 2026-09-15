@@ -13,9 +13,9 @@
 // qui défont la règle simple « tout …Msg écrit est rendu » : des drapeaux
 // booléens nommés Msg (priveMsg, renommé priveAvert — l'étiquette était le
 // défaut), et des familles de producteurs SANS CONSOMMATEUR (achatMsg, ctrlMsg,
-// manqMsg : leurs gestes mêmes — acheter, contrôle mémoire, copier les manquants
-// — n'existent pas dans le gabarit ; c'est du code mort à trancher, pas des
-// surfaces à ajouter). On garde donc les cas NOMMÉS, chacun ancré sur sa surface
+// manqMsg : leurs gestes mêmes n'existaient pas dans le gabarit — tranchées
+// depuis : les trois familles sont SUPPRIMÉES, gardes réancrées en le disant,
+// voir promesses-de-vente et coherence). On garde les cas NOMMÉS, chacun ancré sur sa surface
 // dans la vue de son geste, et la mesure d'inventaire reste l'outil pour la
 // prochaine revue — pas une garde.
 import { test } from "node:test";

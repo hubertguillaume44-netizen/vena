@@ -65,11 +65,16 @@ export type TexteRecopie = {
 
 // ————— LES QUATRE LIBELLÉS D'ARTICLE, UN PAR PLAN —————
 //
-// L'application tient quatre plans — lancement/normal × mensuel/annuel — et bascule de
-// l'un à l'autre par un seul drapeau. Il faut donc QUATRE libellés, pas un : un plan sans
-// son libellé est un plan qui se vend sans porter le renoncement. La garde dérive les
-// quatre noms attendus des plans déclarés dans l'application ; en ajouter un cinquième
-// là-bas fait tomber le test ici.
+// La vente tient quatre plans — lancement/normal × mensuel/annuel. Il faut donc QUATRE
+// libellés, pas un : un plan sans son libellé est un plan qui se vend sans porter le
+// renoncement. La garde dérive les noms attendus : les DURÉES payantes des formules de
+// /tarifs (une troisième durée exigerait ses libellés toute seule), les PHASES de la
+// matrice ci-dessous — depuis que la page de vente a quitté l'application, cette
+// matrice est leur seule source machine-lisible dans le dépôt. ANGLE MORT, déclaré
+// (règle 9) : une phase inventée directement chez le prestataire, sans passer par
+// ici, échapperait — comme le cinquième texte d'après-vente plus bas.
+export const PHASES_TARIF = ["lancement", "normal"] as const;
+
 
 export const ARTICLE_LANCEMENT_MOIS: TexteRecopie = {
   ou: "Revolut · plan « lancement / mensuel » · libellé de l’article",

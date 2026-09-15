@@ -84,8 +84,10 @@ for (const f of FICHIERS) {
       "le robot exporté doit lire la table, pas une copie");
     assert.match(txt, /this\.nomPlan\(l\.plan, 'court'\)/,
       "le résumé replié doit lire la forme courte de la table");
-    assert.match(txt, /this\.nomPlan\(this\.PLAN_ACHETE\[k\], 'defini'\)/,
-      "la page de vente doit lire la forme avec article de la table");
+    // la page de vente a quitté l'application (producteurs sans consommateur) :
+    // son ancre — nomPlan(PLAN_ACHETE[k], 'defini') — est partie avec elle. La
+    // vente vit sur le site ; l'invariant « un seul dictionnaire » tient par les
+    // trois ancres restantes.
   });
 
   test(f + " : licEtatTxt nomme le titulaire sans refaire la phrase", () => {

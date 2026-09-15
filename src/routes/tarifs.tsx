@@ -29,7 +29,8 @@ export const Route = createFileRoute("/tarifs")({
 // vit ici et nulle part ailleurs ; l'accueil n'en garde qu'un résumé de trois montants
 // et pointe vers cette page.
 //
-// Les montants sont ceux du code de l'application (tarif de lancement). La mention
+// Les montants affichés sont ceux du tarif de lancement, et ils vivent ICI : la page
+// de vente a quitté l'application, celle-ci n'écrit plus aucun prix. La mention
 // « cinquante premiers abonnés » n'était PAS reprise ici : dans une colonne qui promet
 // par ailleurs quatorze jours de rétractation, une rareté chiffrée se lit comme une
 // pression à décider vite, et les deux se contredisent à voix haute.
