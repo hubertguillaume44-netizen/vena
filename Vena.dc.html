@@ -2181,11 +2181,11 @@
               place, et son intitulé dit qu'il vise ce qui RESTE, pas tout : les lignes
               rangées une par une en sont déjà sorties, et son compte le montre.
             -->
-            <select class="input" style="min-height:1.9rem;height:1.9rem;font-size:11px;width:auto;min-width:24ch;padding:0 6px" value="{{ rangerResteVal }}" onChange="{{ rangerReste }}" disabled="{{ sansARanger }}" title="{{ rangerResteAide }}">
+            <sc-raw-select class="input" style="min-height:1.9rem;height:1.9rem;font-size:11px;width:auto;min-width:24ch;padding:0 6px" value="{{ rangerResteVal }}" onChange="{{ rangerReste }}" disabled="{{ sansARanger }}" title="{{ rangerResteAide }}">
               <sc-for list="{{ rangerResteOpts }}" as="dstR" hint-placeholder-count="3">
                 <option value="{{ dstR.v }}">{{ dstR.nom }}</option>
               </sc-for>
-            </select>
+            </sc-raw-select>
             <button class="btn btn-ghost" type="button" style="min-height:1.9rem;font-size:11px" onClick="{{ viderValides }}" disabled="{{ sansARanger }}" title="Retire les configurations non rangées. Le contenu des portefeuilles n'est pas touché.">Écarter</button>
           </div>
         </div>
@@ -2232,11 +2232,11 @@
                   une liste ne doit pas sélectionner la ligne au passage.
                 -->
                 <sc-raw-td style="text-align:right;width:1%">
-                  <select class="input" style="min-height:1.7rem;height:1.7rem;font-size:11px;width:auto;min-width:15ch;padding:0 4px" value="{{ vl.rangerVal }}" onChange="{{ vl.ranger }}" onClick="{{ vl.stopper }}" title="{{ vl.rangerAide }}">
+                  <sc-raw-select class="input" style="min-height:1.7rem;height:1.7rem;font-size:11px;width:auto;min-width:15ch;padding:0 4px" value="{{ vl.rangerVal }}" onChange="{{ vl.ranger }}" onClick="{{ vl.stopper }}" title="{{ vl.rangerAide }}">
                     <sc-for list="{{ vl.rangerOpts }}" as="dstL" hint-placeholder-count="3">
                       <option value="{{ dstL.v }}">{{ dstL.nom }}</option>
                     </sc-for>
-                  </select>
+                  </sc-raw-select>
                 </sc-raw-td>
                 <sc-raw-td style="text-align:right;width:1%">
                   <button type="button" class="lien" style="font-size:12px;padding:0 3px;color:var(--color-neutral-500)" title="Écarter cette ligne seule — les autres lignes et le contenu des portefeuilles ne bougent pas." onClick="{{ vl.retirer }}">×</button>
@@ -3299,11 +3299,11 @@
                   <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
                     <span style="font-size:12px;min-width:14ch">{{ mc.nom }}</span>
                     <input class="input" type="text" style="min-height:1.9rem;height:1.9rem;font-size:12px;width:9ch" value="{{ mc.val }}" onChange="{{ mc.maj }}" onInput="{{ mc.maj }}">
-                    <select class="input" style="min-height:1.9rem;height:1.9rem;font-size:12px;width:auto" value="{{ mc.devise }}" onChange="{{ mc.majDevise }}">
+                    <sc-raw-select class="input" style="min-height:1.9rem;height:1.9rem;font-size:12px;width:auto" value="{{ mc.devise }}" onChange="{{ mc.majDevise }}">
                       <sc-for list="{{ mc.devises }}" as="dv" hint-placeholder-count="2">
                         <option value="{{ dv.v }}">{{ dv.nom }}</option>
                       </sc-for>
-                    </select>
+                    </sc-raw-select>
                   </div>
                 </sc-for>
                 <span style="font-size:11px;line-height:1.5" class="text-muted">{{ mesNote }}</span>
@@ -3655,9 +3655,9 @@
                 <span style="font-size:11px;text-align:right" class="text-muted">{{ ch.lab }}</span>
                 <span style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">
                   <sc-if value="{{ ch.estUt }}" hint-placeholder-val="{{ false }}">
-                    <select class="input" style="min-height:1.6rem;height:1.6rem;font-size:12px;padding:0 5px;width:auto" value="{{ ch.val }}" onChange="{{ ch.maj }}">
+                    <sc-raw-select class="input" style="min-height:1.6rem;height:1.6rem;font-size:12px;padding:0 5px;width:auto" value="{{ ch.val }}" onChange="{{ ch.maj }}">
                       <sc-for list="{{ uts }}" as="cu" hint-placeholder-count="3"><option value="{{ cu.v }}">{{ cu.nom }}</option></sc-for>
-                    </select>
+                    </sc-raw-select>
                   </sc-if>
                   <sc-if value="{{ ch.estNum }}" hint-placeholder-val="{{ false }}">
                     <input class="input" type="number" style="min-height:1.6rem;height:1.6rem;font-size:12px;padding:0 4px;width:9ch;appearance:textfield;-moz-appearance:textfield;text-align:center" min="{{ ch.min }}" max="{{ ch.max }}" value="{{ ch.val }}" onChange="{{ ch.maj }}">
@@ -3726,21 +3726,21 @@
                 <div style="display:flex;gap:10px;align-items:center;border-top:1px solid var(--color-divider);padding-top:10px;flex-wrap:wrap">
                   <div class="field" style="width:230px">
                     <label style="font-size:11px;margin-bottom:2px">Résultats gardés par instrument</label>
-                    <select class="input" style="min-height:1.7rem;height:1.7rem;font-size:12px;padding:0 6px" value="{{ parSymbole }}" onChange="{{ setParSymbole }}">
+                    <sc-raw-select class="input" style="min-height:1.7rem;height:1.7rem;font-size:12px;padding:0 6px" value="{{ parSymbole }}" onChange="{{ setParSymbole }}">
                       <sc-for list="{{ parSymboles }}" as="ps" hint-placeholder-count="4"><option value="{{ ps.v }}">{{ ps.nom }}</option></sc-for>
-                    </select>
+                    </sc-raw-select>
                   </div>
                   <div class="field" style="width:200px">
                     <label style="font-size:11px;margin-bottom:2px">Classer par</label>
-                    <select class="input" style="min-height:1.7rem;height:1.7rem;font-size:12px;padding:0 6px" value="{{ tri }}" onChange="{{ setTri }}">
+                    <sc-raw-select class="input" style="min-height:1.7rem;height:1.7rem;font-size:12px;padding:0 6px" value="{{ tri }}" onChange="{{ setTri }}">
                       <sc-for list="{{ tris }}" as="t" hint-placeholder-count="5"><option value="{{ t.v }}">{{ t.nom }}</option></sc-for>
-                    </select>
+                    </sc-raw-select>
                   </div>
                   <div class="field" style="width:200px">
                     <label style="font-size:11px;margin-bottom:2px">Date charnière</label>
-                    <select class="input" style="min-height:1.7rem;height:1.7rem;font-size:12px;padding:0 6px" value="{{ coupureRegime }}" onChange="{{ setCoupure }}">
+                    <sc-raw-select class="input" style="min-height:1.7rem;height:1.7rem;font-size:12px;padding:0 6px" value="{{ coupureRegime }}" onChange="{{ setCoupure }}">
                       <sc-for list="{{ coupures }}" as="cq" hint-placeholder-count="4"><option value="{{ cq.v }}">{{ cq.nom }}</option></sc-for>
-                    </select>
+                    </sc-raw-select>
                   </div>
                 </div>
                 <button class="btn btn-ghost" type="button" style="min-height:1.8rem;font-size:11px;align-self:flex-start;padding-inline:9px;margin-top:8px" onClick="{{ basculerFiltre }}">{{ basculerFiltreTxt }}</button>
@@ -4605,15 +4605,15 @@
 
         <div style="padding:10px 15px;display:grid;grid-template-columns:repeat(auto-fit,minmax(178px,1fr));gap:9px 16px;background:var(--color-neutral-100);border-bottom:1px solid var(--color-divider)">
           <label style="display:flex;flex-direction:column;gap:2px"><span style="font-size:9px;letter-spacing:.06em;text-transform:uppercase" class="text-muted">Instrument</span>
-            <select class="input" style="min-height:1.8rem;height:1.8rem;font-size:12px;padding:0 6px" value="{{ btSym }}" onChange="{{ setSym }}">
+            <sc-raw-select class="input" style="min-height:1.8rem;height:1.8rem;font-size:12px;padding:0 6px" value="{{ btSym }}" onChange="{{ setSym }}">
               <sc-for list="{{ symboles }}" as="sy" hint-placeholder-count="6"><option value="{{ sy.nom }}">{{ sy.etiq }}</option></sc-for>
-            </select></label>
+            </sc-raw-select></label>
           <label style="display:flex;flex-direction:column;gap:2px"><span style="font-size:9px;letter-spacing:.06em;text-transform:uppercase" class="text-muted">Depuis</span>
             <input class="input" style="min-height:1.8rem;height:1.8rem;font-size:12px;padding:0 6px" type="text" value="01/01/2020" disabled="{{ true }}"></label>
           <label style="display:flex;flex-direction:column;gap:2px"><span style="font-size:9px;letter-spacing:.06em;text-transform:uppercase" class="text-muted">Unité</span>
-            <select class="input" style="min-height:1.8rem;height:1.8rem;font-size:12px;padding:0 6px" value="{{ ut }}" onChange="{{ setUt }}">
+            <sc-raw-select class="input" style="min-height:1.8rem;height:1.8rem;font-size:12px;padding:0 6px" value="{{ ut }}" onChange="{{ setUt }}">
               <sc-for list="{{ uts }}" as="u" hint-placeholder-count="3"><option value="{{ u.v }}">{{ u.nom }}</option></sc-for>
-            </select></label>
+            </sc-raw-select></label>
           <label style="display:flex;flex-direction:column;gap:2px;position:relative;z-index:{{ btMoZ }}"><span style="font-size:9px;letter-spacing:.06em;text-transform:uppercase" class="text-muted">Moment d’exécution</span>
             <button type="button" class="input" style="min-height:1.8rem;height:1.8rem;font-size:12px;padding:0 6px;text-align:left;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="{{ btMoAide }}" onClick="{{ btMoOuvrir }}">{{ btMoVal }}</button>
             <sc-if value="{{ btMoPan }}" hint-placeholder-val="{{ false }}">
@@ -4652,14 +4652,14 @@
             </sc-if>
           </label>
           <label style="display:flex;flex-direction:column;gap:2px"><span style="font-size:9px;letter-spacing:.06em;text-transform:uppercase" class="text-muted">Déclencheur</span>
-            <select class="input" style="min-height:1.8rem;height:1.8rem;font-size:12px;padding:0 6px" value="{{ btEntree }}" onChange="{{ setEntree }}" title="{{ declencheurNom }}">
+            <sc-raw-select class="input" style="min-height:1.8rem;height:1.8rem;font-size:12px;padding:0 6px" value="{{ btEntree }}" onChange="{{ setEntree }}" title="{{ declencheurNom }}">
               <sc-for list="{{ entrees }}" as="en" hint-placeholder-count="5"><option value="{{ en.v }}">{{ en.nom }}</option></sc-for>
-            </select></label>
+            </sc-raw-select></label>
           <label style="display:flex;flex-direction:column;gap:2px"><span style="font-size:9px;letter-spacing:.06em;text-transform:uppercase" class="text-muted">Ligne · période<span style="display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border:1px solid currentColor;font-size:9px;line-height:1;opacity:.55;margin-inline-start:4px;vertical-align:middle;cursor:help" title="La ligne de référence que le prix doit franchir ou toucher pour déclencher l'entrée, et sur combien de bougies elle est calculée. Plus la période est petite, plus elle réagit vite.">?</span></span>
             <span style="display:flex;gap:4px">
-              <select class="input" style="min-height:1.8rem;height:1.8rem;font-size:12px;padding:0 6px;flex:1;min-width:0" value="{{ btLigne }}" onChange="{{ setLigne }}">
+              <sc-raw-select class="input" style="min-height:1.8rem;height:1.8rem;font-size:12px;padding:0 6px;flex:1;min-width:0" value="{{ btLigne }}" onChange="{{ setLigne }}">
                 <sc-for list="{{ lignes }}" as="lg" hint-placeholder-count="4"><option value="{{ lg.v }}">{{ lg.nom }}</option></sc-for>
-              </select>
+              </sc-raw-select>
               <input class="input" style="min-height:1.8rem;height:1.8rem;font-size:12px;padding:0 5px;width:44px;flex:none;text-align:center" type="number" value="{{ btPeriode }}" onChange="{{ setPeriode }}">
             </span></label>
           <label style="display:flex;flex-direction:column;gap:2px"><span style="font-size:9px;letter-spacing:.06em;text-transform:uppercase" class="text-muted">Stop %<span style="display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border:1px solid currentColor;font-size:9px;line-height:1;opacity:.55;margin-inline-start:4px;vertical-align:middle;cursor:help" title="À combien de pourcent sous votre prix d'achat vous coupez la perte. Plus c'est serré, plus vous sortez souvent pour rien ; plus c'est large, plus chaque perte coûte cher.">?</span></span>
@@ -4671,9 +4671,9 @@
               <option value="achat">Achat</option><option value="vente">Vente</option>
             </select></label>
           <label style="display:flex;flex-direction:column;gap:2px"><span style="font-size:9px;letter-spacing:.06em;text-transform:uppercase" class="text-muted">Paliers</span>
-            <select class="input" style="min-height:1.8rem;height:1.8rem;font-size:12px;padding:0 6px" value="{{ btPaliersJeu }}" onChange="{{ setPaliersJeu }}" title="{{ paliersJeuAide }}">
+            <sc-raw-select class="input" style="min-height:1.8rem;height:1.8rem;font-size:12px;padding:0 6px" value="{{ btPaliersJeu }}" onChange="{{ setPaliersJeu }}" title="{{ paliersJeuAide }}">
               <sc-for list="{{ paliersJeux }}" as="pj" hint-placeholder-count="3"><option value="{{ pj.v }}">{{ pj.nom }}</option></sc-for>
-            </select></label>
+            </sc-raw-select></label>
           <label style="display:flex;flex-direction:column;gap:2px"><span style="font-size:9px;letter-spacing:.06em;text-transform:uppercase" class="text-muted">Durée max<span style="display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border:1px solid currentColor;font-size:9px;line-height:1;opacity:.55;margin-inline-start:4px;vertical-align:middle;cursor:help" title="0 = sans limite. Sortie au cours de clôture après N bougies H1 — la série de suivi, quelle que soit l\u2019unité de mesure — si ni le stop ni l\u2019objectif n\u2019ont été touchés.">?</span></span>
             <input class="input" style="min-height:1.8rem;height:1.8rem;font-size:12px;padding:0 6px" type="number" min="0" step="1" value="{{ btDureeMaxVal }}" onChange="{{ setDureeMax }}"></label>
           <label style="display:flex;flex-direction:column;gap:2px"><span style="font-size:9px;letter-spacing:.06em;text-transform:uppercase" class="text-muted">Risque %<span style="display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border:1px solid currentColor;font-size:9px;line-height:1;opacity:.55;margin-inline-start:4px;vertical-align:middle;cursor:help" title="Quelle part de votre capital vous acceptez de perdre sur un seul trade. Au-delà de 2 %, une mauvaise série devient difficile à encaisser.">?</span></span>
@@ -4712,9 +4712,9 @@
                               <input class="input" style="min-height:1.8rem;height:1.8rem;font-size:12px;padding:0 7px;width:82px" type="number" step="{{ bch.pas }}" min="{{ bch.min }}" max="{{ bch.max }}" value="{{ bch.val }}" onChange="{{ bch.set }}">
                             </sc-if>
                             <sc-if value="{{ bch.estSel }}" hint-placeholder-val="{{ false }}">
-                              <select class="input" style="min-height:1.8rem;height:1.8rem;font-size:12px;padding:0 4px;width:auto;min-width:124px" value="{{ bch.val }}" onChange="{{ bch.set }}">
+                              <sc-raw-select class="input" style="min-height:1.8rem;height:1.8rem;font-size:12px;padding:0 4px;width:auto;min-width:124px" value="{{ bch.val }}" onChange="{{ bch.set }}">
                                 <sc-for list="{{ bch.opts }}" as="bop" hint-placeholder-count="3"><option value="{{ bop.v }}">{{ bop.t }}</option></sc-for>
-                              </select>
+                              </sc-raw-select>
                             </sc-if>
                             <span style="font-size:10px;width:9ch;color:var(--color-neutral-600)">{{ bch.unite }}</span>
                           </label>
@@ -4935,76 +4935,76 @@
 
           <div style="display:grid;grid-template-columns:1.7fr .8fr 1fr 1fr;gap:8px;font-size:13px;align-items:center">
             <label class="radio"><input type="checkbox" checked="{{ btMtf }}" onChange="{{ toggleMtf }}"><span class="dot"></span>Tendance : clôture au-dessus de sa ligne<span class="aide" title="{{ aideMtf }}">?</span></label>
-            <select class="input" style="min-height:2rem;height:2rem;padding:2px 8px;font-size:13px" value="{{ utMtf }}" onChange="{{ setUtMtf }}">
+            <sc-raw-select class="input" style="min-height:2rem;height:2rem;padding:2px 8px;font-size:13px" value="{{ utMtf }}" onChange="{{ setUtMtf }}">
               <sc-for list="{{ uts }}" as="a1" hint-placeholder-count="3"><option value="{{ a1.v }}">{{ a1.nom }}</option></sc-for>
-            </select>
-            <select class="input" style="min-height:2rem;height:2rem;padding:2px 8px;font-size:13px" value="{{ ligneMtf }}" onChange="{{ setLigneMtf }}">
+            </sc-raw-select>
+            <sc-raw-select class="input" style="min-height:2rem;height:2rem;padding:2px 8px;font-size:13px" value="{{ ligneMtf }}" onChange="{{ setLigneMtf }}">
               <sc-for list="{{ lignes }}" as="b1" hint-placeholder-count="4"><option value="{{ b1.v }}">{{ b1.nom }}</option></sc-for>
-            </select>
+            </sc-raw-select>
             <input class="input" style="min-height:2rem;height:2rem;padding:2px 8px;font-size:13px" type="number" value="{{ periodeMtf }}" onChange="{{ setPeriodeMtf }}">
           </div>
 
           <div style="display:grid;grid-template-columns:1.7fr .8fr 1fr 1fr;gap:8px;font-size:13px;align-items:center">
             <label class="radio"><input type="checkbox" checked="{{ fPente }}" onChange="{{ togglePente }}"><span class="dot"></span>Pente : la ligne monte<span class="aide" title="{{ aidePente }}">?</span></label>
-            <select class="input" style="min-height:2rem;height:2rem;padding:2px 8px;font-size:13px" value="{{ utPente }}" onChange="{{ setUtPente }}">
+            <sc-raw-select class="input" style="min-height:2rem;height:2rem;padding:2px 8px;font-size:13px" value="{{ utPente }}" onChange="{{ setUtPente }}">
               <sc-for list="{{ uts }}" as="a2" hint-placeholder-count="3"><option value="{{ a2.v }}">{{ a2.nom }}</option></sc-for>
-            </select>
-            <select class="input" style="min-height:2rem;height:2rem;padding:2px 8px;font-size:13px" value="{{ lignePente }}" onChange="{{ setLignePente }}">
+            </sc-raw-select>
+            <sc-raw-select class="input" style="min-height:2rem;height:2rem;padding:2px 8px;font-size:13px" value="{{ lignePente }}" onChange="{{ setLignePente }}">
               <sc-for list="{{ lignes }}" as="b2" hint-placeholder-count="4"><option value="{{ b2.v }}">{{ b2.nom }}</option></sc-for>
-            </select>
+            </sc-raw-select>
             <input class="input" style="min-height:2rem;height:2rem;padding:2px 8px;font-size:13px" type="number" value="{{ fPenteRecul }}" onChange="{{ setPenteRecul }}" placeholder="recul">
           </div>
 
           <div style="display:grid;grid-template-columns:1.7fr .8fr 1fr 1fr;gap:8px;font-size:13px;align-items:center">
             <label class="radio"><input type="checkbox" checked="{{ fRsi }}" onChange="{{ toggleRsi }}"><span class="dot"></span>RSI au-dessus d'un seuil<span class="aide" title="{{ aideRsi }}">?</span></label>
-            <select class="input" style="min-height:2rem;height:2rem;padding:2px 8px;font-size:13px" value="{{ utRsi }}" onChange="{{ setUtRsi }}">
+            <sc-raw-select class="input" style="min-height:2rem;height:2rem;padding:2px 8px;font-size:13px" value="{{ utRsi }}" onChange="{{ setUtRsi }}">
               <sc-for list="{{ uts }}" as="a3" hint-placeholder-count="3"><option value="{{ a3.v }}">{{ a3.nom }}</option></sc-for>
-            </select>
+            </sc-raw-select>
             <input class="input" style="min-height:2rem;height:2rem;padding:2px 8px;font-size:13px" type="number" value="{{ periodeRsi }}" onChange="{{ setPeriodeRsi }}">
             <input class="input" style="min-height:2rem;height:2rem;padding:2px 8px;font-size:13px" type="number" value="{{ fRsiSeuil }}" onChange="{{ setRsiSeuil }}">
           </div>
 
           <div style="display:grid;grid-template-columns:1.7fr .8fr 1fr 1fr;gap:8px;font-size:13px;align-items:center">
             <label class="radio"><input type="checkbox" checked="{{ fAdx }}" onChange="{{ toggleAdx }}"><span class="dot"></span>ADX au-dessus d'un seuil<span class="aide" title="{{ aideAdx }}">?</span></label>
-            <select class="input" style="min-height:2rem;height:2rem;padding:2px 8px;font-size:13px" value="{{ utAdx }}" onChange="{{ setUtAdx }}">
+            <sc-raw-select class="input" style="min-height:2rem;height:2rem;padding:2px 8px;font-size:13px" value="{{ utAdx }}" onChange="{{ setUtAdx }}">
               <sc-for list="{{ uts }}" as="a4" hint-placeholder-count="3"><option value="{{ a4.v }}">{{ a4.nom }}</option></sc-for>
-            </select>
+            </sc-raw-select>
             <input class="input" style="min-height:2rem;height:2rem;padding:2px 8px;font-size:13px" type="number" value="{{ periodeAdx }}" onChange="{{ setPeriodeAdx }}">
             <input class="input" style="min-height:2rem;height:2rem;padding:2px 8px;font-size:13px" type="number" value="{{ fAdxSeuil }}" onChange="{{ setAdxSeuil }}">
           </div>
 
           <div style="display:grid;grid-template-columns:1.7fr .8fr 1fr 1fr;gap:8px;font-size:13px;align-items:center">
             <label class="radio"><input type="checkbox" checked="{{ fNuage }}" onChange="{{ toggleNuage }}"><span class="dot"></span>Clôture au-dessus du nuage Ichimoku<span class="aide" title="{{ aideNuage }}">?</span></label>
-            <select class="input" style="min-height:2rem;height:2rem;padding:2px 8px;font-size:13px" value="{{ utNuage }}" onChange="{{ setUtNuage }}">
+            <sc-raw-select class="input" style="min-height:2rem;height:2rem;padding:2px 8px;font-size:13px" value="{{ utNuage }}" onChange="{{ setUtNuage }}">
               <sc-for list="{{ uts }}" as="a5" hint-placeholder-count="3"><option value="{{ a5.v }}">{{ a5.nom }}</option></sc-for>
-            </select>
+            </sc-raw-select>
             <span style="font-size:12px" class="text-muted">Tenkan 9 · Kijun 26 · projection 26</span>
             <span></span>
           </div>
 
           <div style="display:grid;grid-template-columns:1.7fr .8fr 1fr 1fr;gap:8px;font-size:13px;align-items:center">
             <label class="radio"><input type="checkbox" checked="{{ fPivot }}" onChange="{{ togglePivot }}"><span class="dot"></span>Au-dessus du pivot de la période précédente<span class="aide" title="{{ aidePivot }}">?</span></label>
-            <select class="input" style="min-height:2rem;height:2rem;padding:2px 8px;font-size:13px" value="{{ utPivot }}" onChange="{{ setUtPivot }}">
+            <sc-raw-select class="input" style="min-height:2rem;height:2rem;padding:2px 8px;font-size:13px" value="{{ utPivot }}" onChange="{{ setUtPivot }}">
               <sc-for list="{{ uts }}" as="a6" hint-placeholder-count="3"><option value="{{ a6.v }}">{{ a6.nom }}</option></sc-for>
-            </select>
+            </sc-raw-select>
             <span style="font-size:12px" class="text-muted">(haut + bas + clôture) / 3</span>
             <span></span>
           </div>
 
           <div style="display:grid;grid-template-columns:1.7fr .8fr 1fr 1fr;gap:8px;font-size:13px;align-items:center">
             <label class="radio"><input type="checkbox" checked="{{ fResist }}" onChange="{{ toggleResist }}"><span class="dot"></span>Ne pas entrer au plus haut de la fenêtre<span class="aide" title="{{ aideResist }}">?</span></label>
-            <select class="input" style="min-height:2rem;height:2rem;padding:2px 8px;font-size:13px" value="{{ utResist }}" onChange="{{ setUtResist }}">
+            <sc-raw-select class="input" style="min-height:2rem;height:2rem;padding:2px 8px;font-size:13px" value="{{ utResist }}" onChange="{{ setUtResist }}">
               <sc-for list="{{ uts }}" as="a7" hint-placeholder-count="3"><option value="{{ a7.v }}">{{ a7.nom }}</option></sc-for>
-            </select>
+            </sc-raw-select>
             <input class="input" style="min-height:2rem;height:2rem;padding:2px 8px;font-size:13px" type="number" value="{{ resistLookback }}" onChange="{{ setResistLookback }}" placeholder="barres">
             <input class="input" style="min-height:2rem;height:2rem;padding:2px 8px;font-size:13px" type="number" value="{{ resistMarge }}" step="0.1" onChange="{{ setResistMarge }}" placeholder="marge %">
           </div>
 
           <div style="display:grid;grid-template-columns:1.7fr .8fr 1fr 1fr;gap:8px;font-size:13px;align-items:center">
             <label class="radio"><input type="checkbox" checked="{{ fZone }}" onChange="{{ toggleZone }}"><span class="dot"></span>Ne pas entrer sous une zone de résistance<span class="aide" title="{{ aideZone }}">?</span></label>
-            <select class="input" style="min-height:2rem;height:2rem;padding:2px 8px;font-size:13px" value="{{ utZone }}" onChange="{{ setUtZone }}">
+            <sc-raw-select class="input" style="min-height:2rem;height:2rem;padding:2px 8px;font-size:13px" value="{{ utZone }}" onChange="{{ setUtZone }}">
               <sc-for list="{{ uts }}" as="a8" hint-placeholder-count="3"><option value="{{ a8.v }}">{{ a8.nom }}</option></sc-for>
-            </select>
+            </sc-raw-select>
             <input class="input" style="min-height:2rem;height:2rem;padding:2px 8px;font-size:13px" type="number" value="{{ zoneTouches }}" min="2" onChange="{{ setZoneTouches }}" placeholder="touches">
             <input class="input" style="min-height:2rem;height:2rem;padding:2px 8px;font-size:13px" type="number" value="{{ zoneMarge }}" step="0.1" onChange="{{ setZoneMarge }}" placeholder="marge %">
           </div>
@@ -5018,9 +5018,9 @@
             <sc-if value="{{ aPanSecu }}" hint-placeholder-val="{{ false }}">
           <div style="display:grid;grid-template-columns:1.7fr .8fr 1fr 1fr;gap:8px;font-size:13px;align-items:center">
             <label class="radio"><input type="checkbox" checked="{{ btBE }}" onChange="{{ toggleBE }}"><span class="dot"></span>Sécuriser la position en cours de route<span class="aide" title="{{ aideSecu }}">?</span></label>
-            <select class="input" style="min-height:2rem;height:2rem;padding:2px 8px;font-size:13px" value="{{ typeSecu }}" onChange="{{ setTypeSecu }}" style="grid-column:span 2">
+            <sc-raw-select class="input" style="min-height:2rem;height:2rem;padding:2px 8px;font-size:13px" value="{{ typeSecu }}" onChange="{{ setTypeSecu }}" style="grid-column:span 2">
               <sc-for list="{{ typesSecu }}" as="ts" hint-placeholder-count="2"><option value="{{ ts.v }}">{{ ts.nom }}</option></sc-for>
-            </select>
+            </sc-raw-select>
             <span></span>
           </div>
 
@@ -15514,7 +15514,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260915.2';
+  VERSION_APP = '260915.3';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les

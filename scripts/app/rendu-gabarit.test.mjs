@@ -90,3 +90,62 @@ test("aucun trou du gabarit ne reste non résolu au rendu, et les dix lignes d�
     await nav.close();
   }
 });
+
+test("chaque menu rendu propose ses options — et la garde en voit au moins un", { timeout: 120000 }, async () => {
+  // ————— LE SYMPTÔME DES MENUS, MESURÉ AU RENDU — AVEC L'ANGLE MORT DU BANC DÉCLARÉ —————
+  //
+  // Un menu à une option blanche ressemble à un menu pas encore rempli : c'est pour ça
+  // que vingt-quatre menus muets sont restés cachés chez les utilisateurs à ancien
+  // analyseur. Cette garde lit l'écran : chaque <select> rendu doit proposer au moins
+  // deux options, ou une seule dont le libellé n'est pas vide.
+  //
+  // ANGLE MORT, déclaré (règle 9) : le Chromium de ce banc garde les sc-for dans un
+  // <select> (analyse assouplie, ≥ 134) — remettre la boucle dans un vrai <select> ne
+  // fait donc PAS tomber cette garde-ci, seulement la garde structurelle de
+  // gabarit-contenu-restreint, qui attrape le geste indépendamment de l'analyseur.
+  // Celle-ci attrape le symptôme quelle qu'en soit la cause : un producteur qui rend
+  // une liste vide, un trou non résolu, un menu débranché de sa liste.
+  //
+  // Et une garde qui ne VOIT aucun menu ne mesure rien : elle exige d'en trouver au
+  // moins un — aujourd'hui sur la page « Mes décisions », derrière la porte d'accueil.
+  let chromium;
+  try { ({ chromium } = await import("playwright")); }
+  catch (e) { assert.fail("playwright introuvable — cette garde ne saute pas en silence, voir l’en-tête."); }
+  const executablePath = CHROMIUMS.find((c) => existsSync(c));
+  const nav = await chromium.launch(executablePath ? { executablePath } : {})
+    .catch(() => assert.fail("Chromium introuvable : posez VENA_CHROMIUM — cette garde ne saute pas."));
+  try {
+    const p = await (await nav.newContext()).newPage();
+    await p.goto("file://" + SOLO);
+    await p.waitForFunction(() => document.body && document.body.innerText.length > 400, { timeout: 60000 });
+    // la porte d'accueil arrive APRÈS le premier rendu, et son voile intercepte les
+    // clics tant qu'elle est là : on l'attend, on la franchit, on attend qu'elle parte
+    const porte = await p.waitForSelector('button:has-text("J\'ai compris")', { timeout: 15000 })
+      .catch(() => null);
+    if (porte) {
+      await porte.click();
+      await p.waitForSelector(".dialog-backdrop", { state: "detached", timeout: 10000 }).catch(() => {});
+    }
+    const onglet = await p.$('button:has-text("Mes décisions")');
+    assert.ok(onglet, "l’onglet « Mes décisions » est introuvable : réancrez la garde sur une page qui rend un menu");
+    await onglet.click();
+    await p.waitForFunction(() => document.querySelectorAll("select").length > 0, { timeout: 20000 })
+      .catch(() => {});
+    const menus = await p.evaluate(() =>
+      [...document.querySelectorAll("select")].map((s) => ({
+        options: s.querySelectorAll("option").length,
+        libelle1: ((s.querySelector("option") || {}).textContent || "").trim(),
+      })));
+    assert.ok(menus.length >= 1,
+      "aucun <select> rendu sur « Mes décisions » : la garde ne mesure plus rien — "
+      + "réancrez-la sur une page qui rend un menu, ne la laissez pas verte sur du vide");
+    for (const m of menus) {
+      assert.ok(m.options >= 2 || (m.options === 1 && m.libelle1.length > 0),
+        "un menu rendu ne propose rien : " + m.options + " option(s), première = "
+        + JSON.stringify(m.libelle1) + ". Un menu à une option blanche est le symptôme "
+        + "d’une boucle supprimée ou d’une liste vide — voir gabarit-contenu-restreint.");
+    }
+  } finally {
+    await nav.close();
+  }
+});

@@ -942,6 +942,22 @@ Trois leçons, dans l'ordre où elles ont coûté :
   Le premier utilisateur, lui aussi, avait été cru sur la mauvaise cause : son filtre à
   0/4 était une coïncidence, sa liste était vide comme celle de tout le monde.
 
+#### Le banc d'essai a un analyseur, et c'est un domaine — les `<select>` l'ont prouvé
+
+L'ancien mode « in select » **supprime** toute balise étrangère (la boucle n'est pas
+déplacée comme dans une table : elle n'existe plus — un menu à une option blanche) ;
+l'analyse assouplie de Chromium ≥ 134 **garde** tout. Mesuré des deux côtés : sc-for
+disparu sur le poste de l'utilisateur, 24/24 conservés sur le Chromium du banc. Vingt-
+quatre menus muets sur le terrain, tous verts en CI — « ce Chromium les garde », la
+note du cliquet, était une garantie vraie sur son domaine lue comme générale, la
+famille de `netlify.toml`. Les vingt-quatre s'écrivent en `sc-raw-select` (les
+`<option>` réelles restent : elles survivent dans les deux mondes ; PAS de
+`sc-raw-option`, RAW_WRAP ne le connaît pas). Deux gardes : la structurelle
+(`gabarit-contenu-restreint`) attrape le geste indépendamment de l'analyseur ; celle de
+rendu attrape le symptôme, quelle qu'en soit la cause, et **déclare** que sur ce banc
+la mutation d'analyseur ne peut pas la faire tomber — l'angle mort du banc est un
+angle mort comme les autres : il se déclare dans la garde.
+
 ### Un mot relatif n'est vrai que depuis un référentiel stable
 
 Deux corrections à un jour d'écart, et c'était deux instances d'un seul énoncé :

@@ -21,10 +21,17 @@
 // DIRECTEMENT en sc-raw-* : l'analyseur du document n'y touche pas, et le rendu est le
 // même. Pour les tables, le cliquet devient une INTERDICTION.
 //
-// LES <select>, eux, restent au cliquet : ce Chromium garde leurs sc-for (27 enfants
-// directs mesurés), le défaut confirmé du sélecteur de comptes est corrigé en <div>,
-// et leur conversion est une passe à part — qu'on mènera en sachant, cette fois,
-// écrire la gravité à côté de la dette.
+// LES <select> ONT EU LEUR PASSE, ET LE CLIQUET AVAIT DIT VRAI SANS LE SAVOIR : « ce
+// Chromium garde leurs sc-for » était une garantie vraie sur son domaine — CE Chromium
+// (≥ 134, analyse assouplie du select personnalisable) — lue comme générale. L'ancien
+// mode « in select », encore servi par une partie des navigateurs du terrain, SUPPRIME
+// toute balise qui n'est ni option, ni optgroup, ni hr, ni script : la boucle n'est pas
+// déplacée comme dans une table, elle N'EXISTE PLUS — mesuré des deux côtés, l'ancien
+// monde sur le poste de l'utilisateur (sc-for disparu, menu à une option vide), le
+// nouveau sur le Chromium du banc (24/24 conservés). LA GRAVITÉ, cette fois écrite :
+// chez ces utilisateurs, AUCUN menu à boucle ne proposait rien — vingt-quatre menus
+// muets, invisibles sur le banc d'essai parce que son analyseur les garde. Les vingt-
+// quatre sont en sc-raw-select depuis ; le cliquet devient une INTERDICTION.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -74,7 +81,8 @@ function occurrences() {
 }
 
 // L'état connu au moment où le cliquet est posé. Ces nombres ne doivent que DESCENDRE.
-const CONNUS = { select: 25 };
+// (select y figurait à 25 : sa passe est faite, l'interdiction est plus bas.)
+const CONNUS = {};
 
 test("aucune boucle de gabarit dans un conteneur à contenu restreint NON connu", () => {
   const par = {};
@@ -125,6 +133,33 @@ test("le gabarit n’écrit plus une seule vraie table : sc-raw-* partout", () =
     + "\n\nL'analyseur HTML les vide de leur gabarit avant tout script — voir l'en-tête de "
     + "ce fichier. Écrivez <sc-raw-table>, <sc-raw-tr>, <sc-raw-td>… : même rendu, même "
     + "CSS, aucune rangée fantôme.");
+});
+
+test("le gabarit n’écrit plus une seule boucle dans un vrai <select>", () => {
+  // ————— CE TEST ENSEIGNE UNE CONVENTION, IL NE SIGNALE PAS UNE FAUTE —————
+  //
+  // Écrire <select><sc-for>… est la façon naturelle de remplir un menu, et le piège est
+  // pire que celui des tables : l'ancien mode « in select » de l'analyseur HTML ne
+  // déplace pas la boucle, il la SUPPRIME — le menu rendu n'a qu'une option aux trous
+  // jamais résolus, blanche. Et le piège est VERSIONNÉ : le Chromium du banc d'essai
+  // (analyse assouplie, ≥ 134) garde la boucle et rend le menu — vert ici, muet chez
+  // l'utilisateur dont le navigateur suit encore l'ancien mode. C'est le pire mode de
+  // panne : la garde de rendu ne peut PAS le voir sur ce banc — celle-ci attrape le
+  // geste, indépendamment de l'analyseur qui servira la page.
+  //
+  // QUOI ÉCRIRE À LA PLACE : <sc-raw-select …> autour, les MÊMES <option> réelles
+  // dedans — une option hors d'un select survit à l'analyse dans les deux mondes, et
+  // RAW_UNWRAP rend le vrai <select>, mêmes attributs, même CSS. PAS de
+  // <sc-raw-option> : RAW_WRAP ne connaît pas ce nom, il resterait un élément inconnu.
+  const fautes = occurrences().filter((o) => o.parent === "select");
+  assert.deepEqual(fautes.map((o) => `<${o.quoi}> dans <select> — ligne ${o.ligne}`), [],
+    "une boucle de gabarit vit dans un vrai <select> : l'ancien analyseur la supprime "
+    + "et le menu ne propose rien, sans que le banc d'essai (analyseur récent) le voie. "
+    + "Écrivez <sc-raw-select> autour des mêmes <option> — voir l'en-tête de ce test.");
+  // et personne ne suit la fausse piste symétrique : sc-raw-option n'existe pas
+  assert.ok(!NU.includes("<sc-raw-option"),
+    "<sc-raw-option> n'est pas connu de RAW_UNWRAP : il resterait un élément inconnu "
+    + "dans le rendu. Les <option> réelles suffisent, dans les deux mondes d'analyseur.");
 });
 
 test("l’en-tête n’a plus de <select> : son menu de comptes est en <div>", () => {
