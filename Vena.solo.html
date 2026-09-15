@@ -7262,12 +7262,26 @@ class Component extends DCLogic {
         'Le moment d\u2019entrée bat le hasard (' + dit + '), mais un des cinq contrôles ne passe pas : ' + (w.motifAide || '')]
       : ['non', 'tag tag-neutral',
         'Ni les cinq contrôles ni le contrôle du hasard ne sont concluants — ' + dit + '.'];
+    // ————— L'ÉTAT DU TIRAGE VIT ICI, PAS DANS LES PRODUCTEURS —————
+    // Trois producteurs (la case du tableau, le bouton d'action de la fiche, la ligne
+    // du portefeuille) recalculaient chacun ces trois valeurs dans sa portée ; l'un
+    // d'eux a survécu à la suppression de sa déclaration, et la page entière est
+    // tombée sur « inedit is not defined » — renderVals est UNE fonction, une
+    // exception dans un producteur efface tout. Ils lisent désormais `dec`.
+    const tirages = Math.max(200, Number(this.state.nTirages) || TIRAGES_DEFAUT);
+    // le nombre demandé n'a pas encore été tiré sur cette configuration — au-dessus
+    // comme en dessous du plus fin : deux tailles qui donnent le même pourcentage
+    // disent que ce pourcentage tient
+    const inedit = !this.hasardFait(this.cleHasardFait(r, tirages));
+    const f = this.meilleurHasardFait(r);
+    // « pousser » dit ce que le bouton FAIT : demander PLUS fin que l'enregistré.
+    // L'ancien nom `plusFin` portait deux sens selon l'endroit — l'un des deux était
+    // l'expression d'`inedit` — et c'est ce double sens qui a caché l'orpheline.
+    const pousser = tirages > (f ? f.tirages : 0);
     return { txt: d[0], cls: d[1], aide: d[2], vert: d[1] === 'tag tag-accent', controle: fin, fort,
       // ce que le hasard a rendu, en clair : la fiche l'écrit sous ses chiffres
       phrase: dit || 'hasard non contrôlé',
-      // la finesse du contrôle lu : c'est elle qui dit s'il reste quelque chose à gagner
-      // en relançant le tirage à un nombre plus élevé
-      tirages: h ? h.tirages : 0 };
+      tirages, inedit, pousser };
   }
   // Une cellule de contrôle : le chiffre s'il est en mémoire, sinon un tiret. Jamais
   // calculée au rendu — charger la série de chaque ligne figerait la page.
@@ -13268,23 +13282,26 @@ GROUPES = {
         await this.charger(sym);
         df = this.base(sym);
       } catch (e) {
-        out.push({ sym, entree: entrees[0], ligne: lignes[0], periode: periodes[0], sl: sls[0], rr: rrs[0],
+        // la configuration de ces lignes de repli est celle de la fiche (`d`) : les
+        // anciens `entrees[0]`… venaient d'une autre portée et n'existaient pas ici —
+        // la même classe de panne que les orphelines de renderVals, trouvée par la
+        // garde de portée écrite pour elles
+        out.push({ sym, entree: d.entree, ligne: d.ligne, periode: d.periode, sl: d.sl, rr: d.rr,
           n: 0, total: 0, rAn: 0, dd: 0, positifs: 0, segTotal: 5, pf: 0, winRate: 0,
           sansDonnees: true, erreur: String(e && e.message || e) });
-        echecs.push(sym);
         continue;
       }
       if (!df || df.n < 300) {
         // instrument testé mais inexploitable : il reste listé, sinon il disparaît sans explication
-        out.push({ sym, entree: entrees[0], ligne: lignes[0], periode: periodes[0], sl: sls[0], rr: rrs[0],
+        out.push({ sym, entree: d.entree, ligne: d.ligne, periode: d.periode, sl: d.sl, rr: d.rr,
           n: 0, total: 0, rAn: 0, dd: 0, positifs: 0, segTotal: 5, pf: 0, winRate: 0, sansDonnees: true });
         continue;
       }
       // série trop grossièrement arrondie : un résultat y serait un artefact du
       // fichier, pas une mesure. On refuse au lieu d'afficher un faux +135 R.
-      const qual = this.M.serieUtilisable(df, sls[0]);
+      const qual = this.M.serieUtilisable(df, d.sl);
       if (!qual.ok) {
-        out.push({ sym, entree: entrees[0], ligne: lignes[0], periode: periodes[0], sl: sls[0], rr: rrs[0],
+        out.push({ sym, entree: d.entree, ligne: d.ligne, periode: d.periode, sl: d.sl, rr: d.rr,
           n: 0, total: 0, rAn: 0, dd: 0, positifs: 0, segTotal: 5, pf: 0, winRate: 0,
           sansDonnees: true, erreur: qual.raison, grain: true });
         continue;
@@ -15550,7 +15567,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260915.3';
+  VERSION_APP = '260915.4';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -18198,6 +18215,25 @@ GROUPES = {
     }
     return 'inconnu';
   }
+  // La famille AVEC la version majeure : le discriminant des « deux mondes
+  // d'analyseur » (l'ancien mode « in select » contre l'analyse assouplie de
+  // Chromium ≥ 134). Un pied de page qui ne dit que « Chrome » ne permet pas de
+  // savoir dans quel monde une capture d'écran a été prise. Le relais d'usage,
+  // lui, garde navFamille() : la liste exhaustive de ce qui part annonce une
+  // famille de navigateur, pas un numéro.
+  // Du plus spécifique au plus général : tout navigateur fondé sur Chromium
+  // annonce aussi « Safari/537 », et prendre le dernier jeton rapporterait
+  // « Safari » pour un Chrome — ce qui envoie chercher un bogue là où il n'est pas.
+  navVersionne() {
+    const u = (navigator && navigator.userAgent) || '';
+    for (const [re, nom] of [[/Edg\/([\d.]+)/, 'Edge'], [/OPR\/([\d.]+)/, 'Opera'],
+      [/Firefox\/([\d.]+)/, 'Firefox'], [/Chrome\/([\d.]+)/, 'Chrome'],
+      [/Version\/([\d.]+).*Safari/, 'Safari']]) {
+      const m = u.match(re);
+      if (m) return nom + ' ' + String(m[1]).split('.')[0];
+    }
+    return 'navigateur inconnu';
+  }
   usageNoter(evt) {
     const u = this.lireUsage();
     if (!u.actif) return;
@@ -18267,7 +18303,7 @@ GROUPES = {
     l.push('règle, ni prix, ni résultat n' + '’' + 'y figure.');
     l.push('');
     l.push('version application : ' + this.VERSION_APP + ' · moteur : ' + this.MOTEUR_V);
-    l.push('navigateur : ' + this.navFamille() + ' · vue intégrée : ' + (this.dansIframe() ? 'oui' : 'non'));
+    l.push('navigateur : ' + this.navVersionne() + ' · vue intégrée : ' + (this.dansIframe() ? 'oui' : 'non'));
     l.push('espace : ' + (this.essai ? 'essai' : (s.deverrouille ? 'perso' : 'client')));
     l.push('persistance du stockage : ' + (s.persistEtat || 'non mesurée'));
     if (s.place) l.push('stockage : ' + this.taille(s.place.utilise) + ' utilisés sur ' + this.taille(s.place.quota)
@@ -19336,19 +19372,7 @@ GROUPES = {
         // L'ESPACE DE TRAVAIL, tel que le cloisonnement le nomme : un bogue qui n'arrive
         // que dans l'espace déverrouillé n'est pas le même qu'un bogue de la démo.
         const espace = this.essai ? 'essai' : (s.deverrouille ? 'perso' : 'client');
-        const nav = (() => {
-          const u = (navigator && navigator.userAgent) || '';
-          // du plus spécifique au plus général : tout navigateur fondé sur Chromium
-          // annonce aussi « Safari/537 », et prendre le dernier jeton rapportait « Safari »
-          // pour un Chrome — ce qui envoie chercher un bogue là où il n'est pas.
-          for (const [re, nom] of [[/Edg\/([\d.]+)/, 'Edge'], [/OPR\/([\d.]+)/, 'Opera'],
-            [/Firefox\/([\d.]+)/, 'Firefox'], [/Chrome\/([\d.]+)/, 'Chrome'],
-            [/Version\/([\d.]+).*Safari/, 'Safari']]) {
-            const m = u.match(re);
-            if (m) return nom + ' ' + String(m[1]).split('.')[0];
-          }
-          return 'navigateur inconnu';
-        })();
+        const nav = this.navVersionne();
         // Trois compteurs, et RIEN d'autre : ce sont des tailles, pas des mesures. Le
         // capital, les résultats et les noms d'instruments restent dans le navigateur.
         const ctx = {
@@ -20378,7 +20402,7 @@ GROUPES = {
       //
       // La branche d'essai, elle, RESTE : elle ne nomme personne, et distinguer un
       // essai d'une licence est justement utile dans une capture d'écran.
-      piedIdentite: 'Véna ' + this.VERSION_APP + ' · ' + this.navFamille()
+      piedIdentite: 'Véna ' + this.VERSION_APP + ' · ' + this.navVersionne()
         + (this.licenceMention() ? '' : ' · version d\u2019essai — aucune licence'),
       ...(() => {
         // l'état des trois sections repliées : lisible sans les ouvrir
@@ -24498,8 +24522,12 @@ GROUPES = {
             // La ligne telle que le contrôle du hasard l'attend : les configurations
             // rangées portent `sid`, le reste de la page `_sid`.
             const vr = { ...v, _sid: v.sid || v._sid };
+            // l'état du tirage (inedit, pousser, tirages) vient de `decisionDe`, comme
+            // pour la fiche et les validées : recalculé ici dans sa propre portée, il
+            // serait une deuxième vérité — et c'est une copie locale devenue orpheline
+            // qui a mis la page entière en panne
+            const dec = this.decisionDe(vr);
             const ici = !!s.hasardEnCours && s.hasardUne === this.cleFine(vr);
-            const t = Math.max(200, Number(s.nTirages) || 200);
             const lancer = (e) => { if (e && e.stopPropagation) e.stopPropagation();
               this.controlerUne(vr); };
             const f = this.meilleurHasardFait(v);
@@ -24507,7 +24535,7 @@ GROUPES = {
               return { hasTxt: ici ? 'contrôle…' : 'contrôler', hasCls: 'tag tag-outline',
                 hasAFaire: !ici, hasVu: ici, hasIci: ici, hasOccupe: !!s.hasardEnCours, lancerHas: lancer,
                 hasAide: 'Le contrôle du hasard n\u2019a pas encore été fait sur cette configuration. '
-                  + 'Cliquez pour le lancer à ' + t.toLocaleString('fr-FR') + ' tirages — le nombre se règle juste au-dessus du tableau.' };
+                  + 'Cliquez pour le lancer à ' + dec.tirages.toLocaleString('fr-FR') + ' tirages — le nombre se règle juste au-dessus du tableau.' };
             }
             const p = f.auDessus / f.tirages;
             // même règle qu'ailleurs : un zéro mesuré s'écrit « 0 % », pas « moins de
@@ -24518,18 +24546,16 @@ GROUPES = {
               : Math.round(p * 100) + ' %';
             // Un nouveau contrôle est proposé dès que le champ demande un nombre de
             // tirages qui n'a pas encore été joué sur cette configuration — au-dessus
-            // comme en dessous du plus fin déjà enregistré. Deux tailles de tirage qui
-            // donnent le même pourcentage disent que ce pourcentage tient.
-            const plusFin = !this.hasardFait(this.cleHasardFait({ ...v, _sid: v.sid || v._sid }, t));
+            // comme en dessous du plus fin déjà enregistré : c'est `dec.inedit`.
             return { hasTxt: ici ? 'contrôle…' : pct,
               hasCls: 'tag ' + (p <= 0.05 ? 'tag-accent' : p <= 0.2 ? 'tag-outline' : 'tag-neutral'),
-              hasAFaire: plusFin && !ici, hasVu: !(plusFin && !ici), hasIci: ici, hasOccupe: !!s.hasardEnCours, lancerHas: lancer,
+              hasAFaire: dec.inedit && !ici, hasVu: !(dec.inedit && !ici), hasIci: ici, hasOccupe: !!s.hasardEnCours, lancerHas: lancer,
               hasAide: (f.auDessus === 0 ? 'Aucun des ' + f.tirages + ' tirages au hasard ne fait'
                 : f.auDessus === 1 ? '1 tirage sur ' + f.tirages + ' fait'
                 : f.auDessus + ' des ' + f.tirages + ' tirages au hasard font')
                 + ' aussi bien. Sous 5 %, le moment d\u2019entrée apporte quelque chose ; au-delà de 20 %, entrer au hasard aurait donné le même résultat.'
                 + ' Contrôle le plus fin enregistré : ' + f.tirages.toLocaleString('fr-FR') + ' tirages.'
-                + (plusFin ? ' Cliquez pour le refaire à ' + t.toLocaleString('fr-FR') + ' tirages.' : '') };
+                + (dec.inedit ? ' Cliquez pour le refaire à ' + dec.tirages.toLocaleString('fr-FR') + ' tirages.' : '') };
           })(),
           // ————— OÙ EN EST LE DÉPLOIEMENT —————
           //
@@ -24631,23 +24657,23 @@ GROUPES = {
           // laquelle des trois lui restait à faire. C'est la ligne qui le sait.
           ...(() => {
             const vr = { ...v, _sid: v.sid || v._sid };
-            const h = this.verdictHasard(vr);
+            // même source que la fiche et le portefeuille : l'état du tirage est dans
+            // `dec`, jamais recalculé dans la portée du producteur
+            const dec = this.decisionDe(vr);
             const mg = this.magicDe(v);
             const j = this.journalDe(v);
             const fermes = (j && j.trades) || [];
-            const t = Math.max(200, Number(s.nTirages) || 200);
             const f = this.meilleurHasardFait(v);
             const bt = (e) => { if (e && e.stopPropagation) e.stopPropagation();
               this.versBacktest({ ...v, _sid: v.sid }); };
             const has = (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.controlerUne(vr); };
             const rob = (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.exporterRobot(v); };
-            if (!h) {
+            if (!dec.controle) {
               return { faireTxt: 'Contrôler le hasard', faireCls: 'tag tag-accent', faire: has,
                 faireAide: 'Le hasard n’a pas été mesuré sur cette configuration : rien ne dit encore qu’elle vaut mieux qu’un tirage au sort.' };
             }
-            const inedit = !this.hasardFait(this.cleHasardFait(vr, t));
-            if (h.verdict !== 'se distingue nettement' && h.verdict !== 'se distingue' && inedit) {
-              return { faireTxt: (t > (f ? f.tirages : 0) ? 'Pousser à ' : 'Refaire à ') + t.toLocaleString('fr-FR'),
+            if (!dec.fort && dec.inedit) {
+              return { faireTxt: (dec.pousser ? 'Pousser à ' : 'Refaire à ') + dec.tirages.toLocaleString('fr-FR'),
                 faireCls: 'tag tag-accent', faire: has,
                 faireAide: 'Le contrôle à ' + (f ? f.tirages : 0) + ' tirages ne tranche pas. Le rejouer à un autre nombre de tirages peut le trancher.' };
             }
@@ -27309,9 +27335,9 @@ GROUPES = {
                   }
                   // le hasard ne tranche pas ET le champ demande un nombre qui n'a pas
                   // encore été tiré : il reste quelque chose à apprendre
-                  if (!dec.fort && inedit) {
+                  if (!dec.fort && dec.inedit) {
                     return { aAgir: true,
-                      agirTxt: (plusFin ? 'Pousser à ' : 'Refaire à ') + tDem.toLocaleString('fr-FR') + ' tirages',
+                      agirTxt: (dec.pousser ? 'Pousser à ' : 'Refaire à ') + dec.tirages.toLocaleString('fr-FR') + ' tirages',
                       agirCls: 'btn btn-secondary',
                       agirAide: dec.aide, agirBloque: !!s.hasardEnCours,
                       agir: (e) => { if (e && e.stopPropagation) e.stopPropagation();
@@ -27379,8 +27405,8 @@ GROUPES = {
                 aAlerte: !dec.vert && !!fin,
                 alerteTxt: 'Écartée : ' + dec.txt + '.',
                 decTxt: dec.txt, decCls: dec.cls,
-                decAide: dec.aide + (fin && inedit
-                  ? ' Cliquez pour refaire le contrôle à ' + tDem.toLocaleString('fr-FR') + ' tirages.' : '') };
+                decAide: dec.aide + (fin && dec.inedit
+                  ? ' Cliquez pour refaire le contrôle à ' + dec.tirages.toLocaleString('fr-FR') + ' tirages.' : '') };
             })(),
             variante: r.filtreNom || (r.filtre ? this.nomVariante(r.filtre) : ''),
             aVariante: !!(r.filtreNom || r.filtre),

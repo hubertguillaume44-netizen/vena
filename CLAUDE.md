@@ -958,6 +958,40 @@ rendu attrape le symptôme, quelle qu'en soit la cause, et **déclare** que sur 
 la mutation d'analyseur ne peut pas la faire tomber — l'angle mort du banc est un
 angle mort comme les autres : il se déclare dans la garde.
 
+#### Le rendu ne prouve que les chemins qu'il exerce — la portée, elle, se prouve statiquement
+
+La panne la plus grave du dépôt en une ligne : **« inedit is not defined » dans un
+producteur, et la page entière est blanche** — `renderVals()` est UNE fonction, une
+exception dans un producteur efface tout, y compris ce qui n'a rien à voir. Trois
+locales (`inedit`, `plusFin`, `tDem`) avaient survécu à la suppression de leur
+déclaration : leurs lecteurs vivaient plus bas dans `ligne()`, leur déclaration dans
+un AUTRE producteur. 457 tests au vert pendant la panne totale, garde de rendu
+comprise : le banc part d'un navigateur neuf, sans lignes de scan, donc `ligne()`
+n'y tourne jamais. Une lecture hors de sa portée ne jette que si sa branche
+s'exécute — mais elle est **parfaitement visible statiquement**.
+
+Deux gardes ferment la classe, chacune déclarant ce que l'autre couvre :
+
+- **`portee-script.test.mjs`** parse chaque `<script>` en ligne (espree) et résout
+  les portées (eslint-scope) : toute référence qui n'est ni déclarée dans un bloc du
+  fichier, ni un nom d'environnement navigateur (le paquet `globals`, rien d'énuméré
+  à la main), ni une exception déclarée avec sa raison (`DCLogic`, support.js), est
+  un échec nommé avec sa ligne. Sa première exécution a trouvé la panne — **et une
+  deuxième de la même classe, endormie dans `testerAilleurs`** (`entrees[0]`… lus
+  d'une portée qui n'existait pas : le repli d'un instrument inchargeable jetait).
+- **`rendu-gabarit.test.mjs`** échoue sur toute `pageerror` : une exception y est
+  plus grave qu'un trou, elle efface tout — mais seulement sur les chemins que le
+  banc exerce.
+
+Et le remède du fond n'est pas la garde, c'est **une seule vérité** : l'état du
+tirage (`inedit`, `pousser`, `tirages`) vit dans `decisionDe` — `dec.inedit`,
+`dec.pousser` (le mot dit ce que le bouton fait ; l'ancien `plusFin` portait deux
+sens selon l'endroit, et c'est ce double sens qui a caché l'orpheline),
+`dec.tirages` — et les trois producteurs lisent `dec` au lieu de recalculer chacun
+sa copie. Re-déclarer sur place aurait réparé le symptôme en gardant la cause :
+quatre copies du même calcul, dont n'importe laquelle pouvait diverger la prochaine
+fois.
+
 ### Un mot relatif n'est vrai que depuis un référentiel stable
 
 Deux corrections à un jour d'écart, et c'était deux instances d'un seul énoncé :

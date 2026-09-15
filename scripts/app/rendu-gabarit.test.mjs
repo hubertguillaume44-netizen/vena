@@ -43,6 +43,8 @@ test("aucun trou du gabarit ne reste non résolu au rendu, et les dix lignes d�
   try {
     const p = await (await nav.newContext()).newPage();
     const nonResolus = [];
+    const exceptions = [];
+    p.on("pageerror", (e) => exceptions.push(String((e && e.message) || e)));
     p.on("console", (m) => {
       const x = /\{\{ [^}]+ \}\} never resolved/.exec(m.text());
       if (x) nonResolus.push(x[0]);
@@ -59,6 +61,22 @@ test("aucun trou du gabarit ne reste non résolu au rendu, et les dix lignes d�
       const t = document.querySelector("table.table tbody");
       return t ? [...t.querySelectorAll("tr")].map((tr) => (tr.innerText || "").replace(/\s+/g, " ").trim()) : null;
     });
+
+    // ————— UNE EXCEPTION EST PLUS GRAVE QU'UN TROU : ELLE EFFACE TOUT —————
+    // renderVals() est UNE fonction : « inedit is not defined » dans un producteur a
+    // rendu la page ENTIÈRE blanche chez tout utilisateur ayant des lignes de scan,
+    // pendant que 457 tests passaient au vert. Un trou non résolu prive une case de
+    // sa valeur ; une exception prive la page de tout. Elle se vérifie donc AVANT les
+    // trous : une page qui a jeté n'a plus rien d'autre à mesurer.
+    // ANGLE MORT, déclaré (règle 9) : ce banc part d'un navigateur neuf, sans lignes
+    // de scan — `ligne()` n'y tourne pas, et c'est là que l'orpheline vivait. Les
+    // identifiants hors de leur portée sont fermés STATIQUEMENT par
+    // portee-script.test.mjs, qui n'a pas besoin que la branche s'exécute ; cette
+    // assertion attrape le reste — tout ce qui ne jette qu'à l'exécution — sur les
+    // chemins que le banc exerce.
+    assert.deepEqual(exceptions, [],
+      "La page livrée a JETÉ au chargement — renderVals est une seule fonction, la page "
+      + "entière est donc blanche ou amputée chez l'utilisateur :\n  " + exceptions.join("\n  "));
 
     assert.deepEqual([...new Set(nonResolus)], [],
       "Des trous du gabarit n’ont jamais reçu leur valeur — le runtime le dit en console, "
@@ -116,6 +134,11 @@ test("chaque menu rendu propose ses options — et la garde en voit au moins un"
     .catch(() => assert.fail("Chromium introuvable : posez VENA_CHROMIUM — cette garde ne saute pas."));
   try {
     const p = await (await nav.newContext()).newPage();
+    // même règle que le premier test : une exception efface tout, et ce test-ci
+    // navigue plus loin (porte franchie, onglet cliqué) — il exerce des producteurs
+    // que le chargement seul n'exerce pas
+    const exceptions = [];
+    p.on("pageerror", (e) => exceptions.push(String((e && e.message) || e)));
     await p.goto("file://" + SOLO);
     await p.waitForFunction(() => document.body && document.body.innerText.length > 400, { timeout: 60000 });
     // la porte d'accueil arrive APRÈS le premier rendu, et son voile intercepte les
@@ -145,6 +168,9 @@ test("chaque menu rendu propose ses options — et la garde en voit au moins un"
         + JSON.stringify(m.libelle1) + ". Un menu à une option blanche est le symptôme "
         + "d’une boucle supprimée ou d’une liste vide — voir gabarit-contenu-restreint.");
     }
+    assert.deepEqual(exceptions, [],
+      "La page a JETÉ pendant la navigation — une exception dans un producteur efface "
+      + "la page entière (voir le premier test) :\n  " + exceptions.join("\n  "));
   } finally {
     await nav.close();
   }
