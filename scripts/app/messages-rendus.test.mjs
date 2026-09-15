@@ -42,9 +42,10 @@ test("le bandeau de perte rend compte : autoMsg, Réautoriser et sauvMsg y viven
   // même producteur, jamais une copie : la surface lit les hooks globaux
   assert.ok(APP.includes("reautoriser: () => this.reautoriserAuto(),"),
     "le geste Réautoriser n'est plus branché sur reautoriserAuto");
-  assert.ok(APP.includes("aReautoriser: !!s.autoAttente,"),
-    "le bouton Réautoriser ne se montre plus sur l'état d'attente : il "
-    + "s'afficherait pour des messages qui ne le concernent pas, ou jamais");
+  assert.ok(APP.includes("aReautoriser: !!s.autoAttente && !(montrer && !(reduit || integre)),"),
+    "le filet Réautoriser doit se montrer sur l'attente SANS doubler l'accent — "
+    + "quand l'accent porte déjà « Réautoriser la sauvegarde » (fichier connu, "
+    + "alerte pleine), deux boutons pour la même intention est le défaut d'A3");
 });
 
 test("les messages du contrôle du hasard ont une surface sur la page des scans", () => {
@@ -53,4 +54,25 @@ test("les messages du contrôle du hasard ont une surface sur la page des scans"
   assert.ok(GAB.includes("{{ hasardMsg }}"),
     "hasardMsg n'a plus de surface : ses messages d'échec (place manquante, "
     + "générateur non chargé) sont produits et jamais montrés");
+});
+
+test("4e temps : un message de geste s'efface au changement de vue", () => {
+  // ————— LA RÈGLE DES MESSAGES A QUATRE TEMPS, PAS TROIS —————
+  // Posé, non essuyé, rendu là où le geste est… et RETIRÉ quand il ne concerne
+  // plus rien. Le cas réel : deux lignes rouges d'un échec d'export restaient
+  // affichées sous la liste des instruments de la page SUIVANTE — un message
+  // orphelin se lit comme un échec du geste qu'on vient de faire. La porte est
+  // UNIQUE (componentDidUpdate, sur la clé tab|vue) : une porte par producteur
+  // rouvrirait le trou au premier message ajouté sans elle.
+  const i = APP.indexOf("componentDidUpdate() {");
+  assert.ok(i > 0, "componentDidUpdate a changé de forme — réancrez");
+  const corps = APP.slice(i, borne(APP, "this._vuePrec = vueIci;", i));
+  assert.ok(corps.includes("const vueIci = this.state.tab + '|' + this.state.vue;"),
+    "la clé de vue (tab|vue) a disparu : l'effacement ne sait plus quand la vue change");
+  assert.ok(corps.includes("this._vuePrec !== undefined && this._vuePrec !== vueIci"),
+    "la comparaison à la vue précédente a disparu — ou efface dès le premier rendu, "
+    + "ce qui essuierait un message avant qu'il soit lu (le 2e temps, à rebours)");
+  assert.ok(corps.includes("sauvMsg: null, autoMsg: null, baremeMsg: null"),
+    "le changement de vue n'efface plus les trois messages de geste : deux échecs "
+    + "de deux pages s'empilent à nouveau sous la page suivante");
 });

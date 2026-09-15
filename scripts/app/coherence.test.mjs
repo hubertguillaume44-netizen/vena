@@ -216,9 +216,13 @@ for (const f of FICHIERS) {
     assert.ok(!txt.includes("'Exporter à nouveau'\n"),
       "le nom variable de l’état « déjà exporté » ne doit plus exister");
     // …et le troisième état garde le sien : il est le seul chemin vers la sauvegarde
-    // automatique, le renommer supprimerait la fonction
-    assert.match(txt, /: 'Choisir le fichier de sauvegarde',/,
-      "l’état qui n’exporte pas doit garder son nom propre");
+    // automatique, le renommer supprimerait la fonction. Réancré : il porte
+    // désormais DEUX noms selon qu'un fichier attend sa permission (« Réautoriser »)
+    // ou qu'aucun n'a jamais été choisi (« Choisir ») — jamais les deux boutons à
+    // la fois, c'était le défaut A3.
+    assert.match(txt, /s\.autoNom \? 'Réautoriser la sauvegarde' : 'Choisir le fichier de sauvegarde'/,
+      "l’état qui n’exporte pas doit garder ses noms propres — Réautoriser pour un "
+      + "fichier connu, Choisir pour un premier choix");
     // AU MOINS deux, et non exactement deux. Ce garde-fou est là pour qu'un chemin ne
     // DISPARAISSE pas ; en figer le nombre interdisait d'en ouvrir un nouveau, alors que
     // le défaut d'origine était justement que la sauvegarde automatique n'était

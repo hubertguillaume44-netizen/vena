@@ -1541,7 +1541,7 @@
 
 
       <sc-if value="{{ aConfirmBareme }}" hint-placeholder-val="{{ false }}">
-        <div style="width:100%;border:1px solid var(--color-accent);padding:10px 12px;display:flex;flex-direction:column;gap:8px">
+        <div id="confirmBareme" style="width:100%;border:1px solid var(--color-accent);padding:10px 12px;display:flex;flex-direction:column;gap:8px">
           <strong style="font-family:var(--font-heading);font-size:15px;line-height:1.3">{{ confirmTitre }}</strong>
           <span style="font-size:12px;line-height:1.5">{{ confirmDetail }}</span>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -9588,9 +9588,17 @@ GROUPES = {
       if (!Object.keys(table).length) { this.setState({ baremeMsg: 'Aucune ligne lisible dans ce fichier.' }); return; }
       const actuel = (this.baremes || {})[cle];
       this._tableEnAttente = table;
+      // la confirmation VIENT au geste : le dépôt peut partir du champ nº 1, de la
+      // zone « tous vos CSV » ou d'un lâcher n'importe où sur la page — aucun
+      // emplacement fixe n'est « là où le geste est » pour les trois. Mesuré : rendue
+      // sous le cadre entier, elle tombait ~450 px sous la fenêtre, et un dépôt qui
+      // marchait se lisait « ça ne marche pas ».
       this.setState({ confirmBareme: { cle, nom: fichier.name || 'ce fichier',
         n: Object.keys(table).length,
-        nActuel: actuel ? Object.keys(actuel).length : 0 }, baremeMsg: null });
+        nActuel: actuel ? Object.keys(actuel).length : 0 }, baremeMsg: null }, () => {
+        try { const el = document.getElementById('confirmBareme');
+          if (el) el.scrollIntoView({ block: 'nearest' }); } catch (e2) {}
+      });
     } catch (e) { this.setState({ baremeMsg: 'Fichier illisible.' }); }
   }
   async poserBareme(cle, table) {
@@ -9605,8 +9613,9 @@ GROUPES = {
     this.mesurerPlace();
       this.garderBareme(cle, this.baremes[cle], this.dateBareme[cle]);
       this.baremesChanges();
+      const nSym = Object.keys(table).length;
       this.setState({ confirmBareme: null,
-        baremeMsg: Object.keys(table).length + ' symboles lus pour ' + this.nomCourtier(cle) + '.' });
+        baremeMsg: nSym + (nSym > 1 ? ' symboles lus' : ' symbole lu') + ' pour ' + this.nomCourtier(cle) + '.' });
     } catch (e) {
       // le fichier est déjà analysé ici : un échec vient du stockage, pas de la lecture
       this.setState({ baremeMsg: 'Relevé lu, mais impossible de l\u2019enregistrer dans ce navigateur (stockage plein). Il reste valable jusqu\u2019à la fermeture de l\u2019onglet.' });
@@ -11390,6 +11399,18 @@ GROUPES = {
   }
   componentDidUpdate() {
     this.caserPanneaux();
+    // ————— UN MESSAGE APPARTIENT AU GESTE QUI L'A PRODUIT — 4e TEMPS —————
+    // Posé, non essuyé, rendu là où le geste est… et RETIRÉ quand il ne concerne
+    // plus rien : deux échecs de deux pages différentes restaient empilés sous la
+    // page suivante, et un relevé déposé se lisait comme un export raté. La porte
+    // unique du changement de vue efface les messages de geste — le geste suivant
+    // remplace le précédent, jamais deux échecs de deux gestes empilés.
+    const vueIci = this.state.tab + '|' + this.state.vue;
+    if (this._vuePrec !== undefined && this._vuePrec !== vueIci
+      && (this.state.sauvMsg || this.state.autoMsg || this.state.baremeMsg)) {
+      this.setState({ sauvMsg: null, autoMsg: null, baremeMsg: null });
+    }
+    this._vuePrec = vueIci;
     // Les barres sont RECRÉÉES quand la vue change : l'observateur de hauteurs suivait
     // alors un nœud détaché, et hEntete/hFil restaient figés sur la mesure du premier
     // rendu — le bandeau collant des instruments s'épinglait trop haut ou trop bas,
@@ -15504,7 +15525,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260915.11';
+  VERSION_APP = '260915.12';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -17702,6 +17723,41 @@ GROUPES = {
       });
     } catch (e) { return null; }
   }
+  // ————— L'EXPORT S'ASSEMBLE EN MORCEAUX : AUCUNE CHAÎNE COMPLÈTE N'EXISTE —————
+  // V8 refuse une chaîne au-delà d'environ 512 Mo : un seul JSON.stringify du dump
+  // entier échouait sur « Invalid string length » — l'export mourait précisément
+  // chez qui avait le plus à sauver. Le Blob accepte un tableau de morceaux : une
+  // entrée à la fois, le navigateur assemble sans que JavaScript détienne le tout.
+  // Et les entrées `gros:` sont DÉJÀ des chaînes JSON (mesuré : le stringify
+  // extérieur ré-échappait chaque guillemet, doublant le poids du gros du
+  // fichier) : elles partent VERBATIM, comme valeur JSON brute. À l'export le
+  // nouveau format seulement ; l'import accepte les deux, sans date limite.
+  partiesExport(dump, entete) {
+    const parts = ['{' + entete + '"donnees":{'];
+    let premier = true;
+    for (const [k, v] of Object.entries(dump)) {
+      parts.push((premier ? '' : ',') + JSON.stringify(k) + ':');
+      parts.push(k.startsWith('gros:') ? v : JSON.stringify(v));
+      premier = false;
+    }
+    parts.push('}}');
+    return parts;
+  }
+  // le bloc disproportionné se journalise : un bloc qui pèse la moitié d'un export
+  // de plusieurs mégaoctets est un second défaut possible (croissance à chaque
+  // écriture) — le diagnostic doit le montrer, anonymisé
+  journaliserBlocLourd(dump, total) {
+    if (total < 8 * 1048576) return;
+    let maxK = '', maxL = 0;
+    for (const [k, v] of Object.entries(dump)) {
+      const l = (v || '').length;
+      if (l > maxL) { maxL = l; maxK = k; }
+    }
+    if (maxL > total * 0.5) {
+      this.journaliserErreur('export : le bloc ' + maxK.split('|')[0] + ' pèse '
+        + this.taille(maxL) + ' sur ' + this.taille(total));
+    }
+  }
   async dumpCompletAvecScan() {
     const dump = this.dumpComplet();
     // les séries déposées font le gros du fichier : une entrée par symbole et par espace
@@ -17986,7 +18042,7 @@ GROUPES = {
       const b = JSON.parse(await f.text());
       if (!b || (b.outil !== 'vena' && b.outil !== 'simula') || !b.donnees) return null;
       for (const [k, v] of Object.entries(b.donnees)) {
-        if (k.startsWith('gros:')) { try { await this.grosSet(k.slice(5), JSON.parse(v)); } catch (e) {} continue; }
+        if (k.startsWith('gros:')) { try { await this.grosSet(k.slice(5), typeof v === 'string' ? JSON.parse(v) : v); } catch (e) {} continue; }
         try { localStorage.setItem(k, v); } catch (e) {}
       }
       const scanSauve = await this.lireScanComplet();
@@ -18121,19 +18177,23 @@ GROUPES = {
       }
     }
     const licC = this.ligneLicenceExport();
-    const clair = new TextEncoder().encode(JSON.stringify(
-      { outil: 'vena', version: 1, date: new Date().toISOString(),
-        ...(licC ? { licence: licC } : {}), donnees: dump }));
+    // même assemblage en morceaux que l'export en clair : le stringify du dump
+    // entier portait la même limite, en plus gros
+    const clair = new Uint8Array(await new Blob(this.partiesExport(dump,
+      '"outil":"vena","version":1,"date":' + JSON.stringify(new Date().toISOString()) + ','
+      + (licC ? '"licence":' + JSON.stringify(licC) + ',' : ''))).arrayBuffer());
     const sel = crypto.getRandomValues(new Uint8Array(16));
     const iv = crypto.getRandomValues(new Uint8Array(12));
     const cle = await this.cleDePhrase(phrase, sel, this.CHIFFRE_ITER);
     const chiffre = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, cle, clair));
-    const fichier = JSON.stringify({ vena_chiffre: 1, algo: 'AES-GCM',
-      kdf: 'PBKDF2-SHA256', iterations: this.CHIFFRE_ITER,
-      sel: this._b64o(sel), iv: this._b64o(iv), date: new Date().toISOString(),
-      donnees: this._b64o(chiffre) }, null, 1);
+    // l'enveloppe aussi part en morceaux : la base64 du chiffré n'a aucun
+    // caractère à échapper, elle s'insère verbatim dans la chaîne JSON
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([fichier], { type: 'application/json' }));
+    a.href = URL.createObjectURL(new Blob(['{"vena_chiffre":1,"algo":"AES-GCM",'
+      + '"kdf":"PBKDF2-SHA256","iterations":' + this.CHIFFRE_ITER + ','
+      + '"sel":' + JSON.stringify(this._b64o(sel)) + ',"iv":' + JSON.stringify(this._b64o(iv))
+      + ',"date":' + JSON.stringify(new Date().toISOString()) + ',"donnees":"',
+      this._b64o(chiffre), '"}'], { type: 'application/json' }));
     a.download = 'vena-chiffre-' + new Date().toISOString().slice(0, 10) + '.json';
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 2000);
@@ -18316,9 +18376,11 @@ GROUPES = {
     try {
       const dump = await this.dumpCompletAvecScan();
       const licE = this.ligneLicenceExport();
-      const blob = new Blob([JSON.stringify({ outil: 'vena', version: 1, date: new Date().toISOString(),
-        ...(licE ? { licence: licE } : {}), donnees: dump }, null, 1)],
+      const blob = new Blob(this.partiesExport(dump,
+        '"outil":"vena","version":1,"date":' + JSON.stringify(new Date().toISOString()) + ','
+        + (licE ? '"licence":' + JSON.stringify(licE) + ',' : '')),
         { type: 'application/json' });
+      this.journaliserBlocLourd(dump, blob.size);
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
       a.download = 'vena-sauvegarde-' + new Date().toISOString().slice(0, 10) + '.json';
@@ -18328,7 +18390,10 @@ GROUPES = {
       // sauve rien : c'est la date qui pousse à cliquer, et elle n'existait nulle part.
       try { localStorage.setItem(this.cleGlobale(this.CLE_SAUV), JSON.stringify({
         t: Date.now(), nC: (this.lignesScan || []).length, nS: (this.state.deposes || []).length })); } catch (e) {}
-      this.setState({ sauvMsg: Object.keys(dump).length + ' blocs exportés.',
+      // la taille dans le message : « 47 blocs » ne dit pas si le fichier est
+      // utilisable ; « 47 blocs · 84 Mo » le dit, et prévient le prochain mur
+      this.setState({ sauvMsg: Object.keys(dump).length + ' blocs · '
+        + this.taille(blob.size) + ' exportés.',
         sauvDate: Date.now() });
     } catch (e) {
       this.journaliserErreur('exporterTout : ' + ((e && e.message) || e));
@@ -18357,7 +18422,9 @@ GROUPES = {
           try { deja = await this.grosGet(cleG); } catch (e) {}
           if (deja) { sautes++; continue; }
         }
-        try { await this.grosSet(cleG, JSON.parse(v)); n++; } catch (e) {}
+        // deux formes acceptées, sans date limite : la chaîne (exports d'avant
+        // 260915.12) et l'objet brut (le format d'export courant)
+        try { await this.grosSet(cleG, typeof v === 'string' ? JSON.parse(v) : v); n++; } catch (e) {}
         continue;
       }
       if (mode === 'fusion' && localStorage.getItem(k) !== null) { sautes++; continue; }
@@ -18429,7 +18496,7 @@ GROUPES = {
       // On compte SANS rien écrire : les clés du dump disent déjà ce qu'il porte.
       const d = b.donnees;
       const cles = Object.keys(d);
-      const lireJ = (k) => { try { return JSON.parse(d[k]); } catch (e) { return null; } };
+      const lireJ = (k) => { const v = d[k]; if (v && typeof v === 'object') return v; try { return JSON.parse(v); } catch (e) { return null; } };
       // Les clés portent l'espace ET le compte entre la base et le suffixe :
       // « gros:vena.series.v1.client.demo|DEMO-TECH ». Chercher « base| » ne trouvait
       // donc rien, et le dialogue annonçait « 0 série » devant un fichier de 7 Mo.
@@ -18493,7 +18560,7 @@ GROUPES = {
         const k = this.cleVersNeuf(k0);
         // les scans complets repartent dans IndexedDB, pas dans localStorage
         if (k.startsWith('gros:')) {
-          try { await this.grosSet(k.slice(5), JSON.parse(v)); n++; } catch (e) {}
+          try { await this.grosSet(k.slice(5), typeof v === 'string' ? JSON.parse(v) : v); n++; } catch (e) {}
           continue;
         }
         try { localStorage.setItem(k, v); n++; } catch (e) {}
@@ -19876,8 +19943,14 @@ GROUPES = {
           // choix d'un fichier de sauvegarde automatique, et le paragraphe juste au-dessus
           // demande précisément de le choisir. Le renommer aurait supprimé l'unique accès
           // à cette fonction. Il garde donc son nom, qui dit ce qu'il fait.
-          sansSauvBouton: (reduit || integre) ? 'Exporter mes données' : 'Choisir le fichier de sauvegarde',
-          sansSauvAgir: (reduit || integre) ? async () => { await this.exporterTout(); } : () => this.choisirFichierAuto(),
+          // ————— JAMAIS LES DEUX : un fichier CONNU se réautorise, il ne se
+          // rechoisit pas — deux boutons pour la même intention, dont un qui
+          // recommence de zéro, se sont montrés côte à côte. « Choisir » reste
+          // l'unique porte du PREMIER usage, et elle seule.
+          sansSauvBouton: (reduit || integre) ? 'Exporter mes données'
+            : (s.autoNom ? 'Réautoriser la sauvegarde' : 'Choisir le fichier de sauvegarde'),
+          sansSauvAgir: (reduit || integre) ? async () => { await this.exporterTout(); }
+            : (s.autoNom ? () => this.reautoriserAuto() : () => this.choisirFichierAuto()),
           // « Plus tard » a disparu : un bouton qui referme un avertissement de perte de
           // données est un bouton pour perdre ses données. À sa place, l'action que la
           // dernière phrase du texte réclame sans donner le moyen de la faire.
@@ -19897,6 +19970,10 @@ GROUPES = {
           // nom seraient deux vérités. Sans alerte, il n'y a pas d'accent du tout :
           // les deux gestes de données restent, dans TOUS les états de la barre.
           aSansSauvExporter: !(montrer && (reduit || integre)),
+          // le filet « Réautoriser » du message ne double JAMAIS l'accent : quand
+          // l'accent porte déjà ce geste (alerte pleine, fichier connu), le filet
+          // s'efface — deux boutons pour la même intention étaient le défaut
+          aReautoriser: !!s.autoAttente && !(montrer && !(reduit || integre)),
           sansSauvExporter: async () => { await this.exporterTout(); },
           sansSauvImporter: () => {
             const inp = document.createElement('input');
@@ -25353,8 +25430,11 @@ GROUPES = {
       // Les dix séries sont DÉJÀ dans la liste — elles n'ont plus de compte à ouvrir.
       // Le bouton ne change donc pas d'espace, il filtre la liste sur elles : c'est la
       // différence entre « allez ailleurs » et « c'est là, regardez ».
+      // le filtre de la LISTE est rechCourtier — `recherche` est celui du Nouveau
+      // scan : posé ici, il ne filtrait rien de visible et pré-filtrait l'autre
+      // page en silence. Trouvé par la garde des gestes : « aucune réaction ».
       voirLesExemples: () => this.setState({ tab: 'court', vue: 'courtiers',
-        recherche: 'VX-', exemplesCaches: false },
+        rechCourtier: 'VX-', familleFiltre: '', exemplesCaches: false },
         () => { this.ecrireSession(); this.poserExemples(); }),
           // ————— LA SECONDE PORTE : OÙ L'ON POSE SA CLÉ EN ARRIVANT —————
           //
@@ -26340,7 +26420,6 @@ GROUPES = {
       // le bouton que tous les messages d'attente nomment : il n'existait NULLE
       // PART — reautoriserAuto était défini et jamais branché, et autoMsg n'avait
       // aucune surface. Un message doit être rendu là où le geste a été fait.
-      aReautoriser: !!s.autoAttente,
       reautoriser: () => this.reautoriserAuto(),
       // une seule pastille d'état : où va la sauvegarde, et ce que le navigateur garde
       etatSauvegarde: 'Enregistrement automatique actif',

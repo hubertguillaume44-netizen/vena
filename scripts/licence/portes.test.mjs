@@ -43,7 +43,10 @@ test("la page porte l'en-tête versionné et les mêmes constantes", () => {
     const txt = readFileSync(new URL("../../" + f, import.meta.url), "utf8");
     // le marqueur ÉCRIT est le neuf ; l'ancien reste accepté à la lecture, sans date
     // limite — quelqu'un réimportera dans deux ans un fichier exporté aujourd'hui
-    for (const attendu of ["vena_chiffre: 1", "PBKDF2-SHA256", "CHIFFRE_ITER = 600000",
+    // l'enveloppe chiffrée s'assemble en MORCEAUX depuis l'export en tableau
+    // (partiesExport — « Invalid string length ») : le marqueur écrit n'est plus
+    // l'objet `vena_chiffre: 1` mais la chaîne JSON brute de l'en-tête — réancré
+    for (const attendu of ['{"vena_chiffre":1,', "PBKDF2-SHA256", "CHIFFRE_ITER = 600000",
       "Perdre la phrase", "vena_chiffre === 1", "b.sivula_chiffre === 1"]) {
       assert.ok(txt.includes(attendu), f + " ne porte plus « " + attendu + " »");
     }

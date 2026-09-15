@@ -80,10 +80,14 @@ test("l’état permanent ne se referme pas : c’est un état, pas une nouvelle
   // l'avait pas REFUSÉE — le tiroir ne l'offrait qu'à cet état-là, donc jamais à qui
   // n'avait simplement pas encore été sollicité. Il est maintenant offert dès que le
   // navigateur connaît la fonction et ne l'a pas accordée.
-  // l'export est attendu (export-fiable.test.mjs : une promesse rejetée que
-  // personne ne regarde est un export muet) — l'ancre suit cette forme-là
-  assert.match(SOURCE, /sansSauvAgir: \(reduit \|\| integre\) \? async \(\) => \{ await this\.exporterTout\(\); \} : \(\) => this\.choisirFichierAuto\(\)/,
-    "le pied doit rester l’unique chemin vers le choix d’un fichier de sauvegarde");
+  // l'export est attendu (export-fiable), et l'accent distingue le PREMIER usage
+  // du fichier CONNU : « Choisir » quand aucun fichier n'a jamais été choisi,
+  // « Réautoriser » quand un fichier attend sa permission — jamais les deux, deux
+  // boutons pour la même intention dont un qui recommence de zéro étaient le
+  // défaut. L'invariant tient : choisirFichierAuto n'a que cette porte-ci.
+  assert.match(SOURCE, /sansSauvAgir: \(reduit \|\| integre\) \? async \(\) => \{ await this\.exporterTout\(\); \}\n\s*: \(s\.autoNom \? \(\) => this\.reautoriserAuto\(\) : \(\) => this\.choisirFichierAuto\(\)\)/,
+    "le pied doit rester l’unique chemin vers le choix d’un fichier de sauvegarde — "
+    + "et un fichier CONNU se réautorise, il ne se rechoisit pas");
   assert.match(SOURCE, /aRedemander: protectionPossible,/,
     "« Demander la protection » doit être offerte dès que le navigateur la connaît et ne "
     + "l’a pas accordée — pas seulement après un refus, sinon elle est hors de portée de "
