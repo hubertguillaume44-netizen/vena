@@ -424,7 +424,7 @@ d'URL est fabricable par l'acheteur, et son absence ne prouve rien non plus, alo
 charge de la preuve pèse sur le **vendeur**. La case à cocher reste, et sa fonction reste
 entière : elle fait **consentir**. C'est la facture qui **prouve**.
 
-## Les treize règles, dans l'ordre où elles se servent
+## Les quatorze règles, dans l'ordre où elles se servent
 
 Elles viennent toutes d'un défaut réel de ce dépôt, et chacune est détaillée plus bas.
 
@@ -451,6 +451,9 @@ Elles viennent toutes d'un défaut réel de ce dépôt, et chacune est détaill�
     figé ou collant n'a ni « depuis quand » ni « depuis où ».
 13. **Une mutation se défait par le mécanisme qui l'a faite** — jamais par une
     restauration de dépôt, qui ne distingue pas la mutation du travail en cours.
+14. **Une suppression se cartographie avant de se faire** — chaque garde accrochée à ce
+    qui part a une fin dite : elle part avec le geste, se réancre sur ce qui reste, ou
+    s'ancre sur l'absence. Jamais en silence — et la prose autour se relit aussi.
 
 Les règles 6 à 9 sont nées le même jour, sur la même garde. Elles ferment par
 **construction** ce que les cinq premières ne fermaient que par **vigilance** — ou, quand
@@ -459,7 +462,9 @@ dépôt : toutes les tables vides, tous les tests verts. La douzième unifie deu
 d'affichage nées à un jour d'écart — « hier » sur une fenêtre figée, « ci-dessous » depuis
 une barre collante. La treizième est née d'un incident évité de justesse : un
 `git checkout --` posé pour défaire une mutation aurait emporté le correctif même qu'elle
-éprouvait.
+éprouvait. La quatorzième est née de l'élagage des trois familles mortes : six gardes
+s'accrochaient à ce qui partait — dont une dont personne ne savait qu'elle empruntait sa
+source à l'affaire supprimée — et chacune a eu une fin dite.
 
 ## Le défaut a un nom : demander une INTENTION pour prédire un RÉSULTAT
 
@@ -829,6 +834,25 @@ prose de `/tarifs` pour conclure qu'un texte existe serait la règle 1 exactemen
 donc listés, et le test **écrit son propre angle mort** : un cinquième texte d'après-vente
 naîtrait hors de portée de cette liste — voir la règle 9, qui est née là.
 
+#### Une découverte lit ce qui EST son sujet, pas un voisin commode
+
+C'est une précision au critère de la règle 7, de la même forme que le critère d'ancrage
+ajouté à la règle 3 : la règle était juste, c'est le **point d'attache** qui manquait de
+critère. La dérivation des libellés d'article découvrait bien — aucune liste, un
+cinquième plan attrapé tout seul — mais elle lisait `const LIENS`, une structure qui
+appartenait à **l'achat**, pas à la facturation. Une source empruntée à une autre
+affaire : supprimer l'achat lui a retiré ses dents **sans qu'une ligne d'énumération
+n'ait bougé**.
+
+> **Une découverte qui lit un voisin commode hérite silencieusement de la durée de vie
+> de ce voisin.**
+
+Et la garde a eu la bonne fin — elle est **tombée** au moment où son hypothèse a cessé
+d'être vraie, au lieu de passer au vert sur du vide : c'est la démonstration que les
+règles 2 et 7 marchent ensemble. Réancrée depuis sur ce qui EST son sujet : les durées
+payantes viennent de ce qui vend (`/tarifs`), les phases de la matrice du module des
+textes — leur seule source restante, l'angle mort déclaré sur place.
+
 ### Un nom de LIEU fixe un périmètre ; un nom de PROPRIÉTÉ en découvre un
 
 C'est **la règle 7 vue depuis l'amont** — non plus au moment où l'on écrit le périmètre,
@@ -1062,6 +1086,39 @@ pas est aveugle ; un geste de vérification qui déborde son objet est pire, il 
 Cette règle-ci ne se ferme que par vigilance : aucune garde du dépôt ne voit un geste
 de séance, et le garde-fou d'environnement n'appartient pas au dépôt. C'est précisément
 pourquoi elle est écrite.
+
+### Une suppression se cartographie avant de se faire
+
+Le cas réel : trois familles de producteurs sans consommateur — la page de vente de
+l'application, le contrôle mémoire, le dialogue des manquants — à supprimer parce qu'un
+producteur mort coûte deux fois : il pèse dans l'artefact et il fait croire à une
+fonction. La cartographie préalable a trouvé **six gardes** accrochées à ce qui partait,
+dont deux que personne n'aurait devinées. Sans elle, chacune serait devenue **vacue** —
+verte en ne gardant plus rien, le pire mode de panne, appliqué à une suppression au lieu
+d'une réécriture : *une garde doit échouer quand son hypothèse cesse d'être vraie.*
+
+**Chaque garde accrochée a une fin, et elle se dit.** Trois issues :
+
+- **elle part avec le geste** — quand le geste supprimé était son seul sujet
+  (l'ancre `nomPlan(PLAN_ACHETE)` de `coherence`, partie avec la page de vente, la
+  raison écrite à sa place) ;
+- **elle se réancre sur ce qui reste** — quand son invariant survit au geste (la
+  dérivation des libellés d'article, réancrée sur les durées de `/tarifs` et la
+  matrice du module) ;
+- **elle s'ancre sur l'ABSENCE** — la troisième issue, trouvée en pratique : la garde
+  affirme que la chose n'est plus là (« aucun lien de paiement ne s'ouvre d'ici »).
+  Elle garde ses dents alors que son sujet a disparu, et elle attrape la
+  **réintroduction** — qui est précisément le risque, puisque la doctrine reste
+  écrite au-dessus pour le jour où le geste renaîtra.
+
+**Et une suppression périme de la PROSE, pas seulement du code.** Deux consignes sont
+devenues fausses en une heure sans qu'aucun test ne les touche : `tarifs.tsx` disait
+« les montants sont ceux du code de l'application » — l'application n'en portait plus
+un seul —, et la note au-dessus de `RENONCE_TXT` disait « la garde vit ici, dans
+l'unique fonction par laquelle un lien de paiement s'ouvre » — la fonction venait de
+partir. Une consigne périmée a l'autorité des vraies et envoie chercher une panne qui
+n'existe plus : les commentaires autour de ce qu'on supprime se relisent comme les
+gardes, dans le même geste.
 
 ## Le démarrage se chronomètre — mesurer à vide ne mesure personne
 
