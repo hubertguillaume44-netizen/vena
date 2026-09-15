@@ -4930,6 +4930,7 @@ window.__sivAide = {"entrees":[{"terme":"? Aide","texte":"Les explications de l�
               <span style="font-size:14px">Les dix instruments « VX- » sont <strong>engendrés</strong> : des séries calculées pour que vous puissiez essayer l'outil tout de suite.</span>
             </div>
             <p class="card-body" style="margin:0">Aucune conclusion à en tirer sur un vrai marché. <strong>Sur ces trois ans, cet univers monte</strong> — un résultat flatteur y vient facilement, et il ne dira rien de votre idée. C’est un tirage, pas une promesse : Véna mesure, elle ne promet pas. Pour des résultats qui valent quelque chose, importez vos propres données depuis l'onglet <strong>Mes instruments</strong>.</p>
+            <p class="card-body" style="margin:0">Et ces séries sont fabriquées <strong>sans signal de moment d'entrée exploitable</strong> — une garde du générateur le vérifie. Le contrôle du hasard dira donc, correctement, que le hasard fait aussi bien : ce que vous allez apprendre à lire ici, c'est un <strong>verdict négatif rendu honnêtement</strong> — l'outil refuse de trouver ce qui n'existe pas.</p>
           </div>
 
           <div class="blueprint" style="padding:18px 20px;display:flex;flex-direction:column;gap:8px">
@@ -15179,8 +15180,11 @@ GROUPES = {
     + 'cueillette dans la grille entière du scan. Mesuré une fois, hors produit, sur une '
     + 'grille de 2 400 combinaisons : le meilleur rejeu de la grille entière dépasse celui '
     + 'des têtes d\u2019environ 13 R en moyenne, et l\u2019écart croît avec le logarithme de la '
-    + 'taille — de l\u2019ordre de +100 R extrapolé à 64 000 combinaisons (une extrapolation, '
-    + 'pas une mesure). Un « se distingue » ici peut donc ne pas se distinguer de la grille '
+    + 'taille — de l\u2019ordre de +100 R extrapolé à 64 000 combinaisons. Cette extrapolation '
+    + 'MAJORE l\u2019écart : elle compare la courbe de sous-ensembles ALÉATOIRES à un ensemble '
+    + 'SÉLECTIONNÉ — or les têtes d\u2019une grille plus large sont choisies parmi elle et '
+    + 'montent aussi ; l\u2019écart réel est la différence de deux courbes croissantes. '
+    + 'Un « se distingue » ici peut donc ne pas se distinguer de la grille '
     + 'entière ; refermer cet écart demanderait de rejouer toute la grille sous le hasard, '
     + 'soit cinq cents fois le scan.';
   async chargerHasardCor() {
@@ -15546,7 +15550,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260915';
+  VERSION_APP = '260915.2';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
