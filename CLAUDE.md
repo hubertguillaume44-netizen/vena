@@ -1196,12 +1196,26 @@ configurations voisines est absorbée par construction (Bonferroni les compterai
 indépendantes), chaque case (tête, tirage) est indépendante du découpage, donc les
 plages se parallélisent et **pousser AJOUTE** (500 → 2 000 conserve les 500 premiers).
 
-**Plus de bouton.** Le contrôle se calcule pendant le scan (cœurs encore chauds, ~+25 %
-mesuré : un tirage vaut 1,5 combinaison balayée), et se complète en arrière-plan pour
-les scans antérieurs. Le nombre de tirages vaut pour toute la page, jamais pour une
-carte — réglable par carte, il permettrait de pousser le seul instrument qui a failli
-passer. Le cadre « Contrôle du hasard » en lot (et son verdict Benjamini-Hochberg) est
-parti avec : il posait la même question, sans corriger la sélection.
+**Plus de bouton PAR CARTE.** Le contrôle se calcule pendant le scan (cœurs encore
+chauds, ~+25 % mesuré : un tirage vaut 1,5 combinaison balayée). Le nombre de tirages
+vaut pour toute la page, jamais pour une carte — réglable par carte, il permettrait de
+pousser le seul instrument qui a failli passer. Le cadre « Contrôle du hasard » en lot
+(et son verdict Benjamini-Hochberg) est parti avec : il posait la même question, sans
+corriger la sélection.
+
+**Et les scans ANTÉRIEURS ne se complètent plus tout seuls.** Le complètement démarrait
+à l'ouverture de la page : sur un arriéré de 56 instruments, une demi-heure de
+processeur saturé que personne n'avait demandée et que rien ne pouvait arrêter —
+« l'ordinateur rame », le contraire de ce que le retrait du bouton visait. La page des
+scans porte une ligne d'état — « N verdicts corrigés manquants · environ X » (durée
+estimée sur la vitesse mesurée de la machine) — avec un geste pour lancer et un pour
+arrêter : un travail dont l'utilisateur connaît le prix. Pendant qu'il tourne :
+**l'export a priorité** (le complètement se met en pause sur le témoin `exportEnCours`,
+au grain de l'instrument — une sauvegarde qui échoue parce qu'un calcul de confort
+tournait est le pire compromis possible), et **les bougies se libèrent par instrument**,
+pas à la fin — mesuré, le cache du fil principal croissait de façon monotone sur tout
+l'arriéré pendant que les cœurs, eux, restaient constants (une écurie mémoïsée, bougies
+remplacées). `scripts/app/fond-budget.test.mjs` tient les trois, par mutation.
 
 **Une épinglée (« Voir ») hors têtes porte un p à UNE configuration, nommé « NON
 corrigé »** : choisie à l'œil parmi des centaines, aucun N ne décrit cette sélection —

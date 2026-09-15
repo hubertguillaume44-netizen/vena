@@ -50,6 +50,13 @@
    ]
   },
   {
+   "terme": "Arrêter",
+   "texte": "Arrête le complètement en arrière-plan. Les tirages déjà faits restent : relancer AJOUTE, il ne recommence rien.",
+   "vues": [
+    "Historique"
+   ]
+  },
+  {
    "terme": "aucun",
    "texte": "La référence « sans filtre » a battu les conditions balayées sur cette ligne.",
    "vues": [
@@ -173,6 +180,13 @@
    "texte": "Choisit un fichier sur votre disque. Véna y réécrit tout, chaque minute. Aucun vidage de navigateur ne l’atteint.",
    "vues": [
     "Toutes les pages"
+   ]
+  },
+  {
+   "terme": "Compléter maintenant",
+   "texte": "Rejoue les têtes de chaque instrument avec des entrées au hasard, un instrument à la fois, en arrière-plan. La durée est estimée d’après la vitesse mesurée de cette machine ; un export en cours a toujours priorité, et « Arrêter » reste disponible.",
+   "vues": [
+    "Historique"
    ]
   },
   {
@@ -615,6 +629,14 @@
    "terme": "Préparer le fichier de diagnostic",
    "texte": "Un fichier texte lisible — versions, stockage, dernières erreurs. Un téléchargement, aucun envoi.",
    "vues": [
+    "Toutes les pages"
+   ]
+  },
+  {
+   "terme": "Réautoriser",
+   "texte": "Redemande au navigateur la permission d’écrire dans le fichier de sauvegarde déjà choisi.",
+   "vues": [
+    "Journal",
     "Toutes les pages"
    ]
   },

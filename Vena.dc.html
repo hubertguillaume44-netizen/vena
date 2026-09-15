@@ -1069,7 +1069,7 @@
     instruments ». Quelqu'un qui ouvre l'outil veut travailler ; s'il voulait lire
     l'argumentaire, il serait resté sur le site.
   -->
-  <sc-if value="{{ aPriveMsg }}" hint-placeholder-val="{{ false }}">
+  <sc-if value="{{ aPriveAvert }}" hint-placeholder-val="{{ false }}">
     <div style="background:var(--color-accent-100);border-bottom:1px solid var(--color-accent);padding:8px 32px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
       <span style="font-size:12px;line-height:1.5;flex:1;min-width:32ch"><strong>Fenêtre de navigation privée :</strong> tout ce que vous ferez ici sera effacé à la fermeture de la fenêtre. Pour garder une mesure, exportez-la avant de fermer.</span>
       <button type="button" class="lien" onClick="{{ fermerPrive }}">compris</button>
@@ -3887,14 +3887,21 @@
               <label style="display:flex;align-items:center;gap:6px;font-size:11px" class="text-muted" title="{{ aideTirages }}">tirages au hasard<input class="input" type="number" min="200" max="20000" step="100" style="min-height:1.9rem;height:1.9rem;font-size:13px;padding:0 6px;width:11ch" value="{{ nTiragesVal }}" onChange="{{ setNTirages }}" onBlur="{{ finNTirages }}" title="{{ aideTirages }}"></label>
             </div>
             <!--
-              LA RÈGLE, écrite : le contrôle du hasard n'a plus de bouton — il se calcule
-              pendant le scan et se complète tout seul pour les scans d'avant. Le nombre
-              de tirages vaut pour toute la page, JAMAIS pour une carte : réglable par
-              carte, il permettrait de pousser le seul instrument qui a failli passer.
+              LA RÈGLE, écrite : le contrôle du hasard n'a plus de bouton PAR CARTE — il
+              se calcule pendant le scan, et un scan d'avant se complète depuis la ligne
+              d'état ci-dessous, qui dit le prix avant de lancer. Le nombre de tirages
+              vaut pour toute la page, JAMAIS pour une carte : réglable par carte, il
+              permettrait de pousser le seul instrument qui a failli passer.
             -->
             <span style="font-size:11px;line-height:1.5;margin-top:-6px" class="text-muted">Le contrôle du hasard, corrigé de la sélection, se calcule pendant le scan — entrées au hasard sur vos prix, jamais un mélange des prix. Le nombre de tirages vaut pour toute la page ; pousser AJOUTE des tirages, il ne recommence rien.</span>
             <sc-if value="{{ aCorMsg }}" hint-placeholder-val="{{ false }}">
-              <span style="font-size:11px;color:var(--color-accent-700)">{{ corMsg }}</span>
+              <span style="font-size:11px;color:var(--color-accent-700);display:inline-flex;gap:10px;align-items:baseline">{{ corMsg }}<button type="button" class="tag tag-outline" style="cursor:pointer" onClick="{{ corArreter }}" title="Arrête le complètement en arrière-plan. Les tirages déjà faits restent : relancer AJOUTE, il ne recommence rien.">Arrêter</button></span>
+            </sc-if>
+            <sc-if value="{{ aHasardMsg }}" hint-placeholder-val="{{ false }}">
+              <span style="font-size:11px;color:var(--color-accent-900)">{{ hasardMsg }}</span>
+            </sc-if>
+            <sc-if value="{{ aCorAttente }}" hint-placeholder-val="{{ false }}">
+              <span style="font-size:11px;color:var(--color-neutral-700);display:inline-flex;gap:10px;align-items:baseline">{{ corAttenteTxt }}<button type="button" class="tag tag-outline" style="cursor:pointer" onClick="{{ corLancer }}" title="Rejoue les têtes de chaque instrument avec des entrées au hasard, un instrument à la fois, en arrière-plan. La durée est estimée d’après la vitesse mesurée de cette machine ; un export en cours a toujours priorité, et « Arrêter » reste disponible.">Compléter maintenant</button></span>
             </sc-if>
 
             <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(470px,1fr));gap:12px">
@@ -5416,6 +5423,9 @@
             <span style="display:flex;flex-direction:column;gap:1px;flex:1;min-width:0">
               <span style="font-size:12px;font-weight:600">Enregistrement automatique — {{ autoEtat }}</span>
               <span style="font-size:11px;line-height:1.45;color:var(--color-neutral-700)">scans, portefeuilles, validés et réglages, réenregistrés dans ce navigateur chaque minute, rien à activer</span>
+              <sc-if value="{{ aAutoMsg }}" hint-placeholder-val="{{ false }}">
+                <span style="font-size:11px;line-height:1.5;color:var(--color-accent-900);display:flex;gap:10px;align-items:baseline;flex-wrap:wrap"><span style="flex:1;min-width:26ch">{{ autoMsg }}</span><sc-if value="{{ aReautoriser }}" hint-placeholder-val="{{ false }}"><button type="button" class="tag tag-outline" style="cursor:pointer" onClick="{{ reautoriser }}" title="Redemande au navigateur la permission d’écrire dans le fichier de sauvegarde déjà choisi.">Réautoriser</button></sc-if></span>
+              </sc-if>
             </span>
           </span>
           <span style="display:flex;align-items:baseline;gap:9px">
@@ -5738,6 +5748,12 @@
     <span style="width:1px;align-self:stretch;background:color-mix(in srgb,var(--color-bg) 30%,transparent)"></span>
     <button type="button" style="cursor:pointer;background:none;border:1px solid color-mix(in srgb,var(--color-bg) 45%,transparent);color:var(--color-bg);font-family:var(--font-body);font-size:12px;padding:4px 11px;white-space:nowrap" onClick="{{ ouvrirAvis }}">Donner mon avis</button>
     <button type="button" style="cursor:pointer;background:none;border:1px solid color-mix(in srgb,var(--color-bg) 45%,transparent);color:var(--color-bg);font-family:var(--font-body);font-size:12px;padding:4px 11px;white-space:nowrap" onClick="{{ ouvrirAide }}" title="Les explications de l’application, cherchables">? Aide</button>
+    <sc-if value="{{ aAutoMsg }}" hint-placeholder-val="{{ false }}">
+      <span style="flex-basis:100%;font-size:11.5px;line-height:1.5;display:flex;gap:12px;align-items:baseline"><span style="flex:1;min-width:30ch">{{ autoMsg }}</span><sc-if value="{{ aReautoriser }}" hint-placeholder-val="{{ false }}"><button type="button" style="cursor:pointer;background:none;border:1px solid color-mix(in srgb,var(--color-bg) 45%,transparent);color:var(--color-bg);font-family:var(--font-body);font-size:12px;padding:4px 11px;white-space:nowrap" onClick="{{ reautoriser }}" title="Redemande au navigateur la permission d’écrire dans le fichier de sauvegarde déjà choisi.">Réautoriser</button></sc-if></span>
+    </sc-if>
+    <sc-if value="{{ aSauvMsg }}" hint-placeholder-val="{{ false }}">
+      <span style="flex-basis:100%;font-size:11.5px;line-height:1.5">{{ sauvMsg }}</span>
+    </sc-if>
     <sc-if value="{{ aOngletMsg }}" hint-placeholder-val="{{ false }}">
       <span style="flex-basis:100%;font-size:11px;line-height:1.5;opacity:.92">{{ ongletMsg }}</span>
     </sc-if>
@@ -11412,7 +11428,12 @@ GROUPES = {
     // critère de tri retiré : une session qui le portait encore retombe sur le R net
     if (this.state.triCumul === 'totalBas') { this.setState({ triCumul: 'total' }); return; }
     if (this.state.vue === 'historique' && !this.state.scanEnCours) this.mesurerBasses();
-    if (this.state.vue === 'historique' && !this.state.scanEnCours) this.completerCor();
+    // Le complètement du hasard corrigé ne démarre PLUS tout seul ici : sur un
+    // arriéré de dizaines d'instruments, c'était une demi-heure de processeur que
+    // personne n'avait demandée et que rien ne pouvait arrêter. La page des scans
+    // porte la ligne d'état (« N verdicts corrigés manquants · environ X ») avec le
+    // geste pour lancer — les scans NEUFS, eux, restent calculés pendant le scan,
+    // là où c'est gratuit.
   }
   componentWillUnmount() {
     try { for (const ro of this._roEntete || []) ro.disconnect(); } catch (e) {}
@@ -15374,26 +15395,51 @@ GROUPES = {
     });
     return { sym, sig, tirages: fin, au, som, nulMax, tetes: auTetes, date: Date.now() };
   }
-  // Les instruments d'un scan ANTÉRIEUR à ce contrôle se complètent en arrière-plan,
-  // un par un, quand la page des résultats est ouverte — le bouton n'existe plus.
-  async completerCor(cible) {
-    if (this._corFond || !this.N || !this.M) return;
-    if (this.state.vue !== 'historique' || this.state.scanEnCours) return;
-    const but = Math.max(200, Number(cible) || Number(this.state.nTirages) || 500);
+  // Les instruments d'un scan ANTÉRIEUR au contrôle qui manquent de verdict — la
+  // même sélection que la ligne d'état de la page des scans, une seule vérité.
+  corAFaire(but) {
     const syms = [...new Set((this.lignesScan || []).map((r) => r && r.sym).filter(Boolean))];
-    const aFaire = syms.filter((sym) => {
+    return syms.filter((sym) => {
       if (!this.tetesCourantes(sym).length) return false;
       const e = this.corDe(sym);
       return !e || (e.tirages || 0) < but;
     });
+  }
+  // Le complètement des scans ANTÉRIEURS. Il ne démarre plus tout seul : mesuré,
+  // un arriéré de 56 instruments valait une demi-heure de processeur saturé, sans
+  // pause ni arrêt possible — « l'ordinateur rame ». Il se LANCE depuis la ligne
+  // d'état de la page des scans, s'ARRÊTE d'un geste (_corStop), se met en PAUSE
+  // dès qu'un export commence (l'export a priorité : une sauvegarde qui échoue
+  // parce qu'un calcul de confort tournait est le pire compromis possible), et
+  // LIBÈRE les bougies de chaque instrument sitôt son verdict rendu — mesuré, le
+  // cache du fil principal croissait de façon monotone sur tout l'arriéré pendant
+  // que l'export devait sérialiser des mégaoctets à côté. Les cœurs, eux, sont
+  // constants : une seule écurie mémoïsée, bougies remplacées à chaque instrument.
+  async completerCor(cible) {
+    if (this._corFond || !this.N || !this.M) return;
+    if (this.state.vue !== 'historique' || this.state.scanEnCours) return;
+    const but = Math.max(200, Number(cible) || Number(this.state.nTirages) || 500);
+    const aFaire = this.corAFaire(but);
     if (!aFaire.length) return;
     this._corFond = true;
+    this._corStop = false;
     try {
       for (let i = 0; i < aFaire.length; i++) {
-        if (this.state.vue !== 'historique' || this.state.scanEnCours) break;
-        this.setState({ corMsg: 'hasard corrigé : ' + this.nomComplet(aFaire[i])
+        // l'export a priorité : pause tant qu'il court, reprise quand il finit —
+        // au grain de l'instrument, le seul point où la boucle a la main
+        while (this.state.exportEnCours && this.state.vue === 'historique' && !this._corStop) {
+          await new Promise((z) => setTimeout(z, 400));
+        }
+        if (this.state.vue !== 'historique' || this.state.scanEnCours || this._corStop) break;
+        const sym = aFaire[i];
+        const dejaCharge = !!(this.dfs && this.dfs[sym] !== undefined);
+        this.setState({ corMsg: 'hasard corrigé : ' + this.nomComplet(sym)
           + ' (' + (i + 1) + ' / ' + aFaire.length + ')' });
-        try { await this.calculerCor(aFaire[i], but); } catch (e) { /* instrument suivant */ }
+        try { await this.calculerCor(sym, but); } catch (e) { /* instrument suivant */ }
+        // libérer PAR INSTRUMENT, pas à la fin : les bougies chargées pour CE
+        // verdict ne servent plus — celles qui étaient déjà en mémoire y restent,
+        // et les dix séries d'exemple ne sont pas des données à relire du disque
+        if (!dejaCharge && this.dfs && !estExemple(sym)) delete this.dfs[sym];
       }
     } finally {
       this._corFond = false;
@@ -15425,7 +15471,7 @@ GROUPES = {
         hasChiffre: '—',
         hasMot: enCours ? 'calcul en cours…' : 'pas encore calculé',
         hasCouleur: 'var(--color-neutral-500)',
-        hasTousAide: 'Le verdict corrigé se calcule pendant le scan. Pour un scan antérieur, il se complète en arrière-plan quand cette page est ouverte.',
+        hasTousAide: 'Le verdict corrigé se calcule pendant le scan. Pour un scan antérieur, lancez le complètement depuis la ligne d\u2019état au-dessus des cartes — elle dit combien de verdicts manquent et combien de temps ils coûtent.',
         hasardPhrase: 'hasard corrigé : pas encore calculé' };
     }
     const tetes = e.tetes || [];
@@ -15535,7 +15581,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260915.8';
+  VERSION_APP = '260915.9';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -16775,7 +16821,7 @@ GROUPES = {
       let quota = null;
       try { const e = await navigator.storage.estimate(); quota = e && e.quota; } catch (e2) {}
       if (Number.isFinite(quota) && quota > 0 && quota < 200 * 1048576) {
-        this.setState({ priveMsg: true });
+        this.setState({ priveAvert: true });
       }
     } catch (e) {}
   }
@@ -18141,6 +18187,8 @@ GROUPES = {
     return u;
   }
   async exporterChiffre(phrase, avecSeries) {
+    this.setState({ exportEnCours: true });
+    try {
     const dump = await this.dumpCompletAvecScan();
     // les séries de bougies sont optionnelles : sept ans de H1 sur trente instruments
     // font un fichier que personne n'attend
@@ -18170,6 +18218,9 @@ GROUPES = {
       t: Date.now(), nC: (this.lignesScan || []).length, nS: (this.state.deposes || []).length })); } catch (e) {}
     this.setState({ sauvDate: Date.now() });
     return Object.keys(dump).length;
+    } finally {
+      this.setState({ exportEnCours: false });
+    }
   }
   async dechiffrerFichier(objet, phrase) {
     try {
@@ -18337,6 +18388,8 @@ GROUPES = {
   // échoue en silence est plus dangereux que l'absence de bouton : on croit avoir
   // une copie.
   async exporterTout() {
+    // le témoin que le complètement de fond regarde : l'export a priorité
+    this.setState({ exportEnCours: true });
     try {
       const dump = await this.dumpCompletAvecScan();
       const licE = this.ligneLicenceExport();
@@ -18359,6 +18412,8 @@ GROUPES = {
       this.setState({ sauvMsg: 'L\u2019export a échoué — RIEN n\u2019a été téléchargé : '
         + ((e && e.message) || 'erreur inconnue')
         + '. Réessayez ; si le message revient, téléchargez le fichier de diagnostic.' });
+    } finally {
+      this.setState({ exportEnCours: false });
     }
   }
   // ————— APPLIQUER L'IMPORT, une fois l'issue choisie —————
@@ -19777,10 +19832,10 @@ GROUPES = {
         try { window.open(location.href, '_blank', 'noopener'); }
         catch (e) { this.setState({ ongletMsg: 'Ce navigateur a refusé d\u2019ouvrir un onglet. Copiez l\u2019adresse de la page et ouvrez-la vous-même.' }); }
       },
-      aPriveMsg: !!s.priveMsg,
+      aPriveAvert: !!s.priveAvert,
       fermerPrive: () => {
         try { sessionStorage.setItem('vena.prive.vu', '1'); } catch (e) {}
-        this.setState({ priveMsg: false });
+        this.setState({ priveAvert: false });
       },
       ...(() => {
         const d = s.stockDiag;
@@ -26543,9 +26598,13 @@ GROUPES = {
         cls: 'tag ' + ((s.triCumul || 'hasard') === v ? 'tag-accent' : 'tag-outline'),
         choisir: () => this.setState({ triCumul: v }),
       })),
-      autoAttente: false,
       autoMsg: s.autoMsg || '',
       aAutoMsg: !!s.autoMsg,
+      // le bouton que tous les messages d'attente nomment : il n'existait NULLE
+      // PART — reautoriserAuto était défini et jamais branché, et autoMsg n'avait
+      // aucune surface. Un message doit être rendu là où le geste a été fait.
+      aReautoriser: !!s.autoAttente,
+      reautoriser: () => this.reautoriserAuto(),
       // une seule pastille d'état : où va la sauvegarde, et ce que le navigateur garde
       etatSauvegarde: 'Enregistrement automatique actif',
       aideSauvegarde: 'Vos scans et vos réglages sont réenregistrés dans ce navigateur chaque minute'
@@ -28080,7 +28139,35 @@ GROUPES = {
             || !syms.some((sym) => { const e = this.corDe(sym); return this.tetesCourantes(sym).length && (!e || (e.tirages || 0) < n); }),
         });
         return { corBoutons: [bouton(2000), bouton(10000)],
-          aCorMsg: !!s.corMsg, corMsg: s.corMsg || '' };
+          aCorMsg: !!s.corMsg, corMsg: s.corMsg || '',
+          corArreter: () => { this._corStop = true; },
+          // ————— LE PRIX SE DIT AVANT DE LANCER —————
+          // La ligne d'état des scans antérieurs : combien de verdicts manquent, et
+          // combien de temps leur calcul prendrait — estimé d'après la vitesse
+          // mesurée de CETTE machine (un tirage vaut ~1,5 combinaison balayée). La
+          // sélection vient de corAFaire, la même que celle du complètement : deux
+          // vérités divergeraient.
+          ...(() => {
+            if (s.vue !== 'historique' || s.scanEnCours || this._corFond) {
+              return { aCorAttente: false, corAttenteTxt: '', corLancer: () => {} };
+            }
+            const but = Math.max(200, Number(s.nTirages) || TIRAGES_DEFAUT);
+            const attente = this.corAFaire(but);
+            if (!attente.length) return { aCorAttente: false, corAttenteTxt: '', corLancer: () => {} };
+            let vitesse = 1200;
+            try { const vv = JSON.parse(localStorage.getItem('vena.vitesse.v1'));
+              if (vv && vv.combisParSec) vitesse = vv.combisParSec; } catch (e) {}
+            let sec = 0;
+            for (const sym of attente) {
+              const e = this.corDe(sym);
+              sec += (but - ((e && e.tirages) || 0)) * this.tetesCourantes(sym).length * 1.5 / vitesse;
+            }
+            const duree = sec < 90 ? Math.max(1, Math.round(sec)) + ' s' : Math.round(sec / 60) + ' min';
+            return { aCorAttente: true,
+              corAttenteTxt: this.pl(attente.length, 'verdict corrigé manquant', 'verdicts corrigés manquants')
+                + ' (scans antérieurs) · environ ' + duree,
+              corLancer: () => { this.completerCor(); } };
+          })() };
       })(),
       ficheLigneUnique: s.fiche
         ? s.fiche.entree + ' · ' + s.fiche.ligne + ' · ' + s.fiche.ut + ' · ' + s.fiche.grille
