@@ -1658,7 +1658,15 @@ window.__venaScripts = {"Vena_Releve.mq5":"Ly8rLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tL
           </div>
         </div>
         <sc-if value="{{ aFamilles }}" hint-placeholder-val="{{ true }}">
-          <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">
+          <!-- BORNE DE HAUTEUR : le bandeau ne mange jamais l'écran. Un relevé dont
+               chaque famille était un singleton a rendu douze rangées de pastilles
+               (~470 px) et la liste commençait SOUS la fenêtre — le contenu existait,
+               il n'était pas atteignable, le défaut de la confirmation de dépôt une
+               surface plus haut. Le regroupement corrigé règle le cas courant, mais un
+               courtier à trente familles légitimes le referait : la borne est un
+               QUART de la fenêtre (le référentiel est la fenêtre, pas un pixel en
+               dur), et le surplus défile à l'intérieur du bandeau. -->
+          <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;max-height:25vh;overflow-y:auto">
             <button type="button" class="{{ familleToutCls }}" title="Toutes les familles" onClick="{{ familleTout }}"><span class="nom" style="font-size:10px;font-weight:600">Tous</span><span style="font-size:10px">{{ famToutN2 }}</span></button>
             <sc-for list="{{ familles }}" as="fa" hint-placeholder-count="8">
               <button type="button" class="{{ fa.cls }}" title="{{ fa.aide }}" onClick="{{ fa.choisir }}"><span class="nom" style="font-size:10px;font-weight:600">{{ fa.nom }}</span><span style="font-size:10px">{{ fa.n2 }} / {{ fa.n }}</span></button>
@@ -8426,7 +8434,8 @@ GROUPES = {
       // pas. Écartés d'office, sauf s'ils portent déjà une configuration validée.
       if (this.symTechnique(sym, l) && !this.symUtilise(sym)) continue;
       if (!l) { ajouter('Sans relevé de frais', sym); continue; }
-      ajouter(this.familleChemin(l.chemin, sym), sym);
+      // même règle que familleDe : la feuille se compare au symbole de la ligne
+      ajouter(this.familleChemin(l.chemin, l.sym || sym), sym);
     }
     const groupes = {};
     for (const [nom, liste] of [...par.entries()].sort((a, b) => b[1].length - a[1].length)) {
@@ -8483,7 +8492,7 @@ GROUPES = {
   }
   familleChemin(chemin, sym) {
     if (!String(chemin || '').trim()) return this.familleSymbole(sym);
-    return this.familleCheminSeule(chemin);
+    return this.familleCheminSeule(chemin, sym);
   }
   // « Stocks · United States » se cherche sous « Actions US ». Le relevé parle la langue
   // du courtier ; la liste où l'on choisit doit parler celle de l'utilisateur.
@@ -8508,15 +8517,28 @@ GROUPES = {
   familleDe(sym) {
     const cle = this.compteActif === 'tous' ? this.COURTIERS[0][0] : this.compteActif;
     const l = this.ligneCourtier(cle, sym);
-    return this.familleChemin(l ? l.chemin : '', sym);
+    // la feuille du chemin se compare au symbole DE LA LIGNE, pas au nom demandé :
+    // un doublon de convention (AAPL.US résolu par alias vers la ligne AAPL) ne
+    // correspondait jamais à la feuille, et gardait le symbole dans sa famille
+    return this.familleChemin(l ? l.chemin : '', (l && l.sym) || sym);
   }
-  familleCheminSeule(chemin) {
+  familleCheminSeule(chemin, sym) {
     const seg = String(chemin || '').split('\\').filter(Boolean);
+    // Le DERNIER segment de SYMBOL_PATH est le symbole lui-même — MT5 l'écrit
+    // ainsi, profond (« Stocks\US\Tech\AAPL.O ») comme plat (« Forex\EURUSD »).
+    // `slice(0, 2)` supposait la profondeur : sur un chemin plat, le deuxième
+    // segment EST le symbole, et chaque instrument devenait sa propre famille —
+    // 176 pastilles « 0 / 1 », un filtre qui est la liste en double. On ne retire
+    // la feuille que si elle EST le symbole (résultat observé, pas convention
+    // supposée) : un chemin qui ne finit pas par lui garde tous ses segments.
+    if (seg.length && sym
+      && seg[seg.length - 1].toUpperCase() === String(sym).toUpperCase()) seg.pop();
     const t0 = seg[0] || '';
     if (/crypto/i.test(t0)) return 'Crypto';
     if (/metal/i.test(t0)) return 'Métaux';
     if (/forex/i.test(t0)) return seg.slice(0, 2).join(' · ') || 'Forex';
-    return seg.slice(0, 2).join(' · ') || 'Autres';
+    // feuille retirée et plus rien : le dossier ne dit rien, la nature du symbole si
+    return seg.slice(0, 2).join(' · ') || this.familleSymbole(sym);
   }
   // le catalogue fait foi : il a déjà écarté les doublons de convention
   get SYMBOLES() { return [...new Set(Object.values(this.GROUPES_ACTIFS).flat())]; }
@@ -15566,7 +15588,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260915.12';
+  VERSION_APP = '260915.13';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
