@@ -57,9 +57,16 @@ test("les messages du contrôle du hasard ont une surface sur la page des scans"
 });
 
 test("4e temps : un message de geste s'efface au changement de vue", () => {
-  // ————— LA RÈGLE DES MESSAGES A QUATRE TEMPS, PAS TROIS —————
-  // Posé, non essuyé, rendu là où le geste est… et RETIRÉ quand il ne concerne
-  // plus rien. Le cas réel : deux lignes rouges d'un échec d'export restaient
+  // ————— LA RÈGLE DES MESSAGES A CINQ TEMPS —————
+  // Posé, non essuyé, rendu là où le geste est, RETIRÉ quand il ne concerne plus
+  // rien… et ATTEIGNABLE : quand plusieurs portes d'entrée rendent tout
+  // emplacement fixe faux, le message VA au geste plutôt que l'inverse — la
+  // confirmation du dépôt défile vers la vue (accepterBareme → scrollIntoView),
+  // parce que rendue 450 px sous la fenêtre elle était exactement aussi muette
+  // qu'un message sans surface, et plus chère à diagnostiquer parce qu'elle
+  // existait. Le cinquième vit dans gestes.test.mjs (le dépôt « se voit »),
+  // éprouvé par mutation ; ce test-ci tient le quatrième.
+  // Le cas réel du quatrième : deux lignes rouges d'un échec d'export restaient
   // affichées sous la liste des instruments de la page SUIVANTE — un message
   // orphelin se lit comme un échec du geste qu'on vient de faire. La porte est
   // UNIQUE (componentDidUpdate, sur la clé tab|vue) : une porte par producteur
