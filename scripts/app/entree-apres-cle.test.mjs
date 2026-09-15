@@ -13,6 +13,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import vm from "node:vm";
+import { borne, borneArriere } from "../lib/tranche.mjs";
 
 const SOURCE = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
 
@@ -120,7 +121,7 @@ test("on arrive sur « Mes instruments », pas sur les conclusions", async () =>
   // renommer une vue ne le trompera pas, déplacer une vue d'un groupe à l'autre non plus.
   const i = SOURCE.indexOf("        const GROUPES = [");
   assert.ok(i > 0, "la table des groupes ne se délimite plus");
-  const bloc = SOURCE.slice(i, SOURCE.indexOf("\n        ];", i));
+  const bloc = SOURCE.slice(i, borne(SOURCE, "\n        ];", i));
   const groupes = [...bloc.matchAll(/\['[a-z]+', '([^']+)', '[^']*',\s*\[([\s\S]*?)\]\]/g)]
     .map((m) => ({ nom: m[1], vues: [...m[2].matchAll(/\['([a-z]+)',/g)].map((v) => v[1]) }));
   assert.ok(groupes.length >= 3, `${groupes.length} groupes lus, trois attendus`);
@@ -157,7 +158,7 @@ test("la section licence du tiroir porte les deux besoins d’un client qui revi
   // pas, et c'est l'argument de vente — voir le commentaire de la section.
   const i2 = SOURCE.indexOf('<sc-if value="{{ aSecLic }}"');
   assert.ok(i2 > 0, "la section licence du tiroir ne se délimite plus");
-  const sec = SOURCE.slice(i2, SOURCE.indexOf("</sc-if>", SOURCE.indexOf("espacesTiroir", i2)));
+  const sec = SOURCE.slice(i2, borne(SOURCE, "</sc-if>", borne(SOURCE, "espacesTiroir", i2)));
   assert.match(sec, /id="tirLicEmail"/, "le courriel de l’achat doit se saisir dans le tiroir");
   assert.match(sec, /id="tirLicCode"/, "la clé doit se coller dans le tiroir");
   assert.match(sec, /onClick="\{\{ licVerifier \}\}"/, "le tiroir doit pouvoir ouvrir la clé");

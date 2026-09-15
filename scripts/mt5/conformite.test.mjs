@@ -13,6 +13,7 @@ import { contexteRapport, lireRapportMt5 } from "./parse-mt5.mjs";
 import { readFileSync } from "node:fs";
 import { chargerMoteur } from "./charger-moteur.mjs";
 import { construireConfig, mirroirVente } from "./config.mjs";
+import { borne, borneArriere } from "../lib/tranche.mjs";
 
 const M = await chargerMoteur();
 
@@ -266,7 +267,7 @@ test("tout refus d'entrée porte un motif", () => {
       periode: ref.periode, sl: ref.sl, rr: ref.rr, ut: "D1" },
     { etat: etatDepuisReference(ref), stamp: "260904_TEST", magic: 1, paliers: [], spreadFacteur: 1.5 },
   );
-  const entrer = src.slice(src.indexOf("bool Entrer()"), src.indexOf("void OnTick()"));
+  const entrer = src.slice(borne(src, "bool Entrer()"), borne(src, "void OnTick()"));
   // chaque « return false » de Entrer() doit être précédé d'une affectation du motif
   const retours = entrer.split("return false;");
   assert.ok(retours.length > 3, "moins de trois chemins d'échec : le test ne couvre rien");
@@ -283,7 +284,7 @@ test("tout refus d'entrée porte un motif", () => {
   // 3 243 sortaient sans motif parce que le plafond de spread et « position déjà
   // ouverte » étaient les deux seuls chemins muets. Les distinguer était impossible,
   // alors que ce sont deux causes opposées — l'une se corrige, l'autre s'explique.
-  const garde = src.slice(src.indexOf("bool ExecutionAutorisee()"), src.indexOf("double Volume("));
+  const garde = src.slice(borne(src, "bool ExecutionAutorisee()"), borne(src, "double Volume("));
   const g = garde.split("return false;");
   assert.ok(g.length > 4, "moins de quatre chemins d'échec : le test ne couvre rien");
   for (let i = 0; i < g.length - 1; i++) {
@@ -377,7 +378,7 @@ test("la séance se lit en chevauchement, et seulement dans l'état d'heure d'é
   // la bougie écartait 04:00 : 38 des 67 trades tombaient sur une bougie tenue pour
   // fermée, et le résultat changeait de signe — +6,63 R au testeur, -5,30 au moteur.
   const src = readFileSync(new URL("../../Export_H1_Vena.mq5", import.meta.url), "utf8");
-  const f = src.slice(src.indexOf("bool Traitable("), src.indexOf("bool Exporter("));
+  const f = src.slice(borne(src, "bool Traitable("), borne(src, "bool Exporter("));
   assert.match(f, /int deb = d\.hour \* 60 \+ d\.min, fin = deb \+ 60;/,
     "la bougie n'est pas testée sur l'heure entière");
   assert.match(f, /bool memeSaison = \(HeureEte\(t\) == HeureEte\(TimeCurrent\(\)\)\);/,
@@ -412,7 +413,7 @@ test("le relevé de symboles porte les colonnes que l'application cherche", () =
   // par nom, mais une colonne insérée AVANT StopsLevel déplacerait la contrainte pour
   // tout lecteur positionnel — et l'ordre est ce que le fichier promet.
   for (const c of ["heure_releve", "TickValue", "TickSize", "VolumeMin", "VolumeStep", "Statut"]) {
-    assert.ok(cols.indexOf(c) > cols.indexOf("CurrencyProfit"),
+    assert.ok(borne(cols, c) > borne(cols, "CurrencyProfit"),
       `« ${c} » doit venir après les colonnes historiques`);
   }
 });
@@ -504,8 +505,8 @@ test("le script de bougies récapitule ses échecs avec leur raison", () => {
 // qui interdise à l'un de dériver de l'autre.
 test("le relevé écrit par Vena_Releve se relit dans l'application", () => {
   const page = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
-  const i = page.indexOf("  analyserBareme(txt) {");
-  const j = page.indexOf("\n    return table;\n  }", i);
+  const i = borne(page, "  analyserBareme(txt) {");
+  const j = borne(page, "\n    return table;\n  }", i);
   assert.ok(i > 0 && j > i, "analyserBareme introuvable dans la page");
   const corps = page.slice(i, j + 22).replace(/^ {2}analyserBareme\(txt\) \{/, "function analyserBareme(txt){");
   const analyser = new Function(corps + " return analyserBareme;")();

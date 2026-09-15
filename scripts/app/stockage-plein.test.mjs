@@ -12,6 +12,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import vm from "node:vm";
+import { borne, borneArriere } from "../lib/tranche.mjs";
 
 const SOURCE = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
 
@@ -281,7 +282,7 @@ test("aucune suppression de clé ancienne n’a lieu sans un geste explicite", (
 
 test("la suppression explicite emporte les deux noms, et dit ce qu’elle a rendu", () => {
   const i = SOURCE.indexOf("async libererLocal(p, garder) {");
-  const corps = SOURCE.slice(i, SOURCE.indexOf("async libererPoste(p) {"));
+  const corps = SOURCE.slice(i, borne(SOURCE, "async libererPoste(p) {"));
   // sans choix, les deux noms partent : garder la jumelle ne libérerait rien
   assert.match(corps, /: \[neuve, ancienne\];/,
     "une suppression franche doit emporter les deux noms");
@@ -299,7 +300,7 @@ test("la suppression explicite emporte les deux noms, et dit ce qu’elle a rend
 
 test("trancher un conflit ne réécrit rien — il ne reste que le repli", () => {
   const i = SOURCE.indexOf("async libererLocal(p, garder) {");
-  const corps = SOURCE.slice(i, SOURCE.indexOf("async libererPoste(p) {"));
+  const corps = SOURCE.slice(i, borne(SOURCE, "async libererPoste(p) {"));
   // garder l'ancien = retirer le neuf. Aucun setItem : dans un stockage qui déborde,
   // recopier l'ancien sous le nom neuf serait précisément ce qui ne passe pas.
   assert.ok(!/setItem/.test(corps), "trancher un conflit ne doit écrire aucun octet");
@@ -310,7 +311,7 @@ test("trancher un conflit ne réécrit rien — il ne reste que le repli", () =>
 test("l’inventaire pèse le localStorage exactement, sans estimer", () => {
   const i = SOURCE.indexOf("// ————— LE localStorage AUSSI, ET AU POIDS EXACT —————");
   assert.ok(i > 0, "l’inventaire ne liste plus le localStorage");
-  const corps = SOURCE.slice(i, SOURCE.indexOf("postes.sort((a, b) => (b.octets || 0)", i));
+  const corps = SOURCE.slice(i, borne(SOURCE, "postes.sort((a, b) => (b.octets || 0)", i));
   // la valeur est là : sa longueur est exacte. Deux octets par caractère, clé comprise.
   assert.match(corps, /octets: \(k\.length \+ v\.length\) \* 2/);
   // un poste par donnée, pas par clé : les deux noms d'une même donnée font une ligne

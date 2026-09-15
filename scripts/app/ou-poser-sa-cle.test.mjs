@@ -12,6 +12,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { borne, borneArriere } from "../lib/tranche.mjs";
 
 const RACINE = new URL("../../", import.meta.url);
 const lire = (f) => readFileSync(new URL(f, RACINE), "utf8");
@@ -38,7 +39,7 @@ test("le repère d’URL est nettoyé dès qu’il est lu", () => {
   // qu'il ait lieu même quand une clé est déjà posée et qu'il n'y a rien à ouvrir.
   const i = APP.indexOf("  repereLicence() {");
   assert.ok(i > 0, "repereLicence a disparu");
-  const corps = APP.slice(i, APP.indexOf("\n  }", i));
+  const corps = APP.slice(i, borne(APP, "\n  }", i));
   assert.match(corps, /history\.replaceState\(/, "le repère n’est pas retiré de l’adresse");
   const iNettoie = corps.indexOf("history.replaceState(");
   const iDecide = corps.indexOf("this.ouvrirLicence()");
@@ -55,7 +56,7 @@ test("une clé posée fait disparaître le bandeau d’arrivée", () => {
   // signal : rien à tenir d'accord, rien à désynchroniser.
   const i = APP.indexOf('<sc-if value="{{ aCompteVide }}"');
   assert.ok(i > 0, "le bandeau de compte vide ne se délimite plus");
-  const bloc = APP.slice(i, APP.indexOf('<sc-if value="{{ aInviteNom }}"', i));
+  const bloc = APP.slice(i, borne(APP, '<sc-if value="{{ aInviteNom }}"', i));
   assert.match(bloc, /<sc-if value="\{\{ licSaisie \}\}"/,
     "la porte de la clé doit être conditionnée à l’absence de licence");
   assert.match(bloc, /<sc-if value="\{\{ licValide \}\}"/,
@@ -92,7 +93,7 @@ test("la clé de licence n’apparaît jamais en clair dans l’application rend
     `le code entier atteint le rendu ${champs.length} fois, une seule est permise — `
     + "celle du champ où on le colle");
   const i = APP.indexOf("{{ licCode }}");
-  const ligne = APP.slice(APP.lastIndexOf("\n", i) + 1, APP.indexOf("\n", i));
+  const ligne = APP.slice(borneArriere(APP, "\n", i) + 1, borne(APP, "\n", i));
   assert.match(ligne, /<input\b[^>]*value="\{\{ licCode \}\}"/,
     "le code entier est rendu ailleurs que dans le champ où on le colle : "
     + `« ${ligne.trim().slice(0, 110)} »`);
@@ -100,7 +101,7 @@ test("la clé de licence n’apparaît jamais en clair dans l’application rend
   // et l'état de licence n'en montre qu'une fin, jamais le début ni le milieu
   const j = APP.indexOf("licCleMasquee: (() => {");
   assert.ok(j > 0, "le producteur de la clé masquée a disparu");
-  const corps = APP.slice(j, APP.indexOf("})(),", j));
+  const corps = APP.slice(j, borne(APP, "})(),", j));
   assert.match(corps, /slice\(-4\)/, "la clé masquée ne doit exposer que ses quatre derniers caractères");
   assert.ok(!/\bc\b(?!\.trim|\s*=|\s*\|\|)/.test(corps.replace(/const c = [^;]+;/, "")),
     "le code complet circule encore dans le producteur de la clé masquée");

@@ -18,6 +18,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { borne, borneArriere } from "../lib/tranche.mjs";
 
 const FICHIERS = ["Vena.dc.html", "Vena.solo.html"];
 const source = (f) => readFileSync(new URL("../../" + f, import.meta.url), "utf8");
@@ -39,7 +40,7 @@ for (const f of FICHIERS) {
     const corps = methode(source(f), "  async lancerScan(force) {");
     const n = (corps.match(/this\.avancerCombis\(/g) || []).length;
     assert.equal(n, 2, "attendu un compteur dans le chemin parallèle ET dans le repli, vu " + n);
-    const repli = corps.slice(corps.indexOf("repli séquentiel"));
+    const repli = corps.slice(borne(corps, "repli séquentiel"));
     assert.match(repli, /this\.avancerCombis\(1\)/,
       "le repli séquentiel mesure une variante à la fois : il doit avancer d’une variante");
     // et plus aucun avancement fondé sur le compte d'instruments
@@ -87,8 +88,8 @@ for (const f of FICHIERS) {
   test(f + " : rien ne peut déloger le sélecteur de compte", () => {
     const txt = source(f);
     const i = txt.indexOf("<header");
-    const entete = txt.slice(i, txt.indexOf("</header>", i));
-    const rang = entete.slice(entete.indexOf('<div style="display:flex;align-items:center;gap:12px'));
+    const entete = txt.slice(i, borne(txt, "</header>", i));
+    const rang = entete.slice(borne(entete, '<div style="display:flex;align-items:center;gap:12px'));
     assert.match(rang.slice(0, 120), /flex:none/,
       "le rang qui porte le sélecteur de compte doit être insécable");
   });
@@ -106,11 +107,11 @@ for (const f of FICHIERS) {
     assert.ok(!entete.includes("{{ scanActif }}"),
       "le bandeau ne doit pas vivre dans le rang des onglets — il s’y comprime à zéro");
     // il vit dans le bloc collant, entre les onglets et les sous-onglets
-    const apres = txt.slice(finEntete, txt.indexOf('id="om-fil"'));
+    const apres = txt.slice(finEntete, borne(txt, 'id="om-fil"'));
     assert.ok(apres.includes("{{ scanActif }}"),
       "le bandeau doit se placer entre le rang des onglets et le rang des sous-onglets");
     // et il porte ses valeurs en encre papier, jamais accent sur accent
-    const bloc = apres.slice(apres.indexOf("{{ scanActif }}"));
+    const bloc = apres.slice(borne(apres, "{{ scanActif }}"));
     assert.match(bloc.slice(0, 2400), /background:var\(--color-accent-900\)/,
       "le bandeau doit être posé sur le fond accent sombre");
     assert.match(bloc.slice(0, 2400), /color:var\(--color-bg\)/,

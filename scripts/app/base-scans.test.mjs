@@ -13,6 +13,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { borne, borneArriere } from "../lib/tranche.mjs";
 
 const SOURCE = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
 
@@ -65,7 +66,7 @@ test("le miroir localStorage a un budget en OCTETS, pas en lignes", () => {
   const budget = Number(SOURCE.slice(i).match(/MIROIR_MAX_OCTETS = (\d+) \* 1024;/)[1]);
   // le magasin fait 5 Mo : un filet qui en prend plus d'un dixième n'est plus un filet
   assert.ok(budget <= 512, `budget de ${budget} Ko : trop pour un magasin de 5 Mo`);
-  const corps = SOURCE.slice(SOURCE.indexOf("miroirScan(scan, fiche) {"), SOURCE.indexOf("ecrireScanFilet(scan, fiche) {"));
+  const corps = SOURCE.slice(borne(SOURCE, "miroirScan(scan, fiche) {"), borne(SOURCE, "ecrireScanFilet(scan, fiche) {"));
   // le poids est mesuré sur le TEXTE, avant l'écriture, et non deviné du nombre de lignes
   assert.match(corps, /\(cle\.length \+ texte\.length\) \* 2 > this\.MIROIR_MAX_OCTETS\) continue;/);
 });
@@ -73,7 +74,7 @@ test("le miroir localStorage a un budget en OCTETS, pas en lignes", () => {
 test("la migration des scans relit avant de supprimer, et laisse la source sur échec", () => {
   const i = SOURCE.indexOf("async migrerScansVersBase() {");
   assert.ok(i > 0, "la migration des scans a disparu");
-  const corps = SOURCE.slice(i, SOURCE.indexOf("async lireScanComplet() {"));
+  const corps = SOURCE.slice(i, borne(SOURCE, "async lireScanComplet() {"));
   // écrire, RELIRE, comparer, puis seulement supprimer
   const iEcrit = corps.indexOf("await this.grosSet(cleG, this.compacterBloc(bloc))");
   const iRelu = corps.indexOf("const relu = this.decompacterBloc(await this.grosGet(cleG));");
@@ -89,8 +90,8 @@ test("la migration des scans relit avant de supprimer, et laisse la source sur �
 });
 
 test("seuls les scans partent — ni le témoin, ni la marque de départ", () => {
-  const corps = SOURCE.slice(SOURCE.indexOf("async migrerScansVersBase() {"),
-    SOURCE.indexOf("async lireScanComplet() {"));
+  const corps = SOURCE.slice(borne(SOURCE, "async migrerScansVersBase() {"),
+    borne(SOURCE, "async lireScanComplet() {"));
   // le motif est lu dans la source, pas recopié : une copie qui dérive ne dirait rien
   const motif = corps.match(/if \((\/[^\n]+?\/)\.test\(x\)\) cles\.push/);
   assert.ok(motif, "le filtre des clés de scan a changé de forme");

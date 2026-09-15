@@ -17,6 +17,7 @@
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import { borne } from "../lib/tranche.mjs";
 
 const RACINE = path.resolve(new URL("../../", import.meta.url).pathname);
 const lire = (f) => readFileSync(path.join(RACINE, f), "utf8");
@@ -100,8 +101,10 @@ const REACT = {
 const reactB64 = {};
 for (const [url, f] of Object.entries(REACT)) reactB64[url] = Buffer.from(lire(f), "utf8").toString("base64");
 
-const vieuxResources = html.slice(html.indexOf("  window.__resources = {"),
-  html.indexOf("};", html.indexOf("  window.__resources = {")) + 3);
+// borne() JETTE si l'ancre a disparu : un indexOf à -1 est une borne valide pour
+// slice, et la tranche élargie serait partie dans le fichier LIVRÉ
+const iRes = borne(html, "  window.__resources = {");
+const vieuxResources = html.slice(iRes, borne(html, "};", iRes) + 3);
 if (!vieuxResources.includes("unpkg.com/react")) {
   throw new Error("solo.mjs : le bloc window.__resources de Vena.dc.html a changé de forme");
 }

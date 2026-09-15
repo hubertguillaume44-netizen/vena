@@ -12,6 +12,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { borne, borneArriere } from "../lib/tranche.mjs";
 
 const lire = (f) => readFileSync(new URL("../../" + f, import.meta.url), "utf8");
 const SOURCE = lire("Vena.dc.html");
@@ -21,7 +22,7 @@ const NETLIFY = lire("netlify.toml");
 const methode = () => {
   const i = SOURCE.indexOf("async verifierVersionServie() {");
   assert.ok(i > 0, "verifierVersionServie a disparu");
-  return SOURCE.slice(i, SOURCE.indexOf("\n  }", i));
+  return SOURCE.slice(i, borne(SOURCE, "\n  }", i));
 };
 
 test("le manifeste DÉRIVE de VERSION_APP — jamais écrit à la main", () => {
@@ -33,7 +34,7 @@ test("le manifeste DÉRIVE de VERSION_APP — jamais écrit à la main", () => {
   // cette garde est tombée dessus au premier essai — on interdit le code, pas le récit.
   const i = PUBLIER.indexOf('writeFileSync(path.join(path.dirname(SORTIE), "version.json")');
   assert.ok(i > 0, "publier-solo n’écrit plus le manifeste de version");
-  const ecrit = PUBLIER.slice(i, PUBLIER.indexOf(";", i));
+  const ecrit = PUBLIER.slice(i, borne(PUBLIER, ";", i));
   assert.match(ecrit, /JSON\.stringify\(\{ version: vSource \}\)/,
     "le manifeste doit être JSON.stringify({ version: vSource }) — la version déjà "
     + "vérifiée contre l’artefact, jamais une autre valeur");
@@ -75,8 +76,8 @@ test("l'échec de lecture ne produit AUCUN texte — pas de manifeste, pas de ve
 test("le verdict est rendu, et appelé au montage", () => {
   assert.match(SOURCE, /\{\{ majServieTxt \}\}/, "le bandeau du verdict n’est pas rendu");
   assert.match(SOURCE, /\{\{ recharger \}\}/, "le geste « Recharger » n’est pas rendu");
-  const mont = SOURCE.slice(SOURCE.indexOf("async componentDidMount() {"),
-    SOURCE.indexOf("async componentDidMount() {") + 800);
+  const mont = SOURCE.slice(borne(SOURCE, "async componentDidMount() {"),
+    borne(SOURCE, "async componentDidMount() {") + 800);
   assert.match(mont, /this\.verifierVersionServie\(\);/,
     "la vérification doit partir au montage — sans await : rien n’en dépend");
   // et la cinquième porte est déclarée dans le tiroir : « vos données ne quittent

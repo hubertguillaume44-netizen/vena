@@ -4,6 +4,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { borne, borneArriere } from "../lib/tranche.mjs";
 
 const FICHIERS = ["Vena.dc.html", "Vena.solo.html"];
 const cache = new Map();
@@ -25,7 +26,7 @@ for (const f of FICHIERS) {
     // `dureeEstimee` ne doit plus toucher la liste brute
     const i = txt.indexOf("dureeEstimee: (() => {");
     assert.ok(i > 0, "dureeEstimee doit exister");
-    const bloc = txt.slice(i, txt.indexOf("})(),", i));
+    const bloc = txt.slice(i, borne(txt, "})(),", i));
     assert.ok(!/s\.univers\.length/.test(bloc) && !/s\.univers\.filter/.test(bloc),
       "dureeEstimee ne doit plus lire la liste non filtrée");
   });
@@ -136,7 +137,7 @@ for (const f of FICHIERS) {
     // code ne dirait pas ce qu’un octet devient à l’écran
     const txt = source(f);
     const i = txt.indexOf("  taille(o) {");
-    const corps = txt.slice(i + "  taille(o) {".length, txt.indexOf("\n  }", i));
+    const corps = txt.slice(i + "  taille(o) {".length, borne(txt, "\n  }", i));
     // eslint-disable-next-line no-new-func
     const taille = new Function("o", corps);
     const cas = [

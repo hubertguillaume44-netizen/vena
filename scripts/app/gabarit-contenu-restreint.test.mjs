@@ -35,6 +35,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { borne, borneArriere } from "../lib/tranche.mjs";
 
 const SOURCE = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
 
@@ -120,7 +121,7 @@ test("le gabarit n’écrit plus une seule vraie table : sc-raw-* partout", () =
   // le CSS ne voit pas la différence, et l'analyseur ne les connaît pas — donc ne les
   // déplace pas. La garde de rendu (rendu-gabarit.test.mjs) attraperait le symptôme ;
   // celle-ci attrape le geste, avec le numéro de ligne.
-  const gabarit = NU.slice(NU.indexOf("<x-dc>"), NU.indexOf("</x-dc>"));
+  const gabarit = NU.slice(borne(NU, "<x-dc>"), borne(NU, "</x-dc>"));
   const depart = NU.indexOf("<x-dc>");
   const vraies = [];
   const reT = /<\/?(table|thead|tbody|tfoot|caption|tr|th|td)(?=[\s>])/g;
@@ -168,8 +169,8 @@ test("l’en-tête n’a plus de <select> : son menu de comptes est en <div>", (
   // la page de présentation. Cette page a disparu, la condition avec elle, et la
   // délimitation rendait alors une chaîne VIDE — un test qui passe sur rien du tout.
   // Elle s'accroche donc au bouton lui-même, qui est ce qu'on mesure.
-  const entete = SOURCE.slice(SOURCE.indexOf("{{ basculerMenuComptes }}") - 400,
-    SOURCE.indexOf("<sc-if value=\"{{ aBoutonTiroir }}\""));
+  const entete = SOURCE.slice(borne(SOURCE, "{{ basculerMenuComptes }}") - 400,
+    borne(SOURCE, "<sc-if value=\"{{ aBoutonTiroir }}\""));
   assert.ok(entete.length > 400, "l’en-tête ne se délimite plus");
   // sans les commentaires HTML : celui qui explique le défaut a le droit de nommer la
   // balise qu’on bannit, le balisage non
@@ -184,7 +185,7 @@ test("l’en-tête n’a plus de <select> : son menu de comptes est en <div>", (
 test("le libellé du bouton ne peut pas annoncer un compte que le menu n’offre pas", () => {
   const i = SOURCE.indexOf("compteTeteTxt: (() => {");
   assert.ok(i > 0, "le libellé du bouton a disparu");
-  const corps = SOURCE.slice(i, SOURCE.indexOf("chevronComptes:", i));
+  const corps = SOURCE.slice(i, borne(SOURCE, "chevronComptes:", i));
   // il se lit dans la MÊME liste que le menu, pas dans compteActif directement
   assert.match(corps, /liste\.find\(\(\[c\]\) => c === this\.compteActif\)/);
   assert.match(corps, /liste\[0\]/, "sans repli, un compte actif hors liste laisserait le bouton vide");

@@ -14,6 +14,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import vm from "node:vm";
+import { borne, borneArriere } from "../lib/tranche.mjs";
 
 const SOURCE = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
 
@@ -218,7 +219,7 @@ test("la date vient de lireSauvInfo, pas d’un drapeau nouveau", () => {
 test("l’ouverture n’est jamais bloquée, et n’emporte rien avec elle", () => {
   const i = SOURCE.indexOf("ouvrirOngletPropre: () => {");
   assert.ok(i > 0, "le bouton d’ouverture a disparu");
-  const corps = SOURCE.slice(i, SOURCE.indexOf("},", i) + 2);
+  const corps = SOURCE.slice(i, borne(SOURCE, "},", i) + 2);
   assert.match(corps, /window\.open\(location\.href, '_blank', 'noopener'\)/);
   // aucune condition : le but est que le geste sûr soit le plus évident, pas que
   // l’autre soit interdit

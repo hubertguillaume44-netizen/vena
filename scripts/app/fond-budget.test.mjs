@@ -11,12 +11,13 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { borne, borneArriere } from "../lib/tranche.mjs";
 
 const APP = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
 const corps = (() => {
   const i = APP.indexOf("async completerCor(cible) {");
   assert.ok(i > 0, "completerCor a changé de forme — réancrez ce fichier de gardes");
-  return APP.slice(i, APP.indexOf("\n  }", APP.indexOf("fermerWorkers();", i)));
+  return APP.slice(i, borne(APP, "\n  }", borne(APP, "fermerWorkers();", i)));
 })();
 
 test("l'export a priorité : le complètement se met en pause dès qu'il commence", () => {
@@ -47,7 +48,7 @@ test("le complètement ne démarre pas tout seul : le prix se dit avant de lance
   assert.ok(APP.includes("const attente = this.corAFaire(but);"),
     "la ligne d'état ne lit plus corAFaire : sa sélection divergerait de celle "
     + "du complètement — deux vérités");
-  const gab = APP.slice(0, APP.indexOf("</x-dc>"));
+  const gab = APP.slice(0, borne(APP, "</x-dc>"));
   for (const h of ["{{ corAttenteTxt }}", "{{ corLancer }}", "{{ corArreter }}"]) {
     assert.ok(gab.includes(h), h + " n'est plus rendu : le prix, le geste de "
       + "lancer ou celui d'arrêter a perdu sa surface");

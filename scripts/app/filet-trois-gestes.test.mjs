@@ -9,6 +9,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { borne, borneArriere } from "../lib/tranche.mjs";
 
 const APP = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
 const ligneDe = (idx) => APP.slice(0, idx).split("\n").length;
@@ -42,7 +43,7 @@ test("chaque sortie de permission de sauverAuto pose un autoMsg non vide", () =>
   // si queryPermission jette, le fichier reste « choisi », sinon le bandeau de
   // perte revient à chaque ouverture alors que le fichier existe
   const iR = APP.indexOf("async reprendreFichierAuto() {");
-  const corpsR = APP.slice(iR, APP.indexOf("\n  }", iR));
+  const corpsR = APP.slice(iR, borne(APP, "\n  }", iR));
   const iPoignee = corpsR.indexOf("this.handleAuto = h;");
   const iPerm = corpsR.indexOf("queryPermission");
   assert.ok(iPoignee > 0 && iPerm > iPoignee,
@@ -75,7 +76,7 @@ test("le bandeau de perte porte les trois gestes, avec exactement un accent", ()
   // ne hiérarchisent plus rien — la même règle que les actions pleines comptées
   // à l'écran. Mutation : passer un filet en fond plein fait tomber ici.
   const accents = pied.split("<button").slice(1)
-    .filter((b) => b.slice(0, b.indexOf(">")).includes("background:var(--color-bg)"));
+    .filter((b) => b.slice(0, borne(b, ">")).includes("background:var(--color-bg)"));
   assert.equal(accents.length, 1,
     "le pied de sauvegarde porte " + accents.length + " boutons d'accent au lieu "
     + "d'un seul : l'accent est la protection durable, tout le reste est en filet");
@@ -88,7 +89,7 @@ test("le bandeau de perte porte les trois gestes, avec exactement un accent", ()
   const iAcc = pied.indexOf('<sc-if value="{{ aSansSauvAccent }}"');
   assert.ok(iAcc > 0, "l'accent n'est plus gaté par aSansSauvAccent : la barre "
     + "porterait un accent permanent — un accent qui se présente partout ne désigne plus rien");
-  const blocAccent = pied.slice(iAcc, pied.indexOf("</sc-if>", iAcc));
+  const blocAccent = pied.slice(iAcc, borne(pied, "</sc-if>", iAcc));
   for (const g of ["sansSauvExporter", "sansSauvImporter"]) {
     assert.ok(!blocAccent.includes(g),
       g + " est passé DERRIÈRE la condition d'avertissement : quand la sauvegarde "

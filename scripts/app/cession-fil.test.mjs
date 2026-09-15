@@ -24,6 +24,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { borne, borneArriere } from "../lib/tranche.mjs";
 
 const FICHIERS = ["Vena.dc.html", "Vena.solo.html"];
 
@@ -64,7 +65,7 @@ for (const f of FICHIERS) {
     const lignes = corps.split("\n").filter((l) => /setInterval/.test(l));
     assert.equal(lignes.length, 1,
       "lancerScan ne doit garder qu'une minuterie, celle du chrono affiché");
-    const suite = corps.slice(corps.indexOf(lignes[0]));
+    const suite = corps.slice(borne(corps, lignes[0]));
     assert.match(suite.slice(0, 400), /scanTic/,
       "la minuterie restante doit être celle du chrono, pas une cession déguisée");
   });
@@ -76,7 +77,7 @@ for (const f of FICHIERS) {
     assert.equal(n, 2, "attendu deux cessions (boucle par instrument + repli séquentiel), vu " + n);
     // le repli séquentiel compte autant que l'autre : c'est le seul cas où le scan
     // s'arrête pour de bon quand l'onglet passe derrière
-    const repli = corps.slice(corps.indexOf("repli séquentiel"));
+    const repli = corps.slice(borne(corps, "repli séquentiel"));
     assert.match(repli, /await this\.cederLeFil\(\)/,
       "le repli séquentiel ne cède plus la main par cederLeFil");
   });

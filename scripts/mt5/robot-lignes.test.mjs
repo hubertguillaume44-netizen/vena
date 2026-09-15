@@ -27,6 +27,7 @@ import { genererMQ5, SPREAD_FENETRE as SPREAD_FENETRE_ROBOT } from "../../robot-
 import { REFERENCES } from "./references.mjs";
 import { construireConfig } from "./config.mjs";
 import { etatDepuisReference, genererRobot } from "./etat-depuis-reference.mjs";
+import { borne, borneArriere } from "../lib/tranche.mjs";
 
 const M = await chargerMoteur();
 
@@ -56,7 +57,7 @@ const D1 = serieD1();
 
 test("la médiane du robot est le point milieu du canal, pas la médiane des clôtures", () => {
   const src = genererMQ5(CFG, CTX);
-  const bloc = src.slice(src.indexOf("if(mode == M_MEDIANE)"), src.indexOf("if(mode == M_SMA)"));
+  const bloc = src.slice(borne(src, "if(mode == M_MEDIANE)"), borne(src, "if(mode == M_SMA)"));
   assert.ok(bloc.includes("g_h[fin - i]") && bloc.includes("g_l[fin - i]"),
     "le bloc M_MEDIANE ne lit pas les plus hauts / plus bas du tampon agrégé");
   assert.ok(!bloc.includes("ArraySort"),
@@ -162,7 +163,7 @@ test("le plafond de spread est écrit dans le robot, et le seuil est bien un mul
   // l'agrégat de l'export natif le rapport tombait à 1,0000 pile. 34 des 73 bougies
   // d'entrée divergentes venaient de cet écart de grandeur.
   assert.match(src, /double x = g_spOuv\[\(debut \+ k\) % SPREAD_FENETRE\];/);
-  assert.doesNotMatch(src.slice(src.indexOf("double SeuilSpread()")),
+  assert.doesNotMatch(src.slice(borne(src, "double SeuilSpread()")),
     /CopySpread\(_Symbol, PERIOD_H1, 1, SPREAD_FENETRE/,
     "SeuilSpread rebâtit la médiane sur l'agrégat H1 au lieu des spreads d'ouverture");
   // l'amorçage relit la M1 : sans lui le plafond resterait inactif 250 jours
@@ -261,8 +262,8 @@ test("le robot compare un spread de BOUGIE, pas celui du tick", () => {
   // qu'aucun test ne le voie : 10 entrées communes sur 44 sur AUDCAD, 181 sur 491 sur
   // GOLD — moins bien que sans plafond du tout.
   const src = genererMQ5(CFG, { ...CTX, spreadFacteur: 1.5 });
-  const bloc = src.slice(src.indexOf("double plafond = SeuilSpread();"),
-    src.indexOf("if(InpPasDebutSemaine)"));
+  const bloc = src.slice(borne(src, "double plafond = SeuilSpread();"),
+    borne(src, "if(InpPasDebutSemaine)"));
   assert.ok(!/spreadPct\s*>\s*plafond/.test(bloc),
     "le plafond est encore comparé au spread du tick (spreadPct)");
   assert.match(bloc, /barre > plafond/);
@@ -275,8 +276,8 @@ test("le robot ne tente l'entrée qu'une fois par bougie H1", () => {
   // GOLD 234 sur 542 — alors même que les deux plafonds de spread étaient d'accord.
   const src = genererMQ5(CFG, { ...CTX, spreadFacteur: 1.5 });
   assert.match(src, /bool nouvelleH1 = \(bH1\[0\] != g_derniereH1\);/);
-  const reprise = src.slice(src.indexOf("if(seau >= 0 && seau == seauEnAttente"),
-    src.indexOf("g_derniereH1 = bH1[0];", src.indexOf("if(seau >= 0 && seau == seauEnAttente")));
+  const reprise = src.slice(borne(src, "if(seau >= 0 && seau == seauEnAttente"),
+    borne(src, "g_derniereH1 = bH1[0];", borne(src, "if(seau >= 0 && seau == seauEnAttente")));
   assert.match(reprise, /if\(!nouvelleH1\) return;/,
     "la reprise d'un signal en attente s'exécute encore en cours de bougie");
 });
@@ -367,8 +368,8 @@ test('le journal des trades est toujours actif et porte son en-tête', () => {
   assert.match(txt, /ticket;symbole;sens;ouverture;entree;stop_initial;objectif;/,
     'en-tête du relevé');
   // pas derrière InpConformite : Liv() écrit sans condition
-  const liv = txt.slice(txt.indexOf('void Liv(string ligne)'));
-  const corps = liv.slice(0, liv.indexOf('}'));
+  const liv = txt.slice(borne(txt, 'void Liv(string ligne)'));
+  const corps = liv.slice(0, borne(liv, '}'));
   assert.ok(!/InpConformite/.test(corps), 'Liv() ne doit pas dépendre de InpConformite');
   assert.match(txt, /OnInit\(\)\s*\{\s*ConfOuvrir\(\);\s*LivOuvrir\(\);/,
     'le fichier s’ouvre au démarrage');

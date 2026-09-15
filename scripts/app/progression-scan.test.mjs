@@ -13,10 +13,11 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { borne, borneArriere } from "../lib/tranche.mjs";
 
 const SOURCE = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
 // le gabarit seul, commentaires effacés : on interdit le code, pas le récit du code
-const GABARIT = SOURCE.slice(SOURCE.indexOf("<x-dc>"), SOURCE.indexOf("</x-dc>"))
+const GABARIT = SOURCE.slice(borne(SOURCE, "<x-dc>"), borne(SOURCE, "</x-dc>"))
   .replace(/<!--[\s\S]*?-->/g, "");
 
 test("un seul indicateur de progression par surface, et le cadre ne revient pas", () => {
@@ -48,7 +49,7 @@ test("la phrase qui rassure vit à portée du geste qu'elle rassure", () => {
   // que ce bouton — le sc-if barEnCours du pied — et nulle part ailleurs.
   const i = GABARIT.indexOf('id="barreScan"');
   assert.ok(i > 0, "le pied d’acier a disparu — réancrez cette garde");
-  const pied = GABARIT.slice(i, GABARIT.indexOf("</div>\n      </div>", i));
+  const pied = GABARIT.slice(i, borne(GABARIT, "</div>\n      </div>", i));
   const iArret = pied.indexOf("{{ arreterScan }}");
   const iPhrase = pied.indexOf("Les résultats déjà calculés sont gardés");
   assert.ok(iArret > 0, "le bouton d’arrêt a quitté le pied");
@@ -84,7 +85,7 @@ test("le compteur de progression n'emploie pas le mot réservé à l'étage suiv
   // dans le bloc sombre la fait tomber.
   const i = SOURCE.indexOf("barGrosSous: enCours");
   assert.ok(i > 0, "le sous-titre du compteur a disparu — réancrez cette garde");
-  const bloc = SOURCE.slice(i, SOURCE.indexOf("barADroite:", i));
+  const bloc = SOURCE.slice(i, borne(SOURCE, "barADroite:", i));
   assert.ok(!/mesur/i.test(bloc),
     "le compteur de progression emploie « mesur… » : ce mot désigne l'étage SUIVANT de "
     + "l'entonnoir — les combinaisons qui ont produit une ligne — et l'en-tête le porte "

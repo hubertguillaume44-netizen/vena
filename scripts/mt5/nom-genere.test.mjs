@@ -19,6 +19,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { genererMQ5, nomRobot } from "../../robot-mt5.js";
+import { borne, borneArriere } from "../lib/tranche.mjs";
 
 const CFG = { sym: "SPAIN35", sens: "achat", entree: "croisement_prix", ligne: "ma",
   periode: 20, sl: 0.7, rr: 1.5, ut: "H4", n: 77, rAn: 6, dd: -4 };
@@ -78,7 +79,7 @@ test("le panneau écrit sous VNA_PAN_, et balaie l'ancien préfixe une fois, à 
   // unique doit donc exister, dans OnInit, et une seule fois.
   const balayages = SRC.match(/ObjectsDeleteAll\(0, "SIV_PAN_"\);/g) || [];
   assert.equal(balayages.length, 1, "le balayage unique de SIV_PAN_ doit exister, une fois — vu " + balayages.length);
-  const onInit = SRC.slice(SRC.indexOf("int OnInit()"), SRC.indexOf("void OnTick"));
+  const onInit = SRC.slice(borne(SRC, "int OnInit()"), borne(SRC, "void OnTick"));
   assert.ok(onInit.includes('ObjectsDeleteAll(0, "SIV_PAN_");'),
     "le balayage doit vivre dans OnInit — avant le premier dessin du panneau neuf");
 });

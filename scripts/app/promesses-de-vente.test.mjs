@@ -12,6 +12,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import { chainesLivrees, blocLivre } from "./chaines-livrees.mjs";
+import { borne, borneArriere } from "../lib/tranche.mjs";
 
 const RACINE = new URL("../../", import.meta.url);
 const lire = (f) => readFileSync(new URL(f, RACINE), "utf8");
@@ -124,7 +125,7 @@ test("le comparatif ne vend que ce que le code garde", () => {
     + "le comparatif de /tarifs doit être relu avec elle");
 
   const i = TARIFS.indexOf("const COMPARATIF");
-  const bloc = TARIFS.slice(i, TARIFS.indexOf("];", i));
+  const bloc = TARIFS.slice(i, borne(TARIFS, "];", i));
   // une ligne « gratuit: false » affirme que la formule gratuite n'a PAS la fonction.
   // Une seule est légitime aujourd'hui : la réponse par courriel, qui est un engagement
   // humain et non une garde de code.
@@ -273,7 +274,7 @@ test("le tarif gelé s’appuie sur le registre, pas sur la parole", () => {
   // clair dans le rendu en laissant la constante derrière : la garde resterait verte en
   // surveillant un texte que personne ne lit plus. Vérifié à la mutation — c'est le seul
   // trou que l'ancrage par nom ouvrait.
-  const rendu = TARIFS.slice(TARIFS.indexOf("function Tarifs()"));
+  const rendu = TARIFS.slice(borne(TARIFS, "function Tarifs()"));
   assert.match(rendu, /\{TARIF_GELE\}/,
     "TARIF_GELE n’est plus rendue : la phrase a probablement été recopiée en clair dans le "
     + "JSX. Rendez la constante — `<p>{TARIF_GELE}</p>` — sinon cette garde surveille un "
@@ -311,7 +312,7 @@ test("les phrases qui engagent sont nommées sur TOUTES les routes, pas sur la s
 
   // et les constantes sont RENDUES — nommer protège du formatage, pas de quelqu'un qui
   // recopierait la phrase en clair en laissant la constante derrière.
-  const rendu = ACCUEIL.slice(ACCUEIL.indexOf("function Home()"));
+  const rendu = ACCUEIL.slice(borne(ACCUEIL, "function Home()"));
   for (const nom of ["SANS_COMPTE", "RESILIATION", "RETRACTATION_A_TRANCHER"]) {
     assert.ok(rendu.includes(`{${nom}}`),
       `${nom} n’est plus rendue : la phrase a probablement été recopiée en clair dans le `
@@ -401,7 +402,7 @@ test("les textes qui vivent chez le prestataire ont leur source DANS le dépôt"
   // est structurelle — après la fin du bloc de type — et non un motif à exclure.
   const iT = src.indexOf("export type TexteRecopie = {");
   assert.ok(iT > 0, `${MOD} ne déclare plus le type TexteRecopie`);
-  const valeurs = src.slice(src.indexOf("};", iT) + 2);
+  const valeurs = src.slice(borne(src, "};", iT) + 2);
   const textes = [...valeurs.matchAll(/texte: ([A-Za-z_]+|"[^"]*")/g)].map((m) => m[1]);
 
   // ————— CE QUI SE DÉRIVE SE DÉRIVE ; CE QUI S'ÉNUMÈRE LE DIT —————
@@ -437,7 +438,7 @@ test("les textes qui vivent chez le prestataire ont leur source DANS le dépôt"
   // marque. Celle-ci est structurelle, et elle n'énumère rien.
   const iPlat = src.indexOf("TEXTES_RECOPIES: readonly TexteRecopie[]");
   assert.ok(iPlat > 0, `${MOD} ne déclare plus la liste à plat`);
-  const plat = src.slice(iPlat, src.indexOf("];", iPlat));
+  const plat = src.slice(iPlat, borne(src, "];", iPlat));
   const oublies = declares.filter((n) => !new RegExp(`\\b${n}\\b`).test(plat));
   assert.deepEqual(oublies, [],
     `déclarés dans ${MOD} mais absents de TEXTES_RECOPIES : ${oublies.join(" · ")}. Un texte `

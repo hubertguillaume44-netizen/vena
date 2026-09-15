@@ -6,6 +6,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
+import { borne, borneArriere } from "../lib/tranche.mjs";
 
 const RACINE = new URL("../../", import.meta.url).pathname;
 const IGNORE = new Set(["node_modules", ".git", "dist", "build",
@@ -102,7 +103,7 @@ test("le numéro magique ne dépend pas du nom de l’application", () => {
   assert.match(src, /magicDe\(v\) \{ return this\.hachMagic\(this\.cleMagic\(v\) \+ '\|' \+ this\.compteDesFichiers\(\)\); \}/,
     "le magique ne doit hacher que la configuration et le compte");
   const i = src.indexOf("hachMagic(cle) {");
-  const corps = src.slice(i, src.indexOf("\n  }", i));
+  const corps = src.slice(i, borne(src, "\n  }", i));
   assert.ok(!/vena|Véna|sivula/i.test(corps), "aucun nom d’application dans le hachage");
 });
 
@@ -172,7 +173,7 @@ test("la migration tourne avant la classe, et DÉPLACE au lieu de copier", () =>
   const iClasse = src.indexOf("class Component extends DCLogic {");
   assert.ok(iMig > 0 && iClasse > 0 && iMig < iClasse,
     "la migration doit s’exécuter avant la classe, donc avant la moindre lecture");
-  const corps = src.slice(src.indexOf("function migrerStockage()"), iMig);
+  const corps = src.slice(borne(src, "function migrerStockage()"), iMig);
 
   // la clé neuve fait foi, et dans ce cas l'ancienne N'EST PAS supprimée : les deux
   // peuvent différer, et on n'efface pas une valeur qu'on n'a pas lue
@@ -212,7 +213,7 @@ test("la façade de lecture ne ressuscite jamais une valeur neuve vide", () => {
   const src = readFileSync(path.join(RACINE, "Vena.dc.html"), "utf8");
   const i = src.indexOf("const localStorage = {");
   assert.ok(i > 0, "la façade du stockage a disparu");
-  const corps = src.slice(i, src.indexOf("class Component extends DCLogic {"));
+  const corps = src.slice(i, borne(src, "class Component extends DCLogic {"));
   // la clé neuve fait foi MÊME VIDE : un « [] » écrit par l'application est une réponse
   assert.match(corps, /if \(v !== null\) return v;/,
     "le repli doit s’effacer dès que la clé neuve existe, fût-elle vide");

@@ -10,6 +10,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { borne, borneArriere } from "../lib/tranche.mjs";
 
 const APP = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
 const ligneDe = (idx) => APP.slice(0, idx).split("\n").length;
@@ -36,7 +37,7 @@ test("toute libération d'URL d'objet est différée — jamais synchrone après
 test("exporterTout est protégé, dit son échec, et tous ses appelants attendent", () => {
   const i = APP.indexOf("async exporterTout() {");
   assert.ok(i > 0, "exporterTout a changé de forme — réancrez cette garde");
-  const corps = APP.slice(i, APP.indexOf("\n  }", APP.indexOf("} catch", i)));
+  const corps = APP.slice(i, borne(APP, "\n  }", borne(APP, "} catch", i)));
   assert.ok(corps.includes("try {"),
     "exporterTout n'a plus de try : une exception dans la lecture des données part "
     + "dans une promesse que personne ne regarde, et le bouton ne fait rien sans le dire");

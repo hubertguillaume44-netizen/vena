@@ -25,6 +25,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
+import { borne, borneArriere } from "../lib/tranche.mjs";
 
 const SOLO = new URL("../../Vena.solo.html", import.meta.url).pathname;
 const CHROMIUMS = [
@@ -43,7 +44,7 @@ test("le fichier livré n'émet aucune requête voisine pendant une session comp
     const ctx = await nav.newContext({ acceptDownloads: true });
     const p = await ctx.newPage();
     const document_ = "file://" + SOLO;
-    const dossier = document_.slice(0, document_.lastIndexOf("/") + 1);
+    const dossier = document_.slice(0, borneArriere(document_, "/") + 1);
     const voisines = [];
     p.on("request", (r) => {
       const u = r.url();

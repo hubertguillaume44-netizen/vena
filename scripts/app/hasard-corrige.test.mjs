@@ -20,6 +20,7 @@ import { generateDemo } from "../mt5/serie-demo.mjs";
 import { construireConfig } from "../mt5/config.mjs";
 import { backtester } from "../../moteur.js";
 import { controleCorrige, CRITERES_HASARD, scoreHasard, valeursHasard } from "../../scan-noyau.js";
+import { borne, borneArriere } from "../lib/tranche.mjs";
 
 const APP = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
 const NOYAU = readFileSync(new URL("../../scan-noyau.js", import.meta.url), "utf8");
@@ -126,7 +127,7 @@ test("l'épinglée à la main porte un p NON corrigé, nommé comme tel", () => 
   // centaines : AUCUN N ne décrit cette sélection, donc aucune correction honnête
   // n'existe pour elle (règle 9 : l'angle mort infermable se déclare).
   const iCarte = APP.indexOf("champsCorCarte(sym, tete) {");
-  const corps = APP.slice(iCarte, APP.indexOf("\n  }", APP.indexOf("hasardPhrase: au +", iCarte)));
+  const corps = APP.slice(iCarte, borne(APP, "\n  }", borne(APP, "hasardPhrase: au +", iCarte)));
   const iGarde = corps.indexOf("if (!estTete) {");
   const iEtiquette = corps.indexOf("'Verdict · NON corrigé — épinglée à la main'");
   const iCorrige = corps.indexOf("const au = (e.au && e.au[c]) || 0;");

@@ -15,6 +15,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { borne, borneArriere } from "../lib/tranche.mjs";
 
 const APP = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
 const SOLO = readFileSync(new URL("../../Vena.solo.html", import.meta.url), "utf8");
@@ -43,7 +44,7 @@ test("le fichier construit embarque les deux scripts, octets identiques au dép�
     "window.__venaScripts est absent de Vena.solo.html — solo.mjs ne l'embarque "
     + "plus, ou l'artefact est périmé : relancez « npm run app:solo »");
   const deb = i + marque.length;
-  const table = JSON.parse(SOLO.slice(deb, SOLO.indexOf(";", deb)));
+  const table = JSON.parse(SOLO.slice(deb, borne(SOLO, ";", deb)));
   // ANGLE MORT, déclaré (règle 9) : ces deux noms sont ÉNUMÉRÉS dans solo.mjs — leur
   // seule autre source serait la prose du gabarit, et chercher un nom dans de la
   // prose serait la règle 1. Un TROISIÈME script MT5 naîtrait hors de portée : le
