@@ -115,3 +115,24 @@ test("le chemin déclaré par l’application est celui où le fichier est publi
       "déclaré par l’application mais absent de public/ : " + d);
   }
 });
+
+test("le fichier livré porte la feuille, le paquet et les polices — aucun voisin", () => {
+  // La feuille et le paquet étaient les DERNIERS voisins du fichier unique : ouvert
+  // en « file:// » — le mode recommandé — aucun jeton ne résolvait et la page
+  // rendait sans aucune forme, le bouton plein du pied en texte nu pendant que les
+  // filets gardaient un liseré. solo.mjs les embarque désormais comme React et les
+  // scripts MT5. Mutation : retirer l'embarquement de solo.mjs fait tomber ici.
+  const solo = lire("Vena.solo.html");
+  assert.ok(!/(?:src|href)="_ds\//.test(solo),
+    "le fichier livré référence encore un voisin _ds/ : en « file:// », il rend sans "
+    + "aucune forme — la feuille et le paquet doivent voyager DANS le fichier");
+  const m = /<link rel="stylesheet" href="data:text\/css;base64,([^"]+)">/.exec(solo);
+  assert.ok(m, "la feuille embarquée (data:text/css) est absente du fichier livré");
+  const css = Buffer.from(m[1], "base64").toString("utf8");
+  const polices = (css.match(/url\(data:font\/woff2;base64,/g) || []).length;
+  assert.ok(polices >= 8,
+    "les polices de la feuille embarquée doivent être inlinées en data: — vu "
+    + polices + " ; une url(fonts/…) restante ne résout pas en « file:// »");
+  assert.ok(!css.includes("url(fonts/"),
+    "une police de la feuille embarquée pointe encore sur un voisin fonts/");
+});

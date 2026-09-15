@@ -50,6 +50,32 @@ modules.worker = remplacer(modules.worker, "'./scan-noyau.js'", "'__URL_SCANNOYA
 
 let html = lire("Vena.dc.html");
 
+// ————— LE SYSTÈME DE DESIGN VOYAGE DANS LE FICHIER —————
+// La feuille et le paquet étaient les DERNIERS voisins : ouvert en « file:// » — le
+// mode recommandé, celui qui marche dans un avion — aucun jeton ne résolvait, et la
+// page rendait sans aucune forme : le bouton plein du pied devenait du texte nu
+// pendant que les filets gardaient un liseré — une hiérarchie inversée, mesurée au
+// rendu. La feuille part en data: avec ses polices inlinées (woff2, base64) ; le
+// paquet part comme support.js. ~280 Ko : le prix d'un fichier qui se suffit.
+const DS_DIR = "public/_ds/industry-cbc1f2df-2f0f-4cb9-a754-a8a64e9401b6";
+let dsCss = lire(DS_DIR + "/styles.css");
+dsCss = dsCss.replace(/url\((fonts\/[^)]+)\)/g, (tout, f) =>
+  "url(data:font/woff2;base64,"
+    + readFileSync(path.join(RACINE, DS_DIR, f)).toString("base64") + ")");
+if (dsCss.includes("url(fonts/")) {
+  console.error("solo.mjs : une police de la feuille n'a pas été inlinée — la forme des url() a changé.");
+  process.exit(1);
+}
+html = remplacer(html,
+  '<link rel="stylesheet" href="_ds/industry-cbc1f2df-2f0f-4cb9-a754-a8a64e9401b6/styles.css">',
+  '<link rel="stylesheet" href="data:text/css;base64,' + Buffer.from(dsCss, "utf8").toString("base64") + '">',
+  "Vena.dc.html");
+html = remplacer(html,
+  '<script src="_ds/industry-cbc1f2df-2f0f-4cb9-a754-a8a64e9401b6/_ds_bundle.js"></script>',
+  '<script src="data:text/javascript;base64,'
+    + Buffer.from(lire(DS_DIR + "/_ds_bundle.js"), "utf8").toString("base64") + '"></script>',
+  "Vena.dc.html");
+
 // `support.js` — le runtime DC — est chargé par une balise voisine : on l'intègre.
 //
 // En base64, PAS en clair. Recopié tel quel entre deux balises, il refermait la

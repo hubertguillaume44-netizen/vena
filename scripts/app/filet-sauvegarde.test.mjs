@@ -80,7 +80,9 @@ test("l’état permanent ne se referme pas : c’est un état, pas une nouvelle
   // l'avait pas REFUSÉE — le tiroir ne l'offrait qu'à cet état-là, donc jamais à qui
   // n'avait simplement pas encore été sollicité. Il est maintenant offert dès que le
   // navigateur connaît la fonction et ne l'a pas accordée.
-  assert.match(SOURCE, /sansSauvAgir: \(reduit \|\| integre\) \? \(\) => this\.exporterTout\(\) : \(\) => this\.choisirFichierAuto\(\)/,
+  // l'export est attendu (export-fiable.test.mjs : une promesse rejetée que
+  // personne ne regarde est un export muet) — l'ancre suit cette forme-là
+  assert.match(SOURCE, /sansSauvAgir: \(reduit \|\| integre\) \? async \(\) => \{ await this\.exporterTout\(\); \} : \(\) => this\.choisirFichierAuto\(\)/,
     "le pied doit rester l’unique chemin vers le choix d’un fichier de sauvegarde");
   assert.match(SOURCE, /aRedemander: protectionPossible,/,
     "« Demander la protection » doit être offerte dès que le navigateur la connaît et ne "

@@ -175,3 +175,87 @@ test("chaque menu rendu propose ses options — et la garde en voit au moins un"
     await nav.close();
   }
 });
+
+test("le pied de sauvegarde tient sa hiérarchie : un seul plein clair, mesuré", { timeout: 120000 }, async () => {
+  // ————— LE CONTRASTE SE MESURE, IL NE SE DEVINE PAS —————
+  //
+  // La hiérarchie du bandeau a été signalée inversée sur une capture : « Choisir le
+  // fichier de sauvegarde » terne, les filets nets. Mesuré, le rendu SERVI était
+  // juste (plein clair à 12,6:1 sur la barre) — l'inversion vivait en « file:// »,
+  // où la feuille du système, chargée en voisine, n'existait pas : aucun jeton ne
+  // résolvait, le bouton plein devenait du texte nu. La feuille voyage désormais
+  // dans le fichier (autonomie.test la tient), et CE test mesure les rapports de
+  // contraste dans le fichier livré, en « file:// » — le mode recommandé, celui-là
+  // même où le défaut vivait : exactement un bouton à fond opaque, qui domine la
+  // barre, et des filets lisibles.
+  let chromium;
+  try { ({ chromium } = await import("playwright")); }
+  catch (e) { assert.fail("playwright introuvable — cette garde ne saute pas en silence, voir l’en-tête."); }
+  const executablePath = CHROMIUMS.find((c) => existsSync(c));
+  const nav = await chromium.launch(executablePath ? { executablePath } : {})
+    .catch(() => assert.fail("Chromium introuvable : posez VENA_CHROMIUM — cette garde ne saute pas."));
+  try {
+    const p = await (await nav.newContext()).newPage();
+    await p.goto("file://" + SOLO);
+    await p.waitForFunction(() => document.body && document.body.innerText.length > 400, { timeout: 60000 });
+    const porte = await p.waitForSelector('button:has-text("J\'ai compris")', { timeout: 15000 }).catch(() => null);
+    if (porte) {
+      await porte.click();
+      await p.waitForSelector(".dialog-backdrop", { state: "detached", timeout: 10000 }).catch(() => {});
+    }
+    const ong = await p.$('button:has-text("Mes instruments")');
+    if (ong) { await ong.click(); await p.waitForTimeout(400); }
+    const mesure = await p.evaluate(() => {
+      const el = document.querySelector("#pied-sauv");
+      if (!el || !el.offsetParent === null) { /* fixed : offsetParent nul, on teste la présence */ }
+      if (!el) return null;
+      // luminance WCAG, avec composition alpha sur le fond de la barre : une
+      // bordure à 45 % n'a de contraste que composée sur ce qu'elle recouvre
+      const canaux = (c) => {
+        const d = document.createElement("div");
+        d.style.color = c; document.body.appendChild(d);
+        const calc = getComputedStyle(d).color;
+        const m = calc.match(/[\d.]+/g).map(Number);
+        d.remove();
+        // « color(srgb r g b / a) » livre ses canaux en 0-1 — « rgb(…) » en 0-255 :
+        // lire l'un comme l'autre a rendu 1,26:1 sur une bordure qui compose à 3,7
+        const e = calc.startsWith("color(") ? 255 : 1;
+        return { r: m[0] * e, g: m[1] * e, b: m[2] * e, a: m.length > 3 ? m[3] : 1 };
+      };
+      const sur = (c, fond) => ({ r: c.r * c.a + fond.r * (1 - c.a), g: c.g * c.a + fond.g * (1 - c.a), b: c.b * c.a + fond.b * (1 - c.a), a: 1 });
+      const lum = (c) => { const f = (v) => { v /= 255; return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+        return 0.2126 * f(c.r) + 0.7152 * f(c.g) + 0.0722 * f(c.b); };
+      const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((u, v) => v - u); return +(((x + 0.05) / (y + 0.05)).toFixed(2)); };
+      const barre = canaux(getComputedStyle(el).backgroundColor);
+      if (barre.a < 1) return { barreTransparente: true };
+      return { boutons: [...el.querySelectorAll("button")].map((b) => {
+        const s = getComputedStyle(b);
+        const fond = canaux(s.backgroundColor);
+        return { txt: (b.textContent || "").trim().slice(0, 34), opaque: fond.a >= 1,
+          cFondBarre: fond.a >= 1 ? ratio(fond, barre) : null,
+          cEncre: ratio(sur(canaux(s.color), fond.a >= 1 ? fond : barre), fond.a >= 1 ? fond : barre),
+          cBordBarre: ratio(sur(canaux(s.borderColor), barre), barre) }; }) };
+    });
+    assert.ok(mesure && !mesure.barreTransparente && mesure.boutons,
+      "le pied de sauvegarde ne rend plus (ou sa barre est transparente : les jetons "
+      + "du système ne résolvent pas — la feuille embarquée manque, voir autonomie)");
+    const pleins = mesure.boutons.filter((b) => b.opaque);
+    assert.equal(pleins.length, 1,
+      "le pied porte " + pleins.length + " boutons à fond opaque au lieu d'un seul — "
+      + "sur une barre sombre, un seul plein clair peut dominer :\n"
+      + JSON.stringify(mesure.boutons, null, 1));
+    assert.ok(pleins[0].cFondBarre >= 4.5,
+      "le bouton plein ne domine plus la barre : " + pleins[0].cFondBarre
+      + ":1 mesuré, 4,5:1 exigé (12,6:1 au moment de la mesure fondatrice)");
+    assert.ok(pleins[0].cEncre >= 4.5, "l'encre du bouton plein est illisible sur son fond : " + pleins[0].cEncre + ":1");
+    for (const b of mesure.boutons.filter((x) => !x.opaque)) {
+      assert.ok(b.cEncre >= 4.5,
+        "l'encre d'un filet est illisible sur la barre : " + b.txt + " à " + b.cEncre + ":1");
+      assert.ok(b.cBordBarre >= 3,
+        "la bordure d'un filet ne se voit pas sur la barre : " + b.txt + " à "
+        + b.cBordBarre + ":1 — 3:1 est le plancher des contours (WCAG 1.4.11)");
+    }
+  } finally {
+    await nav.close();
+  }
+});

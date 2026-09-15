@@ -15535,7 +15535,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260915.7';
+  VERSION_APP = '260915.8';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -18165,7 +18165,7 @@ GROUPES = {
     a.href = URL.createObjectURL(new Blob([fichier], { type: 'application/json' }));
     a.download = 'vena-chiffre-' + new Date().toISOString().slice(0, 10) + '.json';
     a.click();
-    URL.revokeObjectURL(a.href);
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
     try { localStorage.setItem(this.cleGlobale(this.CLE_SAUV), JSON.stringify({
       t: Date.now(), nC: (this.lignesScan || []).length, nS: (this.state.deposes || []).length })); } catch (e) {}
     this.setState({ sauvDate: Date.now() });
@@ -18324,27 +18324,42 @@ GROUPES = {
     a.href = URL.createObjectURL(new Blob([l.join('\n') + '\n'], { type: 'text/plain;charset=utf-8' }));
     a.download = 'vena-diagnostic-' + new Date().toISOString().slice(0, 10) + '.txt';
     a.click();
-    URL.revokeObjectURL(a.href);
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
   }
 
   // ————— sauvegarde complète : un fichier, tout ce qui est à toi —————
+  // La libération de l'URL est DIFFÉRÉE : synchrone, elle annulait le téléchargement
+  // que le clic venait de lancer — Chrome tolère sur un petit blob et abandonne EN
+  // SILENCE sur un gros. Mesuré : 3 Ko sur un navigateur neuf (d'où « ça marche à
+  // vide »), 2,8 à 13,5 Mo sur les paliers réels — le bouton ne faisait rien chez
+  // l'utilisateur. Et TOUT le corps est protégé : une exception dans la lecture des
+  // données partait dans une promesse que personne ne regardait. Un export qui
+  // échoue en silence est plus dangereux que l'absence de bouton : on croit avoir
+  // une copie.
   async exporterTout() {
-    const dump = await this.dumpCompletAvecScan();
-    const licE = this.ligneLicenceExport();
-    const blob = new Blob([JSON.stringify({ outil: 'vena', version: 1, date: new Date().toISOString(),
-      ...(licE ? { licence: licE } : {}), donnees: dump }, null, 1)],
-      { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'vena-sauvegarde-' + new Date().toISOString().slice(0, 10) + '.json';
-    a.click();
-    URL.revokeObjectURL(a.href);
-    // La DATE de la dernière sauvegarde. Un bouton d'export que personne ne clique ne
-    // sauve rien : c'est la date qui pousse à cliquer, et elle n'existait nulle part.
-    try { localStorage.setItem(this.cleGlobale(this.CLE_SAUV), JSON.stringify({
-      t: Date.now(), nC: (this.lignesScan || []).length, nS: (this.state.deposes || []).length })); } catch (e) {}
-    this.setState({ sauvMsg: Object.keys(dump).length + ' blocs exportés.',
-      sauvDate: Date.now() });
+    try {
+      const dump = await this.dumpCompletAvecScan();
+      const licE = this.ligneLicenceExport();
+      const blob = new Blob([JSON.stringify({ outil: 'vena', version: 1, date: new Date().toISOString(),
+        ...(licE ? { licence: licE } : {}), donnees: dump }, null, 1)],
+        { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'vena-sauvegarde-' + new Date().toISOString().slice(0, 10) + '.json';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+      // La DATE de la dernière sauvegarde. Un bouton d'export que personne ne clique ne
+      // sauve rien : c'est la date qui pousse à cliquer, et elle n'existait nulle part.
+      try { localStorage.setItem(this.cleGlobale(this.CLE_SAUV), JSON.stringify({
+        t: Date.now(), nC: (this.lignesScan || []).length, nS: (this.state.deposes || []).length })); } catch (e) {}
+      this.setState({ sauvMsg: Object.keys(dump).length + ' blocs exportés.',
+        sauvDate: Date.now() });
+    } catch (e) {
+      this.journaliserErreur('exporterTout : ' + ((e && e.message) || e));
+      this.setState({ sauvMsg: 'L\u2019export a échoué — RIEN n\u2019a été téléchargé : '
+        + ((e && e.message) || 'erreur inconnue')
+        + '. Réessayez ; si le message revient, téléchargez le fichier de diagnostic.' });
+    }
   }
   // ————— APPLIQUER L'IMPORT, une fois l'issue choisie —————
   // « Remplacer » écrit tout ; « Fusionner » n'écrit que les clés ABSENTES d'ici, donc
@@ -19751,10 +19766,10 @@ GROUPES = {
       // les gestes du filet. Aucun ne bloque : « Plus tard » ferme la proposition et
       // laisse le rang d'état, qui dit la même chose sans rien demander.
       choisirFilet: () => { this.setState({ filetPropose: false }); this.choisirFichierAuto(); },
-      exporterDepuisFilet: () => { this.setState({ filetPropose: false }); this.exporterTout(); },
+      exporterDepuisFilet: async () => { this.setState({ filetPropose: false }); await this.exporterTout(); },
       plusTardFilet: () => this.setState({ filetPropose: false }),
       demanderFiletProtection: () => this.reclamerPersistance(true),
-      exporterDepuisIntegre: () => this.exporterTout(),
+      exporterDepuisIntegre: async () => { await this.exporterTout(); },
       // L'OUVERTURE N'EST JAMAIS BLOQUÉE. Quelqu'un qui veut regarder l'application dans
       // un onglet propre doit pouvoir le faire ; c'est l'évidence du geste qui change,
       // pas sa disponibilité. `noopener` : le nouvel onglet n'a rien à savoir de celui-ci.
@@ -19944,7 +19959,7 @@ GROUPES = {
           // demande précisément de le choisir. Le renommer aurait supprimé l'unique accès
           // à cette fonction. Il garde donc son nom, qui dit ce qu'il fait.
           sansSauvBouton: (reduit || integre) ? 'Exporter mes données' : 'Choisir le fichier de sauvegarde',
-          sansSauvAgir: (reduit || integre) ? () => this.exporterTout() : () => this.choisirFichierAuto(),
+          sansSauvAgir: (reduit || integre) ? async () => { await this.exporterTout(); } : () => this.choisirFichierAuto(),
           // « Plus tard » a disparu : un bouton qui referme un avertissement de perte de
           // données est un bouton pour perdre ses données. À sa place, l'action que la
           // dernière phrase du texte réclame sans donner le moyen de la faire.
@@ -19964,7 +19979,7 @@ GROUPES = {
           // seraient deux vérités. L'import, lui, reste dans les deux cas : il ne
           // dépend d'aucune API réservée.
           aSansSauvExporter: !(reduit || integre),
-          sansSauvExporter: () => this.exporterTout(),
+          sansSauvExporter: async () => { await this.exporterTout(); },
           sansSauvImporter: () => {
             const inp = document.createElement('input');
             inp.type = 'file';
@@ -22351,7 +22366,7 @@ GROUPES = {
         a.href = URL.createObjectURL(blob);
         a.download = 'vena_top_' + new Date().toISOString().slice(0, 10) + '.csv';
         a.click();
-        URL.revokeObjectURL(a.href);
+        setTimeout(() => URL.revokeObjectURL(a.href), 2000);
       },
       tris: [{ v: 'total', nom: 'R total' }, { v: 'positifs', nom: 'Segments positifs' },
         { v: 'rAn', nom: 'R par an' }, { v: 'dd', nom: 'Pire creux (le plus faible)' },
@@ -26664,7 +26679,7 @@ GROUPES = {
               + '.json · ' + this.nomCompteActif() + ' · réimportable tel quel',
             chiffres: [],
             note: 'Le fichier est chez vous, hors du navigateur : c\u2019est la seule copie qu\u2019un vidage de cache ne peut pas atteindre. Seul le dernier export laisse une trace datée.',
-            aAction: true, actionTxt: 'Exporter à nouveau', action: () => this.exporterTout(),
+            aAction: true, actionTxt: 'Exporter à nouveau', action: async () => { await this.exporterTout(); },
             aRecalcul: false, aSuppr: false });
         }
         // ————— LE MÉNAGE : ce qui a été supprimé, et ce que ça a rendu —————
@@ -26838,7 +26853,7 @@ GROUPES = {
         p.push(this.pl((s.runs || []).length, 'entrée de journal', 'entrées de journal'));
         return p.join(' · ');
       })(),
-      exporterTout: () => { this.exporterTout(); },
+      exporterTout: async () => { await this.exporterTout(); },
       // TOUS les points d'import passent par l'examen — le tiroir ici, l'arrivée,
       // et le bandeau de perte : celui-ci écrasait encore en silence, et c'est le
       // même fichier, le même danger.
