@@ -5538,25 +5538,11 @@
   <!-- Flottants seulement quand il n'y a pas de pied de sauvegarde : dès que le pied
        est là, ces deux boutons y prennent place — deux blocs au même coin finissaient
        toujours par se recouvrir ou recouvrir le tableau. -->
-  <sc-if value="{{ aideFlotte }}" hint-placeholder-val="{{ true }}">
-  <div style="position:fixed;right:18px;bottom:18px;z-index:70;display:flex;gap:8px">
-    <button class="btn btn-secondary" type="button" style="min-height:2.2rem;font-size:12px;padding-inline:12px;background:var(--color-bg)" onClick="{{ ouvrirAide }}" title="Les explications de l’application, cherchables">? Aide</button>
-    <!-- EN FILET, COMME SON VOISIN. Cette paire flotte sur TOUTES les pages de l'outil :
-         un accent qui se présente partout ne désigne plus rien. Et « ? Aide » répond à
-         un besoin de celui qui lit ; « Donner mon avis » répond au nôtre — demandé, qui
-         plus est, à quelqu'un qui n'a parfois pas encore vu une seule mesure.
-
-         `background` : le même que le voisin, et pour la même raison — la paire flotte
-         au-dessus du contenu qui défile, et un fond transparent la rendrait illisible
-         dès qu'un tableau passe dessous. Ce n'est pas de l'ornement.
-
-         Pas de condition ici, contrairement à l'accent de la barre de tâche : celle-là
-         porte un geste de la page, qui existe ou n'existe pas. Ce bouton-ci n'en est
-         pas un, et un accent qui clignote au fil de la navigation est pire que l'un ou
-         l'autre état. -->
-    <button class="btn btn-secondary" type="button" style="min-height:2.2rem;font-size:12px;padding-inline:14px;background:var(--color-bg)" onClick="{{ ouvrirAvis }}">Donner mon avis</button>
-  </div>
-  </sc-if>
+  <!-- LA PAIRE FLOTTANTE A DISPARU : « ? Aide » et « Donner mon avis » vivent dans la
+       barre du bas, permanente — c'est ce qui règle le chevauchement avec la barre
+       sombre du scan, et retire deux éléments superposés au contenu. Leur fond
+       explicite (var(--color-bg)) n'avait qu'une raison, flotter au-dessus du
+       défilement : vérifiée seule, partie avec. -->
 
   <sc-if value="{{ avisOuvert }}" hint-placeholder-val="{{ false }}">
     <div style="position:fixed;inset:0;z-index:80;display:flex;justify-content:flex-end;pointer-events:none">
@@ -5719,7 +5705,10 @@
     malgré une sauvegarde. Pas de « Plus tard » : la barre réduite est ce qui rend
     l'avertissement supportable, pas sa fermeture.
   -->
-  <sc-if value="{{ aSansSauv }}" hint-placeholder-val="{{ false }}">
+  <!-- LA BARRE DU BAS EST PERMANENTE : elle porte des GESTES (exporter, importer,
+       aide, avis) sur toutes les pages ; l'alerte de sauvegarde n'est que son contenu
+       variable. Aucun texte d'état quand la sauvegarde est active — l'en-tête porte
+       l'état, la barre porte les gestes : deux vérités à tenir d'accord sinon. -->
   <div id="pied-sauv" style="position:fixed;left:0;right:0;bottom:0;z-index:60;background:{{ sauvFondPied }};color:var(--color-bg);border-top:2px solid {{ sauvBordPied }};padding:{{ sansSauvPadIn }} 32px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
     <!--
       PAS DE MENTION NOMINATIVE ICI. Ce pied est en position:fixed : une adresse de
@@ -5740,7 +5729,9 @@
     <sc-if value="{{ sansSauvReduit }}" hint-placeholder-val="{{ false }}">
       <span style="font-size:12px;flex:1;min-width:38ch;line-height:1.4"><strong>{{ sauvExpTxt }}{{ sauvExpQuand }}</strong>{{ sauvExpSuite }}</span>
     </sc-if>
-    <button type="button" style="cursor:pointer;border:none;background:var(--color-bg);color:var(--color-accent-900);font-family:var(--font-body);font-size:12px;padding:5px 12px;white-space:nowrap" onClick="{{ sansSauvAgir }}">{{ sansSauvBouton }}</button>
+    <sc-if value="{{ aSansSauvAccent }}" hint-placeholder-val="{{ false }}">
+      <button type="button" style="cursor:pointer;border:none;background:var(--color-bg);color:var(--color-accent-900);font-family:var(--font-body);font-size:12px;padding:5px 12px;white-space:nowrap" onClick="{{ sansSauvAgir }}">{{ sansSauvBouton }}</button>
+    </sc-if>
     <sc-if value="{{ aSansSauvExporter }}" hint-placeholder-val="{{ false }}">
       <button type="button" style="cursor:pointer;background:none;border:1px solid color-mix(in srgb,var(--color-bg) 45%,transparent);color:var(--color-bg);font-family:var(--font-body);font-size:12px;padding:4px 11px;white-space:nowrap" onClick="{{ sansSauvExporter }}" title="Écrit tout — séries, scans, portefeuilles, journal — dans un fichier téléchargé, tout de suite.">Exporter mes données</button>
     </sc-if>
@@ -5758,7 +5749,6 @@
       <span style="flex-basis:100%;font-size:11px;line-height:1.5;opacity:.92">{{ ongletMsg }}</span>
     </sc-if>
   </div>
-  </sc-if>
 </div></x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;essai&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Version publique&quot;},&quot;codeAcces&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;2580&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Version publique&quot;},&quot;montantDefaut&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:5000,&quot;tsType&quot;:&quot;number&quot;,&quot;unit&quot;:&quot;€&quot;,&quot;min&quot;:500,&quot;max&quot;:50000,&quot;step&quot;:500,&quot;section&quot;:&quot;Simulateur&quot;},&quot;horizonAns&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:10,&quot;tsType&quot;:&quot;number&quot;,&quot;min&quot;:3,&quot;max&quot;:30,&quot;step&quot;:1,&quot;unit&quot;:&quot; ans&quot;,&quot;section&quot;:&quot;Simulateur&quot;},&quot;vueParDefaut&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;compacte&quot;,&quot;options&quot;:[&quot;compacte&quot;,&quot;deroulee&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Mise en page&quot;}}">
 // ————— DÉBUT Ed25519 EN CLAIR —————
@@ -11377,8 +11367,8 @@ GROUPES = {
     };
     suivre('om-sticky', 'hEntete');
     suivre('om-fil', 'hFil');
-    // le pied de sauvegarde n'existe pas toujours (démo, autosauvegarde active) :
-    // sa hauteur sert d'assise au pied d'acier du scan, qui se pose au-dessus
+    // le pied de sauvegarde est PERMANENT : sa hauteur mesurée réserve la place du
+    // contenu (sansSauvPad) et sert d'assise au pied d'acier du scan, au-dessus
     suivre('pied-sauv', 'hSauv');
   }
   // Un panneau ancré peut sortir de la fenêtre : la grille du bandeau est en
@@ -15514,7 +15504,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260915.10';
+  VERSION_APP = '260915.11';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -19834,7 +19824,6 @@ GROUPES = {
         const purgeVu = s.purgeVu !== undefined ? s.purgeVu
           : (() => { try { return !!sessionStorage.getItem('vena.purge.vu'); } catch (e) { return false; } })();
         return {
-          aSansSauv: montrer,
           sauvFondPied: purgeRisque ? 'var(--color-accent-700)' : 'var(--color-accent-900)',
           sauvBordPied: purgeRisque ? 'var(--color-accent)' : 'var(--color-accent-500)',
           // l'avertissement textuel : une fois par session, refermable, jamais modal —
@@ -19847,17 +19836,23 @@ GROUPES = {
             try { sessionStorage.setItem('vena.purge.vu', '1'); } catch (e) {}
             this.setState({ purgeVu: true });
           },
+          // la barre existe TOUJOURS ; l'alerte (phrase + accent) est son contenu
+          // variable, gaté par `montrer` comme avant
+          aSansSauvAccent: montrer,
           sansSauvPlein: montrer && !reduit,
           sansSauvReduit: reduit,
           sansSauvPadIn: reduit ? '5px' : '8px',
-          sansSauvPad: !montrer ? '72px' : reduit ? '116px' : '150px',
-          // « ? Aide / Donner mon avis » vivent DANS le pied dès qu'il est là : deux
-          // blocs empilés au même coin finissaient toujours par se recouvrir.
-          // pas sur la page de vente : elle n'a rien à voir avec l'outil ouvert
-          aideFlotte: !montrer && tab !== 'accueil',
-          // l'assise du pied d'acier du scan : la hauteur mesurée du pied de sauvegarde,
-          // avec un défaut plausible tant que l'observateur n'a pas rendu sa mesure
-          bsPiedBas: (montrer ? (s.hSauv || (reduit ? 38 : 64)) : 0) + 'px',
+          // ————— LA PLACE RÉSERVÉE EST MESURÉE, JAMAIS ÉCRITE EN DUR —————
+          // La hauteur de la barre varie — deux lignes avec l'avertissement, une
+          // sans, davantage en fenêtre étroite. `suivre('pied-sauv', 'hSauv')` la lit
+          // au montage et à chaque redimensionnement (le même observateur que
+          // l'en-tête : UNE mesure, un canal) ; le corps la réserve ici, plus une
+          // respiration. Une valeur en dur se périmait au premier changement de texte.
+          sansSauvPad: ((s.hSauv || 72) + 18) + 'px',
+          // l'assise du pied d'acier du scan : la barre du scan appartient à la tâche
+          // en cours, elle se pose AU-DESSUS du mobilier permanent — la même mesure,
+          // donc la somme des deux est mesurée, jamais additionnée à la main
+          bsPiedBas: (s.hSauv || 56) + 'px',
           sansSauvTxt: integre
             ? 'Rien de ce qui est ici n\u2019existe ailleurs que dans ce navigateur, et il peut le vider. '
               + 'Une vue intégrée interdit la sauvegarde automatique : '
@@ -19897,11 +19892,11 @@ GROUPES = {
           // fichier, qui grisait les CSV tendus à cet endroit ; ceci est un bouton
           // nommé, qui ouvre le même circuit que l'import du tiroir — l'EXAMEN
           // compris : tous les points d'import y passent.)
-          // Quand l'accent est déjà « Exporter mes données » (vue réduite ou
-          // intégrée), le filet d'export disparaît — deux boutons du même nom
-          // seraient deux vérités. L'import, lui, reste dans les deux cas : il ne
-          // dépend d'aucune API réservée.
-          aSansSauvExporter: !(reduit || integre),
+          // Le filet d'export ne s'efface que si l'ACCENT s'appelle déjà « Exporter
+          // mes données » (alerte en vue réduite ou intégrée) — deux boutons du même
+          // nom seraient deux vérités. Sans alerte, il n'y a pas d'accent du tout :
+          // les deux gestes de données restent, dans TOUS les états de la barre.
+          aSansSauvExporter: !(montrer && (reduit || integre)),
           sansSauvExporter: async () => { await this.exporterTout(); },
           sansSauvImporter: () => {
             const inp = document.createElement('input');

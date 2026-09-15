@@ -56,7 +56,13 @@ test("chaque sortie de permission de sauverAuto pose un autoMsg non vide", () =>
 test("le bandeau de perte porte les trois gestes, avec exactement un accent", () => {
   const i = APP.indexOf('id="pied-sauv"');
   assert.ok(i > 0, "le pied de sauvegarde a changé de forme — réancrez cette garde");
-  const pied = APP.slice(i, APP.indexOf("</sc-if>\n</div></x-dc>", i));
+  // la borne est la fin du gabarit : l'ancien ancrage (« </sc-if> juste avant la
+  // fermeture ») est parti avec le sc-if enveloppant quand la barre est devenue
+  // permanente — et un indexOf à -1 aurait étendu la tranche à tout le fichier
+  // sans qu'aucune assertion ne rougisse
+  const fin = APP.indexOf("</x-dc>", i);
+  assert.ok(fin > i, "la fin du gabarit est introuvable après le pied — réancrez");
+  const pied = APP.slice(i, fin);
   // les trois gestes : la protection durable, la copie ponctuelle, le retour
   // après une perte — l'import est le geste de qui rouvre l'application vide,
   // et ce bandeau est ce qu'il voit
@@ -73,12 +79,27 @@ test("le bandeau de perte porte les trois gestes, avec exactement un accent", ()
   assert.equal(accents.length, 1,
     "le pied de sauvegarde porte " + accents.length + " boutons d'accent au lieu "
     + "d'un seul : l'accent est la protection durable, tout le reste est en filet");
-  // le filet d'export s'efface quand l'accent est déjà l'export (vue réduite ou
-  // intégrée) — deux boutons du même nom seraient deux vérités ; et l'import du
-  // bandeau passe par l'EXAMEN, comme tous les points d'import
-  assert.ok(APP.includes("aSansSauvExporter: !(reduit || integre),"),
-    "le filet d'export ne s'efface plus quand l'accent est déjà « Exporter mes "
-    + "données » : deux boutons du même nom sur la même barre");
+  // ————— LA BARRE EST PERMANENTE : L'ALERTE EST SON CONTENU, PAS SA CONDITION —————
+  // Le pied n'est plus enveloppé d'un sc-if : il existe sur toutes les pages.
+  // L'ACCENT, lui, est l'alerte — gaté par aSansSauvAccent — et les gestes de
+  // données vivent HORS de ce gate : les remettre derrière la condition
+  // d'avertissement est précisément le défaut réparé (mutation : déplacer
+  // l'import dans le bloc d'accent fait tomber ici).
+  const iAcc = pied.indexOf('<sc-if value="{{ aSansSauvAccent }}"');
+  assert.ok(iAcc > 0, "l'accent n'est plus gaté par aSansSauvAccent : la barre "
+    + "porterait un accent permanent — un accent qui se présente partout ne désigne plus rien");
+  const blocAccent = pied.slice(iAcc, pied.indexOf("</sc-if>", iAcc));
+  for (const g of ["sansSauvExporter", "sansSauvImporter"]) {
+    assert.ok(!blocAccent.includes(g),
+      g + " est passé DERRIÈRE la condition d'avertissement : quand la sauvegarde "
+      + "est active, le geste disparaîtrait de toutes les pages — le défaut réparé, revenu");
+  }
+  // le filet d'export ne s'efface que si l'accent s'appelle déjà « Exporter mes
+  // données » (alerte en vue réduite ou intégrée) — deux boutons du même nom
+  // seraient deux vérités ; sans alerte, pas d'accent : les deux gestes restent
+  assert.ok(APP.includes("aSansSauvExporter: !(montrer && (reduit || integre)),"),
+    "le filet d'export ne suit plus la règle « un seul bouton de ce nom » : il doit "
+    + "s'effacer exactement quand l'ACCENT porte déjà son nom, et jamais autrement");
   const iImp = APP.indexOf("sansSauvImporter: () => {");
   assert.ok(iImp > 0 && APP.slice(iImp, iImp + 400).includes("this.examinerImport("),
     "l'import du bandeau n'ouvre plus le circuit de l'examen : un point d'import "

@@ -203,9 +203,15 @@ test("le pied de sauvegarde tient sa hiérarchie : un seul plein clair, mesuré"
       await porte.click();
       await p.waitForSelector(".dialog-backdrop", { state: "detached", timeout: 10000 }).catch(() => {});
     }
-    const ong = await p.$('button:has-text("Mes instruments")');
-    if (ong) { await ong.click(); await p.waitForTimeout(400); }
-    const mesure = await p.evaluate(() => {
+    // ————— LA BARRE EST PERMANENTE : ZÉRO OU UN ACCENT, JAMAIS PLUS —————
+    // L'accent est l'ALERTE : un quand elle est là, aucun quand la sauvegarde est
+    // active. ANGLE MORT, déclaré (règle 9) : l'état zéro n'est pas atteignable sur
+    // ce banc — un navigateur neuf porte l'alerte, et le fichier qui la lève se
+    // choisit par un sélecteur NATIF, hors de portée de l'automate. L'énoncé « zéro
+    // ou un » est donc tenu ici par la borne (≤ 1, mesurée) et par la STRUCTURE :
+    // l'accent vit derrière aSansSauvAccent, les filets dehors — filet-trois-gestes
+    // l'ancre. Un « exactement un » nu serait tombé sur l'état protégé.
+    const mesurer = () => p.evaluate(() => {
       const el = document.querySelector("#pied-sauv");
       if (!el || !el.offsetParent === null) { /* fixed : offsetParent nul, on teste la présence */ }
       if (!el) return null;
@@ -236,25 +242,129 @@ test("le pied de sauvegarde tient sa hiérarchie : un seul plein clair, mesuré"
           cEncre: ratio(sur(canaux(s.color), fond.a >= 1 ? fond : barre), fond.a >= 1 ? fond : barre),
           cBordBarre: ratio(sur(canaux(s.borderColor), barre), barre) }; }) };
     });
-    assert.ok(mesure && !mesure.barreTransparente && mesure.boutons,
-      "le pied de sauvegarde ne rend plus (ou sa barre est transparente : les jetons "
-      + "du système ne résolvent pas — la feuille embarquée manque, voir autonomie)");
-    const pleins = mesure.boutons.filter((b) => b.opaque);
-    assert.equal(pleins.length, 1,
-      "le pied porte " + pleins.length + " boutons à fond opaque au lieu d'un seul — "
-      + "sur une barre sombre, un seul plein clair peut dominer :\n"
+    const verifier = (mesure, accentsAttendus, etat) => {
+      assert.ok(mesure && !mesure.barreTransparente && mesure.boutons,
+        etat + " : le pied de sauvegarde ne rend plus (ou sa barre est transparente : "
+        + "les jetons du système ne résolvent pas — la feuille embarquée manque, voir autonomie)");
+      const pleins = mesure.boutons.filter((b) => b.opaque);
+      assert.equal(pleins.length, accentsAttendus,
+        etat + " : " + pleins.length + " boutons à fond opaque au lieu de "
+        + accentsAttendus + " attendus dans CET état :\n"
+        + JSON.stringify(mesure.boutons, null, 1));
+      for (const plein of pleins) {
+        assert.ok(plein.cFondBarre >= 4.5,
+          etat + " : le bouton plein ne domine plus la barre : " + plein.cFondBarre
+          + ":1 mesuré, 4,5:1 exigé (12,6:1 au moment de la mesure fondatrice)");
+        assert.ok(plein.cEncre >= 4.5, etat + " : l'encre du bouton plein est illisible sur son fond : " + plein.cEncre + ":1");
+      }
+      for (const b of mesure.boutons.filter((x) => !x.opaque)) {
+        assert.ok(b.cEncre >= 4.5,
+          etat + " : l'encre d'un filet est illisible sur la barre : " + b.txt + " à " + b.cEncre + ":1");
+        assert.ok(b.cBordBarre >= 3,
+          etat + " : la bordure d'un filet ne se voit pas sur la barre : " + b.txt + " à "
+          + b.cBordBarre + ":1 — 3:1 est le plancher des contours (WCAG 1.4.11)");
+      }
+    };
+    const ong = await p.$('button:has-text("Mes instruments")');
+    assert.ok(ong, "l’onglet « Mes instruments » est introuvable : réancrez la garde");
+    await ong.click(); await p.waitForTimeout(400);
+    const mesure = await mesurer();
+    assert.ok(mesure.boutons.filter((b) => b.opaque).length <= 1,
+      "la barre porte PLUS D'UN fond opaque : l'accent est l'alerte, et elle seule :\n"
       + JSON.stringify(mesure.boutons, null, 1));
-    assert.ok(pleins[0].cFondBarre >= 4.5,
-      "le bouton plein ne domine plus la barre : " + pleins[0].cFondBarre
-      + ":1 mesuré, 4,5:1 exigé (12,6:1 au moment de la mesure fondatrice)");
-    assert.ok(pleins[0].cEncre >= 4.5, "l'encre du bouton plein est illisible sur son fond : " + pleins[0].cEncre + ":1");
-    for (const b of mesure.boutons.filter((x) => !x.opaque)) {
-      assert.ok(b.cEncre >= 4.5,
-        "l'encre d'un filet est illisible sur la barre : " + b.txt + " à " + b.cEncre + ":1");
-      assert.ok(b.cBordBarre >= 3,
-        "la bordure d'un filet ne se voit pas sur la barre : " + b.txt + " à "
-        + b.cBordBarre + ":1 — 3:1 est le plancher des contours (WCAG 1.4.11)");
+    verifier(mesure, 1, "navigateur neuf (alerte)");
+  } finally {
+    await nav.close();
+  }
+});
+
+test("la barre permanente ne recouvre rien — deux barres cumulées, deux états", { timeout: 180000 }, async () => {
+  // ————— LA PLACE RÉSERVÉE SE MESURE À L'ÉCRAN, PAS DANS LE CODE —————
+  //
+  // Une barre permanente occupe le bas en permanence : le contenu doit lui réserver
+  // sa place, et la réservation est MESURÉE (suivre('pied-sauv')), jamais écrite en
+  // dur. Cette garde le prouve au rendu, sur la page du scan — là où DEUX barres se
+  // cumulent : le pied d'acier du scan se pose au-dessus du mobilier permanent
+  // (bsPiedBas lit la même mesure). Deux états : l'alerte pleine, puis la réduite
+  // après un export réel. Et la non-régression du défaut réparé : les deux gestes
+  // de données sont visibles dans CHAQUE état — l'export comme accent ou comme
+  // filet, l'import toujours.
+  let chromium;
+  try { ({ chromium } = await import("playwright")); }
+  catch (e) { assert.fail("playwright introuvable — cette garde ne saute pas en silence."); }
+  const executablePath = CHROMIUMS.find((c) => existsSync(c));
+  const nav = await chromium.launch(executablePath ? { executablePath } : {})
+    .catch(() => assert.fail("Chromium introuvable : posez VENA_CHROMIUM — cette garde ne saute pas."));
+  try {
+    const ctx = await nav.newContext({ acceptDownloads: true });
+    const p = await ctx.newPage();
+    await p.goto("file://" + SOLO);
+    await p.waitForFunction(() => document.body && document.body.innerText.length > 400, { timeout: 60000 });
+    const porte = await p.waitForSelector('button:has-text("J\'ai compris")', { timeout: 15000 }).catch(() => null);
+    if (porte) {
+      await porte.click();
+      await p.waitForSelector(".dialog-backdrop", { state: "detached", timeout: 10000 }).catch(() => {});
     }
+    const ong = await p.$('button:has-text("Mes scans")');
+    assert.ok(ong, "la page du scan est introuvable : réancrez la garde");
+    await ong.click(); await p.waitForTimeout(500);
+    assert.ok(await p.$("#barreScan"), "la barre du scan a disparu de sa page : réancrez la garde");
+
+    const mesurer = () => p.evaluate(() => {
+      window.scrollTo(0, document.body.scrollHeight);
+      const pied = document.getElementById("pied-sauv");
+      if (!pied) return { erreur: "pied absent" };
+      const piedHaut = pied.getBoundingClientRect().top;
+      // le conteneur principal est le parent direct du pied : la forme rendue de
+      // l'attribut style est normalisée par le navigateur, un sélecteur textuel
+      // dessus s'est déjà cassé
+      const conteneur = pied.parentElement;
+      if (!conteneur) return { erreur: "conteneur principal introuvable" };
+      // le dernier bloc du CONTENU : les enfants directs, hors barres fixes
+      const blocs = [...conteneur.children].filter((el) => {
+        if (el.id === "pied-sauv") return false;
+        const st = getComputedStyle(el);
+        return st.position !== "fixed" && el.getBoundingClientRect().height > 0;
+      });
+      const dernier = blocs[blocs.length - 1];
+      const bs = document.getElementById("barreScan");
+      return {
+        piedHaut,
+        dernierBas: dernier ? dernier.getBoundingClientRect().bottom : null,
+        dernierNom: dernier ? (dernier.tagName + " « " + (dernier.innerText || "").trim().slice(0, 50) + " »") : "aucun",
+        barreScanBas: bs ? bs.getBoundingClientRect().bottom : null,
+        gestes: ["Exporter mes données", "Importer mes données"].map((t) =>
+          [...document.querySelectorAll("#pied-sauv button")].some((b) => b.textContent.trim() === t && b.offsetParent !== null)),
+      };
+    });
+
+    const verifier = (m, etat) => {
+      assert.ok(!m.erreur, etat + " : " + m.erreur);
+      assert.ok(m.dernierBas !== null && m.dernierBas <= m.piedHaut + 2,
+        etat + " : la barre permanente RECOUVRE le dernier bloc du contenu — "
+        + m.dernierNom + " descend à " + Math.round(m.dernierBas) + "px, la barre "
+        + "commence à " + Math.round(m.piedHaut) + "px. La place réservée "
+        + "(sansSauvPad, mesurée par suivre('pied-sauv')) ne suit plus la hauteur réelle.");
+      assert.ok(m.barreScanBas !== null && m.barreScanBas <= m.piedHaut + 2,
+        etat + " : la barre du scan passe SOUS le mobilier permanent — l'assise "
+        + "bsPiedBas ne lit plus la hauteur mesurée du pied.");
+      assert.deepEqual(m.gestes, [true, true],
+        etat + " : un geste de données a disparu de la barre (exporter/importer = "
+        + JSON.stringify(m.gestes) + ") — c'est précisément le défaut qu'on a réparé : "
+        + "les deux gestes vivent dans TOUS les états, accent ou filet.");
+    };
+
+    verifier(await mesurer(), "alerte pleine");
+    // l'état réduit s'obtient par le geste réel : un export
+    const exp = await p.$('#pied-sauv button:has-text("Exporter mes données")');
+    assert.ok(exp, "le bouton d'export du pied est introuvable");
+    const [dl] = await Promise.all([
+      p.waitForEvent("download", { timeout: 20000 }).catch(() => null),
+      exp.click(),
+    ]);
+    assert.ok(dl, "l'export n'a rien téléchargé — voir export-fiable");
+    await p.waitForTimeout(600); // la barre se réduit, l'observateur remesure
+    verifier(await mesurer(), "barre réduite (après export)");
   } finally {
     await nav.close();
   }
