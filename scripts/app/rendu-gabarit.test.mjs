@@ -697,3 +697,146 @@ test("la barre : les boutons au bord droit, et l'état de la sauvegarde dit quel
     await nav.close();
   }
 });
+
+test("les deux tables PEUPLÉES : des rangées, des chiffres, aucun mot relatif", { timeout: 180000 }, async () => {
+  // ————— LE CAS VIDE EST LE PLUS FAIBLE DES TESTS, ET C'ÉTAIT LE SEUL —————
+  //
+  // Mesuré sur un navigateur neuf : UNE SEULE table de toute l'application rend une
+  // rangée — celle des instruments, et seulement parce que le générateur d'exemples
+  // la remplit tout seul. La table des scans a dix colonnes d'en-tête et zéro
+  // rangée ; la table « À ranger » de Mes décisions n'existe pas au rendu. Aucune
+  // garde n'avait jamais regardé ces deux écrans remplis — et c'est très exactement
+  // l'état où la panne des tables a vécu des semaines : un en-tête rend, un tbody
+  // vide ne peut pas trahir un trou irrésoluble.
+  //
+  // LE SEMIS VÉRIFIE SON PROPRE EFFET (scripts/app/lib/semis.mjs), et ce n'est pas
+  // une précaution de style : quatre semis ont échoué EN SILENCE cette semaine, et
+  // « 0 série » rapporté sans se plaindre est le pire mode de panne d'un
+  // diagnostic. Il écrit par le chemin du produit — poserScan, ecrireLive — et
+  // RELIT par le chemin du produit — lignesScan, tradesReels, normValides,
+  // verdictHasard. Un compte qui ne suit pas jette AVANT que cette garde ne mesure
+  // quoi que ce soit.
+  //
+  // ANGLE MORT, déclaré (règle 9) : l'Historique des scans et le Journal ne rendent
+  // pas de <table> — ce sont des listes de blocs et des tuiles. Ils ne sont donc pas
+  // couverts par les assertions de cellules ci-dessous ; le semis les peuple quand
+  // même, et le contrôle « aucun trou non résolu » les couvre, lui, puisqu'il écoute
+  // la console et non le balisage.
+  let chromium;
+  try { ({ chromium } = await import("playwright")); }
+  catch (e) { assert.fail("playwright introuvable — cette garde ne saute pas en silence."); }
+  const { POSER_SEMIS } = await import("./lib/semis.mjs");
+  const executablePath = CHROMIUMS.find((c) => existsSync(c));
+  const nav = await chromium.launch(executablePath ? { executablePath } : {})
+    .catch(() => assert.fail("Chromium introuvable : posez VENA_CHROMIUM — cette garde ne saute pas."));
+  try {
+    const p = await (await nav.newContext({ viewport: { width: 1440, height: 900 } })).newPage();
+    const trous = [], erreurs = [];
+    p.on("console", (m) => { if (/never resolved/.test(m.text())) trous.push(m.text().slice(0, 160)); });
+    p.on("pageerror", (e) => erreurs.push(String(e).slice(0, 200)));
+    await p.goto("file://" + SOLO);
+    await p.waitForFunction(() => document.body && document.body.innerText.length > 400, { timeout: 60000 });
+    const porte = await p.waitForSelector('button:has-text("J\'ai compris")', { timeout: 15000 }).catch(() => null);
+    if (porte) {
+      await porte.click();
+      await p.waitForSelector(".dialog-backdrop", { state: "detached", timeout: 10000 }).catch(() => {});
+    }
+    await p.waitForTimeout(400);
+    await p.evaluate(POSER_SEMIS);
+    // le semis jette de lui-même s'il ne sème rien : on n'enveloppe pas, on laisse
+    // son message arriver tel quel — il nomme le compte demandé et le compte relu
+    const nScan = await p.evaluate("window.__semis.scan(9)");
+    const nJrn = await p.evaluate("window.__semis.journal(12)");
+    const nDec = await p.evaluate("window.__semis.decisions(3)");
+    assert.equal(nScan, 9); assert.equal(nJrn, 12); assert.equal(nDec, 3);
+    // DEUX CLICS, DEUX RENDUS. Première version : le sous-onglet était cliqué dans
+    // le MÊME evaluate que la page — donc avant que React ait re-rendu, et il
+    // n'existait pas encore. La garde concluait « page introuvable » sur une page
+    // qui s'ouvrait très bien : un piège de capteur, pas un défaut.
+    const clicExact = (k) => p.evaluate((x) => {
+      const b2 = [...document.querySelectorAll("button")]
+        .find((y) => y.offsetParent !== null && (y.textContent || "").trim() === x);
+      if (!b2) return false;
+      b2.click();
+      return true;
+    }, k);
+    const aller = async (page, sous) => {
+      const okP = await p.evaluate((a) => {
+        const b2 = [...document.querySelectorAll("button")]
+          .find((y) => y.offsetParent !== null && (y.textContent || "").trim().includes(a));
+        if (!b2) return false;
+        b2.click();
+        return true;
+      }, page);
+      await p.waitForTimeout(500);
+      const okS = sous ? await clicExact(sous) : true;
+      return [okP, okS];
+    };
+    // ————— LA LECTURE DES CELLULES N'EST PAS textContent —————
+    // Piège rencontré : « 6 stopspire creux » et « + 4,2R / an ». Ce ne sont pas des
+    // défauts — chaque cellule porte sa VALEUR puis son étiquette dans un <span
+    // display:block>, et textContent les colle. Une sonde qui lit le texte brut
+    // rapporte deux faux défauts par table. On lit donc le premier nœud de texte
+    // significatif, celui que l'œil lit comme la valeur.
+    const cellules = () => p.evaluate(() => [...document.querySelectorAll("table")].map((tb) => ({
+      th: [...tb.querySelectorAll("thead th")].map((h) => (h.textContent || "").trim()),
+      rangees: [...tb.querySelectorAll("tbody tr")].map((tr) =>
+        [...tr.querySelectorAll("td")].map((td) => {
+          const bloc = td.querySelector("span[style*='display:block'],span[style*='display: block']");
+          const brut = (td.textContent || "").trim().replace(/\s+/g, " ");
+          const etiq = bloc ? (bloc.textContent || "").trim().replace(/\s+/g, " ") : "";
+          const val = etiq && brut.endsWith(etiq) ? brut.slice(0, brut.length - etiq.length).trim() : brut;
+          return { val, etiq };
+        })),
+    })));
+    // Les mots qui empruntent leur sens à un référentiel qui avance (règle 12). Sur
+    // une donnée FIGÉE — un scan archivé, un trade clos, une série engendrée — ils
+    // sont vrais le jour du rendu et faux le lendemain. C'est ce que la colonne des
+    // bougies a produit dès qu'elle a été peuplée : « 2023 → hier · complet ».
+    const RELATIF = /\b(hier|aujourd|demain|r[ée]cemment|ce matin|[àa] l.instant|il y a \d|le mois dernier|la semaine derni[èe]re|ci-dessous|ci-dessus|plus haut|le premier de la liste)\b/i;
+    const CHIFFREES = /^(Trades|R net|Gain \/ perte|Creux|Époques|#)$/;
+    const vus = [];
+    for (const [page, sous] of [["Mes scans", "Nouveau scan"], ["Mes décisions", "Portefeuille"]]) {
+      const [okP, okS] = await aller(page, sous);
+      assert.ok(okP && okS, "la page « " + page + " › " + sous + " » est introuvable — réancrez");
+      await p.waitForTimeout(800);
+      const tables = (await cellules()).filter((t) => t.rangees.length > 0);
+      assert.ok(tables.length > 0,
+        page + " › " + sous + " : AUCUNE table peuplée après un semis qui a relu "
+        + nScan + " lignes de scan et " + nDec + " décisions par le chemin du produit. "
+        + "Le semis a donc réussi et l'écran ne le montre pas — c'est la classe même "
+        + "de la panne des tables : le producteur calcule, le trou ne reçoit rien.");
+      for (const t of tables) {
+        vus.push(page + " › " + sous + " : " + t.rangees.length + " rangée(s)");
+        t.rangees.forEach((rg, ri) => rg.forEach((c, ci) => {
+          const col = t.th[ci] || "colonne " + (ci + 1);
+          assert.ok(!RELATIF.test(c.val) && !RELATIF.test(c.etiq),
+            page + " › " + sous + ", « " + col + " » rangée " + (ri + 1) + " : « "
+            + (c.val + " " + c.etiq).trim() + " » porte un mot RELATIF sur une donnée "
+            + "FIGÉE. Un scan archivé et un trade clos ne bougent plus : « hier » y est "
+            + "vrai le jour du rendu et faux le lendemain, et l'écart grandit tout seul. "
+            + "Écrivez la date en toutes lettres (règle 12).");
+          if (t.th.length && CHIFFREES.test(col)) {
+            assert.ok(/\d/.test(c.val) && c.val !== "—" && c.val !== "-",
+              page + " › " + sous + ", « " + col + " » rangée " + (ri + 1) + " : « "
+              + c.val + " » — une colonne chiffrée doit porter un chiffre. Un tiret est "
+              + "le repli LÉGITIME d'un scan antérieur qui ne portait pas la mesure ; "
+              + "sur une ligne fraîchement semée, où tous les champs sont posés, c'est "
+              + "que la valeur ne rejoint pas son trou.");
+          }
+        }));
+      }
+    }
+    assert.ok(vus.length >= 2, "les deux tables peuplées ne sont pas toutes les deux vues : " + vus.join(" · "));
+    assert.deepEqual(trous, [],
+      "Des trous du gabarit restent non résolus SUR LES RANGÉES — ce que le cas vide "
+      + "ne pouvait pas montrer, puisqu'un tbody sans rangée n'a aucun trou à résoudre :\n  "
+      + trous.join("\n  "));
+    assert.deepEqual(erreurs, [],
+      "Une exception a été levée pendant le rendu des tables peuplées. renderVals() est "
+      + "UNE fonction : une exception dans un producteur efface la page entière, y "
+      + "compris ce qui n'a rien à voir :\n  " + erreurs.join("\n  "));
+  } finally {
+    await nav.close();
+  }
+});

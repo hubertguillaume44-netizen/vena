@@ -24,6 +24,11 @@
 //   · « Recharger », qui recharge la page et tuerait la session du banc ;
 //   · la SÉQUENCE de gestes (un clic après un autre dans un ordre précis) : elle
 //     clique chaque bouton depuis l'état de la page, pas des scénarios.
+// Les TROIS SURFACES qui s'ouvrent par-dessus les pages — le tiroir, l'aide, l'avis —
+// sont dans la tournée depuis le second test ci-dessous : elles étaient hors de
+// portée, ce qui n'est pas la même chose qu'un angle mort. Un angle mort est un
+// endroit où le banc ne PEUT pas aller (un dialogue natif) ; une surface non visitée
+// est un endroit où il n'allait pas.
 // Et elle ne passe pas au vert sur une page qu'elle n'a pas su ouvrir : une vue
 // sans aucun bouton la fait tomber.
 import { test } from "node:test";
@@ -163,6 +168,33 @@ async function clicDom(p, libelle) {
   }, libelle).catch(() => false);
 }
 
+// Un clic par le TITRE (contenance) : la porte du tiroir porte l'état de l'espace
+// en libellé — « 3 instruments à vous · ce navigateur » — et ce libellé change avec
+// les données. Le titre, lui, décrit la FONCTION : il ne bouge pas avec l'état.
+async function clicTitreContient(p, bout) {
+  return p.evaluate((t) => {
+    const b = [...document.querySelectorAll("button")]
+      .find((x) => x.offsetParent !== null && !x.disabled && (x.title || "").includes(t));
+    if (!b) return false;
+    b.click();
+    return true;
+  }, bout).catch(() => false);
+}
+
+// Fermer les trois, chacune par SON fermeur : ils sont différents, et Escape n'en
+// ferme aucune. On passe les trois à chaque fois plutôt que de deviner laquelle est
+// ouverte — un clic a pu en fermer une et en ouvrir une autre (« M'écrire »).
+async function fermerToutesSurfaces(p, clicVoile, clicTitre) {
+  for (let k = 0; k < 3; k++) {
+    await clicVoile();                       // le tiroir
+    await p.waitForTimeout(120);
+    await clicDom(p, "Fermer");              // l'aide
+    await p.waitForTimeout(120);
+    await clicTitre("Fermer");               // l'avis
+    await p.waitForTimeout(120);
+  }
+}
+
 test("chaque bouton de chaque page produit une réaction visible", { timeout: 600000 }, async () => {
   const nav = await lancerNavigateur();
   try {
@@ -240,6 +272,213 @@ test("chaque bouton de chaque page produit une réaction visible", { timeout: 60
       + "\n\nChaque geste doit faire quelque chose ET le dire dans la fenêtre, sans "
       + "défiler. Si un bouton est légitimement hors de portée du banc (sélecteur "
       + "natif, état absent d'un navigateur neuf), il s'exclut NOMMÉMENT, avec sa raison.");
+  } finally {
+    await nav.close();
+  }
+});
+
+test("chaque bouton des trois surfaces répond — et chaque surface se referme, vérifié", { timeout: 600000 }, async () => {
+  // ————— CE QUI S'OUVRE PAR-DESSUS N'ÉTAIT VISITÉ PAR PERSONNE —————
+  //
+  // La tournée des pages voit 78 libellés. Trois surfaces s'ouvrent depuis ces
+  // pages sans jamais être parcourues : le tiroir, l'aide et l'avis — 14 libellés
+  // distincts, mesurés, dont aucun n'avait été cliqué par une garde.
+  //
+  // LE PIÈGE EST DANS LA FERMETURE, ET IL A MORDU LA SONDE QUI L'A TROUVÉ. Une
+  // surface restée ouverte recouvre la suivante : les clics d'après deviennent des
+  // no-op et les comptes se cumulent. Trois mesures, et les trois fermeurs sont
+  // DIFFÉRENTS — rien ne se devine :
+  //     tiroir : le voile (z-index 69) ferme  · Escape NON
+  //     aide   : son bouton « Fermer »        · voile NON · Escape NON
+  //     avis   : sa croix (title=Fermer)      · voile NON · Escape NON
+  // La fermeture n'est donc pas SUPPOSÉE : elle se lit sur le drapeau d'état du
+  // produit (`tiroir`, `aideOuverte`, `avisOuvert`), qui est le résultat — pas sur
+  // un z-index ni sur la disparition d'un sélecteur, qui sont des proxys.
+  //
+  // ET LE LIBELLÉ EST UN MAUVAIS ANCRAGE POUR LA FERMETURE : une première sonde
+  // cherchait le bouton « × » par son texte et en a trouvé un AUTRE, dont le titre
+  // contenait le même caractère. Elle a conclu « la croix de l'avis ne ferme pas »
+  // — un faux défaut, rapporté à deux doigts d'être corrigé. La croix se prend
+  // donc par texte ET par titre.
+  //
+  // LES CINQ ÉTOILES NE SE COMPTENT PAS CINQ FOIS. Cinq boutons « ★ » identiques :
+  // cliquer les cinq, c'est écrire cinq fois la même assertion. Une seule est
+  // cliquée, et ce qu'on exige d'elle est plus fort qu'une mutation du DOM —
+  // l'ÉTAT DE NOTATION doit changer, ce qui est le rôle du geste.
+  //
+  // ANGLE MORT, déclaré (règle 9) : « Demander la protection » et « Réautoriser »
+  // ouvrent des dialogues NATIFS, hors de portée de l'automate — ils restent
+  // exclus nommément, comme dans la tournée des pages. C'est la seule exclusion :
+  // les douze autres libellés sont mesurés.
+  const nav = await lancerNavigateur();
+  try {
+    const p = await ouvrir(nav);
+    let telech = 0, choixFichier = 0;
+    p.on("download", () => { telech += 1; });
+    p.on("filechooser", () => { choixFichier += 1; });
+    // le drapeau d'ÉTAT du produit, remonté par la fibre : le résultat, pas un proxy
+    const drapeaux = () => p.evaluate(() => {
+      const el = document.querySelector("button");
+      const fk = Object.keys(el).find((x) => x.startsWith("__reactFiber"));
+      let f = el[fk];
+      while (f && !(f.stateNode && f.stateNode.constructor
+        && f.stateNode.constructor.name === "StreamableComponent")) f = f.return;
+      const s = f.stateNode.logic.state;
+      return { tiroir: !!s.tiroir, aideOuverte: !!s.aideOuverte, avisOuvert: !!s.avisOuvert };
+    });
+    const visibles = () => p.evaluate(() =>
+      [...document.querySelectorAll("button")]
+        .filter((b) => b.offsetParent !== null && !b.disabled)
+        .map((b) => (b.textContent || "").trim().replace(/\s+/g, " ") || b.title || "")
+        .filter(Boolean));
+    const clicVoile = () => p.evaluate(() => {
+      const v = [...document.querySelectorAll("div")]
+        .find((d) => /z-index: ?69/.test(d.getAttribute("style") || ""));
+      if (v) { v.click(); return true; }
+      return false;
+    });
+    const clicTitre = (titre) => p.evaluate((t) => {
+      const b = [...document.querySelectorAll("button")]
+        .find((x) => x.offsetParent !== null && !x.disabled && x.title === t);
+      if (!b) return false;
+      b.click();
+      return true;
+    }, titre);
+    const SURFACES = [
+      { nom: "le tiroir", drapeau: "tiroir",
+        // la porte porte l'état de l'espace en libellé (« 3 instruments à vous · ce
+        // navigateur ») : il change avec les données. On la prend par son TITRE, qui
+        // décrit la fonction et non l'état.
+        ouvrir: () => clicTitreContient(p, "space de donn\u00e9es"),
+        fermer: clicVoile,
+        commentFermer: "le voile (z-index 69) — Escape ne le ferme pas" },
+      { nom: "l'aide", drapeau: "aideOuverte",
+        ouvrir: () => clicDom(p, "? Aide"),
+        fermer: () => clicDom(p, "Fermer"),
+        commentFermer: "son bouton « Fermer » — ni le voile ni Escape ne le ferment" },
+      { nom: "l'avis", drapeau: "avisOuvert",
+        ouvrir: () => clicDom(p, "Donner mon avis"),
+        fermer: () => clicTitre("Fermer"),
+        commentFermer: "sa croix (title=Fermer) — ni le voile ni Escape ne la ferment" },
+    ];
+    const inertes = [];
+    for (const surf of SURFACES) {
+      // 1 · AU REPOS : rien d'ouvert. Une surface restée ouverte du tour précédent
+      // rendrait tous les clics suivants muets sans que rien ne rougisse.
+      const repos = await drapeaux();
+      assert.deepEqual(repos, { tiroir: false, aideOuverte: false, avisOuvert: false },
+        "avant d'ouvrir " + surf.nom + ", une surface est restée ouverte : "
+        + JSON.stringify(repos) + ". Elle recouvre ce qui suit, les clics deviennent "
+        + "des no-op et les comptes se cumulent — c'est exactement le piège qui a "
+        + "faussé la sonde qui a trouvé ces surfaces.");
+      // 2 · LA PORTE S'OUVRE, et on le LIT sur le drapeau
+      const avantOuv = await visibles();
+      assert.ok(await surf.ouvrir(), "la porte de " + surf.nom + " est introuvable — réancrez");
+      await p.waitForTimeout(600);
+      assert.ok((await drapeaux())[surf.drapeau],
+        "la porte de " + surf.nom + " a été cliquée et le drapeau « " + surf.drapeau
+        + " » est resté faux : la surface ne s'ouvre pas, et la garde mesurerait la "
+        + "page en croyant la parcourir");
+      // 3 · CE QUE LA SURFACE AJOUTE — par DIFFÉRENCE, jamais par un sélecteur de
+      // conteneur : le balisage des trois surfaces n'a rien en commun, et un
+      // sélecteur écrit à la main serait un périmètre (règle 7).
+      const apresOuv = await visibles();
+      const avant = new Set(avantOuv);
+      const propres = [...new Set(apresOuv.filter((x) => !avant.has(x)))];
+      assert.ok(propres.length > 0,
+        surf.nom + " s'ouvre mais n'ajoute AUCUN bouton à l'écran : la garde ne "
+        + "mesurerait rien dessus — une garde qui saute en silence est aveugle sans rougir");
+      // 3bis · L'ÉTOILE, UNE FOIS, ET AVANT TOUT LE RESTE.
+      //
+      // Deux leçons tiennent dans ces quinze lignes, et les deux sont venues d'un
+      // échec de CETTE garde, pas d'une relecture.
+      //
+      // L'ORDRE : mesurée après la boucle, elle trouvait la note à zéro et accusait
+      // le produit. Le formulaire d'avis avait simplement été ENVOYÉ par un clic de
+      // la boucle, et l'écran de remerciement n'a plus d'étoiles. La garde mesurait
+      // un état qu'elle avait elle-même détruit — un piège de capteur, pas un défaut.
+      //
+      // L'ANCRAGE : « ★ » est le texte des CINQ boutons, et d'autres ailleurs. Un
+      // matcher par contenance en attrapait un au hasard. Le TITRE (« 1 sur 5 —
+      // inutilisable ») désigne UNE étoile et une seule : on prend ce qui identifie,
+      // pas ce qui décore. Vérifié des deux côtés : HTMLElement.click() sur la bonne
+      // étoile pose bien la note — le produit répond, c'est le banc qui visait mal.
+      if (surf.drapeau === "avisOuvert") {
+        const note = () => p.evaluate(() => {
+          const el = document.querySelector("button");
+          const fk = Object.keys(el).find((x) => x.startsWith("__reactFiber"));
+          let f = el[fk];
+          while (f && !(f.stateNode && f.stateNode.constructor
+            && f.stateNode.constructor.name === "StreamableComponent")) f = f.return;
+          return Number(f.stateNode.logic.state.avisNote) || 0;
+        });
+        const n0 = await note();
+        assert.ok(await clicTitreContient(p, "3 sur 5"),
+          "aucune étoile de notation dans l'avis (titre « 3 sur 5 ») — réancrez");
+        await p.waitForTimeout(350);
+        const n1 = await note();
+        assert.notEqual(n1, n0,
+          "un clic sur la troisième étoile laisse la note à " + n1 + " : le geste ne "
+          + "NOTE pas. Cinq boutons « ★ » identiques ne se comptent pas cinq fois — "
+          + "une seule assertion, mais sur l'ÉTAT que le geste existe pour changer, pas "
+          + "sur une mutation du DOM qu'un survol suffirait à produire.");
+        assert.equal(n1, 3,
+          "la troisième étoile pose la note à " + n1 + " et non 3 : le rang de l'étoile "
+          + "cliquée n'est pas celui qu'elle annonce dans son titre");
+      }
+      for (const cle of propres) {
+        if (EXCLUS.has(cle)) continue;
+        // LES CINQ ÉTOILES : une seule, et on exige l'état, pas une mutation
+        if (cle === "★") continue;
+        // la surface a pu se refermer sur un clic précédent (« M'écrire » ferme
+        // l'aide et ouvre l'avis) : on la rétablit avant de mesurer le suivant
+        if (!(await drapeaux())[surf.drapeau]) {
+          await fermerToutesSurfaces(p, clicVoile, clicTitre);
+          await surf.ouvrir();
+          await p.waitForTimeout(400);
+        }
+        const avantM = await p.evaluate(() => ({ m: window.__mut, v: window.__mutVisible }));
+        const dAvant = telech, fAvant = choixFichier;
+        const clique = await clicDom(p, cle);
+        if (!clique) continue;
+        const vif = await p.waitForFunction((a) => window.__mutVisible > a, avantM.v,
+          { timeout: 700, polling: 60 }).then(() => true).catch(() => false);
+        const apresM = await p.evaluate(() => ({ m: window.__mut, v: window.__mutVisible }));
+        if (!(vif || apresM.v > avantM.v || telech > dAvant || choixFichier > fAvant)) {
+          inertes.push(surf.nom + " · « " + cle + " »"
+            + (apresM.m > avantM.m ? " (des mutations, aucune visible dans la fenêtre)"
+              : " (aucune réaction du tout)"));
+        }
+        await calmer(p);
+      }
+      // 5 · LA FERMETURE EST VÉRIFIÉE, jamais supposée
+      await fermerToutesSurfaces(p, clicVoile, clicTitre);
+      const apresFerm = await drapeaux();
+      // LE COUPABLE SE DÉDUIT DES DRAPEAUX, il ne se suppose pas de la surface en
+      // cours. Première version : le message nommait le fermeur de la surface du tour
+      // alors qu'une AUTRE était restée ouverte — « M'écrire » ferme l'aide et ouvre
+      // l'avis, donc c'est l'avis qui bloque pendant qu'on parcourt l'aide. Le JSON
+      // disait vrai, la phrase disait faux, et c'est la phrase qu'on lit : un message
+      // qui accuse le mauvais fermeur envoie chercher au mauvais endroit.
+      const restees = SURFACES.filter((x) => apresFerm[x.drapeau]);
+      assert.deepEqual(apresFerm, { tiroir: false, aideOuverte: false, avisOuvert: false },
+        (restees.length ? restees.map((x) => x.nom).join(" et ") : surf.nom)
+        + " ne se referme pas, constaté au sortir de " + surf.nom + " : "
+        + JSON.stringify(apresFerm) + ". Le fermeur attendu est "
+        + (restees.length
+          ? restees.map((x) => x.nom + " → " + x.commentFermer).join(" ; ")
+          : surf.commentFermer)
+        + " — les trois sont DIFFÉRENTS, rien ne se devine, et une surface qui reste "
+        + "ouverte rend muet tout ce qui suit. Un clic peut ouvrir une surface AUTRE "
+        + "que celle qu'on parcourt : « M'écrire » ferme l'aide et ouvre l'avis.");
+    }
+    assert.deepEqual(inertes, [],
+      "Des boutons des surfaces ne produisent AUCUNE réaction visible :\n  "
+      + inertes.join("\n  ")
+      + "\n\nCes libellés étaient simplement HORS DE PORTÉE du banc, ce qui n'est pas "
+      + "la même chose qu'un angle mort : un angle mort est un endroit où le banc ne "
+      + "PEUT pas aller — un dialogue natif. Si l'un d'eux en est un, il s'exclut "
+      + "NOMMÉMENT dans EXCLUS, avec sa raison.");
   } finally {
     await nav.close();
   }
