@@ -3888,9 +3888,10 @@
                 <button type="button" class="{{ oc.cls }}" style="cursor:pointer;border:none;font-family:var(--font-body)" title="{{ oc.aide }}" onClick="{{ oc.choisir }}">{{ oc.nom }}</button>
               </sc-for>
               <div style="display:flex;gap:6px;align-items:center;margin-inline-start:auto">
-                <sc-for list="{{ corBoutons }}" as="cbn" hint-placeholder-count="2">
-                  <button class="btn btn-secondary" type="button" style="min-height:1.9rem;font-size:11px;padding-inline:11px" onClick="{{ cbn.pousser }}" disabled="{{ cbn.bloque }}" title="{{ cbn.aide }}">{{ cbn.nom }}</button>
+                <sc-for list="{{ corRaccourcis }}" as="crc" hint-placeholder-count="2">
+                  <button type="button" class="{{ crc.cls }}" style="cursor:pointer;border:none;font-family:var(--font-body);font-size:11px" title="{{ crc.aide }}" onClick="{{ crc.poser }}">{{ crc.nom }}</button>
                 </sc-for>
+                <button class="btn btn-secondary" type="button" style="min-height:1.9rem;font-size:11px;padding-inline:11px;white-space:nowrap" onClick="{{ corPousser }}" disabled="{{ corPousserBloque }}" title="{{ corPousserAide }}">{{ corPousserTxt }}</button>
               </div>
               <label style="display:flex;align-items:center;gap:6px;font-size:11px" class="text-muted" title="{{ aideTirages }}">tirages au hasard<input class="input" type="number" min="200" max="20000" step="100" style="min-height:1.9rem;height:1.9rem;font-size:13px;padding:0 6px;width:11ch" value="{{ nTiragesVal }}" onChange="{{ setNTirages }}" onBlur="{{ finNTirages }}" title="{{ aideTirages }}"></label>
             </div>
@@ -15523,6 +15524,30 @@ GROUPES = {
   // Pousser vaut pour TOUTE la page, jamais pour une carte : pousser les tirages du
   // seul instrument qui a failli passer rouvrirait exactement ce que le maximum
   // partagé vient de fermer. Et pousser AJOUTE — les 500 premiers tirages restent.
+  // ————— LE PRIX D'UN POUSSAGE SE DIT AVANT DE PARTIR, ET IL SE CALCULE ICI —————
+  //
+  // 10 000 tirages × les têtes × cinquante-six instruments est un budget que
+  // personne ne peut estimer de tête. La ligne d'état des scans antérieurs le disait
+  // déjà ; les boutons de poussage, non — ils partaient muets sur un travail de
+  // plusieurs minutes. La même estimation sert donc aux deux : écrite deux fois,
+  // elle aurait fini par annoncer deux durées pour le même calcul.
+  //
+  // La vitesse vient de la machine, mesurée ; un tirage vaut ~1,5 combinaison
+  // balayée. `null` quand il n'y a rien à faire : une durée de zéro se lirait comme
+  // une mesure.
+  dureeCor(but, liste) {
+    const attente = liste || this.corAFaire(but);
+    if (!attente.length) return null;
+    let vitesse = 1200;
+    try { const vv = JSON.parse(localStorage.getItem('vena.vitesse.v1'));
+      if (vv && vv.combisParSec) vitesse = vv.combisParSec; } catch (e) {}
+    let sec = 0;
+    for (const sym of attente) {
+      const e = this.corDe(sym);
+      sec += (but - ((e && e.tirages) || 0)) * this.tetesCourantes(sym).length * 1.5 / vitesse;
+    }
+    return sec < 90 ? Math.max(1, Math.round(sec)) + ' s' : Math.round(sec / 60) + ' min';
+  }
   pousserCor(cible) {
     const n = Math.max(200, Math.min(20000, Number(cible) || 500));
     this.setState({ nTirages: n }, () => { this.ecrireSession(); this.completerCor(n); });
@@ -15652,7 +15677,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260916.14';
+  VERSION_APP = '260916.15';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -28453,19 +28478,52 @@ GROUPES = {
       // Pousser AJOUTE : la graine par tirage rend la suite identique aux 500 déjà
       // joués, et le verdict à 2 000 contient celui à 500.
       ...(() => {
+        // ————— UN CHAMP, UN GESTE — ET LE LIBELLÉ SE LIT DANS LE CHAMP —————
+        //
+        // Le champ portait 500 et AUCUN bouton ne le proposait : « pousser à 2 000 »
+        // et « pousser à 10 000 » étaient les deux seules valeurs atteignables, et
+        // tous deux figés dès que plus rien ne manquait à leur palier. Quelqu'un qui
+        // veut 3 500 n'avait aucun chemin, et quelqu'un qui lit « 500 » dans le champ
+        // n'avait pas de bouton pour l'appliquer.
+        //
+        // Désormais UN geste, et sa cible est la valeur du champ. Le libellé est
+        // COMPOSÉ depuis cette valeur : il ne peut pas annoncer un nombre que le
+        // geste n'appliquerait pas — deux façons de fixer le même nombre auraient
+        // divergé, c'est la leçon des quatre producteurs qui recalculaient chacun sa
+        // copie. Les deux raccourcis restent, mais ils ÉCRIVENT DANS LE CHAMP au lieu
+        // d'agir : un seul chemin arrive au calcul.
+        //
+        // ET LE PRIX SE DIT AVANT DE PARTIR, comme la ligne des scans antérieurs le
+        // fait déjà — même estimation, même méthode : « Pousser à 10 000 · environ
+        // 12 min ». Un travail de plusieurs minutes qui part sans annoncer sa durée
+        // est un travail que l'utilisateur n'a pas accepté.
         const syms = [...new Set((this.lignesScan || []).map((r) => r && r.sym).filter(Boolean))];
-        const bouton = (n) => ({
-          nom: 'pousser à ' + n.toLocaleString('fr-FR'),
-          aide: 'Ajoute des tirages jusqu\u2019à ' + n.toLocaleString('fr-FR')
+        const cible = Math.max(200, Math.min(20000, Number(s.nTirages) || TIRAGES_DEFAUT));
+        const resteAFaire = (n) => syms.some((sym) => {
+          const e = this.corDe(sym);
+          return this.tetesCourantes(sym).length && (!e || (e.tirages || 0) < n);
+        });
+        const dureeCible = resteAFaire(cible) ? this.dureeCor(cible) : null;
+        return {
+          corPousserTxt: 'Pousser à ' + cible.toLocaleString('fr-FR')
+            + (dureeCible ? ' · environ ' + dureeCible : ''),
+          corPousserAide: 'Ajoute des tirages jusqu\u2019à ' + cible.toLocaleString('fr-FR')
             + ' pour TOUS les instruments du tableau — jamais pour une seule carte. '
             + 'Poussé pour tous, le seuil resserre dans les deux sens : certains passent, '
             + 'd\u2019autres tombent. Les tirages déjà joués sont conservés : le verdict '
-            + 'à ' + n.toLocaleString('fr-FR') + ' contient celui d\u2019avant.',
-          pousser: () => this.pousserCor(n),
-          bloque: !!this._corFond || !!s.scanEnCours
-            || !syms.some((sym) => { const e = this.corDe(sym); return this.tetesCourantes(sym).length && (!e || (e.tirages || 0) < n); }),
-        });
-        return { corBoutons: [bouton(2000), bouton(10000)],
+            + 'à ' + cible.toLocaleString('fr-FR') + ' contient celui d\u2019avant. '
+            + 'Le nombre se règle dans le champ à côté.',
+          corPousser: () => this.pousserCor(cible),
+          corPousserBloque: !!this._corFond || !!s.scanEnCours || !resteAFaire(cible),
+          // les raccourcis ne CALCULENT pas : ils posent la valeur, et le geste reste
+          // unique. Deux chemins vers le même nombre finiraient par en fixer deux.
+          corRaccourcis: [2000, 10000].map((n) => ({
+            nom: n.toLocaleString('fr-FR'),
+            cls: 'tag ' + (n === cible ? 'tag-accent' : 'tag-outline'),
+            aide: 'Pose ' + n.toLocaleString('fr-FR') + ' dans le champ des tirages. '
+              + 'C\u2019est le bouton « Pousser à » qui lance le calcul, et lui seul.',
+            poser: () => this.setState({ nTirages: n }, () => this.ecrireSession()),
+          })),
           aCorMsg: !!s.corMsg, corMsg: s.corMsg || '',
           corArreter: () => { this._corStop = true; },
           // ————— LE PRIX SE DIT AVANT DE LANCER —————
@@ -28481,15 +28539,7 @@ GROUPES = {
             const but = Math.max(200, Number(s.nTirages) || TIRAGES_DEFAUT);
             const attente = this.corAFaire(but);
             if (!attente.length) return { aCorAttente: false, corAttenteTxt: '', corLancer: () => {} };
-            let vitesse = 1200;
-            try { const vv = JSON.parse(localStorage.getItem('vena.vitesse.v1'));
-              if (vv && vv.combisParSec) vitesse = vv.combisParSec; } catch (e) {}
-            let sec = 0;
-            for (const sym of attente) {
-              const e = this.corDe(sym);
-              sec += (but - ((e && e.tirages) || 0)) * this.tetesCourantes(sym).length * 1.5 / vitesse;
-            }
-            const duree = sec < 90 ? Math.max(1, Math.round(sec)) + ' s' : Math.round(sec / 60) + ' min';
+            const duree = this.dureeCor(but, attente);
             return { aCorAttente: true,
               corAttenteTxt: this.pl(attente.length, 'verdict corrigé manquant', 'verdicts corrigés manquants')
                 + ' (scans antérieurs) · environ ' + duree,

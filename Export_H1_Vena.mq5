@@ -39,7 +39,7 @@
 // La valeur est posée par « npm run app:version », au même moment que le pied de
 // page de l'application : deux endroits qu'on met à jour à la main finissent par
 // diverger, et c'est précisément la divergence qu'on cherche à rendre visible.
-#define VENA_VERSION "260916.14"
+#define VENA_VERSION "260916.15"
 
 // Vide = le symbole du graphique. « * » = TOUTE l'Observation du marché. Sinon une
 // liste : "AUDCAD,GOLD,NZDCAD".
@@ -81,6 +81,7 @@ input bool     InpM1       = false;           // Exporter la M1 (départage robo
 // inconnu : le moteur le dit et retombe sur sa convention de lecture, comportement
 // déjà prévu. InpM1 (le format de sortie) charge la M1 quoi qu'il arrive.
 input bool     InpChargerM1 = false;          // Charger la M1 (départage intrabar — lourd)
+input bool     InpTracerTranches = true;      // Journaliser chaque tranche (sym + dates) avant lecture
 
 //+------------------------------------------------------------------+
 //| Force le téléchargement d'un historique et attend qu'il arrive.   |
@@ -293,6 +294,35 @@ bool Traitable(string sym, datetime t)
 //| obtenu : une interruption ne laisse plus de CSV de 0 Ko que       |
 //| Véna lirait comme une série vide.                               |
 //+------------------------------------------------------------------+
+//| VIDER SANS DÉTRUIRE — et pourquoi ce n'est pas un détail           |
+//|                                                                  |
+//| Le terminal est MORT sur US2000.cash : « Access violation write » |
+//| avec des registres ymm et des vmovdqu, c'est-à-dire une copie     |
+//| mémoire vectorisée qui écrit hors d'une zone valide. Ce n'est pas  |
+//| une exception MQL5 rattrapable : le processus meurt, et l'utili-  |
+//| sateur perd son terminal parce qu'il a lancé notre script.        |
+//|                                                                  |
+//| La séquence : HK50.cash se termine normalement — donc r et m1     |
+//| viennent d'être libérés par ArrayFree — puis US2000.cash entre    |
+//| dans sa première tranche et appelle CopyRates sur CES MÊMES        |
+//| tableaux. ArrayFree détruit le tampon d'un tableau dynamique ; ce  |
+//| qui reste n'est pas « un tableau vide », et le drapeau posé par    |
+//| ArraySetAsSeries ne lui survit pas. Le même ArrayFree vivait AUSSI |
+//| dans la boucle, à chaque tranche sans données.                     |
+//|                                                                  |
+//| ArrayResize(x, 0) rend la même mémoire sans détruire l'objet, et   |
+//| le drapeau de série est reposé juste après — explicitement, parce  |
+//| qu'on ne PARIE pas sur ce qu'une libération laisse derrière elle.  |
+//| C'est défensif et assumé : un script ne doit pas pouvoir tuer le   |
+//| terminal de quelqu'un, même si le diagnostic exact nous échappe.   |
+//+------------------------------------------------------------------+
+void ViderRates(MqlRates &a[])
+{
+   ArrayResize(a, 0);
+   ArraySetAsSeries(a, false);
+}
+
+//+------------------------------------------------------------------+
 const int TRANCHE_SECONDES = 31536000;   // 365 jours
 
 bool Exporter(string sym)
@@ -377,8 +407,19 @@ bool Exporter(string sym)
       datetime maintenant = TimeCurrent();
       if(t1 > maintenant) t1 = maintenant;
 
+      // ————— UNE TRANCHE VIDE NE SE DEMANDE PAS —————
+      // t1 est borné à TimeCurrent() : sur la dernière tranche, t1 - 1 peut passer
+      // sous t0 si l'horloge recule entre les deux lectures. Demander une plage
+      // inversée au terminal n'a aucun sens, et on ne sait pas ce qu'il en fait.
+      if(t1 - 1 < t0) continue;
+      // LE SYMBOLE ET LA TRANCHE, AVANT L'APPEL. Le terminal est mort sur
+      // US2000.cash sans que rien ne dise sur QUELLE année : le journal s'arrêtait
+      // au symbole. La prochaine occurrence dira où.
+      if(InpTracerTranches)
+         PrintFormat("%s : tranche %s → %s", sym,
+                     TimeToString(t0, TIME_DATE), TimeToString(t1, TIME_DATE));
       int n = CopyRates(sym, PERIOD_H1, t0, t1 - 1, r);
-      if(n <= 0) { ArrayFree(r); continue; }
+      if(n <= 0) { ViderRates(r); continue; }
       int nM1 = 0;
       if(chargerM1)
       {
@@ -399,7 +440,7 @@ bool Exporter(string sym)
          {
             PrintFormat("%s : écriture impossible (%d)", sym, GetLastError());
             Rate(sym, StringFormat("écriture du fichier impossible (erreur %d)", GetLastError()));
-            ArrayFree(r); ArrayFree(m1);
+            ViderRates(r); ViderRates(m1);
             return false;
          }
          // La date à partir de laquelle la M1 existe voyage AVEC les données : sans elle,
@@ -540,8 +581,8 @@ bool Exporter(string sym)
          totalN++;
       }
       // ————— LA MÉMOIRE EST RENDUE entre deux tranches, et la main au terminal —————
-      ArrayFree(r);
-      ArrayFree(m1);
+      ViderRates(r);
+      ViderRates(m1);
       Sleep(50);
    }
 
@@ -655,8 +696,12 @@ bool ExporterM1(string sym, string nom, datetime dispoM1)
       datetime maintenant = TimeCurrent();
       if(t1 > maintenant) t1 = maintenant;
 
+      if(t1 - 1 < t0) continue;
+      if(InpTracerTranches)
+         PrintFormat("%s : tranche M1 %s → %s", sym,
+                     TimeToString(t0, TIME_DATE), TimeToString(t1, TIME_DATE));
       int n = CopyRates(sym, PERIOD_M1, t0, t1 - 1, m1);
-      if(n <= 0) { ArrayFree(m1); continue; }
+      if(n <= 0) { ViderRates(m1); continue; }
 
       if(f == INVALID_HANDLE)
       {
@@ -665,7 +710,7 @@ bool ExporterM1(string sym, string nom, datetime dispoM1)
          {
             PrintFormat("%s : écriture impossible (%d)", sym, GetLastError());
             Rate(sym, StringFormat("écriture du fichier impossible (erreur %d)", GetLastError()));
-            ArrayFree(m1);
+            ViderRates(m1);
             return false;
          }
          FileWriteString(f, "date,open,high,low,close,volume,spread\r\n");
@@ -682,7 +727,7 @@ bool ExporterM1(string sym, string nom, datetime dispoM1)
       if(premierT == 0) premierT = m1[0].time;
       dernierT = m1[n - 1].time;
       totalN += n;
-      ArrayFree(m1);
+      ViderRates(m1);
       Sleep(50);
    }
 
