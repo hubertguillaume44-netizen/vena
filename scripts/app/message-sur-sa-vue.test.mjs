@@ -108,3 +108,42 @@ test("les pastilles de placement du portefeuille ont un texte ET un geste", () =
   assert.ok(!APP.includes("{{ cb3.ab }}"),
     "`cb3.ab` est de retour dans le gabarit : aucun producteur ne l'émet");
 });
+
+test("tout ce qui jette dans l'export du robot se dit, et se journalise", () => {
+  // ————— LA SURFACE NE SERT À RIEN SI RIEN N'Y EST ÉCRIT —————
+  // Corrigée la surface, le rapport est revenu : « ni fichier ni message ». Les deux
+  // candidats ont été départagés par la mesure — `vl.exporterRobot` RÉSOUT dans les
+  // sept vues (garde `trous-branches`), donc le gestionnaire est branché. Restait le
+  // premier : le chemin jette avant d'écrire quoi que ce soit.
+  //
+  // Il avait six endroits pour ça. `etatDeLigne`, `filtresBloquants`,
+  // `verdictHasard`, `stampMaintenant`, `magicDe`, puis TOUT ce qui suit la
+  // génération — `fenMarque`, `nomRobot`, la trace `lireLive`/`ecrireLive`, le Blob
+  // et le clic — vivaient hors de toute garde. Les deux `try` d'origine ne couvraient
+  // que le chargement du module et la génération elle-même.
+  //
+  // MESURÉ APRÈS, au banc : un vrai appel non gardé qui jette (`etatDeLigne`) rend
+  // un message LISIBLE sur le Portefeuille et zéro téléchargement ; l'enveloppe
+  // elle-même aussi ; et le chemin sain descend toujours son fichier.
+  //
+  // Le correctif ne devine pas la ligne qui jette, et c'est assumé : la panne est sur
+  // une machine et des données qu'on n'a pas. Ce qu'on peut faire d'ici, c'est
+  // qu'elle cesse d'être muette — le prochain clic nommera la ligne.
+  assert.ok(APP.includes("    try { return await this.exporterRobotBrut(v); } catch (e) {"),
+    "l'export du robot n'est plus enveloppé : six segments du chemin — `etatDeLigne`, "
+    + "`filtresBloquants`, `verdictHasard`, `stampMaintenant`, `magicDe`, et tout ce "
+    + "qui suit la génération — jettent sans qu'un mot soit écrit. Ni fichier ni "
+    + "message, exactement le rapport.");
+  assert.ok(APP.includes("      this.journaliserErreur('exporterRobot : ' + raison);"),
+    "l'échec ne rejoint plus le journal de diagnostic : le message à l'écran est "
+    + "perdu au rechargement, et c'est le fichier de diagnostic qui permet de "
+    + "rapporter la cause exacte");
+  assert.ok(APP.includes("      let qui = '';\n      try { qui = ' pour ' + this.nomComplet(v && v.sym); } catch (e2) {}"),
+    "le message de secours n'est plus protégé de lui-même : `nomComplet` peut jeter à "
+    + "son tour sur une ligne abîmée, et ce serait le MESSAGE qui empêcherait le "
+    + "message — l'échec silencieux qu'on vient de retirer, reconstruit dans son "
+    + "propre rattrapage");
+  assert.ok(APP.includes("Rien n\\u2019a été téléchargé."),
+    "le message ne dit plus que RIEN n'est descendu : l'utilisateur irait chercher un "
+    + "fichier à moitié écrit dans son dossier de téléchargements");
+});

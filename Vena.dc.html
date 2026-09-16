@@ -7637,7 +7637,41 @@ class Component extends DCLogic {
   }
   // Un robot MT5 par configuration validée. Le générateur vit dans robot-mt5.js :
   // c'est de la logique métier, pas de l'interface, et il pèse lourd.
+  // ————— TOUT CE QUI JETTE ICI DOIT SE DIRE —————
+  //
+  // Rapport : « Exporter » ne produit NI fichier NI message. Deux candidats, et le
+  // second est écarté par la mesure — `vl.exporterRobot` résout dans les SEPT vues
+  // (garde `trous-branches`), donc le gestionnaire est bien branché. Reste le
+  // premier : le chemin jette avant d'écrire quoi que ce soit.
+  //
+  // Et il avait six endroits pour ça. `etatDeLigne`, `filtresBloquants`,
+  // `verdictHasard`, `stampMaintenant`, `magicDe`, puis TOUT ce qui suit la
+  // génération — `fenMarque`, `nomRobot`, la trace `lireLive`/`ecrireLive`, le Blob
+  // et le clic — vivaient hors de toute garde. Les deux `try` existants ne couvrent
+  // que le chargement du module et la génération elle-même.
+  //
+  // LE CORRECTIF NE DEVINE PAS LA LIGNE QUI JETTE, ET C'EST VOULU : la panne est sur
+  // une machine qu'on n'a pas, sur des données qu'on n'a pas. Ce qu'on peut faire
+  // d'ici, c'est qu'elle cesse d'être muette — le message nomme la cause, et le
+  // journal de diagnostic la garde. Le prochain clic dira la ligne.
+  //
+  // Le corps garde son nom de travail : envelopper sans réindenter cent lignes évite
+  // un diff qui cache le geste dans du blanc.
   async exporterRobot(v) {
+    try { return await this.exporterRobotBrut(v); } catch (e) {
+      const raison = (e && e.message) || String(e) || 'erreur inconnue';
+      this.journaliserErreur('exporterRobot : ' + raison);
+      // `nomComplet` peut jeter à son tour sur une ligne abîmée : le message de
+      // secours ne doit pas être ce qui empêche le message.
+      let qui = '';
+      try { qui = ' pour ' + this.nomComplet(v && v.sym); } catch (e2) {}
+      this.setState({ hasardMsg: 'Robot non exporté' + qui + ' : ' + raison
+        + '. Rien n\u2019a été téléchargé. Le détail est dans le fichier de diagnostic '
+        + '(tiroir Intendance) — joignez-le si le message revient.' });
+      return false;
+    }
+  }
+  async exporterRobotBrut(v) {
     let mod = null;
     // Paramètre de version : un import dynamique est mis en cache par URL pour toute la
     // session. Après une correction du générateur, le navigateur continuait de servir la
@@ -15887,7 +15921,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260916.22';
+  VERSION_APP = '260916.23';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les

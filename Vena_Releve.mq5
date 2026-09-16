@@ -35,7 +35,7 @@
 // La valeur est posée par « npm run app:version », au même moment que le pied de
 // page de l'application : deux endroits qu'on met à jour à la main finissent par
 // diverger, et c'est précisément la divergence qu'on cherche à rendre visible.
-#define VENA_VERSION "260916.22"
+#define VENA_VERSION "260916.23"
 
 // Source PRIORITAIRE : un symbole par ligne ; lignes vides et commentaires (« // », ou « # » suivi d'une espace) ignorés.
 // Si le fichier existe, il l'emporte sur InpSymboles.
