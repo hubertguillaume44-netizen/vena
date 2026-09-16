@@ -25,6 +25,15 @@
 //    est masquée, parce que « la liste est figée » se diagnostique par ce qu'on
 //    ne voit pas.
 //
+// LA TAXONOMIE EST TRANCHÉE : les mots du COURTIER, pas la nature de
+// l'instrument. Mesuré avant de trancher — la lecture par nature n'aurait changé
+// le regroupement que d'une seule famille (Exotics fusionnée dans Forex ;
+// Cash CFD→Indices et Equities|CFD→Actions ne changeaient que le mot, pas
+// l'ensemble). Un cas spécial d'une ligne pour un seul gain, contre la doctrine
+// « chaque compte parle la langue de son courtier, sans table d'alias » : on ne
+// touche pas. Ne re-proposez pas la fusion sur la même mesure — si elle revient
+// un jour, c'est cette décision-ci qu'il faut rouvrir, pas un correctif à poser.
+//
 // ANGLE MORT, déclaré (règle 9) : le banc mesure l'artefact dans UN viewport
 // (1280×720). Une fenêtre plus basse resserre la borne (elle est en vh, elle
 // suit), mais le banc ne le mesure pas.
