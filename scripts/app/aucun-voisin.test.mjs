@@ -55,6 +55,11 @@ test("le fichier livré n'émet aucune requête voisine pendant une session comp
     });
     await p.goto(document_);
     await p.waitForFunction(() => document.body && document.body.innerText.length > 400, { timeout: 60000 });
+    // le banc ne peut pas franchir le dialogue natif : en headless,
+    // showSaveFilePicker jette AbortError même sur un vrai clic, et l'export
+    // devient un silence. On le neutralise pour éprouver le REPLI téléchargement
+    // — la voie que ce banc sait mesurer ; le fil a sa garde (export-au-fil).
+    await p.evaluate(() => { window.showSaveFilePicker = undefined; });
     const porte = await p.waitForSelector('button:has-text("J\'ai compris")', { timeout: 15000 }).catch(() => null);
     if (porte) {
       await porte.click();

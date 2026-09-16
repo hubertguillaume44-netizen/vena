@@ -34,36 +34,68 @@ test("toute libération d'URL d'objet est différée — jamais synchrone après
   }
 });
 
-test("l'export s'assemble en morceaux : aucune chaîne complète n'existe jamais", () => {
-  // ————— « Invalid string length » : L'EXPORT MOURAIT CHEZ QUI AVAIT LE PLUS À SAUVER —————
-  // V8 refuse une chaîne au-delà d'environ 512 Mo : un seul JSON.stringify du dump
-  // entier échouait précisément sur les gros stockages. Et l'anomalie d'échelle a été
-  // MESURÉE avant d'être corrigée : les entrées `gros:` sont déjà des chaînes JSON,
-  // le stringify extérieur ré-échappait chaque guillemet — un facteur ×2 sur le gros
-  // du fichier, pas ×40 ; le reste de l'écart est un stockage réellement plus gros
-  // que les paliers d'essai, et le bloc disproportionné se journalise chez l'utilisateur.
-  const i = APP.indexOf("partiesExport(dump, entete) {");
-  assert.ok(i > 0,
-    "partiesExport a changé de forme — c'est elle qui remplace le JSON.stringify "
-    + "unique dont V8 refuse le résultat : réancrez, ne laissez pas la garde verte sur du vide");
-  const corps = APP.slice(i, borne(APP, "\n  }", i));
-  assert.ok(corps.includes("k.startsWith('gros:') ? v : JSON.stringify(v)"),
-    "les entrées gros: ne partent plus verbatim : le stringify extérieur ré-échappe "
-    + "chaque guillemet d'une chaîne déjà JSON — poids doublé, mesuré");
-  // les DEUX exports passent par elle — le chiffré recréait sa propre chaîne unique
+test("l'export écrit AU FIL : rien ne s'accumule, et les accumulateurs restants l'assument", () => {
+  // ————— A1 CORRIGÉE : ELLE INTERDISAIT LA CHAÎNE, ELLE INTERDIT L'ACCUMULATION —————
+  // « Invalid string length » (V8 refuse ~512 Mo) a été levé en assemblant un
+  // tableau de morceaux — et « Code d'erreur 5 » a suivi : l'onglet tué par le
+  // système, un crash mémoire du processus de rendu qu'aucun try n'attrape.
+  // Mesuré : le dump retenait le stockage entier sur le tas (+22,6 Mo pour
+  // 22,5 Mo semés) et le Blob le refaisait hors tas — deux fois le stockage,
+  // plus les bougies chargées. Le mur avait été DÉPLACÉ, pas retiré.
+  // L'export passe par ecrireExportAu : chaque bloc écrit puis relâché — pic
+  // mesuré 6,8 Mo pour 22,5 Mo écrits, borné par le plus gros bloc. Le banc de
+  // rendu (export-au-fil.test.mjs) mesure ce pic ; ici, les ancres de structure.
+  const iE = APP.indexOf("async ecrireExportAu(sink, entete) {");
+  assert.ok(iE > 0, "ecrireExportAu a changé de forme — réancrez, ne laissez pas la garde verte sur du vide");
+  const corpsE = APP.slice(iE, borne(APP, "\n  }", iE));
+  assert.ok(corpsE.includes("for await (const [k, vj] of this.blocsExport())")
+    && corpsE.includes("await sink.write(m);"),
+    "ecrireExportAu n'itère plus le générateur bloc par bloc : d'où viendrait la "
+    + "borne du pic mémoire ?");
+  assert.ok(APP.includes("bilan = await this.ecrireExportAu(w, entete);"),
+    "exporterTout ne passe plus par le fil : le chemin Chrome/Edge retrouve le "
+    + "crash mémoire que le flux avait retiré");
+  assert.ok(APP.includes("await this.ecrireExportAu(w,\n        '\"outil\":\"vena\""),
+    "sauverAuto ne passe plus par le fil : la sauvegarde-minute refait deux fois "
+    + "le stockage en mémoire, à chaque minute");
+  // les accumulateurs RESTANTS sont déclarés : le chiffré (AES-GCM, une passe)
+  // et le repli Blob — qui dit sa limite AVANT le pic, pour que l'avertissement
+  // soit le dernier mot si l'onglet meurt, pas un silence
   const appels = (APP.match(/this\.partiesExport\(dump,/g) || []).length;
   assert.ok(appels >= 2,
-    "il reste " + appels + " appel(s) à partiesExport : l'export en clair ET l'export "
-    + "chiffré doivent assembler en morceaux — celui qui ne le fait pas garde le mur des 512 Mo");
+    appels + " appel(s) à partiesExport : le repli Blob et le chiffré assemblent "
+    + "encore en morceaux — un JSON.stringify unique y ramènerait le mur V8");
+  assert.ok(APP.includes("navigator.storage.estimate()")
+    && APP.includes("peut échouer par manque de mémoire"),
+    "le repli Blob ne dit plus sa limite : au-delà du seuil, l'onglet peut mourir "
+    + "SANS message — le silence que personne ne peut rapporter");
   // le message de succès dit COMBIEN : « 47 blocs · 84 Mo » — un export tronqué se voit
-  assert.ok(APP.includes("sauvMsg: Object.keys(dump).length + ' blocs · '"),
+  assert.ok(APP.includes("sauvMsg: bilan.n + ' blocs · '"),
     "le message de succès ne porte plus le compte et la taille : « exporté » nu ne "
     + "dit pas si le fichier est utilisable");
-  // et le bloc disproportionné se journalise : un bloc à 50 % d'un export de plusieurs
-  // mégaoctets est un SECOND défaut possible (croissance à chaque écriture)
-  assert.ok(APP.includes("journaliserBlocLourd(dump, blob.size)"),
+  // le bloc disproportionné se journalise — suivi AU FIL, plus par balayage du dump
+  assert.ok(APP.includes("journaliserBlocLourd(bilan.maxK, bilan.maxL, bilan.octets)"),
     "journaliserBlocLourd n'est plus appelé sur l'export : le bloc disproportionné "
     + "redevient invisible — c'est le diagnostic chez l'utilisateur qui le montre");
+});
+
+test("pendant l'export : la sauvegarde automatique suspendue, les bougies relâchées", () => {
+  // le .crswap observé pendant un export prouvait que la sauvegarde automatique
+  // écrivait SOUS la lecture de l'export : un export peut capturer un état à
+  // moitié écrit. Et les bougies chargées étaient le plus gros poste de mémoire
+  // d'un travail qui ne les lit pas.
+  const occs = (APP.match(/if \(this\.state\.exportEnCours\) return;/g) || []).length;
+  assert.ok(occs >= 2,
+    occs + " point(s) de suspension sur exportEnCours — il en faut 2 (sauverAuto "
+    + "et le tick de la périodique) : sans eux, l'export lit pendant qu'on écrit");
+  const libs = (APP.match(/this\.libererBougiesExport\(\);/g) || []).length;
+  assert.ok(libs >= 2,
+    libs + " libération(s) des bougies à l'export — il en faut 2 (clair et "
+    + "chiffré) : les bougies chargées sont le plus gros poste de mémoire d'un "
+    + "travail qui ne les lit pas");
+  assert.ok(APP.includes("if (!estExemple(sym)) delete this.dfs[sym];"),
+    "libererBougiesExport ne relâche plus par instrument — ou emporte les "
+    + "exemples, qui ne coûtent rien à garder et tout à re-poser");
 });
 
 test("l'import accepte les DEUX formes de gros:, sans date limite", () => {

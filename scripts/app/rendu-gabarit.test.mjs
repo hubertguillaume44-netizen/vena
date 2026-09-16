@@ -355,7 +355,10 @@ test("la barre permanente ne recouvre rien — deux barres cumulées, deux état
     };
 
     verifier(await mesurer(), "alerte pleine");
-    // l'état réduit s'obtient par le geste réel : un export
+    // l'état réduit s'obtient par le geste réel : un export — par le REPLI
+    // téléchargement : en headless, showSaveFilePicker jette AbortError même
+    // sur un vrai clic (le fil a sa garde, export-au-fil)
+    await p.evaluate(() => { window.showSaveFilePicker = undefined; });
     const exp = await p.$('#pied-sauv button:has-text("Exporter mes données")');
     assert.ok(exp, "le bouton d'export du pied est introuvable");
     const [dl] = await Promise.all([

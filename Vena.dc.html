@@ -15559,7 +15559,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260916.2';
+  VERSION_APP = '260916.3';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -17780,32 +17780,32 @@ GROUPES = {
   // le bloc disproportionné se journalise : un bloc qui pèse la moitié d'un export
   // de plusieurs mégaoctets est un second défaut possible (croissance à chaque
   // écriture) — le diagnostic doit le montrer, anonymisé
-  journaliserBlocLourd(dump, total) {
+  journaliserBlocLourd(maxK, maxL, total) {
+    // le max est SUIVI au fil de l'écriture (ecrireExportAu le rend) : balayer un
+    // dump complet supposerait le dump complet — c'est lui qu'on ne veut plus
     if (total < 8 * 1048576) return;
-    let maxK = '', maxL = 0;
-    for (const [k, v] of Object.entries(dump)) {
-      const l = (v || '').length;
-      if (l > maxL) { maxL = l; maxK = k; }
-    }
     if (maxL > total * 0.5) {
-      this.journaliserErreur('export : le bloc ' + maxK.split('|')[0] + ' pèse '
+      this.journaliserErreur('export : le bloc ' + String(maxK).split('|')[0] + ' pèse '
         + this.taille(maxL) + ' sur ' + this.taille(total));
     }
   }
-  async dumpCompletAvecScan() {
-    const dump = this.dumpComplet();
-    // les séries déposées font le gros du fichier : une entrée par symbole et par espace
-    for (const [k, v] of Object.entries(dump)) {
+  // ————— L'EXPORT S'ÉNUMÈRE : un bloc à la fois, jamais l'ensemble —————
+  // La seule vérité de « qu'est-ce qui part dans un export » : les petites clés
+  // du stockage local, puis chaque série (une par une, relue d'IndexedDB), puis
+  // chaque scan. Tout consommateur itère — celui qui accumule le dit et l'assume.
+  async *blocsExport() {
+    const petit = this.dumpComplet();
+    for (const [k, v] of Object.entries(petit)) yield [k, JSON.stringify(v)];
+    for (const [k, v] of Object.entries(petit)) {
       if (!k.startsWith(this.CLE_SERIES)) continue;
       let idx = [];
       try { idx = JSON.parse(v || '[]'); } catch (e) {}
       for (const sym of idx) {
         const cle = k + '|' + sym;
         const g = await this.grosGet(cle);
-        if (g) dump['gros:' + cle] = JSON.stringify(g);
+        if (g) yield ['gros:' + cle, JSON.stringify(g)];
       }
     }
-    // un scan par espace et par compte : les clés viennent du même balayage
     const cles = new Set();
     for (const esp of ['.perso', '.client', '.essai']) {
       cles.add(this.CLE_SCAN + esp);
@@ -17813,7 +17813,44 @@ GROUPES = {
     }
     for (const cle of cles) {
       const g = await this.grosGet(cle);
-      if (g) dump['gros:' + cle] = JSON.stringify(g);
+      if (g) yield ['gros:' + cle, JSON.stringify(g)];
+    }
+  }
+  // ————— ÉCRIRE AU FIL : le pic est borné par le PLUS GROS BLOC, pas le stockage —————
+  // « Code d'erreur 5 » : l'onglet tué par le système — un crash mémoire du
+  // processus de rendu, qu'aucun try n'attrape et qu'aucun message ne peut
+  // rapporter — quand le dump entier ET sa copie Blob coexistaient : mesuré,
+  // deux fois le stockage, plus les bougies chargées. Ici chaque bloc est écrit
+  // puis relâché avant le suivant ; rien ne s'accumule, quelle que soit la taille.
+  async ecrireExportAu(sink, entete) {
+    await sink.write('{' + entete + '"donnees":{');
+    let n = 0, octets = 0, maxK = '', maxL = 0, premier = true;
+    for await (const [k, vj] of this.blocsExport()) {
+      const m = (premier ? '' : ',') + JSON.stringify(k) + ':' + vj;
+      await sink.write(m);
+      n += 1; octets += m.length; premier = false;
+      if (vj.length > maxL) { maxL = vj.length; maxK = k; }
+    }
+    await sink.write('}}');
+    return { n, octets: octets + entete.length + 14, maxK, maxL };
+  }
+  // les bougies chargées sont le plus gros poste de mémoire HORS export, et
+  // l'export ne les lit pas (il relit le stockage) : on les relâche avant.
+  // Elles se rechargent à la demande — l'export est rare, le rechargement est
+  // mesuré. Les séries d'exemple restent : engendrées, elles ne pèsent rien à refaire.
+  libererBougiesExport() {
+    for (const sym of Object.keys(this.dfs || {})) {
+      if (!estExemple(sym)) delete this.dfs[sym];
+    }
+  }
+  async dumpCompletAvecScan() {
+    // ACCUMULE tout, et le dit : réservé aux chemins qui ne PEUVENT pas écrire
+    // au fil — l'export chiffré (AES-GCM chiffre en une passe) et le repli Blob
+    // des navigateurs sans createWritable. Les autres passent par ecrireExportAu.
+    // Il itère le MÊME générateur : deux énumérations divergeraient.
+    const dump = this.dumpComplet();
+    for await (const [k, vj] of this.blocsExport()) {
+      if (k.startsWith('gros:')) dump[k] = vj;
     }
     return dump;
   }
@@ -18158,6 +18195,7 @@ GROUPES = {
     clearInterval(this._autoI);
     this._autoI = setInterval(() => {
       if (this.state.scanEnCours) return;              // le scan a son propre point de sauvegarde
+      if (this.state.exportEnCours) return;            // l'export a priorité : rien ne s'écrit sous sa lecture
       const empreinte = [this.lignesScan.length, (this.state.archives || []).length,
         this.state.scanRev || 0].join('|');
       if (empreinte === this._autoEmpreinte) return;   // rien de neuf : pas d'écriture inutile
@@ -18181,6 +18219,10 @@ GROUPES = {
   async sauverAuto(force) {
     const h = this.handleAuto;
     if (!h) return;
+    // l'export LIT le stockage : on n'écrit pas sous sa lecture — le .crswap
+    // observé pendant un export prouvait qu'ils tournaient ensemble, et un
+    // export peut capturer un état à moitié écrit. Repris au tick suivant.
+    if (this.state.exportEnCours) return;
     try {
       if ((await h.queryPermission({ mode: 'readwrite' })) !== 'granted') {
         // ————— AUCUNE SORTIE MUETTE : un échec qui ressemble à une absence
@@ -18202,8 +18244,10 @@ GROUPES = {
         }
       }
       const w = await h.createWritable();
-      await w.write(JSON.stringify({ outil: 'vena', version: 1, date: new Date().toISOString(),
-        donnees: await this.dumpCompletAvecScan() }, null, 1));
+      // au FIL, comme l'export : la chaîne unique du dump entier refaisait deux
+      // fois le stockage en mémoire — chaque minute, à chaque sauvegarde
+      await this.ecrireExportAu(w,
+        '"outil":"vena","version":1,"date":' + JSON.stringify(new Date().toISOString()) + ',');
       await w.close();
       this.setState({ autoNom: h.name, autoAttente: false,
         autoHeure: new Date().toLocaleTimeString('fr-FR').slice(0, 5), autoMsg: null });
@@ -18242,6 +18286,9 @@ GROUPES = {
   }
   async exporterChiffre(phrase, avecSeries) {
     this.setState({ exportEnCours: true });
+    // même geste que l'export en clair : les bougies chargées ne servent pas
+    // ici, et le chiffré ACCUMULE par construction (AES-GCM, une passe)
+    this.libererBougiesExport();
     try {
     const dump = await this.dumpCompletAvecScan();
     // les séries de bougies sont optionnelles : sept ans de H1 sur trente instruments
@@ -18446,29 +18493,71 @@ GROUPES = {
   // échoue en silence est plus dangereux que l'absence de bouton : on croit avoir
   // une copie.
   async exporterTout() {
-    // le témoin que le complètement de fond regarde : l'export a priorité
+    // le témoin que le complètement de fond ET la sauvegarde automatique
+    // regardent : l'export a priorité, et rien ne s'écrit sous sa lecture
     this.setState({ exportEnCours: true });
+    this.libererBougiesExport();
     try {
-      const dump = await this.dumpCompletAvecScan();
       const licE = this.ligneLicenceExport();
-      const blob = new Blob(this.partiesExport(dump,
-        '"outil":"vena","version":1,"date":' + JSON.stringify(new Date().toISOString()) + ','
-        + (licE ? '"licence":' + JSON.stringify(licE) + ',' : '')),
-        { type: 'application/json' });
-      this.journaliserBlocLourd(dump, blob.size);
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'vena-sauvegarde-' + new Date().toISOString().slice(0, 10) + '.json';
-      a.click();
-      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+      const entete = '"outil":"vena","version":1,"date":' + JSON.stringify(new Date().toISOString()) + ','
+        + (licE ? '"licence":' + JSON.stringify(licE) + ',' : '');
+      const nomFichier = 'vena-sauvegarde-' + new Date().toISOString().slice(0, 10) + '.json';
+      let bilan;
+      // le sélecteur peut refuser AUTREMENT qu'en étant absent : activation
+      // consommée, vue intégrée. Le téléchargement, lui, passe — un export qui
+      // échoue sec pour une permission de dialogue serait pire que le pic
+      let h = null;
+      if (window.showSaveFilePicker) {
+        try {
+          h = await window.showSaveFilePicker({ suggestedName: nomFichier,
+            types: [{ description: 'Sauvegarde V\u00e9na', accept: { 'application/json': ['.json'] } }] });
+        } catch (ePick) {
+          if ((ePick && ePick.name) === 'AbortError') return;  // sélecteur refermé : rien à dire
+          h = null;
+        }
+      }
+      if (h) {
+        // ————— AU FIL : rien ne s'accumule, le pic tient dans le plus gros bloc
+        const w = await h.createWritable();
+        bilan = await this.ecrireExportAu(w, entete);
+        await w.close();
+      } else {
+        // ————— REPLI Blob : limite ASSUMÉE ET DITE. Sans écriture au fil, le
+        // stockage vit DEUX fois en mémoire pendant l'assemblage (mesuré : le
+        // dump sur le tas, le Blob hors tas). Au-delà du seuil, l'avertissement
+        // part AVANT le pic : si l'onglet meurt, il est le dernier mot — pas un
+        // silence que personne ne peut rapporter.
+        let usage = 0;
+        try { usage = (await navigator.storage.estimate()).usage || 0; } catch (e2) {}
+        if (usage > 200 * 1048576) {
+          this.setState({ sauvMsg: 'Votre stockage fait ' + this.taille(usage)
+            + ' : sur ce navigateur, l\u2019export peut échouer par manque de mémoire. '
+            + 'Chrome ou Edge écrivent au fil, sans cette limite.' });
+          await new Promise((ok) => setTimeout(ok, 50));
+        }
+        const dump = await this.dumpCompletAvecScan();
+        const blob = new Blob(this.partiesExport(dump, entete), { type: 'application/json' });
+        let maxK = '', maxL = 0;
+        for (const [k, v] of Object.entries(dump)) {
+          const l = (v || '').length;
+          if (l > maxL) { maxL = l; maxK = k; }
+        }
+        bilan = { n: Object.keys(dump).length, octets: blob.size, maxK, maxL };
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = nomFichier;
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+      }
+      this.journaliserBlocLourd(bilan.maxK, bilan.maxL, bilan.octets);
       // La DATE de la dernière sauvegarde. Un bouton d'export que personne ne clique ne
       // sauve rien : c'est la date qui pousse à cliquer, et elle n'existait nulle part.
       try { localStorage.setItem(this.cleGlobale(this.CLE_SAUV), JSON.stringify({
         t: Date.now(), nC: (this.lignesScan || []).length, nS: (this.state.deposes || []).length })); } catch (e) {}
       // la taille dans le message : « 47 blocs » ne dit pas si le fichier est
       // utilisable ; « 47 blocs · 84 Mo » le dit, et prévient le prochain mur
-      this.setState({ sauvMsg: Object.keys(dump).length + ' blocs · '
-        + this.taille(blob.size) + ' exportés.',
+      this.setState({ sauvMsg: bilan.n + ' blocs · '
+        + this.taille(bilan.octets) + ' exportés.',
         sauvDate: Date.now() });
     } catch (e) {
       this.journaliserErreur('exporterTout : ' + ((e && e.message) || e));
