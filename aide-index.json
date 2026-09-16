@@ -444,6 +444,13 @@
    ]
   },
   {
+   "terme": "Les deux scripts dans MQL5\\Scripts , compilés (F7) — version",
+   "texte": "Chaque script écrit sa version en première ligne du journal MT5 à chaque lancement. Si ce nombre-ci et celui du journal diffèrent, le .ex5 n’a pas été recompilé depuis la mise à jour — c’est la seule façon de le savoir.",
+   "vues": [
+    "Mes instruments"
+   ]
+  },
+  {
    "terme": "Les deux scripts MT5",
    "texte": "Vena_Releve.mq5 (spreads, swaps, minimum de stop) et Export_H1_Vena.mq5 (les bougies, H1 ou M1 selon son réglage). Embarqués dans cette page, octets identiques au dépôt, sans rien d’injecté : à compiler une fois.",
    "vues": [

@@ -1416,7 +1416,7 @@
         -->
         <div style="display:flex;gap:11px;align-items:center;flex-wrap:wrap;padding:11px 0;border-top:1px solid var(--color-divider);border-bottom:1px solid var(--color-divider)">
           <span class="tag tag-neutral" style="font-size:10px;white-space:nowrap;flex:none">une seule fois</span>
-          <span style="font-size:12.5px;line-height:1.5;flex:1;min-width:22ch">Les deux scripts dans <code>MQL5\Scripts</code>, compilés (F7)</span>
+          <span style="font-size:12.5px;line-height:1.5;flex:1;min-width:22ch" title="Chaque script écrit sa version en première ligne du journal MT5 à chaque lancement. Si ce nombre-ci et celui du journal diffèrent, le .ex5 n’a pas été recompilé depuis la mise à jour — c’est la seule façon de le savoir.">Les deux scripts dans <code>MQL5\Scripts</code>, compilés (F7) — version {{ scriptsVersion }}</span>
           <sc-if value="{{ aScriptsFait }}" hint-placeholder-val="{{ false }}"><span class="tag tag-neutral" style="font-size:10px;white-space:nowrap;flex:none">fait</span></sc-if>
           <button class="{{ scriptsCls }}" type="button" style="min-height:2rem;font-size:12px;padding-inline:12px;flex:none" onClick="{{ telechargerScripts }}" title="Vena_Releve.mq5 (spreads, swaps, minimum de stop) et Export_H1_Vena.mq5 (les bougies, H1 ou M1 selon son réglage). Embarqués dans cette page, octets identiques au dépôt, sans rien d’injecté : à compiler une fois.">Les deux scripts MT5</button>
         </div>
@@ -15599,7 +15599,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260916.9';
+  VERSION_APP = '260916.10';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -21134,6 +21134,10 @@ GROUPES = {
           // le rang d'installation s'efface une fois qu'il a servi : un relevé reçu
           // prouve que Vena_Releve.mq5 a été compilé et lancé
           aScriptsFait: !!((this.baremes || {})[this.compteDesFichiers()]),
+          // la version EMBARQUÉE, annoncée : l'utilisateur la compare à la première
+          // ligne du journal MT5 et sait en une seconde s'il doit recompiler. Un
+          // .ex5 est le seul artefact du produit que personne ne peut inspecter.
+          scriptsVersion: this.VERSION_APP,
           scriptsCls: ((this.baremes || {})[this.compteDesFichiers()])
             ? 'btn btn-ghost' : 'btn btn-secondary',
           listeMt5Txt: noms.length

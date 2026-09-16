@@ -37,12 +37,30 @@
  * Après ce script : `npm run app:solo`, sans quoi l'artefact annonce l'ancienne date et
  * `publier-solo.mjs` refuse de publier — il compare les deux exprès.
  */
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 
 const RACINE = path.resolve(new URL("../../", import.meta.url).pathname);
 const SOURCE = path.join(RACINE, "Vena.dc.html");
 const MARQUE = /(VERSION_APP = ')([^']+)(')/;
+
+// ————— LES SCRIPTS MT5 PORTENT LA MÊME VALEUR, POSÉE AU MÊME MOMENT —————
+//
+// Un correctif LIVRÉ est indistinguable d'un correctif NON COMPILÉ : le terminal
+// exécute le .ex5 qu'il a, et rien ne dit de quelle source il vient. C'est le
+// verrou de publication une strate plus bas — « la construction est verte » n'a
+// jamais voulu dire « la version en ligne a changé », et « le correctif est
+// livré » ne veut pas dire « le script a été recompilé ». Seul le journal MT5
+// peut trancher, à condition qu'il le dise.
+//
+// DÉCOUVERT, PAS ÉNUMÉRÉ : tout .mq5 de la racine qui porte la marque suit. Un
+// troisième script serait daté sans être nommé ici — et s'il ne porte pas la
+// marque, la garde (scripts/mt5/version-compilee.test.mjs) le dira.
+const MARQUE_MQ5 = /(#define VENA_VERSION ")([^"]+)(")/;
+const scriptsMt5 = () => readdirSync(RACINE)
+  .filter((f) => f.endsWith(".mq5"))
+  .map((f) => path.join(RACINE, f))
+  .filter((ch) => MARQUE_MQ5.test(readFileSync(ch, "utf8")));
 
 /** Le numéro qui suit celui-ci : même jour → rang suivant ; autre jour → la date nue. */
 export function suivante(posee, jour) {
@@ -77,11 +95,23 @@ if (APPELE) {
   const jour = dateDuJour();
   const apres = suivante(avant, jour);
 
+  const mq5 = scriptsMt5();
   if (process.argv.includes("--voir")) {
     console.log(`[version] posée : ${avant} · aujourd'hui : ${jour}`
       + (avant === apres ? " — à jour." : ` — prochaine : ${apres}.`));
+    // l'écart se DIT : un script resté en arrière est un .ex5 qu'on croit à jour
+    for (const ch of mq5) {
+      const v = MARQUE_MQ5.exec(readFileSync(ch, "utf8"))[2];
+      console.log(`[version] ${path.basename(ch)} : ${v}`
+        + (v === avant ? "" : `  ← ÉCART avec VERSION_APP (${avant})`));
+    }
   } else {
     writeFileSync(SOURCE, src.replace(MARQUE, `$1${apres}$3`));
-    console.log(`[version] ${avant} → ${apres}. Relancez « npm run app:solo » pour dater l'artefact.`);
+    for (const ch of mq5) {
+      writeFileSync(ch, readFileSync(ch, "utf8").replace(MARQUE_MQ5, `$1${apres}$3`));
+    }
+    console.log(`[version] ${avant} → ${apres}`
+      + (mq5.length ? ` (et ${mq5.length} script${mq5.length > 1 ? "s" : ""} MT5)` : "")
+      + ". Relancez « npm run app:solo » pour dater l'artefact.");
   }
 }

@@ -28,6 +28,19 @@
 #property script_show_inputs
 #property strict
 
+// ————— DE QUELLE VERSION VIENT CE .ex5 ? —————
+// Un correctif LIVRÉ est indistinguable d'un correctif NON COMPILÉ : le terminal
+// exécute le .ex5 qu'il a, et rien à l'écran ne dit de quelle source il vient.
+// C'est le verrou de publication une strate plus bas — « la construction est
+// verte » n'a jamais voulu dire « la version en ligne a changé », et « le
+// correctif est livré » ne veut pas dire « le script a été recompilé ». Seul le
+// journal peut trancher, donc il le dit, EN PREMIÈRE LIGNE.
+//
+// La valeur est posée par « npm run app:version », au même moment que le pied de
+// page de l'application : deux endroits qu'on met à jour à la main finissent par
+// diverger, et c'est précisément la divergence qu'on cherche à rendre visible.
+#define VENA_VERSION "260916.10"
+
 // Vide = le symbole du graphique. « * » = TOUTE l'Observation du marché. Sinon une
 // liste : "AUDCAD,GOLD,NZDCAD".
 // Les symboles absents de l'Observation du marché y sont ajoutés automatiquement.
@@ -907,6 +920,10 @@ void Rate(string sym, string pourquoi)
 
 void OnStart()
 {
+   // la première ligne du journal, avant tout le reste : la version d'où vient
+   // ce .ex5, et la liste qu'il va chercher — les deux questions qu'un journal
+   // MT5 ne permettait pas de trancher
+   PrintFormat("Export_H1_Vena %s — liste : MQL5\\Files\\%s", VENA_VERSION, InpFichierListe);
    // Le plafond « Barres max dans le graphique » borne aussi l'HISTORIQUE que le
    // terminal conserve, pas seulement l'affichage. À 50 000, CopyTime rend 50 009
    // barres quoi qu'on demande et la plus ancienne date ne recule jamais — la boucle
