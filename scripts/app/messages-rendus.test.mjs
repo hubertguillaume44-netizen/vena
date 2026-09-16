@@ -45,15 +45,33 @@ test("le bandeau de perte rend compte : autoMsg, Réautoriser et sauvMsg y viven
   assert.ok(GAB.slice(0, i).includes('onClick="{{ reautoriser }}"'),
     "le bouton Réautoriser du TIROIR a disparu : c'était le seul bouton nominatif "
     + "restant — le tiroir montrerait l'attente sans offrir le geste");
-  // et le message précède IMMÉDIATEMENT le bouton accent : adjacents dans le
-  // flux, ils partagent la rangée ou passent à la ligne ENSEMBLE — le message
-  // en bas à gauche pendant que son bouton est en haut à droite était le défaut
+  // ————— L'ADJACENCE SE LIT SUR LA STRUCTURE, PLUS SUR UNE DISTANCE —————
+  // Réancré : la barre a deux rangées écrites — les textes, puis les boutons —
+  // pour ne plus prendre quatre bandes. Une distance en caractères mesurait
+  // l'ancien flux plat ; elle tombait sur un refactor qui RENFORCE l'invariant.
+  // Ce qui compte n'a pas changé : le message est le DERNIER texte de sa rangée
+  // et le bouton accent le PREMIER élément d'après — une rangée d'écart, jamais
+  // un pied comme lorsque le message vivait après « ? Aide ». Le rendu le
+  // mesure aussi (rendu-gabarit : deux bandes, dans les deux états chargés).
   const iMsg = pied.indexOf("{{ autoMsg }}");
   const iAccent = pied.indexOf('onClick="{{ sansSauvAgir }}"');
-  assert.ok(iMsg > 0 && iAccent > iMsg && iAccent - iMsg < 400,
-    "le message d'attente n'est plus adjacent au bouton accent du pied ("
-    + (iAccent - iMsg) + " caractères d'écart) : séparés dans le flux, ils se "
-    + "séparent à l'écran dès que la rangée est pleine");
+  assert.ok(iMsg > 0 && iAccent > iMsg,
+    "le bouton accent ne suit plus le message d'attente dans le flux du pied");
+  const entre = pied.slice(iMsg + "{{ autoMsg }}".length, iAccent);
+  // ce qui a le DROIT de vivre entre les deux, nommé — un compte serait une borne
+  // molle que la première insertion franchirait sans qu'on sache laquelle
+  const PERMIS = new Set(["aAutoDetail", "basculerPourquoi", "pourquoiTxt",
+    "aSansSauvAccent", "false"]);
+  const intrus = [...entre.matchAll(/\{\{ (\w+) \}\}/g)].map((x) => x[1]).filter((n) => !PERMIS.has(n));
+  assert.deepEqual(intrus, [],
+    "des valeurs se sont insérées entre le message d'attente et son bouton accent : "
+    + intrus.join(", ") + ". Seul le dépliement (« Pourquoi ») a le droit d'y vivre — "
+    + "tout autre contenu les sépare à l'écran, et le message se remet à parler d'un "
+    + "bouton qui est ailleurs.");
+  assert.ok(/<\/span>\s*<sc-if value="\{\{ aSansSauvAccent \}\}"/.test(entre),
+    "la rangée de texte ne se referme plus juste avant le bouton accent : les "
+    + "textes et les boutons repartagent un flux plat, et la barre reprend les "
+    + "quatre bandes qu'elle prenait");
   assert.ok(pied.includes("{{ sauvMsg }}"),
     "le pied ne rend plus sauvMsg : l'export et l'import déclenchés du bandeau "
     + "rapporteraient dans un tiroir fermé");
@@ -104,7 +122,9 @@ test("4e temps : un message de geste s'efface au changement de vue", () => {
   // et l'ÉTAT d'attente de permission (reste : il est vrai tant que la permission
   // manque, sur toutes les vues — le 4e temps ne s'applique pas à un état).
   // autoAttente les départage.
-  assert.ok(corps.includes("const efface = { sauvMsg: null, baremeMsg: null };"),
+  // réancré : `sauvFait` — le compte rendu d'un export réussi — est un message de
+  // geste comme les autres, il part au changement de vue
+  assert.ok(corps.includes("const efface = { sauvMsg: null, baremeMsg: null, sauvFait: null };"),
     "le changement de vue n'efface plus les messages de geste : deux échecs "
     + "de deux pages s'empilent à nouveau sous la page suivante");
   assert.ok(corps.includes("if (!this.state.autoAttente) efface.autoMsg = null;"),

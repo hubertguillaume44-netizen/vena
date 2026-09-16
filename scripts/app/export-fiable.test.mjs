@@ -69,10 +69,26 @@ test("l'export écrit AU FIL : rien ne s'accumule, et les accumulateurs restants
     && APP.includes("peut échouer par manque de mémoire"),
     "le repli Blob ne dit plus sa limite : au-delà du seuil, l'onglet peut mourir "
     + "SANS message — le silence que personne ne peut rapporter");
-  // le message de succès dit COMBIEN : « 47 blocs · 84 Mo » — un export tronqué se voit
-  assert.ok(APP.includes("sauvMsg: bilan.n + ' blocs · '"),
-    "le message de succès ne porte plus le compte et la taille : « exporté » nu ne "
-    + "dit pas si le fichier est utilisable");
+  // ————— LE COMPTE ET LA TAILLE SE DISENT TOUJOURS — AILLEURS —————
+  // Réancré : « 47 blocs · 84 Mo » n'a plus de rangée à lui dans la barre
+  // permanente. La TAILLE, qui est la part qui prévient le prochain mur, voyage
+  // désormais avec l'export lui-même (`o` dans la trace du dernier export) et se
+  // lit sur la ligne qui le DATE — un geste, un compte rendu. Le compte rendu
+  // complet ne garde sa rangée que là où cette ligne n'est pas rendue, sinon
+  // l'export deviendrait muet dans cet état-là.
+  assert.ok(APP.includes("o: bilan.octets })); } catch (e) {}"),
+    "la taille de l'export n'est plus enregistrée avec sa trace : la ligne du "
+    + "dernier export ne peut plus la dire, et plus rien ne prévient du prochain mur");
+  assert.ok(APP.includes("(info.o ? ', ' + this.taille(info.o) : '')"),
+    "la ligne du dernier export ne rend plus la taille : elle est enregistrée et "
+    + "jamais montrée — un producteur sans consommateur");
+  assert.ok(APP.includes("sauvFait: this.taille(bilan.octets) + ' exportés, ' + bilan.n + ' blocs.'"),
+    "le compte rendu de l'export ne porte plus le compte et la taille : « exporté » "
+    + "nu ne dit pas si le fichier est utilisable");
+  assert.ok(APP.includes("aSauvFait: !!s.sauvFait && !reduit,"),
+    "le compte rendu d'export ne se tait plus quand la ligne du dernier export le "
+    + "dit déjà — deux rangées de la barre permanente pour un seul geste — ou il se "
+    + "tait toujours, et l'export devient MUET là où cette ligne n'est pas rendue");
   // le bloc disproportionné se journalise — suivi AU FIL, plus par balayage du dump
   assert.ok(APP.includes("journaliserBlocLourd(bilan.maxK, bilan.maxL, bilan.octets)"),
     "journaliserBlocLourd n'est plus appelé sur l'export : le bloc disproportionné "

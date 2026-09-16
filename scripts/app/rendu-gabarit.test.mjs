@@ -372,3 +372,148 @@ test("la barre permanente ne recouvre rien — deux barres cumulées, deux état
     await nav.close();
   }
 });
+
+test("la barre permanente tient en DEUX rangées, dans ses deux états chargés", { timeout: 120000 }, async () => {
+  // ————— DU MOBILIER PERMANENT SE MESURE EN PART D'ÉCRAN —————
+  //
+  // Le cas réel : quatre bandes pour trois phrases — l'état de sauvegarde, un
+  // message de pause de cinq lignes, et « 63 blocs · 592 Mo exportés » sur sa
+  // propre ligne — soit le quart de la fenêtre pris en permanence par une barre
+  // que personne ne lit deux fois. Mesuré : 112 px et quatre bandes avant,
+  // 85 px et deux après. Trois gestes, et chacun tient une part du gain :
+  //   · le détail de la pause se DÉPLIE (« Pourquoi › ») — nécessaire une fois,
+  //     pas en permanence ;
+  //   · la taille rejoint la ligne qui DATE l'export : un geste, un compte rendu,
+  //     et non deux rangées qui décrivent le même export ;
+  //   · les textes ont leur rangée, les boutons la leur — un compte de rangées
+  //     qui porte du sens s'écrit, il ne se laisse pas calculer par un algorithme
+  //     de placement (la même leçon que les quatre gestes MT5 en trois colonnes).
+  //
+  // DEUX ÉTATS, ET C'EST UNE MUTATION QUI L'A EXIGÉ. Mesurée seulement APRÈS un
+  // export, cette garde restait VERTE quand on retirait la rangée de texte : le
+  // message raccourci suffit à tenir deux bandes dans cet état-là. C'est dans
+  // l'état « alerte pleine » — aucun export encore, la phrase longue — que la
+  // rangée porte : 4 bandes sans elle, 2 avec, mesuré. Une garde qui n'éprouve
+  // qu'un état déclare invariant ce qui n'est vrai que là.
+  //
+  // La garde COMPTE LES BANDES ; elle ne borne les pixels que dans l'état du
+  // quotidien. Figer une hauteur ferait tomber la garde sur une police plus
+  // grande ou une fenêtre plus étroite — la structure est l'invariant, pas 85 px.
+  //
+  // ANGLE MORT, déclaré (règle 9) : l'état DÉPLIÉ ajoute sa rangée, exprès — il
+  // n'existe que le temps d'être lu, et la garde ne le mesure pas.
+  let chromium;
+  try { ({ chromium } = await import("playwright")); }
+  catch (e) { assert.fail("playwright introuvable — cette garde ne saute pas en silence."); }
+  const executablePath = CHROMIUMS.find((c) => existsSync(c));
+  const nav = await chromium.launch(executablePath ? { executablePath } : {})
+    .catch(() => assert.fail("Chromium introuvable : posez VENA_CHROMIUM — cette garde ne saute pas."));
+  try {
+    const p = await (await nav.newContext()).newPage();
+    const entrer = async () => {
+      await p.waitForFunction(() => document.body && document.body.innerText.length > 400, { timeout: 60000 });
+      const porte = await p.waitForSelector('button:has-text("J\'ai compris")', { timeout: 15000 }).catch(() => null);
+      if (porte) {
+        await porte.click();
+        await p.waitForSelector(".dialog-backdrop", { state: "detached", timeout: 10000 }).catch(() => {});
+      }
+      await p.waitForTimeout(300);
+    };
+    // la pause vient du VRAI producteur : une phrase recopiée dans le banc
+    // mesurerait le banc, pas le produit
+    const semerPause = (avecExport) => p.evaluate((avecExp) => {
+      const el = document.querySelector("button");
+      const fk = Object.keys(el).find((x) => x.startsWith("__reactFiber"));
+      let f = el[fk];
+      while (f && !(f.stateNode && f.stateNode.constructor
+        && f.stateNode.constructor.name === "StreamableComponent")) f = f.return;
+      const inst = f.stateNode.logic;
+      if (typeof inst.PAUSE_AUTO !== "function" || typeof inst.PAUSE_AUTO_DETAIL !== "function") return false;
+      inst.handleAuto = { name: "vena-sauvegarde.json" };
+      const patch = { autoNom: "vena-sauvegarde.json", autoAttente: true,
+        autoMsg: inst.PAUSE_AUTO("il manque " + inst.taille(620756992)),
+        autoDetail: inst.PAUSE_AUTO_DETAIL("vena-sauvegarde.json") };
+      if (avecExp) patch.sauvFait = inst.taille(620756992) + " exportés, 63 blocs.";
+      inst.setState(patch);
+      return true;
+    }, avecExport);
+    const mesurer = () => p.evaluate(() => {
+      const pied = document.getElementById("pied-sauv");
+      if (!pied) return null;
+      const tops = [];
+      for (const e of pied.querySelectorAll("span,button,strong")) {
+        if (e.querySelector("span,button,strong")) continue;     // conteneurs : pas des feuilles
+        const r = e.getBoundingClientRect();
+        if (r.height < 4 || r.width < 4) continue;
+        if (!(e.textContent || "").trim()) continue;
+        if (!tops.some((y) => Math.abs(y - r.top) < 10)) tops.push(r.top);
+      }
+      const txt = pied.innerText || "";
+      return { bandes: tops.length, hauteur: Math.round(pied.getBoundingClientRect().height),
+        part: pied.getBoundingClientRect().height / innerHeight,
+        pause: /en pause/.test(txt), export: /Dernier export/.test(txt),
+        replie: !/fragments de travail/.test(txt),
+        pourquoi: !!pied.querySelector("button.lien") };
+    });
+    const verifier = (m, etat, bornePx) => {
+      assert.ok(m, etat + " : le pied de sauvegarde est introuvable — réancrez");
+      assert.ok(m.pause,
+        etat + " : la pause n'est pas rendue — la garde mesurerait une barre plus "
+        + "légère que l'état qu'elle prétend éprouver, et passerait au vert pour rien");
+      assert.ok(m.replie,
+        etat + " : le détail de la pause est rendu SANS qu'on l'ait déplié — les cinq "
+        + "lignes qui expliquent les fragments et la place sont de nouveau permanentes, "
+        + "et c'est l'information nécessaire une fois, pas tout le temps");
+      assert.ok(m.pourquoi,
+        etat + " : le geste « Pourquoi » a disparu — replier un détail sans laisser le "
+        + "moyen de l'ouvrir ne le raccourcit pas, il le SUPPRIME, et la pause cesse "
+        + "d'être explicable (les fragments supprimables, la place qui manque)");
+      assert.ok(m.bandes <= 2,
+        etat + " : la barre permanente fait " + m.bandes + " bandes (" + m.hauteur
+        + " px, " + Math.round(m.part * 100) + " % de la fenêtre). Une rangée de texte "
+        + "et une rangée de boutons, pas plus : c'est du mobilier permanent — chaque "
+        + "bande qu'il prend, il la prend à chaque seconde, sur toutes les pages, et "
+        + "c'est exactement pourquoi la réservation de hauteur existe : ce qu'il mange, "
+        + "le contenu ne l'a pas.");
+      if (bornePx) {
+        assert.ok(m.part < bornePx,
+          etat + " : la barre prend " + Math.round(m.part * 100) + " % de la fenêtre ("
+          + m.hauteur + " px) — deux bandes comptées mais trop hautes, une phrase qui "
+          + "enveloppe sur trois lignes dans sa bande coûte autant qu'une bande de plus");
+      }
+    };
+    // ————— ÉTAT 1 : ALERTE PLEINE — aucun export encore, la phrase longue —————
+    // c'est LUI qui éprouve la rangée de texte : sans elle, quatre bandes
+    await p.goto("file://" + SOLO);
+    await entrer();
+    assert.ok(await semerPause(false),
+      "PAUSE_AUTO / PAUSE_AUTO_DETAIL ont disparu : la garde ne sait plus produire "
+      + "l'état chargé — réancrez-la, ne la laissez pas verte sur un pied vide");
+    await p.waitForTimeout(500);
+    const plein = await mesurer();
+    assert.ok(!plein.export, "état alerte pleine : la ligne du dernier export ne devrait pas être là");
+    verifier(plein, "alerte pleine (aucun export)", 0);
+    // ————— ÉTAT 2 : APRÈS UN EXPORT — le quotidien, et c'est là qu'on borne —————
+    await p.evaluate(() => {
+      const el = document.querySelector("button");
+      const fk = Object.keys(el).find((x) => x.startsWith("__reactFiber"));
+      let f = el[fk];
+      while (f && !(f.stateNode && f.stateNode.constructor
+        && f.stateNode.constructor.name === "StreamableComponent")) f = f.return;
+      const inst = f.stateNode.logic;
+      localStorage.setItem(inst.cleGlobale(inst.CLE_SAUV),
+        JSON.stringify({ t: Date.now() - 3600000, nC: 3961, nS: 66, o: 620756992 }));
+    });
+    await p.reload();
+    await entrer();
+    assert.ok(await semerPause(true), "l'état après export n'a pas pu être semé — réancrez");
+    await p.waitForTimeout(500);
+    const apres = await mesurer();
+    assert.ok(apres.export,
+      "état après export : la ligne « Dernier export » n'est pas rendue — la garde "
+      + "mesurerait l'autre état et croirait avoir éprouvé celui-ci");
+    verifier(apres, "après un export (le quotidien)", 0.16);
+  } finally {
+    await nav.close();
+  }
+});

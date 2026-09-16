@@ -116,7 +116,8 @@ test("après deux échecs la sauvegarde automatique s'arrête, avorte, et le dit
       };
       // six minutes de périodique
       for (let k = 0; k < 6; k++) await inst.sauverAuto();
-      const enPause = { ...compte, msg: inst.state.autoMsg || "", verrou: !!inst._autoEcrit };
+      const enPause = { ...compte, msg: inst.state.autoMsg || "",
+        detail: inst.state.autoDetail || "", verrou: !!inst._autoEcrit };
       // et la REPRISE est un geste, pas une horloge
       await inst.sauverAuto(true);
       enPause.apresGeste = compte.tentatives;
@@ -135,9 +136,24 @@ test("après deux échecs la sauvegarde automatique s'arrête, avorte, et le dit
     assert.match(m.msg, /en pause/,
       "l'arrêt ne se dit pas : une sauvegarde automatique qui s'arrête en silence "
       + "laisse croire qu'elle protège — le pire des états (message vu : « " + m.msg.slice(0, 60) + " »)");
-    assert.match(m.msg, /crswap/,
-      "le message ne nomme pas les fragments : l'utilisateur les voit sur son "
-      + "disque et ne peut pas savoir seul qu'il peut les supprimer sans rien perdre");
+    // ————— RÉANCRÉ : L'INFORMATION A CHANGÉ DE PLACE, PAS DISPARU —————
+    // Les fragments étaient nommés dans la phrase PERMANENTE, qui faisait cinq
+    // lignes et prenait un quart de la fenêtre à chaque seconde. Ils vivent
+    // maintenant derrière « Pourquoi › » : nécessaire une fois, pas tout le
+    // temps. La garde vérifie donc les DEUX faces — la phrase reste courte, et
+    // le détail existe. Sans la seconde, « raccourcir » voudrait dire supprimer.
+    assert.match(m.detail, /crswap/,
+      "le détail de la pause ne nomme plus les fragments : l'utilisateur les voit "
+      + "sur son disque et ne peut pas savoir seul qu'il peut les supprimer sans "
+      + "rien perdre — replier une information n'est pas la retirer");
+    assert.ok(!/crswap/.test(m.msg),
+      "la phrase PERMANENTE a repris le détail des fragments : c'est du mobilier "
+      + "qui coûte de l'écran à chaque seconde, sur toutes les pages, pour une "
+      + "information nécessaire une fois. Elle appartient au dépliement.");
+    assert.ok(m.msg.length < 90,
+      "la phrase permanente de la pause fait " + m.msg.length + " caractères : elle "
+      + "enveloppe sur plusieurs lignes dans une barre fixe (mesuré : cinq lignes, "
+      + "un quart de la fenêtre). Une phrase et sa cause, le reste se déplie.");
     assert.ok(!/Réautoriser|cliquez/i.test(m.msg),
       "le message de pause nomme son propre bouton : il est à côté, permanent — "
       + "le message dit l'état, le bouton dit le geste");
