@@ -419,7 +419,7 @@
       <sc-if value="{{ aFiletFichier }}" hint-placeholder-val="{{ true }}">
         <button type="button" style="cursor:pointer;font:inherit;font-size:11px;background:var(--color-bg);color:var(--color-accent-900);border:0;padding:4px 11px;white-space:nowrap" onClick="{{ choisirFilet }}" title="Choisit un fichier sur votre disque. Véna y réécrit tout, chaque minute. Aucun vidage de navigateur ne l’atteint.">Choisir un fichier de sauvegarde</button>
       </sc-if>
-      <button type="button" style="cursor:pointer;font:inherit;font-size:11px;background:none;color:var(--color-bg);border:1px solid color-mix(in srgb,var(--color-bg) 42%,transparent);padding:4px 11px;white-space:nowrap" onClick="{{ exporterDepuisFilet }}" title="Enregistre tout dans un fichier, maintenant. À refaire après chaque séance.">Exporter mes données</button>
+      <button type="button" style="cursor:pointer;font:inherit;font-size:11px;background:none;color:var(--color-bg);border:1px solid color-mix(in srgb,var(--color-bg) 42%,transparent);padding:4px 11px;white-space:nowrap" onClick="{{ exporterDepuisFilet }}" title="{{ copieAide }}">{{ copieTxt }}</button>
       <button type="button" style="cursor:pointer;font:inherit;font-size:11px;background:none;color:var(--color-bg);border:1px solid color-mix(in srgb,var(--color-bg) 42%,transparent);padding:4px 11px;white-space:nowrap;margin-inline-start:auto" onClick="{{ plusTardFilet }}" title="Ferme cette proposition. Elle ne reviendra pas — le rang d’état, lui, reste tant qu’aucun filet n’est en place.">Plus tard</button>
     </div>
   </sc-if>
@@ -452,7 +452,7 @@
   <sc-if value="{{ aVueIntegre }}" hint-placeholder-val="{{ false }}">
     <div style="position:relative;background:var(--color-accent-900);color:var(--color-bg);padding:7px 32px 8px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;min-height:30px;border-top:1px solid color-mix(in srgb,var(--color-bg) 22%,transparent)">
       <span style="font-size:11.5px;line-height:1.5;min-width:0">{{ vueIntegreTxt }}</span>
-      <button type="button" class="{{ vueIntegreExportCls }}" style="cursor:pointer;font:inherit;font-size:11px;padding:3px 10px;white-space:nowrap;border-radius:0" onClick="{{ exporterDepuisIntegre }}" title="Enregistre tout dans un fichier, sur votre disque. C’est ce fichier que vous réimporterez dans l’onglet à part.">Exporter mes données</button>
+      <button type="button" class="{{ vueIntegreExportCls }}" style="cursor:pointer;font:inherit;font-size:11px;padding:3px 10px;white-space:nowrap;border-radius:0" onClick="{{ exporterDepuisIntegre }}" title="Une copie datée, sur votre disque. C’est ce fichier que vous réimporterez dans l’onglet à part.">{{ copieTxt }}</button>
       <button type="button" class="{{ vueIntegreOuvrirCls }}" style="cursor:pointer;font:inherit;font-size:11px;padding:3px 10px;white-space:nowrap;border-radius:0" onClick="{{ ouvrirOngletPropre }}" title="{{ vueIntegreOuvrirAide }}">Ouvrir dans un onglet</button>
       <span style="font-size:11px;margin-inline-start:auto;white-space:nowrap;opacity:.75">{{ vueIntegreExportTxt }}</span>
     </div>
@@ -684,7 +684,7 @@
           <sc-if value="{{ aRedemander }}" hint-placeholder-val="{{ false }}">
             <button class="btn btn-primary" type="button" style="min-height:1.95rem;font-size:11.5px;padding-inline:11px" onClick="{{ redemanderPersist }}">Demander la protection</button>
           </sc-if>
-          <button class="btn btn-secondary" type="button" style="min-height:1.95rem;font-size:11.5px;padding-inline:11px" onClick="{{ exporterTout }}">Exporter mes données</button>
+          <button class="btn btn-secondary" type="button" style="min-height:1.95rem;font-size:11.5px;padding-inline:11px" onClick="{{ exporterTout }}">{{ copieTxt }}</button>
           <!-- Un contrôle qui ne peut pas recevoir ce qu'on lui apporte vaut moins que
                pas de contrôle : c'est un <label> avec son champ invisible par-dessus,
                comme les zones du cadre MT5. -->
@@ -865,7 +865,7 @@
                 </div>
               </sc-for>
             </div>
-            <span style="font-size:11px;line-height:1.5" class="text-muted">Trois espaces étanches : rien ne passe de l'un à l'autre sans un export puis un import explicites.</span>
+            <span style="font-size:11px;line-height:1.5" class="text-muted">Trois espaces étanches : rien ne passe de l'un à l'autre sans une copie enregistrée puis un import explicites.</span>
             <!--
               LE SEUL ENDROIT DE L'OUTIL OÙ LE PRIX EST MENTIONNÉ — et il n'y est pas
               ÉCRIT, il y est POINTÉ. Celui qui ouvre ce tiroir sans clé est exactement
@@ -1071,7 +1071,7 @@
   -->
   <sc-if value="{{ aPriveAvert }}" hint-placeholder-val="{{ false }}">
     <div style="background:var(--color-accent-100);border-bottom:1px solid var(--color-accent);padding:8px 32px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-      <span style="font-size:12px;line-height:1.5;flex:1;min-width:32ch"><strong>Fenêtre de navigation privée :</strong> tout ce que vous ferez ici sera effacé à la fermeture de la fenêtre. Pour garder une mesure, exportez-la avant de fermer.</span>
+      <span style="font-size:12px;line-height:1.5;flex:1;min-width:32ch"><strong>Fenêtre de navigation privée :</strong> tout ce que vous ferez ici sera effacé à la fermeture de la fenêtre. Pour garder une mesure, enregistrez-en une copie avant de fermer.</span>
       <button type="button" class="lien" onClick="{{ fermerPrive }}">compris</button>
     </div>
   </sc-if>
@@ -5307,7 +5307,7 @@
           <span style="font-size:11px;color:var(--color-neutral-700);margin-inline-start:auto">{{ regResume }}</span>
         </div>
         <sc-if value="{{ aRegVide }}" hint-placeholder-val="{{ false }}">
-          <p style="margin:0;padding:14px;font-size:13px;color:var(--color-neutral-700)">Rien encore : le registre se remplit tout seul — sauvegardez un backtest ou un scan, exportez un robot ou vos données, et chaque geste laissera sa ligne ici.</p>
+          <p style="margin:0;padding:14px;font-size:13px;color:var(--color-neutral-700)">Rien encore : le registre se remplit tout seul — sauvegardez un backtest ou un scan, exportez un robot ou enregistrez une copie, et chaque geste laissera sa ligne ici.</p>
         </sc-if>
         <sc-for list="{{ regFil }}" as="e" hint-placeholder-count="8">
           <div style="border-bottom:1px solid var(--color-divider);background:{{ e.fond }}">
@@ -5455,7 +5455,7 @@
           <span style="font-family:var(--font-heading);font-size:17px">Emporter ou remettre</span>
           <span style="font-size:11px;line-height:1.55;color:var(--color-neutral-700)">Rien ne sort de ce navigateur sans que vous le demandiez. La sauvegarde chiffrée se dépose où vous voulez — disque, clé, cloud — et ne s'ouvre qu'avec votre phrase secrète, qui n'est ni transmise ni récupérable.</span>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button class="btn btn-primary" type="button" style="min-height:2rem;font-size:12px;padding-inline:13px" onClick="{{ exporterTout }}">Exporter mes données</button>
+            <button class="btn btn-primary" type="button" style="min-height:2rem;font-size:12px;padding-inline:13px" onClick="{{ exporterTout }}">{{ copieTxt }}</button>
             <button class="btn btn-secondary" type="button" style="min-height:2rem;font-size:12px;padding-inline:11px" onClick="{{ ouvrirTiroir }}" title="Ouvre l'Intendance, où la sauvegarde chiffrée se prépare : phrase secrète, séries incluses ou non.">Sauvegarde chiffrée</button>
             <label class="btn btn-secondary" style="cursor:pointer;display:inline-flex;align-items:center;min-height:2rem;font-size:12px;padding-inline:11px">
               Réimporter
@@ -5761,9 +5761,9 @@
       <button type="button" style="cursor:pointer;border:none;background:var(--color-bg);color:var(--color-accent-900);font-family:var(--font-body);font-size:12px;padding:5px 12px;white-space:nowrap" onClick="{{ sansSauvAgir }}">{{ sansSauvBouton }}</button>
     </sc-if>
     <sc-if value="{{ aSansSauvExporter }}" hint-placeholder-val="{{ false }}">
-      <button type="button" style="cursor:pointer;background:none;border:1px solid color-mix(in srgb,var(--color-bg) 45%,transparent);color:var(--color-bg);font-family:var(--font-body);font-size:12px;padding:4px 11px;white-space:nowrap" onClick="{{ sansSauvExporter }}" title="Écrit tout — séries, scans, portefeuilles, journal — dans un fichier téléchargé, tout de suite.">Exporter mes données</button>
+      <button type="button" style="cursor:pointer;background:none;border:1px solid color-mix(in srgb,var(--color-bg) 45%,transparent);color:var(--color-bg);font-family:var(--font-body);font-size:12px;padding:4px 11px;white-space:nowrap" onClick="{{ sansSauvExporter }}" title="{{ copieAide }}">{{ copieTxt }}</button>
     </sc-if>
-    <button type="button" style="cursor:pointer;background:none;border:1px solid color-mix(in srgb,var(--color-bg) 45%,transparent);color:var(--color-bg);font-family:var(--font-body);font-size:12px;padding:4px 11px;white-space:nowrap" onClick="{{ sansSauvImporter }}" title="Recharge un fichier « Exporter mes données » — le retour après une perte, ou depuis un autre navigateur. Le fichier est examiné avant d’écraser quoi que ce soit.">Importer mes données</button>
+    <button type="button" style="cursor:pointer;background:none;border:1px solid color-mix(in srgb,var(--color-bg) 45%,transparent);color:var(--color-bg);font-family:var(--font-body);font-size:12px;padding:4px 11px;white-space:nowrap" onClick="{{ sansSauvImporter }}" title="Recharge un fichier « Enregistrer une copie » — le retour après une perte, ou depuis un autre navigateur. Le fichier est examiné avant d’écraser quoi que ce soit.">Importer mes données</button>
     <span style="width:1px;align-self:stretch;background:color-mix(in srgb,var(--color-bg) 30%,transparent)"></span>
     <button type="button" style="cursor:pointer;background:none;border:1px solid color-mix(in srgb,var(--color-bg) 45%,transparent);color:var(--color-bg);font-family:var(--font-body);font-size:12px;padding:4px 11px;white-space:nowrap" onClick="{{ ouvrirAvis }}">Donner mon avis</button>
     <button type="button" style="cursor:pointer;background:none;border:1px solid color-mix(in srgb,var(--color-bg) 45%,transparent);color:var(--color-bg);font-family:var(--font-body);font-size:12px;padding:4px 11px;white-space:nowrap" onClick="{{ ouvrirAide }}" title="Les explications de l’application, cherchables">? Aide</button>
@@ -6020,7 +6020,7 @@ function migrerStockage() {
 //
 // Un fichier que l'application vient d'écrire ne doit jamais être rejeté par elle comme
 // étranger. La page d'import est couverte de zones en `accept=".csv"`, dont une qui
-// prend TOUT le document : quelqu'un qui venait de cliquer « Exporter mes données » et
+// prend TOUT le document : quelqu'un qui venait de cliquer « Enregistrer une copie » et
 // qui lâchait le fichier obtenu s'entendait répondre que ce n'était pas un CSV. Le
 // bouton « Réimporter » est ailleurs, dans un tiroir. Ce refus est ce qui a fait croire
 // qu'il fallait du CSV, et qui a laissé l'utilisateur sans issue de secours.
@@ -6224,7 +6224,7 @@ migrerBase();
 // c'est un réglage du marché.
 //
 // ON N'ÉCRIT RIEN. Elles vivent en mémoire, engendrées à la demande, une famille à la
-// fois. Jamais dans le stockage de l'utilisateur, jamais dans « Exporter mes données »,
+// fois. Jamais dans le stockage de l'utilisateur, jamais dans « Enregistrer une copie »,
 // jamais dans la jauge. C'est ce qui les distingue d'un compte : un compte porte des
 // données, celles-ci n'en sont pas.
 const GRAINE_EXEMPLE = 'vena-exemple-v2';
@@ -6603,7 +6603,7 @@ const SYM_EXEMPLES = EXEMPLES.map(([, lib]) => lib);
 function estExemple(sym) { return SYM_EXEMPLES.includes(sym); }
 
 // Les séries vivent ici, engendrées au premier besoin et jamais écrites : ni par le
-// chemin qui garde les bougies déposées, ni par « Exporter mes données », ni dans la
+// chemin qui garde les bougies déposées, ni par « Enregistrer une copie », ni dans la
 // jauge. Un compte porte des données, celles-ci n'en sont pas. Le cache est une variable
 // de module et non une clé de stockage — il disparaît avec l'onglet, ce qui est le but.
 let _exemplesFaits = null;
@@ -6862,17 +6862,17 @@ class Component extends DCLogic {
       court: 'Le navigateur ne purgera pas ce site',
       sous: 'persistance accordée — vos données survivent à la fermeture',
       titre: 'Stockage protégé — le navigateur ne supprimera pas vos données pour faire de la place',
-      phrase: 'La protection est accordée pour cette adresse. Gardez tout de même un export : elle ne couvre ni un vidage manuel ni un changement d\u2019ordinateur.',
+      phrase: 'La protection est accordée pour cette adresse. Gardez tout de même une copie : elle ne couvre ni un vidage manuel ni un changement d\u2019ordinateur.',
     },
     refusee: {
       court: 'Persistance refusée par le navigateur',
-      sous: 'la demande a été refusée — l\u2019export reste la seule protection',
+      sous: 'la demande a été refusée — une copie reste la seule protection',
       titre: 'Stockage non protégé',
       phrase: 'Le navigateur connaît la protection mais ne l\u2019a pas accordée. Redemandez-la — certains navigateurs ne l\u2019accordent qu\u2019après quelques visites, ou une fois le site mis en favori. En attendant, l\u2019export reste la protection sûre.',
     },
     indisponible: {
       court: 'Protection du stockage indisponible',
-      sous: 'ce navigateur peut effacer le site après plusieurs jours sans visite — l\u2019export est l\u2019unique parade',
+      sous: 'ce navigateur peut effacer le site après plusieurs jours sans visite — une copie est l\u2019unique parade',
       titre: 'Protection indisponible dans ce navigateur',
       phrase: 'Ce navigateur ne propose pas la protection du stockage : il peut effacer ces données après plusieurs jours sans visite, sans prévenir. L\u2019unique parade : exporter après chaque session — le bandeau en pied d\u2019écran le rappelle tant qu\u2019une mesure n\u2019est pas exportée.',
     },
@@ -6992,7 +6992,7 @@ class Component extends DCLogic {
     } catch (e) {
       this.setState({ sauvKo: true,
         sauvEtat: 'Vos portefeuilles et validés n\u2019ont pas pu être enregistrés dans ce navigateur. '
-          + 'Utilisez « Exporter ma sauvegarde » (page Journal) tout de suite : sinon tout disparaîtra à la fermeture de l\u2019onglet.' });
+          + 'Utilisez « Enregistrer une copie » tout de suite : sinon tout disparaîtra à la fermeture de l\u2019onglet.' });
     }
   }
   // union de tout ce qui doit être mesuré : favoris + contenu de chaque portefeuille
@@ -10564,7 +10564,7 @@ GROUPES = {
   // quand le générateur changeait. Trois défauts, et aucun n'était cosmétique.
   //
   //   · il occupait une place de compte dans un sélecteur qui en offre cinq ;
-  //   · ses bougies pesaient dans la jauge et partaient dans « Exporter mes données »,
+  //   · ses bougies pesaient dans la jauge et partaient dans « Enregistrer une copie »,
   //     alors que personne n'a besoin de sauvegarder des séries reproductibles ;
   //   · ses frais appartenaient au compte : le spread d'une série changeait selon
   //     l'onglet depuis lequel on la regardait.
@@ -11382,7 +11382,7 @@ GROUPES = {
     // de fermer — quand un export est encore possible. On ne le pose que si du travail
     // n'existe nulle part ailleurs : ni fichier de sauvegarde automatique, ni export.
     if (this.avertirSansSauvegarde()) {
-      const msg = 'Rien de ce travail n\u2019existe hors de ce navigateur. Exportez avant de fermer.';
+      const msg = 'Rien de ce travail n\u2019existe hors de ce navigateur. Enregistrez une copie avant de fermer.';
       e.preventDefault();
       e.returnValue = msg;
       return msg;
@@ -12920,7 +12920,7 @@ GROUPES = {
     this._causeArret = 'memoire';
     this.setState({ sauvKo: true,
       sauvEtat: 'Impossible d\u2019enregistrer ce scan : le stockage du navigateur est plein. '
-        + 'Libérez de la place dans le tiroir, ou exportez vos données. '
+        + 'Libérez de la place dans le tiroir, ou enregistrez une copie. '
         + 'Les résultats restent affichés jusqu\u2019à la fermeture de l\u2019onglet.' });
   }
   // ————— compaction des scans —————
@@ -14938,7 +14938,7 @@ GROUPES = {
     // Rien ne s'efface tout seul : l'ancien plafond de 60 entrées jetait les plus
     // anciennes en silence — exactement ce que le registre promet de ne jamais faire.
     try { localStorage.setItem(this.cle(this.CLE), JSON.stringify(runs)); } catch (e) {
-      this.setState({ sauvMsg: 'Le journal n\u2019a pas pu être réenregistré : stockage plein. Exportez vos données, puis supprimez des entrées.' });
+      this.setState({ sauvMsg: 'Le journal n\u2019a pas pu être réenregistré : stockage plein. Enregistrez une copie, puis supprimez des entrées.' });
     }
     this.setState({ runs });
   }
@@ -15580,7 +15580,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260916.6';
+  VERSION_APP = '260916.7';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -16806,7 +16806,7 @@ GROUPES = {
             : 'Le navigateur a refusé pour l\u2019instant : il accorde la protection aux sites visités régulièrement ou installés. Réessayez plus tard — l\u2019export reste la protection sûre.' } : {}) });
     } catch (e) {
       this.setState({ persistEtat: 'refusee', persistanceConnue: true });
-      if (force) this.setState({ persistMsg: 'Le navigateur a refusé la demande. L\u2019export reste la seule protection.' });
+      if (force) this.setState({ persistMsg: 'Le navigateur a refusé la demande. Une copie reste la seule protection.' });
     }
   }
   // ————— LA NAVIGATION PRIVÉE, détectée par ses effets —————
@@ -17930,7 +17930,7 @@ GROUPES = {
   async choisirFichierAuto() {
     if (!window.showSaveFilePicker) {
       this.setState({ autoMsg: 'Ce navigateur ne sait pas écrire dans un fichier (Chrome ou Edge le permettent). '
-        + 'Utilisez « Exporter mes données » après chaque séance.' });
+        + 'Utilisez « Enregistrer une copie » après chaque séance.' });
       return;
     }
     try {
@@ -17957,9 +17957,9 @@ GROUPES = {
       this.setState({ autoMsg: (nom === 'SecurityError' || nom === 'NotAllowedError')
         ? 'L\u2019écriture directe dans un fichier est interdite dans cette vue intégrée. '
           + 'Ouvrez Véna dans un onglet à lui pour activer la sauvegarde automatique — '
-          + 'en attendant, « Exporter mes données » ci-dessus enregistre tout dans un fichier à chaque fois.'
+          + 'en attendant, « Enregistrer une copie » ci-dessus enregistre tout dans un fichier à chaque fois.'
         : 'Impossible d\u2019ouvrir le fichier de sauvegarde (' + (nom || 'erreur inconnue') + '). '
-          + 'Utilisez « Exporter mes données » après chaque séance.' });
+          + 'Utilisez « Enregistrer une copie » après chaque séance.' });
     }
   }
   // Vue intégrée (aperçu, iframe) : `showSaveFilePicker` y est interdit, donc la
@@ -18076,7 +18076,7 @@ GROUPES = {
   }
   ouvrirEnOnglet() {
     if (this.state.ongletKO) {
-      this.setState({ ongletMsg: 'Cette vue intégrée ne peut pas s’ouvrir en onglet : le viewer sert la page sous un jeton à usage unique, et l’onglet répondrait « preview token required ». Le chemin qui marche : exportez vos données ici, ouvrez votre fichier Véna.solo.html directement dans le navigateur — glissé dans un onglet vide — puis « Réimporter » l’export (Mes décisions, ou le tiroir Intendance). Là, la protection du stockage et la sauvegarde automatique fonctionnent.' });
+      this.setState({ ongletMsg: 'Cette vue intégrée ne peut pas s’ouvrir en onglet : le viewer sert la page sous un jeton à usage unique, et l’onglet répondrait « preview token required ». Le chemin qui marche : enregistrez une copie ici, ouvrez votre fichier Véna.solo.html directement dans le navigateur — glissé dans un onglet vide — puis « Réimporter » l’export (Mes décisions, ou le tiroir Intendance). Là, la protection du stockage et la sauvegarde automatique fonctionnent.' });
       return;
     }
     try { window.open(window.location.href, '_blank'); } catch (e) {}
@@ -18118,7 +18118,7 @@ GROUPES = {
           + (t.nb ? ' (' + t.nb.toLocaleString('fr-FR') + ' résultats)' : '')
           + ' est perdu. ' + (permanent
             ? 'Le stockage est maintenant marqué permanent — cela ne devrait plus arriver.'
-            : 'Le navigateur refuse de marquer le stockage permanent : exportez vos données de temps en temps, c\u2019est la seule protection sûre.');
+            : 'Le navigateur refuse de marquer le stockage permanent : enregistrez une copie de temps en temps, c\u2019est la seule protection sûre.');
       try { localStorage.removeItem(marque); } catch (e) {}
     }
     // pas d'avertissement préventif sur le stockage non permanent : l'étiquette de
@@ -18366,6 +18366,19 @@ GROUPES = {
   // l'algorithme, les itérations et la version du format : un fichier d'aujourd'hui
   // doit s'ouvrir dans un an. Ni clé, ni copie, ni possibilité de déchiffrer côté
   // éditeur — perdre la phrase, c'est perdre le fichier, et l'écran le dit.
+  // ————— LE NOM PORTE LA DIFFÉRENCE ENTRE DEUX MÉCANISMES —————
+  // Deux fichiers, deux rythmes, et rien à l'écran ne disait lequel faisait quoi :
+  // un utilisateur a demandé à SUPPRIMER l'un des deux, ce qui est le signe que la
+  // distinction n'est pas lisible. Un export continu et une copie ponctuelle ne
+  // portent pas le même verbe — l'un ENTRETIENT, l'autre FIGE.
+  //
+  // Le libellé vit ICI, et nulle part ailleurs : cinq boutons le rendaient en clair.
+  // Mesuré avant de renommer, le geste portait DÉJÀ trois noms : le libellé, les
+  // impératifs (« exportez vos données », « Exportez avant de fermer »), et un
+  // « Exporter ma sauvegarde (page Journal) » qui ne désignait AUCUN bouton existant.
+  // Renommer le seul libellé aurait fait un quatrième nom, pire que l'imprécision.
+  COPIE_TXT = 'Enregistrer une copie';
+  COPIE_AIDE = 'Une copie datée, à garder de côté ou à emporter sur une autre machine. La sauvegarde automatique, elle, se met à jour seule.';
   CHIFFRE_ITER = 600000;
   async cleDePhrase(phrase, sel, iter) {
     const mat = await crypto.subtle.importKey('raw', new TextEncoder().encode(phrase),
@@ -18639,7 +18652,7 @@ GROUPES = {
         try { usage = (await navigator.storage.estimate()).usage || 0; } catch (e2) {}
         if (usage > 200 * 1048576) {
           this.setState({ sauvMsg: 'Votre stockage fait ' + this.taille(usage)
-            + ' : sur ce navigateur, l\u2019export peut échouer par manque de mémoire. '
+            + ' : sur ce navigateur, l\u2019enregistrement de la copie peut échouer par manque de mémoire. '
             + 'Chrome ou Edge écrivent au fil, sans cette limite.' });
           await new Promise((ok) => setTimeout(ok, 50));
         }
@@ -18672,11 +18685,11 @@ GROUPES = {
       // pas rendue (sauvegarde automatique en place) : sans quoi l'export
       // deviendrait muet là, et un geste muet est le défaut que la garde des
       // gestes cherche. Les ÉCHECS gardent leur rangée sans condition.
-      this.setState({ sauvFait: this.taille(bilan.octets) + ' exportés, ' + bilan.n + ' blocs.',
+      this.setState({ sauvFait: 'Copie enregistrée : ' + this.taille(bilan.octets) + ', ' + bilan.n + ' blocs.',
         sauvMsg: null, sauvDate: Date.now() });
     } catch (e) {
       this.journaliserErreur('exporterTout : ' + ((e && e.message) || e));
-      this.setState({ sauvMsg: 'L\u2019export a échoué — RIEN n\u2019a été téléchargé : '
+      this.setState({ sauvMsg: 'L\u2019enregistrement de la copie a échoué — RIEN n\u2019a été téléchargé : '
         + ((e && e.message) || 'erreur inconnue')
         + '. Réessayez ; si le message revient, téléchargez le fichier de diagnostic.' });
     } finally {
@@ -20068,7 +20081,7 @@ GROUPES = {
             : d.blocs === 0 && d.cles === 0
             ? 'Rien n\u2019est enregistré pour cette adresse : ni bougies, ni scans, ni réglages. '
               + 'Soit rien n\u2019a encore été déposé, soit le navigateur a vidé son stockage. '
-              + 'Un fichier exporté est la seule chose qui puisse rendre des données.'
+              + 'Une copie enregistrée est la seule chose qui puisse rendre des données.'
             : d.blocs === 0
               ? 'Aucune bougie ni aucun scan en mémoire — ' + d.cles + ' clé'
                 + (d.cles > 1 ? 's' : '') + ' de réglages sont bien là. Ce n\u2019est pas une perte : '
@@ -20158,9 +20171,9 @@ GROUPES = {
         //
         // Un seul ordre : séries puis configurations. Le pied la coupe en trois morceaux
         // parce qu'il met la date en gras — c'est la MÊME phrase, coupée, pas une seconde.
-        const expTete = 'Dernier export : ';
+        const expTete = 'Dernière copie : ';
         const expSuite = ' \u2014 '
-          + (info.nC === null ? 'contenu non détaillé (export antérieur)'
+          + (info.nC === null ? 'contenu non détaillé (copie antérieure)'
             : nb(info.nS || 0, 'série', 'séries') + ', ' + nb(info.nC, 'configuration', 'configurations')
               + (info.o ? ', ' + this.taille(info.o) : ''))
           + '. ' + depuis;
@@ -20210,8 +20223,8 @@ GROUPES = {
             ? 'Rien de ce qui est ici n\u2019existe ailleurs que dans ce navigateur, et il peut le vider. '
               + 'Une vue intégrée interdit la sauvegarde automatique : '
               + (this.state.ongletKO
-                ? 'exportez, ou ouvrez Véna.solo.html directement dans le navigateur.'
-                : 'exportez, ou rouvrez Véna dans un onglet à lui.')
+                ? 'enregistrez une copie, ou ouvrez Véna.solo.html directement dans le navigateur.'
+                : 'enregistrez une copie, ou rouvrez Véna dans un onglet à lui.')
             : 'Rien de ce qui est ici n\u2019existe ailleurs que dans le stockage de ce navigateur. '
               + 'Un navigateur qui vide son espace emporte les scans, les portefeuilles et les bougies. '
               + 'Choisissez un fichier de sauvegarde automatique : il s\u2019écrit sur votre disque à '
@@ -20221,8 +20234,8 @@ GROUPES = {
           sauvExpSuite: !reduit ? '' : expSuite,
           // ————— UN SEUL NOM QUAND C'EST UN EXPORT, PARCE QUE SIX PHRASES LE NOMMENT —————
           // Le bouton s'appelait « Exporter à nouveau » une fois une sauvegarde faite, et
-          // « Exporter mes données » en vue intégrée — pour la MÊME action. Six messages de
-          // l'application renvoient à « Exporter mes données » par son nom : le lecteur
+          // « Enregistrer une copie » en vue intégrée — pour la MÊME action. Six messages de
+          // l'application renvoient à « Enregistrer une copie » par son nom : le lecteur
           // cherchait un bouton qui portait un autre mot.
           //
           // Le troisième état N'EST PAS un export : ce bouton est le seul chemin vers le
@@ -20233,7 +20246,7 @@ GROUPES = {
           // rechoisit pas — deux boutons pour la même intention, dont un qui
           // recommence de zéro, se sont montrés côte à côte. « Choisir » reste
           // l'unique porte du PREMIER usage, et elle seule.
-          sansSauvBouton: (reduit || integre) ? 'Exporter mes données'
+          sansSauvBouton: (reduit || integre) ? this.COPIE_TXT
             : (s.autoNom && !s.autoARechoisir ? 'Réautoriser la sauvegarde' : 'Choisir le fichier de sauvegarde'),
           sansSauvAgir: (reduit || integre) ? async () => { await this.exporterTout(); }
             : (s.autoNom && !s.autoARechoisir ? () => this.reautoriserAuto() : () => this.choisirFichierAuto()),
@@ -20271,7 +20284,7 @@ GROUPES = {
           // la même trace, pour le tiroir Intendance — lisible même quand le pied ne
           // s'affiche pas (compte démo, autosauvegarde active)
           tirExportTxt: t > 0 ? expTete + quand + expSuite
-            : 'Jamais exporté — rien de ce qui est ici n\u2019existe ailleurs que dans ce navigateur.',
+            : 'Aucune copie enregistrée — rien de ce qui est ici n\u2019existe ailleurs que dans ce navigateur.',
         };
       })(),
       ...(() => {
@@ -20604,7 +20617,7 @@ GROUPES = {
         return {
           // Un bouton d'export que personne ne clique ne sauve rien : c'est la DATE qui
           // pousse à cliquer, et elle n'existait nulle part.
-          sauvQuand: !t ? 'Jamais exporté — rien de ce qui est ici n’existe ailleurs.'
+          sauvQuand: !t ? 'Aucune copie enregistrée — rien de ce qui est ici n’existe ailleurs.'
             : 'Dernière sauvegarde : ' + (j === 0 ? 'aujourd’hui' : j === 1 ? 'hier' : 'il y a ' + j + ' jours') + '.',
           sauvCouleur: (!t || j > 30) ? 'var(--color-accent-700)' : 'var(--color-neutral-500)',
           choisirImport: (e) => { const f = e.target.files && e.target.files[0];
@@ -20992,7 +21005,7 @@ GROUPES = {
           // 200 blocs, ce qui gèlerait la page
           inventaireNote: 'Poids des bougies estimé à partir d\u2019un échantillon. '
             + 'Vos données sont réenregistrées automatiquement chaque minute dans ce navigateur. '
-            + 'Pour en garder une copie hors du navigateur, utilisez « Exporter mes données » ci-dessus.' };
+            + 'Pour en garder une copie hors du navigateur, utilisez « Enregistrer une copie » ci-dessus.' };
       })(),
       // le renvoi vers l'accueil SE CLIQUE : « page d'accueil » n'était qu'un mot
       // dans un message, alors que l'accueil n'est atteignable que par le logo —
@@ -21174,10 +21187,10 @@ GROUPES = {
             : this.dansIframe()
               ? 'Elles ne vivent que dans ce navigateur, qui peut les vider sans prévenir. '
                 + 'Cette vue intégrée n\u2019autorise pas l\u2019écriture directe dans un fichier : ouvrez Véna '
-                + 'dans un onglet à lui, ou exportez après chaque séance.'
+                + 'dans un onglet à lui, ou enregistrez une copie après chaque séance.'
               : 'Elles ne vivent que dans ce navigateur, qui peut les vider sans prévenir. '
                 + 'Ce navigateur ne sait pas écrire dans un fichier (Chrome ou Edge le permettent) : '
-                + 'exportez après chaque séance.',
+                + 'enregistrez une copie après chaque séance.',
           // L'ÉTAT, PAS UNE NOUVELLE : pas de bouton pour le fermer.
           // ————— LA VUE INTÉGRÉE, ET LE PRIX DE SA SORTIE —————
           //
@@ -21202,12 +21215,12 @@ GROUPES = {
               vueIntegreExportCls: couvert ? 'btn btn-ghost' : 'btn btn-primary',
               vueIntegreOuvrirCls: couvert ? 'btn btn-primary' : 'btn btn-ghost',
               vueIntegreOuvrirAide: couvert
-                ? 'Ouvre la page dans un onglet de premier plan. Réimportez-y votre fichier exporté.'
+                ? 'Ouvre la page dans un onglet de premier plan. Réimportez-y votre copie.'
                 : 'Ouvre la page dans un onglet de premier plan — qui a son propre coffre. '
-                  + 'Exportez d\u2019abord, sinon vous y trouverez une application vide.',
+                  + 'Enregistrez une copie d\u2019abord, sinon vous y trouverez une application vide.',
               vueIntegreExportTxt: couvert
-                ? 'Export du jour : ' + this.quandCourt(t)
-                : 'Aucun export aujourd\u2019hui',
+                ? 'Copie du jour : ' + this.quandCourt(t)
+                : 'Aucune copie aujourd\u2019hui',
             };
           })(),
           // `aSansFilet`, `sansFiletTxt` et `sansFiletEtat` sont partis avec leur bandeau —
@@ -23745,7 +23758,7 @@ GROUPES = {
       topEtatCls: (dernierScan && dernierScan.reprise) ? 'tag tag-outline' : 'tag tag-neutral',
       topEtatAide: (dernierScan && dernierScan.reprise)
         ? 'Ces lignes viennent d\u2019une sauvegarde : le dernier scan n\u2019y est pas identifiable séparément.'
-        : 'Ce scan vit dans ce navigateur. Il y est réenregistré automatiquement chaque minute ; pour en garder une copie hors du navigateur, utilisez « Exporter mes données » dans le tiroir.',
+        : 'Ce scan vit dans ce navigateur. Il y est réenregistré automatiquement chaque minute ; pour en garder une copie hors du navigateur, utilisez « Enregistrer une copie » dans le tiroir.',
       // l'état (« historique repris », « non sauvegardé ») est porté par la pastille
       // voisine : le titre le répétait en rallonge, et l'écran l'affichait DEUX fois
       titreTop: 'TOP des configurations validées',
@@ -26702,6 +26715,8 @@ GROUPES = {
         choisir: () => this.setState({ triCumul: v }),
       })),
       autoMsg: s.autoMsg || '',
+      copieTxt: this.COPIE_TXT,
+      copieAide: this.COPIE_AIDE,
       aAutoMsg: !!s.autoMsg,
       // le détail de la pause se DÉPLIE : nécessaire une fois, pas en permanence
       aAutoDetail: !!s.autoDetail,
@@ -26717,7 +26732,7 @@ GROUPES = {
       etatSauvegarde: 'Enregistrement automatique actif',
       aideSauvegarde: 'Vos scans et vos réglages sont réenregistrés dans ce navigateur chaque minute'
         + (s.autoHeure ? ' — dernier enregistrement à ' + s.autoHeure : '')
-        + ' (' + this.etatMemoire() + '). Pour une copie hors du navigateur, utilisez « Exporter mes données ».',
+        + ' (' + this.etatMemoire() + '). Pour une copie hors du navigateur, utilisez « Enregistrer une copie ».',
       autoEtat: s.autoHeure ? 'Enregistré à ' + s.autoHeure : 'en veille',
       // ————— LE REGISTRE DU JOURNAL : la liste chronologique de ce qui a laissé une trace —————
       // Construit UNIQUEMENT depuis ce que l'application enregistre déjà. Une catégorie
@@ -26837,7 +26852,7 @@ GROUPES = {
         const info = this.lireSauvInfo();
         if (info.t) {
           entrees.push({ id: 'exp', t: info.t, type: 'export', cls: 'tag-accent',
-            titre: 'Sauvegarde exportée',
+            titre: 'Copie enregistrée',
             sous: info.nC !== null ? info.nC + ' configurations · ' + (info.nS ?? '?') + ' séries'
               : 'contenu non détaillé (ancien format de trace)',
             chiffre: info.nC !== null ? info.nC + ' conf.' : '—',
@@ -26846,7 +26861,7 @@ GROUPES = {
               + '.json · ' + this.nomCompteActif() + ' · réimportable tel quel',
             chiffres: [],
             note: 'Le fichier est chez vous, hors du navigateur : c\u2019est la seule copie qu\u2019un vidage de cache ne peut pas atteindre. Seul le dernier export laisse une trace datée.',
-            aAction: true, actionTxt: 'Exporter à nouveau', action: async () => { await this.exporterTout(); },
+            aAction: true, actionTxt: 'Enregistrer une nouvelle copie', action: async () => { await this.exporterTout(); },
             aRecalcul: false, aSuppr: false });
         }
         // ————— LE MÉNAGE : ce qui a été supprimé, et ce que ça a rendu —————
@@ -26997,8 +27012,8 @@ GROUPES = {
           copieNom: t ? 'Copie hors du navigateur : ' + this.quandCourt(t) : 'Aucune copie hors du navigateur',
           copieSous: t
             ? (info.nC !== null ? info.nC + ' configurations et ' + (info.nS ?? '?') + ' séries au moment de l\u2019export'
-              : 'contenu de l\u2019export non détaillé (trace à l\u2019ancien format)')
-            : 'exportez un fichier : c\u2019est la seule copie qu\u2019un vidage du navigateur ne peut pas atteindre',
+              : 'contenu de la copie non détaillé (trace à l\u2019ancien format)')
+            : 'enregistrez une copie : c\u2019est la seule chose qu\u2019un vidage du navigateur ne peut pas atteindre',
           stockTaille: (() => {
             const p = s.place;
             const oct = p && Number.isFinite(p.aNous) ? p.aNous
@@ -27058,7 +27073,7 @@ GROUPES = {
             const p = Math.round(n / tot * 100);
             if (!n) return '';
             return p >= 80
-              ? '⚠ ' + p + ' % de tout votre historique. Ce n\u2019est plus un tri : vérifiez le seuil, et exportez vos données avant.'
+              ? '⚠ ' + p + ' % de tout votre historique. Ce n\u2019est plus un tri : vérifiez le seuil, et enregistrez une copie avant.'
               : p + ' % de votre historique.';
           })(),
           aPurgePart: n > 0,

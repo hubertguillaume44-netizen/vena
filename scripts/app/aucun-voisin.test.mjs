@@ -74,7 +74,8 @@ test("le fichier livré n'émet aucune requête voisine pendant une session comp
     // qui n'arrivait pas quand la libération d'URL était synchrone (export-fiable)
     const versInstr = await p.$('button:has-text("Mes instruments")');
     if (versInstr) { await versInstr.click().catch(() => {}); await p.waitForTimeout(350); }
-    const exporter = await p.$('#pied-sauv button:has-text("Exporter mes données")');
+    // réancré : le libellé du geste est « Enregistrer une copie » (copie-ponctuelle)
+    const exporter = await p.$('#pied-sauv button:has-text("Enregistrer une copie")');
     assert.ok(exporter, "le bouton d'export du pied est introuvable : la session ne l'éprouve plus — réancrez");
     const [dl] = await Promise.all([
       p.waitForEvent("download", { timeout: 20000 }).catch(() => null),

@@ -344,27 +344,6 @@
    ]
   },
   {
-   "terme": "Exporter mes données",
-   "texte": "Enregistre tout dans un fichier, maintenant. À refaire après chaque séance.",
-   "vues": [
-    "Toutes les pages"
-   ]
-  },
-  {
-   "terme": "Exporter mes données",
-   "texte": "Enregistre tout dans un fichier, sur votre disque. C’est ce fichier que vous réimporterez dans l’onglet à part.",
-   "vues": [
-    "Toutes les pages"
-   ]
-  },
-  {
-   "terme": "Exporter mes données",
-   "texte": "Écrit tout — séries, scans, portefeuilles, journal — dans un fichier téléchargé, tout de suite.",
-   "vues": [
-    "Toutes les pages"
-   ]
-  },
-  {
    "terme": "Fermer",
    "texte": "Masque ce rang. Le prochain refus le fera revenir.",
    "vues": [
@@ -431,7 +410,7 @@
   },
   {
    "terme": "Importer mes données",
-   "texte": "Recharge un fichier « Exporter mes données » — le retour après une perte, ou depuis un autre navigateur. Le fichier est examiné avant d’écraser quoi que ce soit.",
+   "texte": "Recharge un fichier « Enregistrer une copie » — le retour après une perte, ou depuis un autre navigateur. Le fichier est examiné avant d’écraser quoi que ce soit.",
    "vues": [
     "Toutes les pages"
    ]
@@ -636,8 +615,7 @@
    "terme": "Réautoriser",
    "texte": "Redemande au navigateur la permission d’écrire dans le fichier de sauvegarde déjà choisi.",
    "vues": [
-    "Journal",
-    "Toutes les pages"
+    "Journal"
    ]
   },
   {

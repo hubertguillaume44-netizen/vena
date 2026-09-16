@@ -125,7 +125,9 @@ test("là où le navigateur ne sait pas écrire un fichier, on dit ce qui marche
   const corps = bloc("filetProposeTxt:", "// L'ÉTAT, PAS UNE NOUVELLE");
   // les deux cas déjà détectés ailleurs : vue intégrée, et navigateur sans l'API
   assert.match(corps, /this\.dansIframe\(\)/);
-  assert.ok(corps.includes("exportez après chaque séance"),
+  // réancré : l'impératif dispersé (« exportez… ») a suivi le renommage du geste —
+  // il nommait le même bouton sous un autre verbe, ce que copie-ponctuelle interdit
+  assert.ok(corps.includes("enregistrez une copie après chaque séance"),
     "le repli doit nommer ce qui reste possible");
 });
 

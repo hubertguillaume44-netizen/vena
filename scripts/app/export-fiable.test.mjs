@@ -82,7 +82,9 @@ test("l'export écrit AU FIL : rien ne s'accumule, et les accumulateurs restants
   assert.ok(APP.includes("(info.o ? ', ' + this.taille(info.o) : '')"),
     "la ligne du dernier export ne rend plus la taille : elle est enregistrée et "
     + "jamais montrée — un producteur sans consommateur");
-  assert.ok(APP.includes("sauvFait: this.taille(bilan.octets) + ' exportés, ' + bilan.n + ' blocs.'"),
+  // réancré : le compte rendu porte le NOM du geste — « Copie enregistrée » — parce
+  // qu'il peut être la seule chose affichée quand la ligne d'état ne l'est pas
+  assert.ok(APP.includes("sauvFait: 'Copie enregistrée : ' + this.taille(bilan.octets) + ', ' + bilan.n + ' blocs.'"),
     "le compte rendu de l'export ne porte plus le compte et la taille : « exporté » "
     + "nu ne dit pas si le fichier est utilisable");
   assert.ok(APP.includes("aSauvFait: !!s.sauvFait && !reduit,"),

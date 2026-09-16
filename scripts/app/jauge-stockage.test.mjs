@@ -184,32 +184,37 @@ test("le rang nomme le quota réel et dit le prix AVANT le clic", () => {
   assert.match(r.vueIntegreTxt, /les données d’ici n’y seront pas/);
 });
 
-test("sans export du jour, c’est l’export qui porte le bouton plein", () => {
+// RÉANCRÉS — le geste s'appelle « Enregistrer une copie » : une copie ponctuelle
+// FIGE là où la sauvegarde automatique ENTRETIENT, et les deux portaient le même
+// verbe (copie-ponctuelle.test.mjs tient le nom). L'invariant de ces trois tests
+// ne bouge pas d'un iota : c'est la fraîcheur de la copie qui décide lequel des
+// deux boutons porte l'accent, et le compte se fait en 24 h.
+test("sans copie du jour, c’est la copie qui porte le bouton plein", () => {
   const r = rangIntegre({ export_: 0 });
   assert.equal(r.vueIntegreExportCls, "btn btn-primary");
   assert.equal(r.vueIntegreOuvrirCls, "btn btn-ghost");
-  assert.equal(r.vueIntegreExportTxt, "Aucun export aujourd’hui");
+  assert.equal(r.vueIntegreExportTxt, "Aucune copie aujourd’hui");
   // et l'infobulle de l'ouverture dit pourquoi elle est en second
-  assert.match(r.vueIntegreOuvrirAide, /Exportez d’abord/);
+  assert.match(r.vueIntegreOuvrirAide, /Enregistrez une copie d’abord/);
 });
 
-test("avec un export du jour, les deux boutons s’inversent", () => {
+test("avec une copie du jour, les deux boutons s’inversent", () => {
   const r = rangIntegre({ export_: Date.now() - 3600000 });
   assert.equal(r.vueIntegreExportCls, "btn btn-ghost");
   assert.equal(r.vueIntegreOuvrirCls, "btn btn-primary");
-  assert.match(r.vueIntegreExportTxt, /Export du jour/);
-  assert.ok(!/Exportez d’abord/.test(r.vueIntegreOuvrirAide));
+  assert.match(r.vueIntegreExportTxt, /Copie du jour/);
+  assert.ok(!/Enregistrez une copie d’abord/.test(r.vueIntegreOuvrirAide));
 });
 
-test("un export d’avant-hier ne couvre pas : le compte se fait en 24 h", () => {
+test("une copie d’avant-hier ne couvre pas : le compte se fait en 24 h", () => {
   const r = rangIntegre({ export_: Date.now() - 3 * 86400000 });
   assert.equal(r.vueIntegreExportCls, "btn btn-primary");
-  assert.equal(r.vueIntegreExportTxt, "Aucun export aujourd’hui");
+  assert.equal(r.vueIntegreExportTxt, "Aucune copie aujourd’hui");
 });
 
 test("la date vient de lireSauvInfo, pas d’un drapeau nouveau", () => {
   // deux mémoires de la même chose finissent par diverger : celle-ci est déjà celle
-  // qu’affiche « Dernier export »
+  // qu’affiche « Dernière copie »
   const corps = corpsIIFE("            if (!this.dansIframe()) {");
   assert.match(corps, /let t = this\.lireSauvInfo\(\)\.t;/);
   assert.match(corps, /if \(s\.sauvDate\) t = Math\.max\(t, s\.sauvDate\);/);

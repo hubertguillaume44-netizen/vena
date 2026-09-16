@@ -333,7 +333,8 @@ test("la barre permanente ne recouvre rien — deux barres cumulées, deux état
         dernierBas: dernier ? dernier.getBoundingClientRect().bottom : null,
         dernierNom: dernier ? (dernier.tagName + " « " + (dernier.innerText || "").trim().slice(0, 50) + " »") : "aucun",
         barreScanBas: bs ? bs.getBoundingClientRect().bottom : null,
-        gestes: ["Exporter mes données", "Importer mes données"].map((t) =>
+        // réancré : la copie ponctuelle a changé de verbe (copie-ponctuelle.test.mjs)
+        gestes: ["Enregistrer une copie", "Importer mes données"].map((t) =>
           [...document.querySelectorAll("#pied-sauv button")].some((b) => b.textContent.trim() === t && b.offsetParent !== null)),
       };
     });
@@ -359,7 +360,7 @@ test("la barre permanente ne recouvre rien — deux barres cumulées, deux état
     // téléchargement : en headless, showSaveFilePicker jette AbortError même
     // sur un vrai clic (le fil a sa garde, export-au-fil)
     await p.evaluate(() => { window.showSaveFilePicker = undefined; });
-    const exp = await p.$('#pied-sauv button:has-text("Exporter mes données")');
+    const exp = await p.$('#pied-sauv button:has-text("Enregistrer une copie")');
     assert.ok(exp, "le bouton d'export du pied est introuvable");
     const [dl] = await Promise.all([
       p.waitForEvent("download", { timeout: 20000 }).catch(() => null),
@@ -451,7 +452,7 @@ test("la barre permanente tient en DEUX rangées, dans ses deux états chargés"
       const txt = pied.innerText || "";
       return { bandes: tops.length, hauteur: Math.round(pied.getBoundingClientRect().height),
         part: pied.getBoundingClientRect().height / innerHeight,
-        pause: /en pause/.test(txt), export: /Dernier export/.test(txt),
+        pause: /en pause/.test(txt), export: /Dernière copie/.test(txt),
         replie: !/fragments de travail/.test(txt),
         pourquoi: !!pied.querySelector("button.lien") };
     });
@@ -510,7 +511,7 @@ test("la barre permanente tient en DEUX rangées, dans ses deux états chargés"
     await p.waitForTimeout(500);
     const apres = await mesurer();
     assert.ok(apres.export,
-      "état après export : la ligne « Dernier export » n'est pas rendue — la garde "
+      "état après export : la ligne « Dernière copie » n'est pas rendue — la garde "
       + "mesurerait l'autre état et croirait avoir éprouvé celui-ci");
     verifier(apres, "après un export (le quotidien)", 0.16);
   } finally {

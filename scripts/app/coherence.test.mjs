@@ -187,8 +187,10 @@ for (const f of FICHIERS) {
     const txt = source(f);
     // l’amorce et le contenu ne s’écrivent qu’une fois : le pied et le tiroir les
     // composaient chacun de son côté, et les deux nombres s’y lisaient à l’envers
-    const tete = (txt.match(/'Dernier export : '/g) || []).length;
-    assert.equal(tete, 1, "« Dernier export : » doit être écrit une fois, vu " + tete);
+    // réancré : « Dernier export » → « Dernière copie ». L'invariant ne bouge pas —
+    // l'amorce est écrite UNE fois, le pied et le tiroir la composaient chacun de son côté.
+    const tete = (txt.match(/'Dernière copie : '/g) || []).length;
+    assert.equal(tete, 1, "« Dernière copie : » doit être écrit une fois, vu " + tete);
     const contenu = (txt.match(/nb\(info\.nS \|\| 0, 'série', 'séries'\)/g) || []).length;
     assert.equal(contenu, 1, "le contenu doit être composé une fois, vu " + contenu);
     // l’ordre est fixé : séries PUIS configurations
@@ -208,11 +210,14 @@ for (const f of FICHIERS) {
   // ————— 8 · le nom du bouton d’export —————
   test(f + " : le bouton d’export porte le nom que les messages lui donnent", () => {
     const txt = source(f);
-    // six phrases renvoient à « Exporter mes données » par son nom
-    const renvois = (txt.match(/« Exporter mes données »/g) || []).length;
+    // RÉANCRÉ : le geste s'appelle « Enregistrer une copie ». Ce test garde son
+    // invariant — les phrases qui renvoient au bouton le citent par son nom exact —
+    // et le libellé a désormais UNE source (COPIE_TXT) que copie-ponctuelle tient.
+    const renvois = (txt.match(/« Enregistrer une copie »/g) || []).length;
     assert.ok(renvois >= 5, "les renvois nominatifs doivent exister, vu " + renvois);
-    assert.match(txt, /sansSauvBouton: \(reduit \|\| integre\) \? 'Exporter mes données'/,
-      "le bouton doit porter ce nom dans tout état où il exporte");
+    assert.match(txt, /sansSauvBouton: \(reduit \|\| integre\) \? this\.COPIE_TXT/,
+      "le bouton du pied n'écrit plus le libellé depuis sa source unique (COPIE_TXT) : "
+      + "cinq boutons le rendaient en clair, ils redivergeront");
     assert.ok(!txt.includes("'Exporter à nouveau'\n"),
       "le nom variable de l’état « déjà exporté » ne doit plus exister");
     // …et le troisième état garde le sien : il est le seul chemin vers la sauvegarde
