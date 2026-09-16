@@ -428,7 +428,9 @@ entière : elle fait **consentir**. C'est la facture qui **prouve**.
 
 Elles viennent toutes d'un défaut réel de ce dépôt, et chacune est détaillée plus bas.
 
-1. **Demander une intention pour prédire un résultat** — décider après, pas avant.
+1. **Demander une intention pour prédire un résultat** — décider après, pas avant ; et
+   une intention qui se TROUVAIT vraie devient fausse au premier chemin d'interruption
+   qu'on ouvre, sans qu'aucune mutation ait pu l'annoncer.
 2. **Toute garde de frontière se vérifie par mutation** — une sonde qui ne tombe jamais ne
    prouve rien.
 3. **On interdit le code, pas le récit du code.**
@@ -514,6 +516,37 @@ d'un document, ou de quelqu'un qui cite le document.
 
 **Quand le résultat est observable, observez-le.** Il l'est presque toujours : il suffit
 d'accepter de le faire plus tard dans le code.
+
+### Sa forme dormante : une intention qui se TROUVAIT vraie
+
+Les six premières occurrences étaient des intentions qui se **trompaient** : on demandait
+« a-t-il payé » pour « y a-t-il quelque chose à mesurer », et les deux divergeaient déjà.
+La septième ne se trompait pas. `fusionCor` inscrivait `tirages: fin` — la CIBLE du
+contrôle au lieu du compte réellement tiré — et c'était **juste**, aussi longtemps que
+rien ne pouvait interrompre un calcul. Cible et compte joué coïncidaient par
+construction ; l'intention était un proxy EXACT du résultat, pas un proxy plausible.
+
+Elle est devenue fausse à la minute où un chemin d'arrêt a été ouvert dans la boucle de
+tirage — dans le correctif de la même heure. Et `tirages` est le **dénominateur** de
+`p = (au + 1) / (tirages + 1)` : 500 inscrit pour 120 tirages joués rend un p quatre
+fois trop petit, sur une carte qui affirme « se distingue du hasard ».
+
+> **Une garde de mutation ne peut pas attraper celle-là**, et c'est ce qui la distingue
+> des six autres : elle ne devient fausse que sous un changement qui n'existait pas
+> encore le jour où on l'aurait écrite. Muter le code de la veille l'aurait trouvée
+> correcte, parce qu'elle l'était.
+
+Le signal disponible n'est donc pas une garde, c'est une **question au moment d'ouvrir
+le chemin** : *quelles valeurs cessent d'être vraies parce qu'elles ne pouvaient pas
+être fausses ?* Un dénominateur de p en est une ; un compte de blocs écrits en est une
+autre. Ce sont les valeurs qu'on a laissé dériver d'une BORNE (`fin`, `total`, `cible`)
+parce que la borne était toujours atteinte — et un chemin d'interruption, de reprise ou
+de repli est exactement ce qui retire cette garantie.
+
+**L'intervalle est le bon indicateur, et il était d'une heure.** La valeur n'a jamais
+menti dans une version livrée : elle est partie dans le commit qui l'activait. Mais ce
+délai était celui d'une relecture, pas celui d'une garde — et une relecture ne se
+reproduit pas à la demande.
 
 ## Une garde d'étanchéité se pose à la frontière d'ÉCRITURE
 
