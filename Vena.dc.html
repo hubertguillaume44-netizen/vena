@@ -15677,7 +15677,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260916.16';
+  VERSION_APP = '260916.17';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -18447,38 +18447,56 @@ GROUPES = {
           return;
         }
       }
-      // ————— LA PLACE SE VÉRIFIE AVANT D'OUVRIR, COMME LE DROIT —————
-      // Le swap est une COPIE COMPLÈTE du fichier écrit : il faut la place des
-      // deux. Sans elle, write jette EN COURS — après que le swap a été créé —
-      // et le fragment reste, ce qui retire encore de la place à la tentative
-      // suivante. Le cercle qui fait six fichiers en six minutes. On ne refuse
-      // que sur une taille CONNUE, celle de la dernière écriture réussie :
-      // deviner un besoin qu'on n'a pas mesuré fermerait la sauvegarde à tort.
-      if (!force && this._autoTaille) {
-        const besoin = this._autoTaille * 1.2;
-        // ————— UN QUOTA INCONNU N'EST PAS UN STOCKAGE PLEIN —————
-        // `(est.quota || 0) - (est.usage || 0)` rendait 0 quand le navigateur ne
-        // rapporte pas de quota : « zéro libre », donc pause immédiate et
-        // PERMANENTE. Le commentaire juste au-dessus disait pourtant l'inverse
-        // — « deviner un besoin qu'on n'a pas mesuré fermerait la sauvegarde à
-        // tort ». L'intention était écrite, le code faisait le contraire, et une
-        // absence de mesure était lue comme un résultat (règle 1).
-        // `null` dit « je ne sais pas », et on ne met pas en pause là-dessus.
-        let libre = null;
-        try {
-          const est = await navigator.storage.estimate();
-          if (est && Number.isFinite(est.quota)) libre = Math.max(0, est.quota - (est.usage || 0));
-        } catch (ePl) {}
-        if (libre !== null && libre < besoin) {
-          this._autoEchecs = this.ECHECS_AVANT_PAUSE;
-          this.setState({ autoAttente: true,
-            autoMsg: this.PAUSE_AUTO(this.MANQUE_PLACE(besoin, libre)),
-            autoDetail: this.PAUSE_AUTO_DETAIL(h.name)
-              + ' La copie de travail que le navigateur écrit à côté du fichier est en cause : '
-              + this.MANQUE_PLACE(besoin, libre) + '.' });
-          return;
-        }
-      }
+      // ————— ON NE PRÉDIT PAS LA PLACE : ON ÉCRIT, ET ON REGARDE —————
+      //
+      // Il y avait ici une vérification préalable. Elle comparait un BESOIN
+      // (« la taille du dernier fichier × 1,2 ») à une PLACE LIBRE lue dans la
+      // mesure de quota du navigateur, et elle mettait la sauvegarde en pause
+      // quand le premier dépassait la seconde. Elle est partie entièrement.
+      //
+      // (Ce commentaire ÉVITE d'épeler l'appel qu'il raconte : la garde qui
+      // interdit sa réintroduction cherche `storage.estimate(` dans ce chemin,
+      // et elle l'a d'abord trouvé ICI — on interdit le code, pas le récit du
+      // code. La sortie n'est pas d'apprendre les commentaires à la garde, c'est
+      // que la prose ne se fasse pas passer pour du code.)
+      //
+      // TROIS MESURES, ET AUCUNE NE LA SAUVE.
+      //
+      // · LES DEUX GRANDEURS NE MESURENT PAS LE MÊME STOCKAGE. `handleAuto` vient
+      //   de `showSaveFilePicker()` : le fichier vit sur le DISQUE de
+      //   l'utilisateur, où il a voulu. La mesure de quota, elle, rapporte
+      //   l'ORIGINE — IndexedDB, localStorage, Cache API, OPFS. Il n'y a aucun
+      //   OPFS dans ce fichier (zéro `getDirectory`), donc l'écriture ne touche
+      //   jamais l'espace que la mesure décrit. Aucune API du web ne donne la
+      //   place libre d'un chemin choisi par l'utilisateur : ce n'était pas une
+      //   mesure imprécise, c'était la mesure d'autre chose.
+      //
+      // · ET ELLES NE SONT PAS CONVERTIBLES. Mesuré sur le même état, 20 séries
+      //   de 3 000 bougies : ce que `blocsExport` livre et ce que le fichier
+      //   pèse sont égaux au millième (4,9 Mo, rapport 1,000, octets =
+      //   caractères — aucun ré-échappement), mais `usage` n'en annonce que
+      //   2,0 Mo. Rapport 2,45 sur ces données-là, 4,8 sur celles d'un
+      //   utilisateur réel. Le taux dépend de ce qu'on stocke et n'est pas
+      //   connaissable avant d'écrire : convertir demanderait un facteur qu'on
+      //   ne peut que deviner.
+      //
+      // · LA MARGE NE MODÉLISAIT RIEN. `× 1,2` — et le commentaire qui la
+      //   surplombait annonçait « le swap est une COPIE COMPLÈTE : il faut la
+      //   place des deux », soit × 2. La prose promettait le double, la formule
+      //   réservait un cinquième. SECONDE trahison du commentaire dans ce même
+      //   bloc, après `(est.quota || 0)` lu comme « zéro libre » : deux fois au
+      //   même endroit n'est pas une coïncidence, c'est le signe d'un calcul que
+      //   personne ne pouvait vérifier parce qu'il n'était vérifiable par rien.
+      //
+      // C'EST LA RÈGLE 1 DANS SA FORME LA PLUS PURE. « Y a-t-il assez de place ? »
+      // est une intention ; « l'écriture a-t-elle réussi ? » est le résultat. Le
+      // produit tentait de PRÉDIRE ce qu'il pouvait OBSERVER une ligne plus bas.
+      //
+      // Ce que la suppression ne coûte pas : le `finally` avorte déjà le writable
+      // et retire le fragment, la pause après deux échecs existe déjà, et le
+      // message d'échec dit ce qui s'est réellement passé. Il gagne en précision
+      // ce qu'il perd en anticipation, et il n'annonce plus un manque que
+      // personne n'a mesuré.
       w = await h.createWritable();
       // au FIL, comme l'export : la chaîne unique du dump entier refaisait deux
       // fois le stockage en mémoire — chaque minute, à chaque sauvegarde
@@ -18486,7 +18504,10 @@ GROUPES = {
         '"outil":"vena","version":1,"date":' + JSON.stringify(new Date().toISOString()) + ',');
       await w.close();
       w = null;                       // fermé : le finally n'a plus rien à avorter
-      this._autoTaille = bilan.octets;
+      // `_autoTaille` est partie avec la vérification : elle n'avait qu'elle pour
+      // lecteur. Un producteur sans consommateur pèse dans l'artefact et fait
+      // croire à une fonction — la taille du dernier fichier voyage déjà avec la
+      // trace de la copie, où elle sert à prévenir du prochain mur.
       this._autoEchecs = 0;
       this.setState({ autoNom: h.name, autoAttente: false,
         autoHeure: new Date().toLocaleTimeString('fr-FR').slice(0, 5),
@@ -18497,10 +18518,20 @@ GROUPES = {
       this._autoEchecs = (this._autoEchecs || 0) + 1;
       const enPause = this._autoEchecs >= this.ECHECS_AVANT_PAUSE;
       this.journaliserErreur('sauverAuto : ' + ((e && e.name) || '') + ' ' + ((e && e.message) || e));
+      // ————— LE MESSAGE DIT CE QUI EST ARRIVÉ, ET IL EN A LES MOYENS —————
+      // C'est le seul endroit du chemin où une écriture a réellement été TENTÉE :
+      // ce qui se dit ici est un événement observé, jamais un état supposé. Le
+      // navigateur nomme la cause quand il en a une — `QuotaExceededError` dit le
+      // stockage plein, `NotAllowedError` la permission perdue — et c'est
+      // exactement ce que la prédiction retirée prétendait deviner AVANT. On ne
+      // traduit pas ces noms : un nom de norme se cherche, une traduction
+      // approximative ne se cherche pas.
+      const cause = this.causeEcriture(e);
       this.setState({ autoAttente: true,
-        autoMsg: enPause ? this.PAUSE_AUTO('deux écritures ont échoué')
-          : 'L\u2019écriture dans ' + (h.name || 'le fichier')
-            + ' a échoué — nouvelle tentative à la prochaine minute.',
+        autoMsg: enPause
+          ? this.PAUSE_AUTO('deux écritures ont échoué' + (cause ? ' — ' + cause : ''))
+          : 'L\u2019écriture dans ' + (h.name || 'le fichier') + ' a échoué'
+            + (cause ? ' (' + cause + ')' : '') + ' — nouvelle tentative à la prochaine minute.',
         autoDetail: enPause ? this.PAUSE_AUTO_DETAIL(h.name) : null });
     } finally {
       // l'issue, dans TOUS les cas : un writable encore ouvert ici est une
@@ -18519,23 +18550,24 @@ GROUPES = {
   // garde la première phrase et sa cause, le reste se déplie. Ce n'est pas le
   // cinquième temps à rebours — le message reste atteignable, il est simplement
   // replié ; et l'état, lui, ne s'efface toujours pas.
-  // ————— UN MOT DE QUANTITÉ QUI REPREND LA VALEUR D'À CÔTÉ N'A RIEN MESURÉ —————
-  //
-  // Le message disait « il manque 592 Mo » et, deux lignes plus bas, « la copie de
-  // travail demande 592 Mo libres ». Le MÊME nombre : « il manque » reprenait la
-  // taille DEMANDÉE au lieu du déficit. Si le disque a 590 Mo libres, il manque
-  // 2 Mo, pas 592 — et la phrase alarmait à la hauteur du besoin entier.
-  //
-  // La phrase juste dit les DEUX termes, parce que c'est leur écart qui est
-  // l'information. Et quand la place libre n'est pas mesurable, elle ne prétend
-  // pas à un manque : elle dit ce qu'elle a constaté, un refus.
-  MANQUE_PLACE(besoin, libre) {
-    return libre === null || libre === undefined
-      ? 'la copie de travail demande ' + this.taille(besoin)
-        + ' libres, et le stockage les refuse'
-      : 'la copie de travail demande ' + this.taille(besoin)
-        + ', il en reste ' + this.taille(libre);
+  // La cause d'un échec d'écriture, quand le navigateur en donne une. Elle
+  // remplace la prédiction retirée : ce n'est pas un manque annoncé d'avance,
+  // c'est le refus tel qu'il est arrivé. `null` quand l'erreur n'a pas de nom
+  // utile — mieux vaut ne rien ajouter qu'un « Error » qui n'apprend rien.
+  causeEcriture(e) {
+    const n = e && e.name;
+    if (n === 'QuotaExceededError') return 'le stockage a refusé l\u2019écriture (QuotaExceededError)';
+    if (n === 'NotAllowedError') return 'la permission d\u2019écrire a été perdue (NotAllowedError)';
+    if (n === 'NoModificationAllowedError') return 'le fichier est verrouillé par une autre application (NoModificationAllowedError)';
+    if (n === 'NotFoundError') return 'le fichier n\u2019existe plus à cet emplacement (NotFoundError)';
+    return n && n !== 'Error' ? n : null;
   }
+  // ————— IL N'Y A PLUS DE PHRASE DU MANQUE, PARCE QU'IL N'Y A PLUS DE MANQUE —————
+  // `MANQUE_PLACE` composait « la copie de travail demande X, il en reste Y ».
+  // Elle est partie avec la vérification préalable : elle était son unique
+  // appelante, et une phrase qui dit un déficit n'a plus d'objet quand plus rien
+  // ne prétend le mesurer. Ce que le produit dit désormais est ce qu'il a
+  // observé — l'écriture a échoué — et jamais ce qu'il aurait prédit.
   PAUSE_AUTO(cause) {
     return 'La sauvegarde automatique est en pause' + (cause ? ' \u2014 ' + cause : '') + '.';
   }

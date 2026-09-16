@@ -30,6 +30,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
+import { borne } from "../lib/tranche.mjs";
 
 const APP = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
 const SOLO = new URL("../../Vena.solo.html", import.meta.url).pathname;
@@ -56,7 +57,18 @@ test("tout writable ouvert a une ISSUE : le finally le voit, et il avorte", () =
       + decl.trim() + " ») — déclaré dans le try, il est invisible au finally, "
       + "et une écriture qui jette laisse un fragment .crswap sur le disque de "
       + "l'utilisateur. Déclarez « let w = null; » AVANT le try, affectez ici.");
-    const suite = APP.slice(i, i + 2200);
+    // ————— LA FENÊTRE ÉTAIT UN NOMBRE MAGIQUE, ET LA PROSE L'A DÉPASSÉE —————
+    // 2 200 caractères après l'ouverture. Le jour où un commentaire a grossi entre
+    // l'ouverture et le `finally` — le retrait de la vérification de place, qui
+    // explique pourquoi elle ne pouvait pas être juste — la distance est passée à
+    // 2 385 et la garde a rougi sur un code qui n'avait pas bougé. Faux positif.
+    //
+    // La réponse n'est pas 2 600 : ce serait le second rustine sur une borne
+    // arbitraire, et la troisième prose la dépasserait. On change de FORME — la
+    // portée qui compte n'a jamais été un nombre de caractères, c'est LA MÉTHODE
+    // qui contient l'ouverture. `borne` la ferme sur l'accolade de méthode, et
+    // elle jette si elle ne la trouve pas plutôt que de s'élargir en silence.
+    const suite = APP.slice(i, borne(APP, "\n  }", i));
     assert.ok(/\}\s*finally\s*\{/.test(suite),
       "ligne " + ligne + " : aucun finally ne suit cette ouverture de writable. "
       + "Chrome crée « <nom>.crswap » ici et ne le retire qu'au close() ou à "
