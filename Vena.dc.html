@@ -2406,7 +2406,7 @@
                           <span>{{ vl.partTxt }}</span>
                           <span style="width:100%;height:3px;background:var(--color-neutral-300)"><span style="display:block;height:3px;width:{{ vl.partRemplie }};background:var(--color-accent)"></span></span>
                         </span>
-                        <button type="button" class="lien" style="font-size:12px;justify-self:end;padding:0 3px;color:{{ vl.retirerPfCouleur }}" title="{{ vl.retirerPfAide }}" onClick="{{ vl.retirerPf }}">{{ vl.retirerPfTxt }}</button>
+                        <button type="button" class="lien" style="font-size:11px;justify-self:end;padding:3px 7px;white-space:nowrap;color:{{ vl.retirerPfCouleur }}" title="{{ vl.retirerPfAide }}" onClick="{{ vl.retirerPf }}">{{ vl.retirerPfTxt }}</button>
                       </div>
                       <span style="padding:9px 14px;display:flex;flex-direction:column;gap:3px;align-items:center">
                         <button class="btn btn-primary" type="button" style="min-height:1.8rem;font-size:11px;padding-inline:10px;width:100%" onClick="{{ vl.exporterRobot }}" title="Télécharge l'Expert Advisor MQL5 de cette configuration.">Exporter</button>
@@ -15887,7 +15887,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260916.21';
+  VERSION_APP = '260916.22';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -25729,7 +25729,24 @@ GROUPES = {
                   const derniere = lignes.length === 1;
                   const arme = s.pfLigneSuppr === cleL;
                   return {
-                    retirerPfTxt: arme ? 'confirmer' : '\u00d7',
+                    // ————— UN GESTE QUI AGIT MAIS NE SE LIT PAS EST UN GESTE PERDU —————
+                    // Mesuré : la croix FONCTIONNE — `syms` passe de trois à deux, la
+                    // rangée disparaît, la ligne ne se déplie pas (le `stopPropagation`
+                    // tient), et son infobulle nomme déjà l'instrument, le portefeuille
+                    // et ce qu'il advient de la configuration. Rien à réparer dans le
+                    // comportement.
+                    //
+                    // Elle faisait 11 × 20 pixels, sans un mot, collée à la barre de part,
+                    // sur une rangée qui porte « Exporter » en bouton plein. Le
+                    // rapport disait « on ne peut pas retirer un seul instrument » : ce
+                    // n'est pas une panne, c'est un geste que personne ne trouve — et
+                    // du point de vue de l'utilisateur les deux se ressemblent
+                    // exactement. Une infobulle ne se lit qu'après avoir visé ce qu'on
+                    // n'a pas vu.
+                    //
+                    // Le mot coûte quelques pixels de colonne et rend le geste
+                    // trouvable ; « confirmer » garde sa place au second temps.
+                    retirerPfTxt: arme ? 'confirmer' : 'Retirer',
                     retirerPfLien: arme
                       ? 'confirmer : dernière ligne de ' + nomPf
                       : 'retirer du portefeuille',
