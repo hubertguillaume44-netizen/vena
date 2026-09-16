@@ -64,16 +64,41 @@ test("le + 1 du numérateur : jamais battu veut dire « moins d'une fois sur N+1
   }
 });
 
-test("le nombre de tirages est une valeur de PAGE : aucun contrôle par carte", () => {
-  // ce qui AGIT : les appels à calculerCor — le scan et le fond de page, rien d'autre.
-  // Un troisième appel serait un contrôle par carte : exactement ce que le maximum
-  // partagé vient de fermer (pousser le seul instrument qui a failli passer).
+test("le nombre de tirages est une valeur de PAGE, et un seul ordonnanceur contrôle", () => {
+  // ————— LE TITRE DISAIT « AUCUN CONTRÔLE PAR CARTE », ET CE N'EST PLUS VRAI —————
+  //
+  // La granularité est devenue l'INSTRUMENT : une commande contrôle toutes les
+  // configurations d'un symbole, sur la carte où le verdict manque. C'est l'unité
+  // qui a un sens — les têtes sont retenues par instrument, le verdict se lit sur
+  // une carte d'instrument, et le grain de l'ordonnanceur était DÉJÀ l'instrument.
+  //
+  // CE QUI EST INTERDIT N'A PAS CHANGÉ, et c'est pourquoi cette garde ne part pas :
+  // ce n'est pas le geste par carte, c'est la SECONDE BOUCLE. Deux chemins de
+  // contrôle divergeraient — pause sur l'export, arrêt, libération des bougies :
+  // trois invariants à tenir deux fois. La commande par instrument passe donc par
+  // `completerCor`, restreinte par un argument.
+  //
+  // ANCRÉ SUR CE QUI AGIT : les appels à `calculerCor`, qui sont le travail lui-même.
+  // Deux — le scan et l'ordonnanceur — et un TROISIÈME serait la seconde boucle.
   const appels = (APP.match(/this\.calculerCor\(/g) || []).length;
   assert.equal(appels, 2,
-    "calculerCor doit être appelé du scan et du calcul de fond seulement, vu " + appels);
-  // et pousser écrit le réglage de PAGE, jamais celui d'une carte
-  assert.ok(APP.includes("this.setState({ nTirages: n }, () => { this.ecrireSession(); this.completerCor(n); });"),
-    "pousserCor doit régler la page entière");
+    "calculerCor est appelé " + appels + " fois : il en faut 2, le scan et "
+    + "l'ordonnanceur. Un troisième appel est une seconde boucle de contrôle, et elle "
+    + "divergera de la première — pause sur l'export, arrêt propre, libération des "
+    + "bougies par instrument. La commande par carte passe par `completerCor`, "
+    + "restreinte à son symbole, jamais par un chemin à elle.");
+  // et le nombre de tirages reste un réglage de PAGE : choisi par instrument, il
+  // produirait des colonnes incomparables sur le même écran — un p ne se compare
+  // pas entre deux finesses
+  assert.ok(APP.includes("this.setState({ nTirages: n },\n      () => { this.ecrireSession(); this.completerCor(n, { explicite: true }); });"),
+    "pousserCor doit régler la page ENTIÈRE et passer par l'ordonnanceur en geste "
+    + "explicite — sans quoi il repart en silence dès qu'on n'est pas sur l'historique");
+  assert.ok(APP.includes("const but = Math.max(200, Number(s.nTirages) || TIRAGES_DEFAUT);"),
+    "la commande par instrument ne lit plus le réglage de PAGE : un nombre de tirages "
+    + "par carte rendrait deux cartes incomparables");
+  assert.ok(APP.includes("corUn: () => this.completerCor(but, { syms: [sym], explicite: true }),"),
+    "la commande par instrument ne passe plus par l'ordonnanceur : c'est la seconde "
+    + "boucle que cette garde existe pour interdire");
 });
 
 test("pousser AJOUTE : deux plages valent un seul passage, à l'identique", () => {

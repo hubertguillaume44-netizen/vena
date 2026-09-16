@@ -39,7 +39,7 @@
 // La valeur est posée par « npm run app:version », au même moment que le pied de
 // page de l'application : deux endroits qu'on met à jour à la main finissent par
 // diverger, et c'est précisément la divergence qu'on cherche à rendre visible.
-#define VENA_VERSION "260916.18"
+#define VENA_VERSION "260916.19"
 
 // Vide = le symbole du graphique. « * » = TOUTE l'Observation du marché. Sinon une
 // liste : "AUDCAD,GOLD,NZDCAD".
@@ -123,6 +123,18 @@ bool AttendreHistorique(string sym, ENUM_TIMEFRAMES tf, string nomTf,
    // bout — deux, pas un : pendant un téléchargement le compte bouge à chaque passage.
    int luPrec = -1;
    datetime premierePrec = 0;
+   // ————— UN ÉCHEC QUI SE RÉPÈTE N'EST PLUS UNE ATTENTE —————
+   // La détection d'épuisement ci-dessus exige lu > 0 ET premiere > 0. Un CopyTime
+   // qui ÉCHOUE rend -1, et le terminal n'a alors aucune barre en base : la condition
+   // est fausse à chaque tour, et la boucle tournait jusqu'au bout d'InpAttenteSec —
+   // trente minutes par symbole, toutes les trois secondes, pour un résultat connu dès
+   // le premier tour. C'est la même famille que la sauvegarde qui réessayait chaque
+   // minute : un échec qui se reproduit à l'identique n'est plus une attente.
+   int echecs = 0;
+   uint debut = GetTickCount();
+   uint prochainDit = 0;
+   int tours = 0;
+   int pDit = -1;
 
    while(GetTickCount() < fin && !IsStopped())
    {
@@ -142,9 +154,42 @@ bool AttendreHistorique(string sym, ENUM_TIMEFRAMES tf, string nomTf,
       // relue APRÈS la demande : lue avant, la date imprimée était celle du tour
       // précédent, d'où des suites incohérentes pendant un téléchargement normal
       premiere = (datetime)SeriesInfoInteger(sym, tf, SERIES_FIRSTDATE);
-      PrintFormat("%s %s : %d barres demandées, %d reçues — plus ancienne : %s",
-                  sym, nomTf, paliers[p], lu,
-                  premiere > 0 ? TimeToString(premiere, TIME_DATE) : "aucune");
+      // ————— LE COMPTE SEUL NE DIT PAS DEPUIS QUAND ON ATTEND —————
+      // « 50 000 demandées, -1 reçues » répété deux cents fois à l'identique ne dit
+      // pas qu'on attend depuis onze minutes : le journal avait l'air VIVANT alors
+      // qu'il décrivait une panne immobile, et c'est ce qui l'a fait lire comme un
+      // téléchargement en cours. Une ligne par minute, avec le temps écoulé et le
+      // nombre de tentatives — et une ligne à chaque changement de palier, qui est
+      // le seul événement réel de cette boucle.
+      tours++;
+      uint ecoule = (GetTickCount() - debut) / 1000;
+      if(ecoule >= prochainDit || p != pDit)
+      {
+         PrintFormat("%s %s : %d barres demandées, %d reçues — plus ancienne : %s "
+                     "(%d s d'attente, %d tentative(s))",
+                     sym, nomTf, paliers[p], lu,
+                     premiere > 0 ? TimeToString(premiere, TIME_DATE) : "aucune",
+                     (int)ecoule, tours);
+         prochainDit = ecoule + 60;
+         pDit = p;
+      }
+
+      // DEUX tours et non un : une série pas encore synchronisée rend -1 une fois.
+      if(lu <= 0 && premiere == 0)
+      {
+         echecs++;
+         if(echecs >= 2)
+         {
+            PrintFormat("%s %s : ce courtier ne fournit aucun historique %s pour ce "
+                        "symbole — CopyTime rend %d et la base est vide, deux tours de "
+                        "suite. Abandon après %d s au lieu de %d.",
+                        sym, nomTf, nomTf, lu, (int)ecoule, secondesMax);
+            SansHistorique(sym, nomTf);
+            dispo = 0;
+            return false;
+         }
+      }
+      else echecs = 0;
 
       if(lu > 0 && premiere > 0 && lu == luPrec && premiere == premierePrec)
       {
@@ -372,7 +417,11 @@ bool Exporter(string sym)
       AttendreHistorique(sym, PERIOD_M1, "M1", InpDu, InpAttenteSec, dispoM1);
    }
    if(InpM1) return ExporterM1(sym, nom, dispoM1);
-   AttendreHistorique(sym, PERIOD_H1, "H1", InpDu, InpAttenteSec, dispoH1);
+   // Pas UNE barre en base : il n'y a rien à lire, et la raison est déjà au
+   // récapitulatif. Continuer ajouterait une seconde ligne (« échec ») pour le même fait, et
+   // ferait chercher deux causes là où il n'y en a qu'une.
+   if(!AttendreHistorique(sym, PERIOD_H1, "H1", InpDu, InpAttenteSec, dispoH1) && dispoH1 == 0)
+      return false;
 
    // ————— LA DEMANDE RECADRÉE sur ce que le courtier fournit —————
    // Demander une plage qui commence trois ans avant le premier historique disponible
@@ -861,6 +910,26 @@ void Inconnu(string sym, string cands)
    g_inconnusTxt[k] = StringLen(cands) > 0 ? "candidats : " + cands : "aucun nom voisin trouvé";
 }
 
+// ————— UN NOM CONNU SANS UNE SEULE BARRE —————
+// Ce n'est pas une erreur du script : c'est un fait sur le catalogue du courtier, et
+// il se récapitule avec les autres noms qui ne donneront pas de fichier — sinon il se
+// perd dans un journal de plusieurs milliers de lignes, comme les échecs avant lui.
+//
+// IL PARTAGE LEUR PANIER MAIS PAS LEUR PHRASE. « Corrigez symboles.txt » serait FAUX
+// ici : le nom est bon, l'orthographe est bonne, et rien dans ce fichier ne changera
+// ce que le courtier n'a pas. L'étiquette du récapitulatif couvre donc les deux cas,
+// et chaque ligne porte SON action.
+void SansHistorique(string sym, string nomTf)
+{
+   int k = ArraySize(g_inconnusNom);
+   ArrayResize(g_inconnusNom, k + 1);
+   ArrayResize(g_inconnusTxt, k + 1);
+   g_inconnusNom[k] = sym;
+   g_inconnusTxt[k] = "nom connu au catalogue, mais ce courtier ne fournit AUCUN "
+                      "historique " + nomTf + " pour lui — rien à corriger dans "
+                      "symboles.txt : retirez-le, ou exportez-le depuis un autre compte";
+}
+
 void Court(string sym, string txt)
 {
    int k = ArraySize(g_courtsNom);
@@ -1088,7 +1157,7 @@ void OnStart()
    int rates = ArraySize(g_ratesNom);
    int nInc = ArraySize(g_inconnusNom);
    PrintFormat("════ TERMINÉ : %d demandé(s) — %d exporté(s), %d déjà à jour conservé(s), "
-               "%d nom(s) inconnu(s), %d échec(s). Dossier : MQL5\\Files. ════",
+               "%d sans données chez ce courtier, %d échec(s). Dossier : MQL5\\Files. ════",
                demandes, faits - g_gardes, g_gardes, nInc, rates);
    if(ArraySize(g_profNom) > 0)
       Print("Profondeur obtenue par symbole — le départage intrabar n'est possible que "
@@ -1104,7 +1173,8 @@ void OnStart()
    for(int i = 0; i < ArraySize(g_courtsNom); i++)
       PrintFormat("   • %s — %s", g_courtsNom[i], g_courtsTxt[i]);
    if(nInc > 0)
-      Print("Noms inconnus chez ce courtier — corrigez symboles.txt :");
+      Print("Sans fichier — nom inconnu, ou nom connu sans historique. L'action est "
+            "sur chaque ligne :");
    for(int i = 0; i < nInc; i++)
       PrintFormat("   ✗ %s — %s", g_inconnusNom[i], g_inconnusTxt[i]);
    if(rates > 0)

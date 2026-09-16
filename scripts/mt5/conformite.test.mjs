@@ -488,13 +488,30 @@ test("le dièse seul ne marque plus un commentaire dans les listes", () => {
 test("le script de bougies récapitule ses échecs avec leur raison", () => {
   const src = readFileSync(new URL("../../Export_H1_Vena.mq5", import.meta.url), "utf8");
   // un Print par symbole se perd dans le journal : le bilan doit être groupé à la
-  // fin, et distinguer les quatre issues — exporté, conservé, nom inconnu, échec
+  // fin, et distinguer les quatre issues — exporté, conservé, sans données, échec
   assert.match(src, /TERMINÉ : %d demandé\(s\) — %d exporté\(s\), %d déjà à jour conservé\(s\)/);
   for (const motif of ["inconnu chez ce courtier", "historique H1 vide depuis",
-    "l'historique ne remonte qu'au", "Noms inconnus chez ce courtier",
+    "l'historique ne remonte qu'au",
     "Ajoutés à l'Observation du marché"]) {
     assert.ok(src.includes(motif), `motif « ${motif} » absent`);
   }
+  // ————— L'EN-TÊTE DU PANIER EST ANCRÉ SUR SA FONCTION, PAS SUR SON TEXTE —————
+  // Il disait « Noms inconnus chez ce courtier — corrigez symboles.txt », et cette
+  // garde épelait la phrase. Le panier accueille depuis un second cas — un nom CONNU
+  // dont le courtier n'a aucune barre — pour lequel « corrigez symboles.txt » est
+  // faux : on enverrait corriger une orthographe qui est juste (règle 4, l'étiquette
+  // est le défaut quand elle contredit l'explication). Ce qui doit tenir n'est pas le
+  // libellé, c'est que le panier soit ANNONCÉ avant d'être déroulé, et que ses lignes
+  // soient rendues.
+  const iInc = borne(src, "   if(nInc > 0)");
+  assert.ok(iInc > 0,
+    "le panier des symboles sans fichier n'est plus annoncé : ses lignes se déroulent "
+    + "sans en-tête, au milieu des autres");
+  assert.match(src.slice(iInc, iInc + 300), /Print\("[^"]/,
+    "l'annonce du panier a perdu son texte");
+  assert.ok(src.includes('PrintFormat("   ✗ %s — %s", g_inconnusNom[i], g_inconnusTxt[i]);'),
+    "les lignes du panier ne sont plus rendues : le compte du bilan annoncerait des "
+    + "symboles que rien ne nomme");
 });
 
 // ————— LE RELEVÉ PRODUIT EST-IL LISIBLE PAR LE SITE ? —————

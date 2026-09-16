@@ -24,6 +24,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
+import { INSTANCE } from "./lib/semis.mjs";
 
 const SOLO = new URL("../../Vena.solo.html", import.meta.url).pathname;
 const CHROMIUMS = [
@@ -50,14 +51,22 @@ test("le pic de l'export au fil tient dans le plus gros bloc, pas dans le total"
       await p.waitForSelector(".dialog-backdrop", { state: "detached", timeout: 10000 }).catch(() => {});
     }
     await p.waitForTimeout(500);
+    // ————— UNE SEULE REMONTÉE DE FIBRE POUR TOUS LES BANCS —————
+    // Ce banc en portait sa propre copie, sans vérification de prise : sous la charge
+    // de la suite complète elle a attrapé un objet sans \`cle()\` et rendu une
+    // TypeError depuis l'intérieur de la page, qui ne nommait ni la sonde ni ce
+    // qu'elle tenait. La remontée partagée (\`semis.mjs\`) éprouve sa prise et le dit ;
+    // deux copies du même geste n'en auraient corrigé qu'une.
+    // On attend la prise plutôt que de la tenter une fois : \`waitForFunction\` réessaie,
+    // et le délai qui manquait est précisément celui d'un montage sous charge.
+    await p.waitForFunction(`(() => { try { window.__inst = ${INSTANCE}; return true; }
+      catch (e) { window.__instPourquoi = String(e && e.message); return false; } })()`,
+      null, { timeout: 30000, polling: 200 })
+      .catch(async () => assert.fail("l'instance de l'application reste introuvable au bout de "
+        + "30 s : " + (await p.evaluate(() => window.__instPourquoi || "raison non relevée"))));
     const m = await p.evaluate(async () => {
       if (!window.gc || !performance.memory) return { outillage: false };
-      const el = document.querySelector("button");
-      const fk = Object.keys(el).find((x) => x.startsWith("__reactFiber"));
-      let f = el[fk];
-      while (f && !(f.stateNode && f.stateNode.constructor
-        && f.stateNode.constructor.name === "StreamableComponent")) f = f.return;
-      const inst = f.stateNode.logic;
+      const inst = window.__inst;
       const heap = () => { gc(); return performance.memory.usedJSHeapSize; };
       // le semis : huit séries de ~2,8 Mo — un stockage dont la garde connaît
       // la taille, assez gros pour que « borné par le bloc » et « borné par le

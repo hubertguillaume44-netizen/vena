@@ -102,14 +102,33 @@ const PAGES = [...new Set(VUES.map(([p]) => p))];
 // l'observateur, les secondes sont des éléments inertes que le produit déclare
 // lui-même non cliquables (`curseur: 'default'`) et qui sont désormais comptés
 // comme défaut de BALISAGE, séparément.
-const MUETS_CONNUS = new Map([
-  ["Mes scans › Backtest · « Sauvegarder ce résultat »",
-    "précondition peut-être non semée — non enquêté"],
-  ["Mes scans › Backtest · « Mesurer »",
-    "btn btn-primary, pas disabled ; précondition non semée ? — non enquêté"],
-  ["Mes scans › Backtest · « Comparer »",
-    "btn btn-primary, pas disabled ; précondition non semée ? — non enquêté"],
-]);
+// LES TROIS DERNIÈRES SONT PARTIES, ET AUCUNE N'ÉTAIT CE QUE LE REGISTRE SUPPOSAIT.
+// Elles portaient toutes les trois la même hypothèse — « précondition peut-être non
+// semée » — et la réserve écrite au-dessus disait que ce serait alors une limite du
+// SEMIS. C'était faux : mesurées une par une sur une page CALME, sans le moindre
+// travail de fond, elles n'avaient en commun que leur emplacement. Trois causes,
+// trois correctifs, tenus par `geste-sans-effet.test.mjs` :
+//   · « Sauvegarder ce résultat » FAISAIT son travail — le registre des runs passait
+//     de 0 à 1 — et ne disait rien ; il confirme désormais le dépôt au geste ;
+//   · « Comparer » reposait `cmpMt5` à sa valeur sur un cadre de collage vide ; le
+//     refus se dit ;
+//   · « Mesurer » sortait sur un `return` nu quand la signature n'avait pas bougé ; il
+//     se GRISE, et il sort donc de l'énumération tant qu'il ne peut rien faire — c'est
+//     la réparation, pas une disparition : le bouton est là, et il dit pourquoi il est
+//     éteint. Il redevient mesuré dès qu'un réglage change.
+//
+// ET LEUR « GUÉRISON » SPONTANÉE A ÉTÉ LE SIGNAL, pas la bonne nouvelle. Deux des
+// trois sont ressorties non-muettes d'une exécution à l'autre sans qu'une ligne du
+// produit ait changé : « Sauvegarder ce résultat » parce qu'un réglage touché en
+// amont le rend `disabled`, donc hors énumération ; « Comparer » parce que l'AUTRE
+// carte de comparaison écrit le même `cmpMt5` et qu'un collage non vide y rendait le
+// reposage effectif. Un registre qui bascule selon l'ordre des clics est plus
+// dangereux qu'un registre trop long — il fait chercher une réparation là où il n'y
+// a qu'un ordre. C'est le second sens du registre qui l'a dit, en échouant.
+//
+// Le registre est VIDE, et c'est son état normal : il n'exempte rien, et le premier
+// geste muet le fera tomber.
+const MUETS_CONNUS = new Map([]);
 
 const EXCLUS = new Map([
   ["J'ai compris", "la porte d'accueil — déjà franchie par le banc"],
@@ -239,7 +258,23 @@ async function calmer(p) {
     }
     return n;
   }).catch(() => 0);
-  if (arrete) await p.waitForTimeout(200);
+  if (arrete) { await p.waitForTimeout(200); return; }
+  // ————— LE BOUTON D'ARRÊT N'EXISTE PAS ENCORE AU MOMENT OÙ ON LE CHERCHE —————
+  // Un clic qui lance un travail de fond rend son « Arrêter » au rendu SUIVANT ;
+  // `calmer` passait avant, ne trouvait rien, et le calcul continuait pour tout le
+  // reste de la tournée. Mesuré : « Enregistrer une copie » est alors rapporté
+  // muet sur l'Historique alors qu'il télécharge bien, seul comme pendant un
+  // contrôle — c'est la fenêtre de réaction du banc que le travail de fond
+  // déborde, pas le geste qui se tait. Un battement, une seconde tentative.
+  await p.waitForTimeout(260);
+  const tard = await p.evaluate(() => {
+    let n = 0;
+    for (const b of document.querySelectorAll("button")) {
+      if (b.offsetParent !== null && !b.disabled && /^Arr\u00eater/.test((b.textContent || "").trim())) { b.click(); n += 1; }
+    }
+    return n;
+  }).catch(() => 0);
+  if (tard) await p.waitForTimeout(200);
 }
 
 // Le clic sur le VOILE (z-index 69) : c'est ce qui ferme le tiroir, et rien d'autre

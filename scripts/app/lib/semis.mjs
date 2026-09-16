@@ -29,7 +29,19 @@ export const INSTANCE = `(() => {
   while (f && !(f.stateNode && f.stateNode.constructor
     && f.stateNode.constructor.name === "StreamableComponent")) f = f.return;
   if (!f) throw new Error("semis : StreamableComponent introuvable en remontant la fibre");
-  return f.stateNode.logic;
+  const l = f.stateNode.logic;
+  // ————— UNE SONDE VÉRIFIE SA PRISE —————
+  // La remontée peut s'arrêter sur un composant du bon NOM dont le \`logic\` n'est pas
+  // encore l'instance de l'application : sous charge, le banc de l'export au fil a
+  // rendu « inst.cle is not a function » — une TypeError à l'intérieur de la page,
+  // qui ne nomme ni la sonde ni ce qu'elle a attrapé. On éprouve donc la prise sur
+  // un membre que SEULE l'application porte, et l'échec dit ce qui a été trouvé.
+  if (!l || typeof l.cle !== "function") {
+    throw new Error("semis : la fibre a rendu " + (l ? ("un objet " + (l.constructor && l.constructor.name))
+      : String(l)) + " sans \`cle()\` — ce n'est pas l'instance de l'application. "
+      + "La page n'était probablement pas finie de monter : attendez-la avant de sonder.");
+  }
+  return l;
 })()`;
 
 // Une ligne de scan COMPLÈTE. Chaque champ est lu par une colonne de `COLS` ; en

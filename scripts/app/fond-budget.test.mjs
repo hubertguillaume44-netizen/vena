@@ -15,7 +15,11 @@ import { borne, borneArriere } from "../lib/tranche.mjs";
 
 const APP = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
 const corps = (() => {
-  const i = APP.indexOf("async completerCor(cible) {");
+  // Réancré : l'ordonnanceur prend désormais une restriction (`opts`) pour servir
+  // la commande par INSTRUMENT sans qu'une seconde boucle naîsse. Sa signature a
+  // changé, ses invariants non — c'est exactement le cas où une garde se réancre
+  // sur ce qui reste plutôt que de partir avec le geste (règle 14).
+  const i = APP.indexOf("async completerCor(cible, opts = {}) {");
   assert.ok(i > 0, "completerCor a changé de forme — réancrez ce fichier de gardes");
   return APP.slice(i, borne(APP, "\n  }", borne(APP, "fermerWorkers();", i)));
 })();
@@ -30,7 +34,12 @@ test("l'export a priorité : le complètement se met en pause dès qu'il commenc
   for (const exp of ["async exporterTout() {", "async exporterChiffre(phrase, avecSeries) {"]) {
     const i = APP.indexOf(exp);
     assert.ok(i > 0, exp + " a changé de forme — réancrez");
-    const b = APP.slice(i, i + 400);
+    // la tranche va jusqu'à la FIN DE LA MÉTHODE, pas à un nombre de caractères :
+    // une fenêtre magique se périme au premier commentaire ajouté au-dessus de la
+    // ligne qu'elle cherche, et celle de 400 l'a fait — le refus d'un export
+    // concurrent, écrit depuis en tête de `exporterTout`, l'a repoussée dehors.
+    // `\n  }` est l'accolade de méthode : les blocs internes sont indentés plus loin.
+    const b = APP.slice(i, borne(APP, "\n  }", i));
     assert.ok(b.includes("this.setState({ exportEnCours: true });"),
       exp + " ne pose plus le témoin exportEnCours : le complètement ne peut plus lui céder");
   }
@@ -56,7 +65,11 @@ test("le complètement ne démarre pas tout seul : le prix se dit avant de lance
   // et lancer passe par completerCor — le seul chemin, gardé aussi par hasard-corrige
   assert.ok(APP.includes("corLancer: () => { this.completerCor(); }"),
     "le bouton de lancement n'appelle plus completerCor");
-  assert.ok(corps.includes("this._corStop") && APP.includes("corArreter: () => { this._corStop = true; }"),
+  // le geste d'arrêt POSE le drapeau, quelle que soit la forme de sa fonction : elle
+  // a gagné depuis un refus de redemande et un message à l'écran (geste-sans-effet),
+  // et une égalité de chaîne sur une seule ligne n'y survivait pas. Ce qui compte ici
+  // est l'invariant : un travail de fond s'arrête d'un geste.
+  assert.ok(corps.includes("this._corStop") && /corArreter: \(\) => \{[\s\S]{0,600}?this\._corStop = true;/.test(APP),
     "l'arrêt visible a disparu : un travail de fond sans arrêt a priorité sur "
     + "tout ce que l'utilisateur fait");
 });

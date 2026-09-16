@@ -72,3 +72,202 @@ test("« Exporter (CSV) » ne s'offre pas sur un TOP vide, et le dit", () => {
     + "CLIC, pas un appel venu d'ailleurs. Les deux se gardent — la ceinture au rendu, "
     + "les bretelles dans la fonction.");
 });
+
+// ————— LES TROIS DE BACKTEST : TROIS SILENCES, TROIS CAUSES —————
+//
+// Ils étaient inscrits ensemble au registre des muets, sous une même hypothèse —
+// « précondition peut-être non semée ». Mesurés un par un sur une page CALME, sans
+// le moindre travail de fond, ils n'avaient rien en commun que leur emplacement :
+//
+//   · « Sauvegarder ce résultat » FAISAIT son travail — le registre des runs passait
+//     de 0 à 1 — et la page ne disait rien : zéro mutation, pas même une mutation
+//     brute. C'est « message sans surface » sur un geste qui RÉUSSIT, et c'est le
+//     pire des deux : un geste muet qui échoue finit par être recommencé ; un geste
+//     muet qui réussit est recommencé aussi, et range le même résultat deux fois.
+//   · « Comparer » reposait `cmpMt5` à la valeur qu'il portait déjà quand le cadre
+//     de collage est vide. Même valeur, même rendu, rien.
+//   · « Mesurer » sortait de `testerUneFois` sur un `return` nu quand la signature
+//     n'a pas bougé. Il s'offrait quand même.
+//
+// ET LEUR « GUÉRISON » DANS LA TOURNÉE ÉTAIT DE LA VARIANCE, pas une réparation :
+// deux des trois sont ressortis non-muets d'une exécution à l'autre, sans qu'une
+// ligne ait changé — « Sauvegarder ce résultat » parce qu'il devient `disabled` dès
+// qu'un réglage bouge (donc hors énumération), « Comparer » parce que l'autre carte
+// de comparaison écrit le MÊME `cmpMt5` et qu'un collage non vide y rendait le
+// reposage effectif. Un registre qui bascule d'une exécution à l'autre est plus
+// dangereux qu'un registre trop long : il fait chercher une réparation là où il n'y
+// a qu'un ordre de clics.
+
+test("« Mesurer » et « Sauvegarder » sont complémentaires, sur une seule mesure", () => {
+  // `perime()` — « pas de résultat, ou il ne correspond plus aux réglages » — dit les
+  // deux : sauvegarder est refusé quand il est vrai, mesurer ne peut rien quand il est
+  // faux. Deux conditions recopiées auraient divergé au premier réglage ajouté.
+  assert.ok(APP.includes("btMesurerNon: !this.perime() && !this.recadrageBtSym(),"),
+    "« Mesurer » ne se grise plus sur `perime()` : il repart alors sur le `return` nu "
+    + "de `testerUneFois`, qui sort sans un mot quand la signature n'a pas bougé — le "
+    + "geste s'offre et ne peut rien faire");
+  assert.ok(APP.includes('onClick="{{ lancerTest }}" disabled="{{ btMesurerNon }}" title="{{ btMesurerAide }}"'),
+    "le bouton « Mesurer » ne porte plus son inhibition ou son infobulle : une "
+    + "condition qui ne rejoint pas le rendu ne grise personne");
+  // l'apostrophe est TYPOGRAPHIQUE dans l'application (U+2019) : une garde qui épelle
+  // la droite (U+0027) rapporte une absence qui n'existe pas — le piège est déjà
+  // documenté dans la tournée des gestes, et il a mordu ici en l'écrivant.
+  assert.ok(APP.includes("'Ces chiffres sont déjà ceux de vos réglages actuels : il n’y a rien à remesurer. '"),
+    "le bouton grisé ne dit plus POURQUOI il l'est, ni ce qui le rallume. Griser sans "
+    + "expliquer remplace un geste muet par un bouton muet.");
+  // ————— ET LE RECADRAGE SE DEMANDE À UN PRÉDICAT PUR —————
+  // C'est l'autre chose qu'un clic sur « Mesurer » peut faire. Sans prédicat, le
+  // bouton aurait dû la deviner (règle 1) ou recopier la condition ; et griser sur le
+  // seul `perime()` aurait fermé le seul geste capable de remettre la page d'aplomb
+  // après un changement de compte.
+  assert.ok(APP.includes("  recadrageBtSym() {"),
+    "le prédicat pur du recadrage a disparu : la condition de grisage doit alors "
+    + "recopier celle de `recadrerBtSym`, et les deux divergeront");
+  assert.ok(APP.includes("    const neuf = this.recadrageBtSym();\n    if (!neuf) return false;"),
+    "`recadrerBtSym` ne lit plus le prédicat : c'est de nouveau deux vérités pour une "
+    + "seule question, et c'est la copie qui se périme");
+});
+
+test("« Sauvegarder ce résultat » confirme son dépôt, et la confirmation tient à la mesure affichée", () => {
+  assert.ok(APP.includes("    this.setState({ btSauve: s.signature });"),
+    "le dépôt ne laisse plus de trace : il range le résultat dans le journal — une "
+    + "AUTRE page — et celle-ci ne dit rien. Mesuré : zéro mutation pendant que le "
+    + "registre des runs passait de 0 à 1.");
+  // LA SIGNATURE ET NON UN HORODATAGE : la confirmation dit « le résultat que vous
+  // avez sous les yeux est rangé ». Elle tombe donc au premier réglage changé et à la
+  // mesure suivante, sans minuteur — un minuteur aurait menti dans les deux sens.
+  assert.ok(APP.includes("aBtSauve: !!s.signature && s.btSauve === s.signature && !this.perime(),"),
+    "la confirmation ne tient plus à la signature du résultat AFFICHÉ : elle survivrait "
+    + "à un changement de réglage, et annoncerait rangés des chiffres qui ne le sont pas");
+  assert.ok(APP.includes('<sc-if value="{{ aBtSauve }}" hint-placeholder-val="{{ false }}">'),
+    "la confirmation ne rejoint plus le gabarit : une valeur produite et jamais rendue "
+    + "laisse le geste aussi muet qu'avant, avec une garde verte en plus");
+  assert.ok(APP.includes("rangé dans le journal des tests — page Journal</span>"),
+    "la phrase de confirmation ne nomme plus OÙ le résultat est parti : « enregistré » "
+    + "seul laisse chercher dans quatre pages");
+});
+
+test("« Comparer » refuse un collage vide, et le dit", () => {
+  assert.ok(APP.includes("        this.setState({ cmpMt5: t, cmpVide: t ? null : p });"),
+    "le geste repose de nouveau `cmpMt5` sans distinguer le cadre vide : sur un cadre "
+    + "vide il réécrit la valeur déjà en place — même valeur, même rendu, rien");
+  assert.ok(APP.includes("    if (this.state.cmpVide === p) {"),
+    "le refus n'a plus de surface : il redevient silencieux, et l'utilisateur clique "
+    + "sans savoir si c'est lui ou l'outil");
+  // le refus nomme le geste qui le comble, comme les deux autres de cette garde
+  assert.ok(APP.includes("'Le cadre de collage est vide : il n’y a rien à comparer. Copiez '"),
+    "le refus ne dit plus quoi coller ni d'où : un « rien à comparer » nu laisse "
+    + "l'utilisateur devant un mur");
+  // ————— ET IL EST MARQUÉ PAR CARTE —————
+  // Les deux cartes de comparaison passent par `clesComparaison` et partagent l'état
+  // `cmpMt5`. Un drapeau booléen aurait allumé le message sur les DEUX ; le préfixe
+  // le garde sur celle qu'on a cliquée.
+  assert.ok(!APP.includes("cmpVide: true"),
+    "le refus redevient un booléen : les deux cartes de comparaison partagent `cmpMt5`, "
+    + "et le message s'allumerait sur celle qu'on n'a pas touchée");
+});
+
+// ————— LES DEUX ARRÊTS : UN GESTE DÉJÀ DEMANDÉ NE SE REDEMANDE PAS —————
+//
+// Ils ne sont apparus qu'une fois les TROIS de Backtest corrigés, et pour une raison
+// qui vaut d'être notée : la tournée ne les atteignait pas. Son `calmer` cherchait le
+// bouton « Arrêter » AVANT que React ne l'ait rendu, ne le trouvait jamais, et le
+// travail de fond continuait — donc l'état « arrêt demandé » n'existait dans aucune
+// mesure. Un banc qui n'atteint pas un état ne dit rien de cet état, et il ne le dit
+// pas non plus : c'est l'angle mort qui ne rougit pas.
+//
+// Les deux ont la forme exacte des trois précédents, à la cause près :
+//   · « Arrêter » (complètement du contrôle) posait `this._corStop = true` et RIEN
+//     d'autre — pas un `setState`, donc pas un pixel. Le drapeau vit hors de l'état à
+//     dessein (la boucle le relit sans rendu), mais l'écran devait le dire.
+//   · « Arrêt en cours… » (scan) reposait `scanArret: true` sur un état qui le portait
+//     déjà. Même valeur, même rendu, rien.
+//
+// Et les deux sont le moment où l'on RECLIQUE : l'arrêt n'arrive qu'à la fin du calcul
+// en cours, et c'est exactement le délai pendant lequel on doute d'avoir cliqué.
+
+test("« Arrêter » le complètement le DIT, et ne se redemande pas", () => {
+  assert.ok(APP.includes("            if (this._corStop) return;\n            this._corStop = true;"),
+    "le geste ne sort plus quand l'arrêt est déjà demandé : il repose le même drapeau "
+    + "et ne peut rien produire de nouveau");
+  assert.ok(APP.includes("            this.setState({ corMsg: (this.state.corMsg || 'contrôle du hasard')"),
+    "l'arrêt ne touche plus l'écran : il redevient un drapeau d'instance que rien "
+    + "n'accuse — mesuré au banc, zéro mutation pour un geste qui FAIT son travail");
+  assert.ok(APP.includes("          corArretDemande: !!this._corStop,"),
+    "le bouton ne sait plus qu'un arrêt est en cours : il reste offert pour un geste "
+    + "déjà fait");
+  assert.ok(APP.includes('onClick="{{ corArreter }}" disabled="{{ corArretDemande }}" title="{{ corArreterAide }}"'),
+    "le bouton d'arrêt du complètement ne porte plus son inhibition ni son infobulle : "
+    + "une condition qui ne rejoint pas le rendu ne grise personne");
+});
+
+test("« Arrêter le scan » ne se redemande pas non plus, et le dit", () => {
+  assert.ok(APP.includes("      arretBloque: !!s.scanArret,"),
+    "le bouton d'arrêt du scan ne lit plus l'arrêt DÉJÀ demandé : le second clic "
+    + "repose `scanArret: true` sur un état qui le porte déjà — même valeur, rien");
+  assert.ok(APP.includes("'L’arrêt est déjà demandé : le scan rend la main après le calcul en cours. '"),
+    "le bouton grisé ne dit plus pourquoi : « Arrêt en cours… » nomme l'état, pas la "
+    + "raison pour laquelle on ne peut plus cliquer");
+  // LES DEUX SITES, et c'est le point : le même bouton est rendu deux fois — barre de
+  // progression et carte du scan. Un seul corrigé aurait laissé l'autre muet, et la
+  // tournée ne visite pas forcément les deux dans le même état.
+  const n = APP.split('disabled="{{ arretBloque }}" title="{{ arretAide }}"').length - 1;
+  assert.equal(n, 2,
+    "les DEUX rendus du bouton d'arrêt du scan ne portent plus l'inhibition (" + n
+    + " trouvé(s) au lieu de 2) : la barre de progression et la carte du scan rendent "
+    + "le même geste, et corriger un seul des deux laisse l'autre muet");
+});
+
+// ————— « ENREGISTRER UNE COPIE » : DEUX COPIES À LA FOIS, ET RIEN NE LE DISAIT —————
+//
+// Celui-là s'est présenté comme une INTERMITTENCE du banc, et c'est ce qui le rend
+// instructif : la tournée le rapportait muet une exécution sur deux, et une sonde
+// isolée le trouvait parfaitement vivant — 2 mutations visibles et un téléchargement
+// en moins de 200 ms. « Sans doute une autre table » avait déjà été rangé d'une phrase
+// une fois dans ce dépôt ; ici la forme du rapport a été prise au sérieux.
+//
+// LE VERDICT « aucune réaction DU TOUT » DÉSIGNAIT LA CAUSE, et il fallait le lire :
+// il veut dire zéro mutation BRUTE, pas une seule. Or la première ligne du geste est
+// `setState({ exportEnCours: true })` — qui ne produit rien quand le témoin est DÉJÀ
+// vrai. Donc l'export précédent n'était pas fini. Mesuré : deux clics rapprochés
+// rendent DEUX téléchargements, et les deux lectures du stockage se recouvrent.
+//
+// CE QUE ÇA COÛTAIT, au-delà du silence : `exportEnCours` est le témoin que la
+// sauvegarde automatique et le complètement du contrôle regardent pour se mettre en
+// pause. Le premier export qui finit le repose à faux pendant que l'autre lit encore —
+// les deux pauses se lèvent sous une lecture en cours, ce que ce témoin existe
+// précisément pour empêcher.
+//
+// Et c'est l'occurrence qui ferme la boucle : un geste sans effet n'est pas toujours
+// un geste sans CONSÉQUENCE.
+
+test("« Enregistrer une copie » n'en lance pas une seconde par-dessus la première", () => {
+  assert.ok(APP.includes("    if (this.state.exportEnCours) return;\n    // le témoin que le complètement de fond ET la sauvegarde automatique"),
+    "`exporterTout` ne refuse plus un export concurrent : deux lectures du même "
+    + "stockage se recouvrent, et le premier qui finit repose `exportEnCours` à faux "
+    + "sous la lecture de l'autre — la pause de la sauvegarde automatique et celle du "
+    + "complètement se lèvent toutes les deux trop tôt");
+  assert.ok(APP.includes("      copieBloque: !!s.exportEnCours,"),
+    "le bouton ne sait plus qu'une copie s'écrit : il reste offert, et le clic ne "
+    + "produit même pas une mutation puisqu'il repose un témoin déjà vrai");
+  assert.ok(APP.includes("'Une copie est en cours d’écriture. Le bouton se rallume quand elle est '"),
+    "le bouton grisé ne dit plus pourquoi ni jusqu'à quand");
+  // ————— ET LE TÉMOIN DOIT ÊTRE PEINT AVANT LA LECTURE —————
+  // Le poser ne suffit pas à le montrer : la lecture du stockage est synchrone et
+  // longue, et le bouton restait vif à l'écran pendant toute la copie. C'est la
+  // même main rendue que `testerUneFois` fait avant son calcul.
+  assert.ok(APP.includes("    await new Promise((z) => setTimeout(z, 0));\n    this.libererBougiesExport();"),
+    "l'export ne rend plus la main avant de lire : le témoin est posé dans l'état et "
+    + "jamais peint, donc le bouton reste vif pendant toute la copie — mesuré, le "
+    + "premier rendu arrivait après 700 ms sur l'état peuplé");
+  // ————— LES CINQ RENDUS, ET C'EST LE POINT —————
+  // Le même geste est rendu cinq fois (filet, onglet intégré, tiroir, carte, barre
+  // sans sauvegarde). La tournée des gestes ne clique qu'UN bouton par libellé — son
+  // angle mort déclaré — donc quatre des cinq ne seraient jamais mesurés. Le compte
+  // est la seule façon de ne pas en oublier un.
+  const n = APP.split('disabled="{{ copieBloque }}"').length - 1;
+  assert.equal(n, 5,
+    "les cinq rendus de « Enregistrer une copie » ne portent plus tous l'inhibition ("
+    + n + " au lieu de 5). La tournée des gestes ne clique qu'un bouton par libellé : "
+    + "celui qu'on oublie ici ne sera jamais attrapé là-bas.");
+});

@@ -50,13 +50,6 @@
    ]
   },
   {
-   "terme": "Arrêter",
-   "texte": "Arrête le complètement en arrière-plan. Les tirages déjà faits restent : relancer AJOUTE, il ne recommence rien.",
-   "vues": [
-    "Historique"
-   ]
-  },
-  {
    "terme": "aucun",
    "texte": "La référence « sans filtre » a battu les conditions balayées sur cette ligne.",
    "vues": [
@@ -712,13 +705,6 @@
   {
    "terme": "Sécurisation",
    "texte": "Dans la comparaison, comme référence : toute condition doit faire mieux que « sans filtre » pour valoir la peine. Un clic la sort — le classement perd alors sa ligne de référence.",
-   "vues": [
-    "Nouveau scan"
-   ]
-  },
-  {
-   "terme": "Sécurisation",
-   "texte": "Le scan s’arrête après le calcul en cours ; les résultats déjà obtenus sont conservés",
    "vues": [
     "Nouveau scan"
    ]

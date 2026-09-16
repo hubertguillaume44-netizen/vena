@@ -419,7 +419,7 @@
       <sc-if value="{{ aFiletFichier }}" hint-placeholder-val="{{ true }}">
         <button type="button" style="cursor:pointer;font:inherit;font-size:11px;background:var(--color-bg);color:var(--color-accent-900);border:0;padding:4px 11px;white-space:nowrap" onClick="{{ choisirFilet }}" title="Choisit un fichier sur votre disque. Véna y réécrit tout, chaque minute. Aucun vidage de navigateur ne l’atteint.">Choisir un fichier de sauvegarde</button>
       </sc-if>
-      <button type="button" style="cursor:pointer;font:inherit;font-size:11px;background:none;color:var(--color-bg);border:1px solid color-mix(in srgb,var(--color-bg) 42%,transparent);padding:4px 11px;white-space:nowrap" onClick="{{ exporterDepuisFilet }}" title="{{ copieAide }}">{{ copieTxt }}</button>
+      <button type="button" style="cursor:pointer;font:inherit;font-size:11px;background:none;color:var(--color-bg);border:1px solid color-mix(in srgb,var(--color-bg) 42%,transparent);padding:4px 11px;white-space:nowrap" onClick="{{ exporterDepuisFilet }}" disabled="{{ copieBloque }}" title="{{ copieAide }}">{{ copieTxt }}</button>
       <button type="button" style="cursor:pointer;font:inherit;font-size:11px;background:none;color:var(--color-bg);border:1px solid color-mix(in srgb,var(--color-bg) 42%,transparent);padding:4px 11px;white-space:nowrap;margin-inline-start:auto" onClick="{{ plusTardFilet }}" title="Ferme cette proposition. Elle ne reviendra pas — le rang d’état, lui, reste tant qu’aucun filet n’est en place.">Plus tard</button>
     </div>
   </sc-if>
@@ -452,7 +452,7 @@
   <sc-if value="{{ aVueIntegre }}" hint-placeholder-val="{{ false }}">
     <div style="position:relative;background:var(--color-accent-900);color:var(--color-bg);padding:7px 32px 8px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;min-height:30px;border-top:1px solid color-mix(in srgb,var(--color-bg) 22%,transparent)">
       <span style="font-size:11.5px;line-height:1.5;min-width:0">{{ vueIntegreTxt }}</span>
-      <button type="button" class="{{ vueIntegreExportCls }}" style="cursor:pointer;font:inherit;font-size:11px;padding:3px 10px;white-space:nowrap;border-radius:0" onClick="{{ exporterDepuisIntegre }}" title="Une copie datée, sur votre disque. C’est ce fichier que vous réimporterez dans l’onglet à part.">{{ copieTxt }}</button>
+      <button type="button" class="{{ vueIntegreExportCls }}" style="cursor:pointer;font:inherit;font-size:11px;padding:3px 10px;white-space:nowrap;border-radius:0" onClick="{{ exporterDepuisIntegre }}" disabled="{{ copieBloque }}" title="{{ copieAide }}">{{ copieTxt }}</button>
       <button type="button" class="{{ vueIntegreOuvrirCls }}" style="cursor:pointer;font:inherit;font-size:11px;padding:3px 10px;white-space:nowrap;border-radius:0" onClick="{{ ouvrirOngletPropre }}" title="{{ vueIntegreOuvrirAide }}">Ouvrir dans un onglet</button>
       <span style="font-size:11px;margin-inline-start:auto;white-space:nowrap;opacity:.75">{{ vueIntegreExportTxt }}</span>
     </div>
@@ -503,7 +503,7 @@
       <sc-if value="{{ aCmdBandeau }}" hint-placeholder-val="{{ false }}">
         <span style="display:flex;gap:9px;flex:none;align-items:center">
           <button type="button" style="cursor:pointer;font:inherit;font-size:12px;padding:4px 11px;background:none;color:var(--color-bg);border:1px solid var(--color-bg);white-space:nowrap" onClick="{{ basculerPause }}" title="{{ pauseAide }}">{{ pauseBouton }}</button>
-          <button type="button" style="cursor:pointer;font:inherit;font-size:12px;padding:4px 11px;background:none;color:var(--color-bg);border:1px solid color-mix(in srgb,var(--color-bg) 55%,transparent);white-space:nowrap" onClick="{{ arreterScan }}" title="Le scan s'arrête après le calcul en cours ; les résultats déjà obtenus sont conservés">{{ arretBouton }}</button>
+          <button type="button" style="cursor:pointer;font:inherit;font-size:12px;padding:4px 11px;background:none;color:var(--color-bg);border:1px solid color-mix(in srgb,var(--color-bg) 55%,transparent);white-space:nowrap" onClick="{{ arreterScan }}" disabled="{{ arretBloque }}" title="{{ arretAide }}">{{ arretBouton }}</button>
         </span>
       </sc-if>
     </div>
@@ -684,7 +684,7 @@
           <sc-if value="{{ aRedemander }}" hint-placeholder-val="{{ false }}">
             <button class="btn btn-primary" type="button" style="min-height:1.95rem;font-size:11.5px;padding-inline:11px" onClick="{{ redemanderPersist }}">Demander la protection</button>
           </sc-if>
-          <button class="btn btn-secondary" type="button" style="min-height:1.95rem;font-size:11.5px;padding-inline:11px" onClick="{{ exporterTout }}">{{ copieTxt }}</button>
+          <button class="btn btn-secondary" type="button" style="min-height:1.95rem;font-size:11.5px;padding-inline:11px" onClick="{{ exporterTout }}" disabled="{{ copieBloque }}" title="{{ copieAide }}">{{ copieTxt }}</button>
           <!-- Un contrôle qui ne peut pas recevoir ce qu'on lui apporte vaut moins que
                pas de contrôle : c'est un <label> avec son champ invisible par-dessus,
                comme les zones du cadre MT5. -->
@@ -3385,7 +3385,7 @@
                 <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end">
                   <div style="display:flex;gap:9px">
                     <button type="button" style="cursor:pointer;border:1px solid color-mix(in srgb,var(--color-bg) 45%,transparent);background:none;color:var(--color-bg);font-family:var(--font-body);font-size:12px;padding:6px 13px;white-space:nowrap" onClick="{{ basculerPause }}" title="{{ pauseAide }}">{{ pauseBouton }}</button>
-                    <button type="button" style="cursor:pointer;border:1px solid color-mix(in srgb,var(--color-bg) 45%,transparent);background:none;color:var(--color-bg);font-family:var(--font-body);font-size:12px;padding:6px 13px;white-space:nowrap" onClick="{{ arreterScan }}" title="Le scan s’arrête après le calcul en cours ; les résultats déjà obtenus sont conservés">{{ arretBouton }}</button>
+                    <button type="button" style="cursor:pointer;border:1px solid color-mix(in srgb,var(--color-bg) 45%,transparent);background:none;color:var(--color-bg);font-family:var(--font-body);font-size:12px;padding:6px 13px;white-space:nowrap" onClick="{{ arreterScan }}" disabled="{{ arretBloque }}" title="{{ arretAide }}">{{ arretBouton }}</button>
                   </div>
                   <!-- la phrase du cadre disparu — à portée du geste qu'elle rassure.
                        Sans « ci-dessous » : depuis un pied collant, un mot de position
@@ -3912,7 +3912,7 @@
             -->
             <span style="font-size:11px;line-height:1.5;margin-top:-6px" class="text-muted">Le contrôle du hasard, corrigé de la sélection, se calcule pendant le scan — entrées au hasard sur vos prix, jamais un mélange des prix. Le nombre de tirages vaut pour toute la page ; pousser AJOUTE des tirages, il ne recommence rien.</span>
             <sc-if value="{{ aCorMsg }}" hint-placeholder-val="{{ false }}">
-              <span style="font-size:11px;color:var(--color-accent-700);display:inline-flex;gap:10px;align-items:baseline">{{ corMsg }}<button type="button" class="tag tag-outline" style="cursor:pointer" onClick="{{ corArreter }}" title="Arrête le complètement en arrière-plan. Les tirages déjà faits restent : relancer AJOUTE, il ne recommence rien.">Arrêter</button></span>
+              <span style="font-size:11px;color:var(--color-accent-700);display:inline-flex;gap:10px;align-items:baseline">{{ corMsg }}<button type="button" class="tag tag-outline" style="cursor:pointer" onClick="{{ corArreter }}" disabled="{{ corArretDemande }}" title="{{ corArreterAide }}">Arrêter</button></span>
             </sc-if>
             <sc-if value="{{ aHasardMsg }}" hint-placeholder-val="{{ false }}">
               <span style="font-size:11px;color:var(--color-accent-900)">{{ hasardMsg }}</span>
@@ -4028,6 +4028,12 @@
                         <div style="display:flex;flex-direction:column;gap:1px;min-width:0">
                           <span style="font-size:9px;letter-spacing:.06em;text-transform:uppercase" class="text-muted" title="{{ tr2.hasTousAide }}">{{ tr2.hasTitre }}</span>
                           <span style="font-size:11px;line-height:1.35;color:{{ tr2.hasCouleur }}" title="{{ tr2.hasardPhrase }}">{{ tr2.hasMot }}</span>
+                          <!-- La commande du contrôle vit ICI, sur la carte où le verdict
+                               manque — pas dans une ligne d'état au-dessus de toutes les
+                               cartes. Le geste est à l'endroit où son absence se voit. -->
+                          <sc-if value="{{ tr2.aCorUn }}" hint-placeholder-val="{{ false }}">
+                            <button type="button" class="tag tag-outline" style="cursor:pointer;font-size:10px;align-self:flex-start;margin-top:2px;white-space:nowrap" title="{{ tr2.corUnAide }}" onClick="{{ tr2.corUn }}">{{ tr2.corUnTxt }}</button>
+                          </sc-if>
                         </div>
                       </div>
                     </div>
@@ -4768,10 +4774,13 @@
           <sc-if value="{{ perime }}" hint-placeholder-val="{{ false }}">
             <span style="font-size:11px;color:var(--color-accent-700)">réglages modifiés — mesurez avant de sauvegarder</span>
           </sc-if>
+          <sc-if value="{{ aBtSauve }}" hint-placeholder-val="{{ false }}">
+            <span style="font-size:11px;color:var(--color-accent-700)">rangé dans le journal des tests — page Journal</span>
+          </sc-if>
           <div style="display:flex;gap:6px;margin-inline-start:auto">
             <button type="button" class="btn btn-ghost" style="min-height:1.7rem;font-size:11px;padding-inline:9px" onClick="{{ ouvrirSecu }}" title="{{ btSecuTxt }} {{ fraisInfo }}">Sécurisation &amp; frais…</button>
             <button type="button" class="btn btn-secondary" style="min-height:1.7rem;font-size:11px;padding-inline:9px" onClick="{{ sauverBacktest }}" disabled="{{ perime }}" title="{{ sauverBtAide }}">Sauvegarder ce résultat</button>
-            <button type="button" class="btn btn-primary" style="min-height:1.7rem;font-size:11px;padding-inline:11px" onClick="{{ lancerTest }}">Mesurer</button>
+            <button type="button" class="btn btn-primary" style="min-height:1.7rem;font-size:11px;padding-inline:11px" onClick="{{ lancerTest }}" disabled="{{ btMesurerNon }}" title="{{ btMesurerAide }}">Mesurer</button>
           </div>
         </div>
 
@@ -5467,7 +5476,7 @@
           <span style="font-family:var(--font-heading);font-size:17px">Emporter ou remettre</span>
           <span style="font-size:11px;line-height:1.55;color:var(--color-neutral-700)">Rien ne sort de ce navigateur sans que vous le demandiez. La sauvegarde chiffrée se dépose où vous voulez — disque, clé, cloud — et ne s'ouvre qu'avec votre phrase secrète, qui n'est ni transmise ni récupérable.</span>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button class="btn btn-primary" type="button" style="min-height:2rem;font-size:12px;padding-inline:13px" onClick="{{ exporterTout }}">{{ copieTxt }}</button>
+            <button class="btn btn-primary" type="button" style="min-height:2rem;font-size:12px;padding-inline:13px" onClick="{{ exporterTout }}" disabled="{{ copieBloque }}" title="{{ copieAide }}">{{ copieTxt }}</button>
             <button class="btn btn-secondary" type="button" style="min-height:2rem;font-size:12px;padding-inline:11px" onClick="{{ ouvrirTiroir }}" title="Ouvre l'Intendance, où la sauvegarde chiffrée se prépare : phrase secrète, séries incluses ou non.">Sauvegarde chiffrée</button>
             <label class="btn btn-secondary" style="cursor:pointer;display:inline-flex;align-items:center;min-height:2rem;font-size:12px;padding-inline:11px">
               Réimporter
@@ -5804,7 +5813,7 @@
       <button type="button" style="cursor:pointer;border:none;background:var(--color-bg);color:var(--color-accent-900);font-family:var(--font-body);font-size:12px;padding:5px 12px;white-space:nowrap" onClick="{{ sansSauvAgir }}">{{ sansSauvBouton }}</button>
     </sc-if>
     <sc-if value="{{ aSansSauvExporter }}" hint-placeholder-val="{{ false }}">
-      <button type="button" style="cursor:pointer;background:none;border:1px solid color-mix(in srgb,var(--color-bg) 45%,transparent);color:var(--color-bg);font-family:var(--font-body);font-size:12px;padding:4px 11px;white-space:nowrap" onClick="{{ sansSauvExporter }}" title="{{ copieAide }}">{{ copieTxt }}</button>
+      <button type="button" style="cursor:pointer;background:none;border:1px solid color-mix(in srgb,var(--color-bg) 45%,transparent);color:var(--color-bg);font-family:var(--font-body);font-size:12px;padding:4px 11px;white-space:nowrap" onClick="{{ sansSauvExporter }}" disabled="{{ copieBloque }}" title="{{ copieAide }}">{{ copieTxt }}</button>
     </sc-if>
     <button type="button" style="cursor:pointer;background:none;border:1px solid color-mix(in srgb,var(--color-bg) 45%,transparent);color:var(--color-bg);font-family:var(--font-body);font-size:12px;padding:4px 11px;white-space:nowrap" onClick="{{ sansSauvImporter }}" title="Recharge un fichier « Enregistrer une copie » — le retour après une perte, ou depuis un autre navigateur. Le fichier est examiné avant d’écraser quoi que ce soit.">Importer mes données</button>
     <span style="width:1px;align-self:stretch;background:color-mix(in srgb,var(--color-bg) 30%,transparent)"></span>
@@ -9421,9 +9430,32 @@ GROUPES = {
       [p + 'Texte']: (e) => { this['_' + p + 'Texte'] = e.target.value; },
       [p + 'Tol']: String(tolH),
       ['set' + P + 'Tol']: (e) => this.setState({ cmpTolH: Number(e.target.value) || 2 }),
-      ['comparer' + P]: () => this.setState({ cmpMt5: this['_' + p + 'Texte'] || '' }),
+      // ————— UN COLLAGE VIDE REPOSAIT LA VALEUR DÉJÀ EN PLACE —————
+      // Le geste faisait `setState({ cmpMt5: '' })` sur un état où `cmpMt5` valait déjà
+      // '' : même valeur, même rendu, ZÉRO mutation — mesuré au banc, pas même une
+      // mutation brute. Le bouton s'offrait comme cliquable en ne pouvant rien faire,
+      // la même famille qu'« Exporter (CSV) » et « Ne rien écarter », et le refus
+      // était SILENCIEUX.
+      //
+      // Il se dit maintenant, et il se dit sur un RÉSULTAT : ce qu'il y a dans le
+      // cadre au moment du clic, pas une intention de l'avoir rempli. Le texte vit
+      // hors de l'état (une frappe ne doit pas relancer `renderVals`), donc le bouton
+      // ne peut pas se griser à la frappe — c'est le clic qui répond, et c'est la
+      // seule forme honnête ici.
+      ['comparer' + P]: () => {
+        const t = String(this['_' + p + 'Texte'] || '').trim();
+        this.setState({ cmpMt5: t, cmpVide: t ? null : p });
+      },
       ['a' + P]: false, [p + 'Chiffres']: '', [p + 'Verdict']: '', [p + 'Rows']: [], ['a' + P + 'Rows']: false,
     };
+    // le refus, rendu par la même surface que les verdicts — un message de plus aurait
+    // été un second endroit où regarder
+    if (this.state.cmpVide === p) {
+      return { ...base, ['a' + P]: true,
+        [p + 'Verdict']: 'Le cadre de collage est vide : il n’y a rien à comparer. Copiez '
+          + 'l’onglet « Transactions » du testeur MT5, ou le tableau du rapport HTML, '
+          + 'collez-le dans le cadre, puis relancez la comparaison.' };
+    }
     // Analyser le rapport collé (plusieurs centaines de lignes, une recherche de décalage
     // sur 25 heures, un appariement de tous les trades) à chaque rendu rendait la saisie
     // saccadée sur toute l'application : renderVals tourne à chaque frappe.
@@ -12228,15 +12260,24 @@ GROUPES = {
   // compte de découverte est lancé sans être attendu, et le catalogue est encore celui
   // d'avant. Il est donc appelé aux trois moments où il peut enfin trancher — après
   // l'ouverture du compte, à la fin du semis, et avant toute mesure.
-  recadrerBtSym() {
+  // LA QUESTION SE POSE SANS QUE RIEN NE BOUGE. « Mesurer » se grise quand un clic
+  // ne peut RIEN changer, et le recadrage est l'autre chose qu'un clic peut faire :
+  // sans prédicat pur, le bouton aurait dû deviner (règle 1) ou recopier la
+  // condition — deux vérités qui divergent au premier catalogue qui change.
+  // Il rend l'instrument à poser, ou `null` s'il n'y a rien à recadrer.
+  recadrageBtSym() {
     const cat = this.SYMBOLES;
-    if (!cat.length) return false;
+    if (!cat.length) return null;
     const cur = this.state.btSym;
-    if (cur && cat.includes(cur)) return false;
+    if (cur && cat.includes(cur)) return null;
     // un instrument dont la série est chargée, sinon le compte s'ouvre sur un backtest
     // qui ne peut rien mesurer
     const neuf = cat.find((x) => this.aSerieChargee(x)) || cat[0];
-    if (!neuf || neuf === cur) return false;
+    return (!neuf || neuf === cur) ? null : neuf;
+  }
+  recadrerBtSym() {
+    const neuf = this.recadrageBtSym();
+    if (!neuf) return false;
     this.setState({ btSym: neuf, venuDeHisto: null, erreur: null }, () => this.lancerTest());
     return true;
   }
@@ -15393,7 +15434,12 @@ GROUPES = {
   }
   async tirerCor(sym, dfH1, tetes, depart, fin, graine, opts = {}) {
     const total = fin - depart;
-    const workers = this.lancerWorkers();
+    // `lancerWorkers` n'a JAMAIS existé : la fabrique s'appelle `ouvrirWorkers`, et
+    // `tirerCor` jetait donc un TypeError à CHAQUE contrôle du hasard. Rien ne
+    // l'attrapait — ni la garde de portée, qui ne voit que les identifiants libres
+    // et pas les accès à un membre, ni la tournée des gestes, dont le banc n'atteint
+    // pas ce chemin. Le contrôle était mort pour tout le monde.
+    const workers = this.ouvrirWorkers();
     let enPar = workers.length >= 1;
     if (enPar) enPar = await this.preparerWorkers(workers, dfH1, sym);
     if (enPar) {
@@ -15495,22 +15541,42 @@ GROUPES = {
   // cache du fil principal croissait de façon monotone sur tout l'arriéré pendant
   // que l'export devait sérialiser des mégaoctets à côté. Les cœurs, eux, sont
   // constants : une seule écurie mémoïsée, bougies remplacées à chaque instrument.
-  async completerCor(cible) {
+  // ————— UN SEUL ORDONNANCEUR, ET LA RESTRICTION EST UN ARGUMENT —————
+  //
+  // La commande par INSTRUMENT et le complètement de tous les scans antérieurs
+  // sont le même travail à deux échelles : même boucle, même pause sur l'export,
+  // même arrêt, même libération des bougies par instrument. Deux boucles
+  // divergeraient — c'est la leçon des quatre producteurs qui recalculaient
+  // chacun leur copie. `syms` restreint, il ne duplique pas.
+  //
+  // ET LA VUE NE REFUSE PLUS EN SILENCE. « historique » gardait le complètement
+  // AUTOMATIQUE là où il a un sens ; appliquée à une commande EXPLICITE, elle
+  // rendait le bouton muet partout ailleurs — on clique, rien ne part, rien ne le
+  // dit. Un geste demandé s'exécute où qu'on soit ; c'est la reprise automatique
+  // qui reste liée à sa page.
+  async completerCor(cible, opts = {}) {
     if (this._corFond || !this.N || !this.M) return;
-    if (this.state.vue !== 'historique' || this.state.scanEnCours) return;
+    if (this.state.scanEnCours) return;
+    if (!opts.explicite && this.state.vue !== 'historique') return;
     const but = Math.max(200, Number(cible) || Number(this.state.nTirages) || 500);
-    const aFaire = this.corAFaire(but);
+    const tout = this.corAFaire(but);
+    const aFaire = opts.syms ? tout.filter((x) => opts.syms.includes(x)) : tout;
     if (!aFaire.length) return;
+    this._corExplicite = !!opts.explicite;
     this._corFond = true;
     this._corStop = false;
     try {
       for (let i = 0; i < aFaire.length; i++) {
         // l'export a priorité : pause tant qu'il court, reprise quand il finit —
         // au grain de l'instrument, le seul point où la boucle a la main
-        while (this.state.exportEnCours && this.state.vue === 'historique' && !this._corStop) {
+        while (this.state.exportEnCours && !this._corStop) {
           await new Promise((z) => setTimeout(z, 400));
         }
-        if (this.state.vue !== 'historique' || this.state.scanEnCours || this._corStop) break;
+        // une commande explicite ne s'interrompt pas parce qu'on a changé d'onglet :
+        // c'est le travail qu'on a demandé. La reprise automatique, elle, s'arrête
+        // quand on quitte sa page — personne ne l'a demandée.
+        if ((!this._corExplicite && this.state.vue !== 'historique')
+          || this.state.scanEnCours || this._corStop) break;
         const sym = aFaire[i];
         const dejaCharge = !!(this.dfs && this.dfs[sym] !== undefined);
         this.setState({ corMsg: 'hasard corrigé : ' + this.nomComplet(sym)
@@ -15523,6 +15589,7 @@ GROUPES = {
       }
     } finally {
       this._corFond = false;
+      this._corExplicite = false;
       this.setState({ corMsg: null });
       // les cœurs ne survivent pas au calcul de fond : un worker vivant garde une
       // copie des bougies — sauf si un scan les utilise encore
@@ -15558,7 +15625,13 @@ GROUPES = {
   }
   pousserCor(cible) {
     const n = Math.max(200, Math.min(20000, Number(cible) || 500));
-    this.setState({ nTirages: n }, () => { this.ecrireSession(); this.completerCor(n); });
+    // « Tout contrôler », en dernier recours : il enfile les instruments un par un
+    // dans LE MÊME ordonnanceur que la commande par carte, et s'arrête proprement.
+    // `explicite` parce qu'on l'a demandé : sans lui, le poussage partait en
+    // silence dès qu'on n'était pas sur l'historique — on clique, rien ne part,
+    // rien ne le dit.
+    this.setState({ nTirages: n },
+      () => { this.ecrireSession(); this.completerCor(n, { explicite: true }); });
   }
   // Les champs de la CARTE : le verdict corrigé de l'instrument, sur le critère du
   // classement actif — un chiffre qui suit le tri correctement, au lieu de comparer
@@ -15570,12 +15643,44 @@ GROUPES = {
     const c = N && N.CRITERES_HASARD.includes(tri) ? tri : 'total';
     const e = this.corDe(sym);
     if (!e || !e.tirages) {
+      // ————— LE GESTE EST LÀ OÙ SON ABSENCE SE VOIT —————
+      //
+      // Le verdict manque SUR CETTE CARTE : c'est donc ici que se commande son
+      // calcul, et pas dans une ligne d'état au-dessus de toutes les cartes. Le
+      // même déplacement que la confirmation de dépôt, qui vient au geste.
+      //
+      // L'INSTRUMENT EST L'UNITÉ QUI A UN SENS : les têtes sont retenues par
+      // instrument, le verdict se lit sur une carte d'instrument, et le grain de
+      // l'ordonnanceur était déjà l'instrument. Le bouton ne crée donc aucun
+      // découpage : il en commande un qui existe.
+      //
+      // LE NOMBRE DE TIRAGES RESTE GLOBAL — le champ de la barre. Choisi par
+      // instrument, il produirait des colonnes incomparables sur le même écran :
+      // un p ne se compare pas entre deux finesses.
+      //
+      // ET LA DURÉE DÉPEND DE CE QU'ON DEMANDE : `dureeCor` restreinte à ce seul
+      // symbole — la même formule que le complètement, pas une seconde.
       const enCours = !!(s.corMsg || this._corFond || s.scanEnCours);
+      const nCfg = this.tetesCourantes(sym).length;
+      const but = Math.max(200, Number(s.nTirages) || TIRAGES_DEFAUT);
+      const aFaire = nCfg > 0 && this.corAFaire(but).includes(sym);
+      const duree = aFaire ? this.dureeCor(but, [sym]) : null;
       return { hasTitre: 'Verdict · sélection corrigée',
         hasChiffre: '—',
         hasMot: enCours ? 'calcul en cours…' : 'pas encore calculé',
         hasCouleur: 'var(--color-neutral-500)',
-        hasTousAide: 'Le verdict corrigé se calcule pendant le scan. Pour un scan antérieur, lancez le complètement depuis la ligne d\u2019état au-dessus des cartes — elle dit combien de verdicts manquent et combien de temps ils coûtent.',
+        aCorUn: aFaire && !enCours,
+        corUnTxt: 'Contrôler · ' + this.pl(nCfg, 'config.', 'config.')
+          + (duree ? ' · environ ' + duree : ''),
+        corUnAide: 'Rejoue les ' + this.pl(nCfg, 'configuration retenue', 'configurations retenues')
+          + ' de cet instrument avec des entrées tirées au sort, à '
+          + but.toLocaleString('fr-FR') + ' tirages — le nombre se règle dans la barre, '
+          + 'et il vaut pour toute la page : un p ne se compare pas entre deux finesses. '
+          + 'Un instrument à la fois ; les autres cartes restent cliquables.',
+        corUn: () => this.completerCor(but, { syms: [sym], explicite: true }),
+        hasTousAide: 'Le verdict corrigé se calcule pendant le scan. Pour un scan antérieur, '
+          + 'commandez-le ici, sur la carte où il manque — ou en bloc depuis la ligne d\u2019état '
+          + 'au-dessus des cartes, qui enfile les instruments dans le même ordonnanceur.',
         hasardPhrase: 'hasard corrigé : pas encore calculé' };
     }
     const tetes = e.tetes || [];
@@ -15685,7 +15790,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260916.18';
+  VERSION_APP = '260916.19';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -15730,6 +15835,20 @@ GROUPES = {
       n: r.n, total: r.total, rAn: r.rAn, winRate: r.winRate, pf: r.pf, dd: r.dd,
       positifs: s.seg ? s.seg.positifs : null, segTotal: s.seg ? s.seg.total : null };
     this.ecrireRuns([run, ...this.lireRuns()]);
+    // ————— UN DÉPÔT RÉUSSI SE CONFIRME AU GESTE —————
+    // Le résultat partait dans le journal — une AUTRE page — et celle-ci ne disait
+    // rien : mesuré au banc, zéro mutation, pas même une mutation brute, pendant que
+    // le registre des runs passait de 0 à 1. C'est « message sans surface » sur un
+    // geste qui RÉUSSIT, et c'est le pire des deux : un geste qui échoue en silence
+    // finit par être recommencé, un geste qui réussit en silence est recommencé AUSSI,
+    // et range le même résultat deux fois.
+    //
+    // La confirmation est tenue par la SIGNATURE et non par un horodatage : elle dit
+    // « le résultat que vous avez sous les yeux est rangé », donc elle s'efface d'elle-
+    // même dès qu'un réglage change (`perime()`) ou qu'une nouvelle mesure tombe. Un
+    // minuteur aurait menti dans les deux sens — encore là quand les chiffres ont
+    // changé, déjà parti quand on revient sur la page.
+    this.setState({ btSauve: s.signature });
   }
   sauverScan() {
     const s = this.state;
@@ -18855,9 +18974,29 @@ GROUPES = {
   // échoue en silence est plus dangereux que l'absence de bouton : on croit avoir
   // une copie.
   async exporterTout() {
+    // ————— DEUX COPIES À LA FOIS, ET RIEN NE LE DISAIT —————
+    // Le bouton restait offert pendant l'écriture. Mesuré : deux clics rapprochés
+    // donnent DEUX téléchargements, deux lectures concurrentes du même stockage, et
+    // le premier export qui finit repose `exportEnCours` à faux pendant que l'autre
+    // lit encore — la sauvegarde automatique et le complètement de fond, qui tiennent
+    // leur pause à ce témoin, repartent sous une lecture en cours.
+    //
+    // Et le second clic ne produisait PAS une mutation : `setState({ exportEnCours:
+    // true })` reposait la valeur déjà en place. Geste offert, rien à l'écran,
+    // travail doublé en dessous — la forme la plus coûteuse des trois.
+    if (this.state.exportEnCours) return;
     // le témoin que le complètement de fond ET la sauvegarde automatique
     // regardent : l'export a priorité, et rien ne s'écrit sous sa lecture
     this.setState({ exportEnCours: true });
+    // ————— ET ON REND LA MAIN AVANT DE LIRE —————
+    // Poser le témoin ne suffit pas à le MONTRER : la lecture du stockage qui suit est
+    // synchrone et longue, React n'avait pas repeint, et le bouton restait vif à
+    // l'écran pendant toute la copie. Mesuré : sur l'état peuplé, le premier rendu
+    // arrivait après la fenêtre de 700 ms du banc, et le geste était rapporté « aucune
+    // réaction du tout » une exécution sur deux — ce que voit l'utilisateur aussi.
+    // C'est le même geste que `testerUneFois` fait avant son calcul, pour la même
+    // raison : une valeur posée dans l'état n'est à l'écran qu'après un rendu.
+    await new Promise((z) => setTimeout(z, 0));
     this.libererBougiesExport();
     try {
       const licE = this.ligneLicenceExport();
@@ -23452,6 +23591,17 @@ GROUPES = {
         };
       })(),
       arreterScan: () => { this._stopScan = true; this._causeArret = 'manuel'; this.setState({ scanArret: true }); },
+      // ————— ET IL NE SE REDEMANDE PAS —————
+      // Le second clic reposait `scanArret: true` sur un état qui le portait déjà :
+      // même valeur, même rendu, zéro mutation. Le libellé disait « Arrêt en cours… »
+      // et le bouton restait cliquable — il s'offrait pour un geste déjà fait, et
+      // c'est précisément le moment où l'on reclique, parce que l'arrêt n'arrive
+      // qu'après le calcul en cours.
+      arretBloque: !!s.scanArret,
+      arretAide: s.scanArret
+        ? 'L’arrêt est déjà demandé : le scan rend la main après le calcul en cours. '
+          + 'Les résultats déjà obtenus sont conservés.'
+        : 'Le scan s’arrête après le calcul en cours ; les résultats déjà obtenus sont conservés',
       basculerPause: () => {
         const p = !this._pauseScan;
         this._pauseScan = p;
@@ -23652,6 +23802,26 @@ GROUPES = {
       sauverBtAide: (!!res && this.perime())
         ? 'Les réglages ont changé depuis cette mesure : les chiffres affichés sont périmés. Relancez le test avant de sauvegarder.'
         : 'Range ce résultat dans le journal des tests (page Journal), avec ses réglages.',
+      // ————— « MESURER » ET « SAUVEGARDER » SONT EXACTEMENT COMPLÉMENTAIRES —————
+      // `perime()` vaut « il n'y a pas de résultat, ou il ne correspond plus aux
+      // réglages ». Sauvegarder est refusé quand il est VRAI ; mesurer ne peut rien
+      // faire quand il est FAUX — `testerUneFois` sort alors sans un mot, et le bouton
+      // s'offrait quand même. Un seul des deux est vivant à chaque instant, et c'est
+      // la même mesure qui le dit : deux conditions recopiées auraient divergé.
+      //
+      // L'AUTRE CHOSE QU'UN CLIC PEUT FAIRE est le recadrage de l'instrument, quand le
+      // compte ouvert ne porte plus celui du backtest. Elle se demande au prédicat PUR
+      // (`recadrageBtSym`), pas à une intention : griser sur le seul `perime()` aurait
+      // fermé le seul geste capable de remettre la page d'aplomb après un changement
+      // de compte.
+      btMesurerNon: !this.perime() && !this.recadrageBtSym(),
+      btMesurerAide: (!this.perime() && !this.recadrageBtSym())
+        ? 'Ces chiffres sont déjà ceux de vos réglages actuels : il n’y a rien à remesurer. '
+          + 'Changez un réglage, un filtre ou l’instrument, et le bouton se rallume.'
+        : 'Mesure ce jeu de réglages sur l’instrument choisi.',
+      // La confirmation du dépôt : elle tient à la signature du résultat AFFICHÉ, donc
+      // elle tombe d'elle-même au premier réglage changé comme à la mesure suivante.
+      aBtSauve: !!s.signature && s.btSauve === s.signature && !this.perime(),
       btPath, btZero, btAire, btGradsY, btGradsX,
       aBtCreux: !!creux,
       btCreuxX: creux ? creux.x : '0', btCreuxY: creux ? creux.y : '0',
@@ -27001,7 +27171,13 @@ GROUPES = {
       listeNom: this.LISTE_NOM,
       listeChemin: this.LISTE_CHEMIN,
       copieTxt: this.COPIE_TXT,
-      copieAide: this.COPIE_AIDE,
+      // l'inhibition et son infobulle, pour les CINQ rendus du même geste : un seul
+      // producteur, sinon quatre copies de la même condition à tenir d'accord
+      copieBloque: !!s.exportEnCours,
+      copieAide: s.exportEnCours
+        ? 'Une copie est en cours d’écriture. Le bouton se rallume quand elle est '
+          + 'terminée — relancer maintenant en écrirait une seconde en parallèle.'
+        : this.COPIE_AIDE,
       aAutoMsg: !!s.autoMsg,
       // le détail de la pause se DÉPLIE : nécessaire une fois, pas en permanence
       aAutoDetail: !!s.autoDetail,
@@ -28592,7 +28768,25 @@ GROUPES = {
             poser: () => this.setState({ nTirages: n }, () => this.ecrireSession()),
           })),
           aCorMsg: !!s.corMsg, corMsg: s.corMsg || '',
-          corArreter: () => { this._corStop = true; },
+          // ————— UN ARRÊT DEMANDÉ SE DIT, ET NE SE REDEMANDE PAS —————
+          // Le drapeau vit HORS de l'état, et c'est voulu : la boucle le relit à chaque
+          // instrument sans qu'un rendu soit nécessaire. Mais l'ÉCRAN n'en savait rien
+          // — zéro `setState`, donc zéro mutation, mesuré au banc. Le geste était FAIT
+          // et rien ne l'accusait : la ligne continuait à compter, le bouton restait
+          // offert, et l'arrêt n'arrive qu'à la fin de l'instrument en cours — le délai
+          // même où l'on doute d'avoir cliqué.
+          corArretDemande: !!this._corStop,
+          corArreterAide: this._corStop
+            ? 'L’arrêt est déjà demandé : le complètement rend la main à la fin de '
+              + 'l’instrument en cours. Les tirages déjà faits restent.'
+            : 'Arrête le complètement en arrière-plan. Les tirages déjà faits restent : '
+              + 'relancer AJOUTE, il ne recommence rien.',
+          corArreter: () => {
+            if (this._corStop) return;
+            this._corStop = true;
+            this.setState({ corMsg: (this.state.corMsg || 'contrôle du hasard')
+              + ' — arrêt demandé, à la fin de l’instrument en cours' });
+          },
           // ————— LE PRIX SE DIT AVANT DE LANCER —————
           // La ligne d'état des scans antérieurs : combien de verdicts manquent, et
           // combien de temps leur calcul prendrait — estimé d'après la vitesse
