@@ -14400,6 +14400,16 @@ GROUPES = {
     return Math.max(1, Math.min(n, 12));
   }
   ouvrirWorkers() {
+    // ————— UN JEU DE CŒURS MORT NE SE ROUVRE PAS À CHAQUE INSTRUMENT —————
+    // Mesuré : sur une page où les workers ne démarrent pas, les trois échouent d'un
+    // coup et `preparerWorkers` rend faux — le premier instrument passe par le repli
+    // séquentiel et aboutit. Le SECOND rappelle `preparerWorkers` sur ces mêmes cœurs
+    // morts : ils ne répondent plus jamais « pret », la promesse ne se règle pas, et
+    // le complètement reste bloqué sur « (2 / 10) » indéfiniment. La page, elle, garde
+    // ses 60 images par seconde : ce n'est pas un gel, c'est un arrêt qui ne se voit
+    // pas — et « Arrêter » n'en sort pas non plus, le drapeau n'étant relu qu'ENTRE
+    // deux instruments.
+    if (this._workersMorts) return [];
     if (this._workers) return this._workers;
     if (typeof Worker === 'undefined') { this._workers = []; return this._workers; }
     const L = [];
@@ -14424,10 +14434,29 @@ GROUPES = {
   // les bougies sont copiées une fois par cœur et par instrument, jamais par variante
   preparerWorkers(workers, df, sym) {
     if (this._workersSym === sym) return Promise.resolve(true);
+    if (!workers.length) return Promise.resolve(false);
     return new Promise((resolve) => {
       let restants = workers.length;
       let ok = true;
-      const fini = () => { if (--restants === 0) { this._workersSym = ok ? sym : null; resolve(ok); } };
+      let rendu = false;
+      // ————— UNE ATTENTE DE CŒUR A UNE FIN, TOUJOURS —————
+      // Un cœur déjà mort ne répond ni « pret » ni « error » à un `postMessage` : sans
+      // échéance, cette promesse ne se règle JAMAIS, et tout ce qui l'attend s'arrête
+      // sans un mot. On décide donc sur un RÉSULTAT observé — « ont-ils répondu ? » —
+      // et jamais sur l'intention « ils devraient répondre ».
+      const trancher = () => {
+        if (rendu) return;
+        rendu = true;
+        clearTimeout(minuteur);
+        this._workersSym = ok ? sym : null;
+        // ET L'ÉCHEC EST DÉFINITIF POUR LA SESSION. Rouvrir le même jeu au prochain
+        // instrument, c'est rejouer la panne à chaque tour : on ferme, on marque, et
+        // tout ce qui suit part directement au repli séquentiel — qui, lui, aboutit.
+        if (!ok) { this.fermerWorkers(); this._workersMorts = true; }
+        resolve(ok);
+      };
+      const minuteur = setTimeout(() => { ok = false; trancher(); }, 15000);
+      const fini = () => { if (--restants === 0) trancher(); };
       for (const w of workers) {
         w.onmessage = (e) => { if ((e.data || {}).type === 'pret') fini(); };
         w.onerror = () => { ok = false; fini(); };
@@ -15428,7 +15457,7 @@ GROUPES = {
     try { res = await this.tirerCor(sym, dfH1, charge, depart, fin, this.graineCor(cle), opts); }
     finally { this._corSymEnCours = null; }
     if (!res) return null;
-    const fusion = this.fusionCor(deja && deja.sig === sig ? deja : null, res, charge, fin, cle, sym, sig);
+    const fusion = this.fusionCor(deja && deja.sig === sig ? deja : null, res, charge, cle, sym, sig);
     this.noterHasardCor(cle, fusion);
     return fusion;
   }
@@ -15447,9 +15476,21 @@ GROUPES = {
       const parts = [];
       const pas = Math.max(1, Math.ceil(total / workers.length));
       for (let d = depart; d < fin; d += pas) parts.push([d, Math.min(fin, d + pas)]);
+      // ————— ET LE CALCUL LUI AUSSI A UNE FIN —————
+      // La même béance qu'à la préparation : un cœur qui meurt PENDANT le calcul ne
+      // renvoie rien, et sans échappatoire cette promesse ne se règle jamais. On rend
+      // `null`, et l'appelant retombe sur le repli séquentiel au lieu de s'arrêter.
+      // `mourir` est gardé dans une variable de la méthode, pas recréé au retrait :
+      // `removeEventListener` compare les RÉFÉRENCES, et une flèche neuve n'en retire
+      // aucune — un nettoyage qui a l'air d'un nettoyage et laisse tout en place.
+      let mourir = null;
       const morceaux = await new Promise((resolve) => {
         const out = [];
         let restants = parts.length;
+        let rendu = false;
+        const rendreUneFois = (v) => { if (rendu) return; rendu = true; clearTimeout(minuteur); resolve(v); };
+        const minuteur = setTimeout(() => rendreUneFois(null), 120000);
+        mourir = () => rendreUneFois(null);
         parts.forEach(([d, f], i) => {
           const w = workers[i % workers.length];
           const recevoir = (e) => {
@@ -15457,24 +15498,55 @@ GROUPES = {
             if (m.type !== 'controle' || m.id !== 'cor' + i) return;
             w.removeEventListener('message', recevoir);
             out.push(m);
-            if (--restants === 0) resolve(out);
+            if (--restants === 0) rendreUneFois(out);
           };
           w.addEventListener('message', recevoir);
+          w.addEventListener('error', mourir);
           w.postMessage({ type: 'controle', id: 'cor' + i,
             tetes: tetes.map((t) => ({ ...t, cfg: JSON.parse(JSON.stringify(t.cfg)) })),
             depart: d, fin: f, graine });
         });
       });
-      if (morceaux.some((m) => m.echec)) return null;
-      return this.additionnerCor(morceaux, tetes.length);
+      for (const w of workers) w.removeEventListener('error', mourir);
+      // un cœur perdu n'arrête pas le travail : il le renvoie au fil principal, qui
+      // sait le faire par tranches de 25 tirages en rendant la main entre deux
+      if (morceaux === null) { this.fermerWorkers(); this._workersMorts = true; }
+      else if (morceaux.some((m) => m.echec)) return null;
+      else return this.additionnerCor(morceaux, tetes.length);
     }
-    // repli séquentiel, par tranches, la main rendue entre deux
+    // ————— LA TRANCHE SE MESURE, ELLE NE SE DÉCRÈTE PAS —————
+    // Vingt-cinq tirages était un nombre ÉCRIT, et ce qu'il coûte dépend de ce qu'on
+    // lui donne : le nombre de têtes, la longueur de la série, la machine. Mesuré sur
+    // un arriéré réel, une tranche tenait 540 ms — le fil principal rendait DEUX
+    // images par seconde, et c'est exactement le « gel » rapporté. La main était bien
+    // rendue entre deux tranches ; c'est la tranche qui était trop grosse.
+    //
+    // On vise donc une DURÉE (50 ms, le seuil au-delà duquel une interaction se sent)
+    // et on ajuste sur ce que la précédente a réellement coûté — un résultat mesuré,
+    // jamais une constante devinée. On part petit : la première tranche est celle
+    // dont on ne sait encore rien, et c'est la seule qu'on ne peut pas borner d'avance.
+    const chrono = () => (typeof performance !== 'undefined' && performance.now
+      ? performance.now() : Date.now());
     const morceaux = [];
-    for (let d = depart; d < fin; d += 25) {
-      const f = Math.min(fin, d + 25);
+    let pas = 5;
+    for (let d = depart; d < fin; d += pas) {
+      const f = Math.min(fin, d + pas);
+      const t0 = chrono();
       let m = null;
       try { m = this.N.controleCorrige(dfH1, tetes, d, f, graine); } catch (e) { return null; }
       morceaux.push(m);
+      // ————— L'ARRÊT SE LIT DANS L'INSTRUMENT, PAS SEULEMENT ENTRE DEUX —————
+      // `_corStop` n'était relu qu'ENTRE deux instruments. Un instrument tenant une
+      // dizaine de secondes au repli séquentiel, « Arrêter » mettait jusqu'à dix
+      // secondes à mordre — assez pour qu'on le reclique en croyant l'avoir manqué.
+      // La tranche rendant la main toutes les 50 ms, la relire ici ne coûte rien.
+      // Ce qui a été tiré est GARDÉ : les tirages s'ajoutent, et `fusionCor`
+      // enregistre le compte réellement fait.
+      if (this._corStop) break;
+      const cout = chrono() - t0;
+      // bornes : jamais moins d'un tirage (un aller-retour par tirage coûterait plus
+      // que le calcul), jamais plus de 200 (au-delà on ne mesure plus, on parie)
+      if (cout > 0) pas = Math.max(1, Math.min(200, Math.round((pas * 50) / cout)));
       if (opts.progres) opts.progres(f - depart, total);
       await this.cederLeFil();
     }
@@ -15500,7 +15572,7 @@ GROUPES = {
     }
     return somme;
   }
-  fusionCor(deja, res, tetes, fin, cle, sym, sig) {
+  fusionCor(deja, res, tetes, cle, sym, sig) {
     const N = this.N;
     const au = {}, som = {}, nulMax = {};
     for (const c of N.CRITERES_HASARD) {
@@ -15519,7 +15591,16 @@ GROUPES = {
       }
       return { cle: t.cle, n: t.n, reels: t.reels, au: z };
     });
-    return { sym, sig, tirages: fin, au, som, nulMax, tetes: auTetes, date: Date.now() };
+    // ————— LE COMPTE ENREGISTRÉ EST CELUI QU'ON A FAIT, PAS CELUI QU'ON VISAIT —————
+    // `tirages: fin` inscrivait la CIBLE. Tant que le calcul allait toujours au bout,
+    // les deux coïncidaient ; dès qu'un arrêt interrompt un instrument, la cible est
+    // un mensonge de mesure — et pas un mensonge inoffensif : `tirages` est le
+    // DÉNOMINATEUR de `p = (au + 1) / (tirages + 1)`. Enregistrer 500 pour 120 tirages
+    // réellement joués rendrait un p quatre fois trop petit, sur une carte qui
+    // affirmerait « se distingue du hasard ». On inscrit ce que les morceaux ont
+    // compté — un résultat, jamais l'intention de l'atteindre (règle 1).
+    const faits = ((deja && deja.tirages) || 0) + (res.tirages || 0);
+    return { sym, sig, tirages: faits, au, som, nulMax, tetes: auTetes, date: Date.now() };
   }
   // Les instruments d'un scan ANTÉRIEUR au contrôle qui manquent de verdict — la
   // même sélection que la ligne d'état de la page des scans, une seule vérité.
@@ -15790,7 +15871,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260916.19';
+  VERSION_APP = '260916.20';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -28750,7 +28831,21 @@ GROUPES = {
         return {
           corPousserTxt: 'Pousser à ' + cible.toLocaleString('fr-FR')
             + (dureeCible ? ' · environ ' + dureeCible : ''),
-          corPousserAide: 'Ajoute des tirages jusqu\u2019à ' + cible.toLocaleString('fr-FR')
+          // ————— UN BOUTON GRISÉ DIT POURQUOI, ET CE QUI LE RALLUME —————
+          // Il se grisait déjà quand tout est à la cible (`!resteAFaire`), mais son
+          // infobulle continuait à décrire ce qu'il FERAIT : « Ajoute des tirages
+          // jusqu'à 500 » sur un bouton éteint précisément parce que tout y est déjà.
+          // Griser sans expliquer remplace un geste muet par un bouton muet — et les
+          // deux raisons de l'éteindre ne se corrigent pas de la même façon : l'une
+          // demande d'attendre, l'autre de monter le nombre.
+          corPousserAide: (this._corFond || s.scanEnCours)
+            ? 'Un calcul est d\u2019abord à finir : ce bouton se rallume quand il rend la '
+              + 'main. Les tirages déjà joués sont conservés.'
+            : !resteAFaire(cible)
+            ? 'Tous les instruments du tableau ont déjà ' + cible.toLocaleString('fr-FR')
+              + ' tirages ou plus : il n\u2019y a rien à pousser. Montez le nombre dans le '
+              + 'champ à côté pour aller plus loin.'
+            : 'Ajoute des tirages jusqu\u2019à ' + cible.toLocaleString('fr-FR')
             + ' pour TOUS les instruments du tableau — jamais pour une seule carte. '
             + 'Poussé pour tous, le seuil resserre dans les deux sens : certains passent, '
             + 'd\u2019autres tombent. Les tirages déjà joués sont conservés : le verdict '
