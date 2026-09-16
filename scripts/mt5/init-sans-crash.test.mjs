@@ -128,3 +128,61 @@ test("le premier jalon est la PREMIÈRE instruction exécutable d'OnInit", () =>
     "les trois jalons ne sont plus dans l'ordre du déroulement : ils ne bornent plus "
     + "rien, ils décrivent");
 });
+
+test("aucune lecture d'historique ne se refait indéfiniment : la TENTATIVE est mémorisée", () => {
+  // ————— CE N'ÉTAIT PAS UN CRASH, C'ÉTAIT UNE BOUCLE —————
+  // Mesuré sur le VPS : CPU à 100 %, 2 h 12 d'uptime, aucun test terminé, aucun onglet
+  // de résultats. Le « disconnected / connection closed » du journal est l'agent qu'on
+  // TUE, pas un agent qui meurt. Le robot ne plante pas : il n'avance pas.
+  //
+  // Et la boucle n'est pas littérale — le source émis ne contient qu'UNE `while`, et
+  // elle est bornée (`j < nm`) ; tous les `for` décrémentent. La boucle est dans le
+  // CACHE :
+  //
+  //   · le garde exigeait `g_n > 0` ;
+  //   · les deux sorties d'échec rendaient la main AVANT d'écrire le cache.
+  //
+  // Donc quand l'historique manque, ou qu'aucun seau ne se forme, rien n'est mémorisé
+  // et TOUT est refait — Bars(), CopyRates() sur des milliers de bougies, puis la
+  // boucle d'agrégation — à chaque appel. Et `Agreger` est appelé plusieurs fois par
+  // tick, par C_, H_, L_ et LigneAgr.
+  //
+  // C'EST MOT POUR MOT LA PANNE FERMÉE LE MATIN MÊME DANS `Export_H1_Vena` :
+  // `AttendreHistorique` tournait 1 800 s parce que `lu = -1` ne satisfaisait jamais sa
+  // condition de sortie. Un échec qui se reproduit à l'identique n'est plus une
+  // attente, c'est une boucle. Le correctif avait été posé dans un fichier et pas dans
+  // l'autre — exactement comme `ArrayFree`. Deux fois la même leçon non portée d'un
+  // fichier à son voisin, en un jour : c'est ça qui mérite d'être retenu, plus que
+  // chacune des deux pannes.
+  //
+  // Le départage des instruments tombe alors sans rien supposer de leur configuration :
+  // celui dont l'historique est déjà profond agrège une fois par bougie H1 ; celui dont
+  // il manque recommence sans fin.
+  assert.ok(SRC.includes("   if(g_secCache == sec && g_bougieCache == derH1) return g_agrOk;"),
+    "le cache exige de nouveau un résultat pour se déclencher : sur un historique "
+    + "manquant il ne retient RIEN, et l'agrégation complète repart à chaque appel — "
+    + "plusieurs fois par tick, pour toujours. Un cœur à 100 %, aucun test qui finit.");
+  assert.ok(SRC.includes("   g_secCache = sec; g_bougieCache = derH1; g_agrOk = false;"),
+    "la TENTATIVE n'est plus mémorisée avant le travail : les sorties d'échec rendent "
+    + "la main sans laisser de trace, et la question « a-t-on déjà essayé pour cette "
+    + "bougie ? » redevient sans réponse");
+  assert.ok(SRC.includes("   g_agrOk = (g_n > 1);"),
+    "le résultat n'est plus publié séparément de la tentative : les deux redeviennent "
+    + "une seule valeur, et c'est cette confusion qui produisait la boucle");
+  assert.ok(!SRC.includes("g_bougieCache == derH1 && g_n > 0"),
+    "l'ancien garde est revenu : `g_n > 0` fait dépendre le cache du SUCCÈS, donc le "
+    + "cas le plus coûteux — celui où il n'y a rien à agréger — est précisément celui "
+    + "qui ne se mémorise pas");
+  // ————— ET LA BOUCLE LITTÉRALE RESTE BORNÉE —————
+  // Une seule `while` dans le source émis, et son test porte sur un compte : si une
+  // seconde apparaît, ou si celle-ci perd sa borne, cette garde le dit.
+  const whiles = SRC.match(/while\s*\([^)]*\)/g) || [];
+  assert.equal(whiles.length, 1,
+    "le source émis contient " + whiles.length + " boucles `while` au lieu d'une : "
+    + "chacune est une occasion de tourner sans fin dans un agent de test, et celle "
+    + "d'origine était bornée par un compte de tableau. Bornez la nouvelle, ou dites "
+    + "ici pourquoi elle ne peut pas tourner.\n  " + whiles.join("\n  "));
+  assert.match(whiles[0], /while\(j < nm && mT\[j\] < hT\[i\]\)/,
+    "la seule `while` du robot a changé de forme : elle était bornée par `j < nm`, le "
+    + "nombre d'éléments réellement lus. Vérifiez sa borne avant de réancrer.");
+});

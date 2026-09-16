@@ -379,6 +379,7 @@ int    g_n = 0;
 // d'historique reste invérifiable
 int    g_besoin = 0, g_dispo = 0, g_lus = 0;
 datetime g_diagDerniere = 0;
+bool   g_agrOk = false;    // RÉSULTAT de la dernière tentative, séparé de la tentative
 long   g_secCache = -1;
 datetime g_bougieCache = 0;
 
@@ -404,7 +405,26 @@ bool Agreger(long sec)
       if(CopyTime(_Symbol, PERIOD_H1, 0, 1, tt) < 1) return false;
       derH1 = tt[0];
    }
-   if(g_secCache == sec && g_bougieCache == derH1 && g_n > 0) return true;
+   // ————— ON MÉMORISE LA TENTATIVE, PAS LE SUCCÈS —————
+   // Le garde exigeait g_n > 0, et les deux sorties d'échec rendaient la main AVANT
+   // d'écrire le cache. Conséquence : quand l'historique manque ou qu'aucun seau ne se
+   // forme, rien n'est mémorisé et TOUT est refait — Bars(), CopyRates() sur des
+   // milliers de bougies, puis la boucle d'agrégation — à CHAQUE appel. Or Agreger
+   // est appelé plusieurs fois par tick, par C_, H_, L_ et LigneAgr.
+   //
+   // Dans le testeur, ça ne plante pas : ça tourne. Un cœur à 100 %, aucun test qui
+   // se termine, et l'agent finit par être tué — le « disconnected » du journal est
+   // l'agent qu'on TUE, pas un agent qui meurt.
+   //
+   // C'est mot pour mot la panne fermée le matin même dans Export_H1_Vena : un échec
+   // qui se reproduit à l'identique n'est plus une attente, c'est une boucle. Le
+   // correctif avait été posé dans un fichier et pas dans l'autre — comme ArrayFree.
+   //
+   // Et ça départage les instruments sans rien supposer de leur configuration : celui
+   // dont l'historique est déjà profond agrège une fois par bougie H1 ; celui dont il
+   // manque recommence sans fin.
+   if(g_secCache == sec && g_bougieCache == derH1) return g_agrOk;
+   g_secCache = sec; g_bougieCache = derH1; g_agrOk = false;
 
    // Demander un nombre FIXE de bougies fait échouer CopyRates tant que cet historique
    // n'existe pas : dans le testeur, le robot ne tradait rien pendant les trois premières
@@ -451,9 +471,8 @@ bool Agreger(long sec)
    }
    // le dernier seau est en cours de formation : on ne le garde pas
    if(g_n > 0) g_n--;
-   g_secCache = sec;
-   g_bougieCache = derH1;
-   return (g_n > 1);
+   g_agrOk = (g_n > 1);
+   return g_agrOk;
 }
 
 bool HeureGardee(datetime t)
