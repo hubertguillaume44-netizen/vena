@@ -932,16 +932,45 @@ void OnStart()
    // REPLI SUR L'ANCIEN DOSSIER. Une installation antérieure au renommage garde sa
    // liste dans Sivula\\ : la chercher ici évite de perdre une sélection sans rien dire.
    // Le dossier neuf l'emporte dès qu'il existe ; l'ancien n'est qu'un filet.
+   bool ancienAbsent = false;
    if(nFic <= 0)
    {
+      ancienAbsent = !FileIsExist("Sivula\\symboles.txt");
       nFic = LireListeFichier("Sivula\\symboles.txt", syms);
       if(nFic > 0)
          Print("Liste lue dans l'ancien dossier Sivula\\ : déplacez-la dans vena\\, "
                "ce repli disparaîtra dans une prochaine version.");
    }
    if(nFic > 0)
+   {
       PrintFormat("Liste lue dans %s : %d symbole(s). InpSymboles est ignoré.",
                   InpFichierListe, nFic);
+   }
+   // ————— UN CHEMIN DEMANDÉ ET NON TROUVÉ EST TOUJOURS UNE INFORMATION —————
+   // LireListeFichier rendait 0 SANS RIEN DIRE quand le fichier n'existe pas : le
+   // script retombait sur InpSymboles, puis sur le graphique courant, et l'utilisateur
+   // lisait « 1 symbole demandé » sans savoir pourquoi. C'est la classe du bouton des
+   // scripts MT5 dont la requête échouait sous une redirection — un chemin de repli
+   // qui RÉUSSIT silencieusement, donc que rien ne signale.
+   //
+   // Le silence ne reste légitime que dans un cas : personne n'a demandé de fichier
+   // (champ vide). Un chemin écrit par l'utilisateur et non trouvé se dit toujours,
+   // avec le chemin COMPLET — « vena\\symboles.txt » seul ne dit pas où chercher.
+   else if(StringLen(InpFichierListe) > 0)
+   {
+      string base = TerminalInfoString(TERMINAL_DATA_PATH) + "\\MQL5\\Files\\";
+      if(!FileIsExist(InpFichierListe))
+         PrintFormat("Liste introuvable : %s%s", base, InpFichierListe);
+      else
+         PrintFormat("Liste présente mais vide ou illisible : %s%s", base, InpFichierListe);
+      // LES DEUX ÉCHECS ÉTAIENT MUETS À LA SUITE : le repli se taisait lui aussi,
+      // et se taire deux fois ne fait pas une explication. Il ne parle QUE dans ce
+      // bloc — le dire à qui n'a jamais connu l'ancien dossier serait du bruit.
+      if(ancienAbsent)
+         PrintFormat("Rien non plus dans l'ancien dossier : %sSivula\\symboles.txt", base);
+      Print("Le script continue SANS cette liste : il prend « Symboles » (InpSymboles), "
+            "ou le seul graphique courant si ce champ est vide.");
+   }
    string liste = InpSymboles;
    StringTrimLeft(liste);
    StringTrimRight(liste);
