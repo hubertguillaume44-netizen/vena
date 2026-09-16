@@ -7216,7 +7216,8 @@ class Component extends DCLogic {
     for (const l of map.values()) {
       for (const r of l) {
         const f = faits[this.cleHasardFait(r, t)];
-        if (f && f.tirages) ps.push(f.auDessus / f.tirages);
+        const p = this.pHasard(f);
+        if (p !== null) ps.push(p);
       }
     }
     const val = this.barresBH(ps);
@@ -7254,13 +7255,49 @@ class Component extends DCLogic {
     for (const l of map.values()) {
       for (const r of l) {
         const f = this.meilleurHasardFait(r);
-        if (f && f.tirages) ps.push(f.auDessus / f.tirages);
+        const p = this.pHasard(f);
+        if (p !== null) ps.push(p);
       }
     }
     const val = this.barresBH(ps);
     this._bhDec = { sig, val };
     return val;
   }
+  // ————— LA SEULE ÉCRITURE DU p DU HASARD, ET IL N'Y EN AURA PAS DE HUITIÈME —————
+  //
+  // « jamais battu en N tirages » veut dire « moins d'une fois sur N+1 », pas
+  // « jamais ». La règle était écrite, documentée, et appliquée dans DEUX endroits
+  // sur NEUF : sept autres divisaient `auDessus` par `tirages`, et rendaient
+  // « 0 % » — c'est-à-dire « le hasard ne fait JAMAIS aussi bien », l'affirmation
+  // exacte que le +1 existe pour interdire, à l'endroit précis où quelqu'un décide.
+  //
+  // Sept copies d'un calcul dont une seule était juste : c'est la figure du dépôt,
+  // celle des quatre producteurs qui recalculaient chacun sa copie de l'état du
+  // tirage. La réponse est la même — UNE vérité, une porte.
+  //
+  // POURQUOI CETTE PORTE-CI ET PAS `verdictHasard`. L'intention était de faire
+  // passer les sept par `verdictHasard`. Mesuré : cinq ne le peuvent pas, et pour
+  // deux raisons distinctes qui valent d'être écrites, sans quoi quelqu'un
+  // « corrigera » en réintroduisant le problème.
+  //   · CYCLE — `verdictHasard` appelle `seuilBHDecision()`, qui est justement l'un
+  //     des sept : l'y faire passer boucle.
+  //   · DONNÉES QU'IL NE VOIT PAS — `celluleHasard` lit un contrôle à une clé de
+  //     tirages EXACTE (le mécanisme « colonne », distinct exprès du « meilleur
+  //     contrôle ») ; le dialogue de validation tient un résultat FRAIS, pas encore
+  //     en mémoire ; le détail de l'historique parcourt TOUS les contrôles.
+  // La vérité unique descend donc d'un cran : elle est l'ARITHMÉTIQUE, et
+  // `verdictHasard` est son premier client, pas son propriétaire.
+  //
+  // `null` quand il n'y a rien à mesurer — jamais zéro, qui se lirait comme un
+  // résultat.
+  pHasard(f) {
+    if (!f || !f.tirages) return null;
+    return (f.auDessus + 1) / (f.tirages + 1);
+  }
+  // Le plancher du test, en POUR-CENT : ce sous quoi le p ne peut pas descendre à ce
+  // nombre de tirages. Avec le +1 il vaut 1/(N+1), pas 1/N — sept commentaires
+  // disaient l'ancien, et une prose périmée enseigne le faux à qui vient après.
+  plancherHasard(tirages) { return 100 / ((Number(tirages) || 0) + 1); }
   // Le verdict du hasard d'une ligne, lu sur son meilleur contrôle. `null` tant qu'aucun
   // contrôle n'existe : c'est ce qui distingue « pas encore fait » de « fait, et voilà ».
   verdictHasard(r) {
@@ -7270,9 +7307,7 @@ class Component extends DCLogic {
     // aussi grossier est traité comme absent — sinon il figeait la ligne sur un « non »
     // que rien ne permettait de prononcer, et retirait le bouton qui aurait pu le lever.
     if (!f || !f.tirages || f.tirages < 200) return null;
-    // « jamais battu en N tirages » veut dire « moins d'une fois sur N+1 », pas
-    // « jamais » : sans le +1, un 0/500 s'affichait comme une certitude
-    const p = (f.auDessus + 1) / (f.tirages + 1);
+    const p = this.pHasard(f);
     const bh = this.seuilBHDecision();
     return { p, tirages: f.tirages, auDessus: f.auDessus, bh,
       verdict: p <= bh.c1 ? 'se distingue nettement' : p <= bh.c5 ? 'se distingue'
@@ -7333,13 +7368,13 @@ class Component extends DCLogic {
       return { txt: '—', verdict: '', cls: 'text-muted',
         aide: 'Pas encore contrôlée à ' + tirages + ' tirages : utilisez « Contrôler les lignes affichées » sous le tableau.' };
     }
-    const p = f.auDessus / f.tirages;
-    // Zéro tirage au-dessus n'est pas « un p minuscule » : c'est un zéro mesuré, borné
-    // par 1/tirages. L'écrire « < 0,01 % » affirmait une précision que 500 tirages ne
-    // permettent pas, et faisait paraître la colonne la moins fine plus significative.
-    const plancher = 100 / f.tirages;
-    const pct = f.auDessus === 0 ? '0 %'
-      : p < 0.01 ? (p * 100).toFixed(2).replace('.', ',') + ' %'
+    const p = this.pHasard(f);
+    // Zéro tirage au-dessus n'est pas un p nul : c'est un zéro mesuré, borné par le
+    // plancher du test. La branche « auDessus === 0 → 0 % » qui vivait ici affirmait
+    // « le hasard ne fait JAMAIS aussi bien » ; elle n'existe plus, et n'a rien à
+    // remplacer : `pHasard` ne rend jamais zéro, il rend le plancher.
+    const plancher = this.plancherHasard(f.tirages);
+    const pct = p < 0.01 ? (p * 100).toFixed(2).replace('.', ',') + ' %'
       : p < 0.1 ? (p * 100).toFixed(1).replace('.', ',') + ' %'
       : Math.round(p * 100) + ' %';
     // verdict corrigé du nombre de configurations affichées, donc lisible à côté du p
@@ -7354,10 +7389,8 @@ class Component extends DCLogic {
         + ' aussi bien que cette configuration.'
         + ' Barre corrigée des ' + bh.m + ' configurations contrôlées dans cette colonne : '
         + (bh.c5 * 100 < 0.01 ? 'moins de 0,01' : (bh.c5 * 100).toFixed(2).replace('.', ',')) + ' %.'
-        + (f.auDessus === 0
-          ? ' Le test ne peut pas descendre sous '
-            + (plancher < 0.01 ? '0,01' : plancher.toFixed(2).replace('.', ',')) + ' % à ce nombre de tirages.'
-          : '') };
+        + ' Le test ne peut pas descendre sous '
+        + (plancher < 0.01 ? '0,01' : plancher.toFixed(2).replace('.', ',')) + ' % à ce nombre de tirages.' };
   }
   // Le tirage lui-même, pour une liste de [ligne, nombre de tirages]. Extrait pour que le
   // contrôle groupé et le contrôle d'UNE ligne fassent exactement le même calcul : deux
@@ -7591,10 +7624,14 @@ class Component extends DCLogic {
         + ' : ' + bloquants.join(', ') + ' n\u2019a pas d\u2019équivalent MQL5 fidèle. Livrer le robot sans ce réglage donnerait un nombre de trades différent de la mesure.' });
       return false;
     }
-    const f = this.meilleurHasardFait(v) || this.teteFaite(v);
-    const hasard = f && f.tirages
-      ? (f.auDessus === 0 ? '0 % sur ' + f.tirages + ' tirages'
-        : (f.auDessus / f.tirages * 100).toFixed(2).replace('.', ',') + ' % sur ' + f.tirages + ' tirages')
+    // « X % sur N tirages » ressemble à une statistique descriptive ; il se LIT comme
+    // un verdict, et « 0 % sur 500 tirages » est précisément la phrase qu'on ne veut
+    // pas. Ce site-là peut passer par la porte complète : sa recherche est mot pour
+    // mot celle de `verdictHasard`. Conséquence assumée : sous 200 tirages le verdict
+    // est « non contrôlé », ce que la règle des 200 dit déjà partout ailleurs.
+    const vh = this.verdictHasard(v);
+    const hasard = vh
+      ? (vh.p * 100).toFixed(2).replace('.', ',') + ' % sur ' + vh.tirages + ' tirages'
       : 'non contrôlé';
     // spread maximum dérivé du spread RELEVÉ : une constante bloquait toutes les
     // entrées sur les instruments à spread large (SILVER à 0,06 %)
@@ -15615,7 +15652,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260916.11';
+  VERSION_APP = '260916.12';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -20523,11 +20560,12 @@ GROUPES = {
             dvConseilCls: 'tag tag-outline', dvConseilTag: 'non contrôlé',
             dvConseil: 'Aucun verdict n\u2019est disponible : ne la mettez pas en portefeuille sans avoir pu la contrôler. Déposez la série de cet instrument, puis relancez.' };
         }
-        const p = d.tirages ? d.auDessus / d.tirages : null;
-        // même règle que partout ailleurs : un zéro mesuré s'écrit « 0 % », pas « moins
-        // de 0,01 % » — sinon le grand chiffre contredit la ligne du plancher juste en
-        // dessous, sur l'écran même où se prend la décision
-        const pct = (v) => (v === null ? '—' : v === 0 ? '0 %' : v < 0.0001 ? 'moins de 0,01 %'
+        // le résultat est FRAIS — il n'est pas encore en mémoire, donc `verdictHasard`
+        // ne peut pas le voir. C'est l'arithmétique qui est la vérité unique, et elle
+        // s'applique ici comme partout : plus de « 0 % » sur l'écran même où se prend
+        // la décision de mettre une ligne en portefeuille.
+        const p = this.pHasard(d);
+        const pct = (v) => (v === null ? '—' : v < 0.0001 ? 'moins de 0,01 %'
           : v < 0.01 ? (v * 100).toFixed(2).replace('.', ',') + ' %'
           : v < 0.1 ? (v * 100).toFixed(1).replace('.', ',') + ' %'
           : Math.round(v * 100) + ' %');
@@ -24948,11 +24986,11 @@ GROUPES = {
                 hasAide: 'Le contrôle du hasard n\u2019a pas encore été fait sur cette configuration. '
                   + 'Cliquez pour le lancer à ' + dec.tirages.toLocaleString('fr-FR') + ' tirages — le nombre se règle juste au-dessus du tableau.' };
             }
-            const p = f.auDessus / f.tirages;
-            // même règle qu'ailleurs : un zéro mesuré s'écrit « 0 % », pas « moins de
-            // 0,01 % » — le plancher du test est 1/tirages
-            const pct = f.auDessus === 0 ? '0 %'
-              : p < 0.01 ? (p * 100).toFixed(2).replace('.', ',') + ' %'
+            // cette ligne-ci a sa configuration : elle passe par la porte complète,
+            // celle qui porte aussi la règle des 200 tirages et le seuil corrigé
+            const vh = this.verdictHasard(vr);
+            const p = vh ? vh.p : this.pHasard(f);
+            const pct = p < 0.01 ? (p * 100).toFixed(2).replace('.', ',') + ' %'
               : p < 0.1 ? (p * 100).toFixed(1).replace('.', ',') + ' %'
               : Math.round(p * 100) + ' %';
             // Un nouveau contrôle est proposé dès que le champ demande un nombre de
@@ -27678,8 +27716,10 @@ GROUPES = {
                     return { hasChiffre: '—', hasMot: 'non contrôlé',
                       hasCouleur: 'var(--color-neutral-500)', hasTousAide: '' };
                   }
+                  // TOUS les contrôles sont parcourus ici, pas seulement le meilleur :
+                  // `verdictHasard` n'en voit qu'un. C'est l'arithmétique qui passe.
                   const f = tous[0];
-                  const pct = f.auDessus / f.tirages * 100;
+                  const pct = this.pHasard(f) * 100;
                   return {
                     // TOUS les contrôles, du plus fin au plus grossier : deux nombres de
                     // tirages qui divergent disent que le pourcentage n'est pas stable,
@@ -27689,8 +27729,8 @@ GROUPES = {
                     hasCouleur: dec.fort ? 'var(--color-accent-700)'
                       : pct >= 20 ? 'var(--color-accent-900)' : 'var(--color-text)',
                     hasTousAide: tous.length > 1
-                      ? tous.map((x) => x.auDessus + ' des ' + x.tirages + ' tirages font aussi bien ('
-                          + (x.auDessus / x.tirages * 100).toFixed(1).replace('.', ',') + ' %)').join('\n')
+                      ? tous.map((x) => x.auDessus + ' des ' + x.tirages + ' tirages font aussi bien (p '
+                          + (this.pHasard(x) * 100).toFixed(1).replace('.', ',') + ' %)').join('\n')
                         + '\nLe verdict se lit sur le contrôle le plus fin. Deux pourcentages éloignés '
                         + 'signifient que le chiffre n\u2019est pas encore stable.'
                       : dec.aide,
