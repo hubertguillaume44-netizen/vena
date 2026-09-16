@@ -315,3 +315,67 @@ test("le dépôt d'un relevé enregistre, dit, et se voit — trois échecs dist
     await nav.close();
   }
 });
+
+test("« Réautoriser » sans poignée dit ce qui se passe et offre le choix", { timeout: 120000 }, async () => {
+  // ————— L'ANGLE MORT DÉCLARÉ, FERMÉ POUR SA PARTIE TESTABLE —————
+  // Le dialogue natif reste hors de portée du banc. Mais l'état de la capture —
+  // le nom du fichier affiché, la poignée morte (IndexedDB vidée, autre profil) —
+  // se SÈME sans dialogue : autoNom posé, handleAuto nul. Le clic sur
+  // « Réautoriser » y cliquait dans le vide ; il doit produire un message ET
+  // faire basculer le bouton vers « Choisir le fichier de sauvegarde », parce
+  // qu'après une poignée morte c'est le seul geste qui rouvre la porte.
+  const nav = await lancerNavigateur();
+  try {
+    const p = await ouvrir(nav);
+    // semer l'état de la capture par l'instance (la fibre du premier bouton)
+    await p.evaluate(() => {
+      const el = document.querySelector("button");
+      const fk = Object.keys(el).find((x) => x.startsWith("__reactFiber"));
+      let f = el[fk];
+      while (f && !(f.stateNode && f.stateNode.constructor
+        && f.stateNode.constructor.name === "StreamableComponent")) f = f.return;
+      const inst = f.stateNode.logic;
+      inst.handleAuto = null;
+      inst.setState({ autoNom: "vena-sauvegarde.json", autoAttente: true,
+        autoMsg: "Sauvegarde automatique en attente : cliquez « Réautoriser »." });
+    });
+    await p.waitForTimeout(300);
+    const clique = await p.evaluate(() => {
+      const b = [...document.querySelectorAll("button")].find((x) =>
+        x.offsetParent !== null && /^Réautoriser/.test((x.textContent || "").trim()));
+      if (!b) return false;
+      b.click();
+      return true;
+    });
+    assert.ok(clique,
+      "aucun bouton « Réautoriser » visible après le semis : l'état de la capture "
+      + "n'est plus atteignable ainsi — réancrez le semis, ne laissez pas la garde verte");
+    await p.waitForTimeout(500);
+    const apres = await p.evaluate(() => {
+      const msg = [...document.querySelectorAll("span,div")].find((x) =>
+        x.children.length === 0 && /ne peut plus être retrouvé/.test(x.textContent || ""));
+      const r = msg && msg.getBoundingClientRect();
+      const choisir = [...document.querySelectorAll("button")].find((x) =>
+        x.offsetParent !== null && /Choisir le fichier de sauvegarde/.test(x.textContent || ""));
+      const reste = [...document.querySelectorAll("button")].find((x) =>
+        x.offsetParent !== null && /^Réautoriser/.test((x.textContent || "").trim()));
+      return { message: msg ? msg.textContent.trim().slice(0, 80) : null,
+        messageVisible: !!(r && r.height > 0 && r.bottom > 0 && r.top < innerHeight),
+        boutonChoisir: !!choisir, boutonReautoriserReste: !!reste };
+    });
+    assert.ok(apres.message,
+      "le clic sur « Réautoriser » avec une poignée morte est resté MUET : aucun "
+      + "message ne dit que le fichier ne peut plus être retrouvé — c'est le "
+      + "silence de la capture, le bouton qui ne fait rien et ne dit rien");
+    assert.ok(apres.messageVisible, "le message existe mais n'est pas visible dans la fenêtre");
+    assert.ok(apres.boutonChoisir,
+      "le message demande de rechoisir le fichier mais AUCUN bouton « Choisir le "
+      + "fichier de sauvegarde » n'est offert : un message qui prescrit un geste "
+      + "introuvable est le défaut d'origine, déplacé d'un cran");
+    assert.ok(!apres.boutonReautoriserReste,
+      "« Réautoriser » reste affiché à côté du choix : deux boutons pour la même "
+      + "intention, dont un qui re-perd le geste en silence — le défaut A3");
+  } finally {
+    await nav.close();
+  }
+});

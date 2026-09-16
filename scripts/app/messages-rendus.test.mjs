@@ -42,7 +42,10 @@ test("le bandeau de perte rend compte : autoMsg, Réautoriser et sauvMsg y viven
   // même producteur, jamais une copie : la surface lit les hooks globaux
   assert.ok(APP.includes("reautoriser: () => this.reautoriserAuto(),"),
     "le geste Réautoriser n'est plus branché sur reautoriserAuto");
-  assert.ok(APP.includes("aReautoriser: !!s.autoAttente && !(montrer && !(reduit || integre)),"),
+  // réancré : après un refus retenu ou une poignée morte (autoARechoisir), le
+  // bouton « Réautoriser » disparaît — cliquer dessus re-perdait le geste en
+  // silence — et le bouton du pied devient « Choisir le fichier de sauvegarde »
+  assert.ok(APP.includes("aReautoriser: !!s.autoAttente && !s.autoARechoisir && !(montrer && !(reduit || integre)),"),
     "le filet Réautoriser doit se montrer sur l'attente SANS doubler l'accent — "
     + "quand l'accent porte déjà « Réautoriser la sauvegarde » (fichier connu, "
     + "alerte pleine), deux boutons pour la même intention est le défaut d'A3");

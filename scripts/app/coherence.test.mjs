@@ -220,9 +220,12 @@ for (const f of FICHIERS) {
     // désormais DEUX noms selon qu'un fichier attend sa permission (« Réautoriser »)
     // ou qu'aucun n'a jamais été choisi (« Choisir ») — jamais les deux boutons à
     // la fois, c'était le défaut A3.
-    assert.match(txt, /s\.autoNom \? 'Réautoriser la sauvegarde' : 'Choisir le fichier de sauvegarde'/,
+    // …et un fichier REFUSÉ ou à la poignée morte redevient « à choisir »
+    // (autoARechoisir) : réautoriser ce que le navigateur a déjà refusé re-répond
+    // « denied » sans dialogue — le bouton bascule au seul geste qui rouvre la porte
+    assert.match(txt, /s\.autoNom && !s\.autoARechoisir \? 'Réautoriser la sauvegarde' : 'Choisir le fichier de sauvegarde'/,
       "l’état qui n’exporte pas doit garder ses noms propres — Réautoriser pour un "
-      + "fichier connu, Choisir pour un premier choix");
+      + "fichier connu, Choisir pour un premier choix ou après un refus");
     // AU MOINS deux, et non exactement deux. Ce garde-fou est là pour qu'un chemin ne
     // DISPARAISSE pas ; en figer le nombre interdisait d'en ouvrir un nouveau, alors que
     // le défaut d'origine était justement que la sauvegarde automatique n'était

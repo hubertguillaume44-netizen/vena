@@ -85,9 +85,12 @@ test("l’état permanent ne se referme pas : c’est un état, pas une nouvelle
   // « Réautoriser » quand un fichier attend sa permission — jamais les deux, deux
   // boutons pour la même intention dont un qui recommence de zéro étaient le
   // défaut. L'invariant tient : choisirFichierAuto n'a que cette porte-ci.
-  assert.match(SOURCE, /sansSauvAgir: \(reduit \|\| integre\) \? async \(\) => \{ await this\.exporterTout\(\); \}\n\s*: \(s\.autoNom \? \(\) => this\.reautoriserAuto\(\) : \(\) => this\.choisirFichierAuto\(\)\)/,
+  // Réancré : un fichier connu dont la permission est REFUSÉE ou la poignée MORTE
+  // redevient « à choisir » (autoARechoisir) — le navigateur retient un refus et
+  // re-répond « denied » sans dialogue, réautoriser n'y rouvre plus rien.
+  assert.match(SOURCE, /sansSauvAgir: \(reduit \|\| integre\) \? async \(\) => \{ await this\.exporterTout\(\); \}\n\s*: \(s\.autoNom && !s\.autoARechoisir \? \(\) => this\.reautoriserAuto\(\) : \(\) => this\.choisirFichierAuto\(\)\)/,
     "le pied doit rester l’unique chemin vers le choix d’un fichier de sauvegarde — "
-    + "et un fichier CONNU se réautorise, il ne se rechoisit pas");
+    + "un fichier CONNU se réautorise, et un fichier REFUSÉ ou perdu se rechoisit");
   assert.match(SOURCE, /aRedemander: protectionPossible,/,
     "« Demander la protection » doit être offerte dès que le navigateur la connaît et ne "
     + "l’a pas accordée — pas seulement après un refus, sinon elle est hors de portée de "

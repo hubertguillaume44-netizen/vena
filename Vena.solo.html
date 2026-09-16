@@ -15588,7 +15588,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260915.13';
+  VERSION_APP = '260916';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -17911,6 +17911,9 @@ GROUPES = {
       });
       await this.idbSet(h);
       this.handleAuto = h;
+      // un fichier fraîchement choisi n'est plus « à rechoisir » : le bouton
+      // redevient « Réautoriser » si une attente revient un jour
+      this.setState({ autoARechoisir: false });
       // sauverAuto pose lui-même autoMsg : null en cas de succès, et un message en
       // cas de refus — l'effacer ici essuyait le refus à l'instant où il venait
       // d'être dit, et l'écran ne changeait pas après le choix du fichier
@@ -18138,12 +18141,37 @@ GROUPES = {
           + ' n\u2019a pas pu être vérifiée : cliquez « Réautoriser ».' });
     }
   }
+  // ————— LE BOUTON DIT TOUJOURS QUELQUE CHOSE : TROIS ISSUES NOMMÉES —————
+  // « Réautoriser » cliquait dans le vide : un refus antérieur est RETENU par le
+  // navigateur — requestPermission re-répond « denied » sans dialogue — et les deux
+  // issues d'échec étaient muettes (pas de branche sur le refus, catch vide). Le
+  // message demandait un geste que chaque clic re-perdait en silence. Après un
+  // refus ou une poignée morte, le seul geste qui rouvre la porte est de RECHOISIR
+  // le fichier : le bouton le devient (autoARechoisir), jamais les deux à la fois.
   async reautoriserAuto() {
-    if (!this.handleAuto) return this.choisirFichierAuto();
+    if (!this.handleAuto) {
+      // le nom est connu (relu au démarrage), l'objet ne l'est plus (IndexedDB
+      // vidée, autre profil) : réautoriser ce qui n'existe plus est impossible,
+      // et le dire vaut mieux qu'ouvrir un sélecteur que rien n'explique
+      this.setState({ autoARechoisir: true, autoAttente: true,
+        autoMsg: 'Le fichier de sauvegarde ne peut plus être retrouvé par ce navigateur. Choisissez-le à nouveau.' });
+      return;
+    }
     try {
       const p = await this.handleAuto.requestPermission({ mode: 'readwrite' });
-      if (p === 'granted') { this.setState({ autoAttente: false, autoMsg: null }); await this.sauverAuto(true); }
-    } catch (e) {}
+      if (p === 'granted') {
+        this.setState({ autoAttente: false, autoARechoisir: false, autoMsg: null });
+        await this.sauverAuto(true);
+        return;
+      }
+      this.setState({ autoARechoisir: true,
+        autoMsg: 'Le navigateur a refusé l’écriture dans ' + (this.handleAuto.name || 'le fichier')
+          + '. Choisissez à nouveau le fichier pour reprendre la sauvegarde.' });
+    } catch (e) {
+      this.setState({ autoARechoisir: true,
+        autoMsg: 'Réautorisation impossible (' + ((e && e.name) || 'erreur inconnue')
+          + '). Choisissez à nouveau le fichier de sauvegarde.' });
+    }
   }
   // Sauvegarde périodique, sans bouton ni réglage : toutes les minutes, le scan et la
   // session sont réécrits si quelque chose a bougé. Le fichier n'est écrit que s'il
@@ -20011,9 +20039,9 @@ GROUPES = {
           // recommence de zéro, se sont montrés côte à côte. « Choisir » reste
           // l'unique porte du PREMIER usage, et elle seule.
           sansSauvBouton: (reduit || integre) ? 'Exporter mes données'
-            : (s.autoNom ? 'Réautoriser la sauvegarde' : 'Choisir le fichier de sauvegarde'),
+            : (s.autoNom && !s.autoARechoisir ? 'Réautoriser la sauvegarde' : 'Choisir le fichier de sauvegarde'),
           sansSauvAgir: (reduit || integre) ? async () => { await this.exporterTout(); }
-            : (s.autoNom ? () => this.reautoriserAuto() : () => this.choisirFichierAuto()),
+            : (s.autoNom && !s.autoARechoisir ? () => this.reautoriserAuto() : () => this.choisirFichierAuto()),
           // « Plus tard » a disparu : un bouton qui referme un avertissement de perte de
           // données est un bouton pour perdre ses données. À sa place, l'action que la
           // dernière phrase du texte réclame sans donner le moyen de la faire.
@@ -20036,7 +20064,7 @@ GROUPES = {
           // le filet « Réautoriser » du message ne double JAMAIS l'accent : quand
           // l'accent porte déjà ce geste (alerte pleine, fichier connu), le filet
           // s'efface — deux boutons pour la même intention étaient le défaut
-          aReautoriser: !!s.autoAttente && !(montrer && !(reduit || integre)),
+          aReautoriser: !!s.autoAttente && !s.autoARechoisir && !(montrer && !(reduit || integre)),
           sansSauvExporter: async () => { await this.exporterTout(); },
           sansSauvImporter: () => {
             const inp = document.createElement('input');
