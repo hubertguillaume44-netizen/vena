@@ -3467,7 +3467,7 @@
               <button type="button" class="btn btn-ghost" style="min-height:1.9rem;font-size:11px" onClick="{{ ouvrirSeuils }}" title="Les seuils qui décident quelles configurations s’affichent. Ils ne changent rien au calcul du scan : ce sont ceux de l’entonnoir de l’Historique, et il n’en existe qu’un jeu.">Seuils · {{ nSeuilsActifs }}</button>
               <button class="{{ prudentCls }}" type="button" style="min-height:1.9rem;font-size:11px" onClick="{{ basculerPrudent }}" title="{{ prudentAide }}">{{ prudentTxt }}</button>
               <button class="btn btn-secondary" type="button" style="min-height:1.9rem;font-size:11px" onClick="{{ setVueHistorique }}">Voir tous les instruments testés</button>
-              <button class="btn btn-secondary" type="button" style="min-height:1.9rem;font-size:11px" onClick="{{ exporterTop }}">Exporter (CSV)</button>
+              <button class="btn btn-secondary" type="button" style="min-height:1.9rem;font-size:11px" onClick="{{ exporterTop }}" disabled="{{ aTopAExporterNon }}" title="{{ exporterTopAide }}">Exporter (CSV)</button>
             </div>
           </div>
 
@@ -3751,7 +3751,7 @@
                     </sc-raw-select>
                   </div>
                 </div>
-                <button class="btn btn-ghost" type="button" style="min-height:1.8rem;font-size:11px;align-self:flex-start;padding-inline:9px;margin-top:8px" onClick="{{ basculerFiltre }}">{{ basculerFiltreTxt }}</button>
+                <button class="btn btn-ghost" type="button" style="min-height:1.8rem;font-size:11px;align-self:flex-start;padding-inline:9px;margin-top:8px" onClick="{{ basculerFiltre }}" disabled="{{ aFiltreAEffacerNon }}" title="{{ basculerFiltreAide }}">{{ basculerFiltreTxt }}</button>
               </div>
             </sc-if>
           </div>
@@ -3863,7 +3863,7 @@
                 <button type="button" class="{{ vl2.cls }}" style="cursor:pointer;border:none;font-family:var(--font-body);font-size:11px;padding:4px 9px" title="{{ vl2.aide }}" onClick="{{ vl2.choisir }}">{{ vl2.nom }}</button>
               </sc-for>
             </div>
-            <button class="btn btn-ghost" type="button" style="min-height:1.7rem;font-size:11px;padding-inline:9px" onClick="{{ basculerFiltre }}" title="Remet à zéro les curseurs ci-dessous : plus aucun résultat n’est écarté de l’affichage. Vos scans ne sont pas touchés.">{{ basculerFiltreTxt }}</button>
+            <button class="btn btn-ghost" type="button" style="min-height:1.7rem;font-size:11px;padding-inline:9px" onClick="{{ basculerFiltre }}" disabled="{{ aFiltreAEffacerNon }}" title="{{ basculerFiltreAide }}">{{ basculerFiltreTxt }}</button>
           </div>
 
           <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px 20px">
@@ -15677,7 +15677,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260916.15';
+  VERSION_APP = '260916.16';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -22853,6 +22853,17 @@ GROUPES = {
       sauverBacktest: () => this.sauverBacktest(),
       sauverScan: () => this.sauverScan(),
       scanNonSauvable: !(this.aScanData && s.fiche),
+      // Le TOP peut être VIDE — un curseur trop exigeant suffit — et le bouton
+      // partait alors en silence sur un `return` nu. Mesuré : il télécharge bien
+      // quand il a de quoi ; c'est dans l'autre état qu'il ne dit rien, et c'est
+      // celui-là que la tournée a attrapé. L'état est connu AU RENDU : le bouton ne
+      // s'offre pas plutôt que de décevoir après coup.
+      aTopAExporter: retenues.length > 0,
+      aTopAExporterNon: retenues.length === 0,
+      exporterTopAide: retenues.length
+        ? 'Enregistre les ' + retenues.length.toLocaleString('fr-FR')
+          + ' configurations du TOP dans un fichier CSV, séparateur point-virgule.'
+        : 'Le TOP est vide : aucun résultat à exporter. Desserrez les curseurs ci-dessus.',
       exporterTop: () => {
         const l = retenues;
         if (!l.length) return;
@@ -28584,6 +28595,25 @@ GROUPES = {
       filtreTxt: filtreTActif ? 'Filtre actif' : 'Aucun filtre',
       filtreCls: filtreTActif ? 'tag tag-accent' : 'tag tag-outline',
       basculerFiltre: () => this.setState({ tTradesMin: 0, tSegMin: 0, tDdMax: 0, tWinMin: 0, tOosMin: -20, tWfMin: -30, tDureeMax: 0, symOuvert: null, symTout: null }),
+      // ————— UN GESTE QUI NE PEUT RIEN FAIRE NE S'OFFRE PAS —————
+      //
+      // « Ne rien écarter » repose sept curseurs à leur valeur neutre. Quand ils y sont
+      // déjà — le cas de tout le monde au premier scan — le clic ne change rien, et
+      // RIEN ne le disait : ni état grisé, ni infobulle. La tournée des gestes l'a
+      // rapporté muet, et elle avait raison : un bouton qui se présente comme
+      // cliquable et ne peut rien faire est un geste sans réponse, la forme exacte
+      // que cette garde existe pour attraper.
+      //
+      // LA CONDITION EST UN RÉSULTAT, PAS UNE INTENTION (règle 1). On ne demande pas
+      // « un curseur est-il déplacé ? » — un curseur déplacé sur une plage où rien ne
+      // tombe n'écarte rien non plus. On regarde `ecartN`, ce que chaque seuil RETIRE
+      // vraiment, déjà calculé par `filtresVifs` pour l'entonnoir.
+      aFiltreAEffacer: filtresVifs.some((f2) => f2.ecartN > 0),
+      aFiltreAEffacerNon: !filtresVifs.some((f2) => f2.ecartN > 0),
+      basculerFiltreAide: filtresVifs.some((f2) => f2.ecartN > 0)
+        ? 'Remet les sept curseurs à leur valeur neutre : plus aucun résultat n\u2019est écarté '
+          + 'de l\u2019affichage. Vos scans ne sont pas touchés.'
+        : 'Aucun curseur n\u2019écarte de résultat en ce moment : il n\u2019y a rien à remettre à zéro.',
       // Le tamis de la lecture : une configuration qui ne tient qu'en lecture haute repose
       // sur une convention, pas sur la donnée. C'est la première chose à exiger avant de
       // confier un robot à un compte réel.

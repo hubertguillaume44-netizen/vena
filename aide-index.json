@@ -169,13 +169,6 @@
    ]
   },
   {
-   "terme": "Chiffres balayés",
-   "texte": "Remet à zéro les curseurs ci-dessous : plus aucun résultat n’est écarté de l’affichage. Vos scans ne sont pas touchés.",
-   "vues": [
-    "Historique"
-   ]
-  },
-  {
    "terme": "Choisir un fichier de sauvegarde",
    "texte": "Choisit un fichier sur votre disque. Véna y réécrit tout, chaque minute. Aucun vidage de navigateur ne l’atteint.",
    "vues": [

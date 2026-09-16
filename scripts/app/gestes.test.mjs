@@ -81,7 +81,13 @@ const PAGES = [...new Set(VUES.map(([p]) => p))];
 // régression ; une entrée qui cesse d'être muette est une entrée à retirer, et la
 // garde le dit. Sans le second sens il deviendrait une liste d'exemptions que plus
 // personne ne relève — verte en ne gardant plus rien.
-// SEPT ENTRÉES ONT ÉTÉ RETIRÉES le jour même où elles ont été inscrites, et aucune
+// DEUX DE PLUS ONT ÉTÉ RETIRÉES à l'enquête suivante, et celles-là ÉTAIENT des
+// défauts du produit : « Exporter (CSV) » partait sur un `return` nu quand le TOP
+// est vide, « Ne rien écarter » reposait sept curseurs déjà neutres. Les deux
+// s'offraient comme cliquables en ne pouvant rien faire. Ils se grisent désormais
+// — sur un RÉSULTAT, pas une intention — et disent pourquoi.
+//
+// SEPT ENTRÉES AVAIENT ÉTÉ RETIRÉES le jour même où elles ont été inscrites, et aucune
 // n'était un défaut du produit — c'est le registre lui-même qui l'a exigé, en
 // échouant sur leur guérison. Les cinq cases de l'agenda et deux cases de la carte
 // des filtres : les premières étaient aveuglées par la borne de 25 mutations de
@@ -93,10 +99,6 @@ const MUETS_CONNUS = new Map([
     "étiquette ou geste ? rendu en <button> — non enquêté"],
   ["Mes scans › Nouveau scan · « Sécurisation, lecture, durée ×2 »",
     "repli d'un groupe de réglages — non enquêté"],
-  ["Mes scans › Nouveau scan · « Exporter (CSV) »",
-    "devrait télécharger ; aucun téléchargement ne part — non enquêté"],
-  ["Mes scans › Historique · « Ne rien écarter »",
-    "btn btn-ghost, PAS actif : devrait remettre le filtre à zéro — non enquêté"],
   ["Mes scans › Backtest · « Sauvegarder ce résultat »",
     "précondition peut-être non semée — non enquêté"],
   ["Mes scans › Backtest · « Mesurer »",
