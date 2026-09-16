@@ -15559,7 +15559,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260916.3';
+  VERSION_APP = '260916.4';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -18216,6 +18216,20 @@ GROUPES = {
     clearTimeout(this._autoT);
     this._autoT = setTimeout(() => this.sauverAuto(), 1500);
   }
+  // ————— UN WRITABLE OUVERT SANS ISSUE EST UN FICHIER SUR LE DISQUE —————
+  // Chrome crée « <nom>.crswap » à l'ouverture et ne le retire qu'au close() —
+  // ou à l'abort(). Une écriture qui JETTE entre les deux laisse le fragment, et
+  // la tentative suivante, trouvant le nom pris, écrit .1.crswap, .2.crswap…
+  // MESURÉ (OPFS, vraies poignées) : trois échecs sans finally laissent trois
+  // fragments ; les trois mêmes échecs avec abort() n'en laissent aucun. La
+  // concurrence, elle, est innocente — deux createWritable simultanés se
+  // referment proprement, mesuré aussi.
+  //
+  // C'est une classe qu'aucune garde ne couvrait : tout le dépôt vérifie ce
+  // qu'un geste produit quand il RÉUSSIT, jamais ce qu'il laisse quand il échoue.
+  // Elle est antérieure au passage au fil : le code d'avant ouvrait le writable
+  // puis évaluait le dump DEDANS, même fenêtre, sans finally non plus.
+  ECHECS_AVANT_PAUSE = 2;
   async sauverAuto(force) {
     const h = this.handleAuto;
     if (!h) return;
@@ -18223,6 +18237,17 @@ GROUPES = {
     // observé pendant un export prouvait qu'ils tournaient ensemble, et un
     // export peut capturer un état à moitié écrit. Repris au tick suivant.
     if (this.state.exportEnCours) return;
+    // une seule écriture à la fois : deux lectures complètes du stockage en
+    // parallèle ne servent à rien et fausseraient le compte des échecs
+    if (this._autoEcrit) return;
+    // ————— APRÈS DEUX ÉCHECS, ELLE S'ARRÊTE ET LE DIT —————
+    // Réessayer une écriture qui échoue toutes les minutes ne produit que des
+    // fragments et de la chaleur : chaque tick relisait tout le stockage pour
+    // échouer au même endroit. La reprise est un GESTE — « force », que le
+    // bouton du pied déclenche —, jamais une relance automatique.
+    if (!force && (this._autoEchecs || 0) >= this.ECHECS_AVANT_PAUSE) return;
+    this._autoEcrit = true;
+    let w = null;
     try {
       if ((await h.queryPermission({ mode: 'readwrite' })) !== 'granted') {
         // ————— AUCUNE SORTIE MUETTE : un échec qui ressemble à une absence
@@ -18243,21 +18268,62 @@ GROUPES = {
           return;
         }
       }
-      const w = await h.createWritable();
+      // ————— LA PLACE SE VÉRIFIE AVANT D'OUVRIR, COMME LE DROIT —————
+      // Le swap est une COPIE COMPLÈTE du fichier écrit : il faut la place des
+      // deux. Sans elle, write jette EN COURS — après que le swap a été créé —
+      // et le fragment reste, ce qui retire encore de la place à la tentative
+      // suivante. Le cercle qui fait six fichiers en six minutes. On ne refuse
+      // que sur une taille CONNUE, celle de la dernière écriture réussie :
+      // deviner un besoin qu'on n'a pas mesuré fermerait la sauvegarde à tort.
+      if (!force && this._autoTaille) {
+        let libre = Infinity;
+        try {
+          const est = await navigator.storage.estimate();
+          libre = Math.max(0, (est.quota || 0) - (est.usage || 0));
+        } catch (ePl) {}
+        if (libre < this._autoTaille * 1.2) {
+          this._autoEchecs = this.ECHECS_AVANT_PAUSE;
+          this.setState({ autoAttente: true, autoMsg: this.PAUSE_AUTO(h.name)
+            + ' Il manque de la place : la copie de travail du navigateur demande '
+            + this.taille(this._autoTaille) + ' libres.' });
+          return;
+        }
+      }
+      w = await h.createWritable();
       // au FIL, comme l'export : la chaîne unique du dump entier refaisait deux
       // fois le stockage en mémoire — chaque minute, à chaque sauvegarde
-      await this.ecrireExportAu(w,
+      const bilan = await this.ecrireExportAu(w,
         '"outil":"vena","version":1,"date":' + JSON.stringify(new Date().toISOString()) + ',');
       await w.close();
+      w = null;                       // fermé : le finally n'a plus rien à avorter
+      this._autoTaille = bilan.octets;
+      this._autoEchecs = 0;
       this.setState({ autoNom: h.name, autoAttente: false,
         autoHeure: new Date().toLocaleTimeString('fr-FR').slice(0, 5), autoMsg: null });
     } catch (e) {
       // ICI une écriture a réellement été tentée (createWritable/write) : dire
       // qu'elle a échoué est exact — c'est un événement, pas un état supposé
+      this._autoEchecs = (this._autoEchecs || 0) + 1;
+      const enPause = this._autoEchecs >= this.ECHECS_AVANT_PAUSE;
+      this.journaliserErreur('sauverAuto : ' + ((e && e.name) || '') + ' ' + ((e && e.message) || e));
       this.setState({ autoAttente: true,
-        autoMsg: 'L\u2019écriture dans ' + (h.name || 'le fichier')
-          + ' a échoué — la sauvegarde automatique est en pause.' });
+        autoMsg: enPause ? this.PAUSE_AUTO(h.name)
+          : 'L\u2019écriture dans ' + (h.name || 'le fichier')
+            + ' a échoué — nouvelle tentative à la prochaine minute.' });
+    } finally {
+      // l'issue, dans TOUS les cas : un writable encore ouvert ici est une
+      // écriture qui a jeté, et abort() retire le fragment qu'elle a laissé
+      if (w) { try { await w.abort(); } catch (eA) {} }
+      this._autoEcrit = false;
     }
+  }
+  // la phrase de la pause, UNE fois : elle dit l'état, jamais le bouton (il est
+  // à côté, permanent), et elle nomme les fragments — l'utilisateur les voit sur
+  // son disque et ne peut pas savoir seul que ce ne sont pas ses sauvegardes
+  PAUSE_AUTO(nom) {
+    return 'La sauvegarde automatique est en pause : deux écritures de suite ont échoué dans '
+      + (nom || 'le fichier') + '. Les fichiers « .crswap » laissés à côté sont des fragments '
+      + 'de travail, pas des sauvegardes — vous pouvez les supprimer sans rien perdre.';
   }
 
   // ————— PORTE 1 : LA SAUVEGARDE CHIFFRÉE, TRANSPORTABLE —————
@@ -18518,9 +18584,17 @@ GROUPES = {
       }
       if (h) {
         // ————— AU FIL : rien ne s'accumule, le pic tient dans le plus gros bloc
-        const w = await h.createWritable();
-        bilan = await this.ecrireExportAu(w, entete);
-        await w.close();
+        // et le writable a une ISSUE dans tous les cas : ouvert sans close ni
+        // abort, il laisse un .crswap sur le disque de l'utilisateur (mesuré)
+        let w = null;
+        try {
+          w = await h.createWritable();
+          bilan = await this.ecrireExportAu(w, entete);
+          await w.close();
+          w = null;
+        } finally {
+          if (w) { try { await w.abort(); } catch (eA) {} }
+        }
       } else {
         // ————— REPLI Blob : limite ASSUMÉE ET DITE. Sans écriture au fil, le
         // stockage vit DEUX fois en mémoire pendant l'assemblage (mesuré : le
