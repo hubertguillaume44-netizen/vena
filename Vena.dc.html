@@ -15652,7 +15652,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260916.13';
+  VERSION_APP = '260916.14';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -18430,18 +18430,27 @@ GROUPES = {
       // que sur une taille CONNUE, celle de la dernière écriture réussie :
       // deviner un besoin qu'on n'a pas mesuré fermerait la sauvegarde à tort.
       if (!force && this._autoTaille) {
-        let libre = Infinity;
+        const besoin = this._autoTaille * 1.2;
+        // ————— UN QUOTA INCONNU N'EST PAS UN STOCKAGE PLEIN —————
+        // `(est.quota || 0) - (est.usage || 0)` rendait 0 quand le navigateur ne
+        // rapporte pas de quota : « zéro libre », donc pause immédiate et
+        // PERMANENTE. Le commentaire juste au-dessus disait pourtant l'inverse
+        // — « deviner un besoin qu'on n'a pas mesuré fermerait la sauvegarde à
+        // tort ». L'intention était écrite, le code faisait le contraire, et une
+        // absence de mesure était lue comme un résultat (règle 1).
+        // `null` dit « je ne sais pas », et on ne met pas en pause là-dessus.
+        let libre = null;
         try {
           const est = await navigator.storage.estimate();
-          libre = Math.max(0, (est.quota || 0) - (est.usage || 0));
+          if (est && Number.isFinite(est.quota)) libre = Math.max(0, est.quota - (est.usage || 0));
         } catch (ePl) {}
-        if (libre < this._autoTaille * 1.2) {
+        if (libre !== null && libre < besoin) {
           this._autoEchecs = this.ECHECS_AVANT_PAUSE;
           this.setState({ autoAttente: true,
-            autoMsg: this.PAUSE_AUTO('il manque ' + this.taille(this._autoTaille)),
+            autoMsg: this.PAUSE_AUTO(this.MANQUE_PLACE(besoin, libre)),
             autoDetail: this.PAUSE_AUTO_DETAIL(h.name)
-              + ' La copie de travail que le navigateur écrit à côté du fichier demande '
-              + this.taille(this._autoTaille) + ' libres, et le stockage ne les a plus.' });
+              + ' La copie de travail que le navigateur écrit à côté du fichier est en cause : '
+              + this.MANQUE_PLACE(besoin, libre) + '.' });
           return;
         }
       }
@@ -18485,6 +18494,23 @@ GROUPES = {
   // garde la première phrase et sa cause, le reste se déplie. Ce n'est pas le
   // cinquième temps à rebours — le message reste atteignable, il est simplement
   // replié ; et l'état, lui, ne s'efface toujours pas.
+  // ————— UN MOT DE QUANTITÉ QUI REPREND LA VALEUR D'À CÔTÉ N'A RIEN MESURÉ —————
+  //
+  // Le message disait « il manque 592 Mo » et, deux lignes plus bas, « la copie de
+  // travail demande 592 Mo libres ». Le MÊME nombre : « il manque » reprenait la
+  // taille DEMANDÉE au lieu du déficit. Si le disque a 590 Mo libres, il manque
+  // 2 Mo, pas 592 — et la phrase alarmait à la hauteur du besoin entier.
+  //
+  // La phrase juste dit les DEUX termes, parce que c'est leur écart qui est
+  // l'information. Et quand la place libre n'est pas mesurable, elle ne prétend
+  // pas à un manque : elle dit ce qu'elle a constaté, un refus.
+  MANQUE_PLACE(besoin, libre) {
+    return libre === null || libre === undefined
+      ? 'la copie de travail demande ' + this.taille(besoin)
+        + ' libres, et le stockage les refuse'
+      : 'la copie de travail demande ' + this.taille(besoin)
+        + ', il en reste ' + this.taille(libre);
+  }
   PAUSE_AUTO(cause) {
     return 'La sauvegarde automatique est en pause' + (cause ? ' \u2014 ' + cause : '') + '.';
   }
