@@ -441,7 +441,8 @@ Elles viennent toutes d'un défaut réel de ce dépôt, et chacune est détaill�
 7. **La surface se découvre, elle ne s'énumère pas** — un périmètre écrit à la main porte
    toujours une hypothèse implicite.
 8. **Un nom de LIEU fixe un périmètre ; un nom de PROPRIÉTÉ en découvre un** — c'est la
-   règle 7 vue depuis l'amont, au moment où l'on nomme.
+   règle 7 vue depuis l'amont, au moment où l'on nomme ; et elle vaut pour les GARDES
+   elles-mêmes : un correctif qui ferme une classe ne se garde pas sur un fichier.
 9. **Un angle mort qu'on ne peut pas fermer se déclare dans la garde elle-même** — sinon la
    garde suivante hérite d'une confiance qu'elle n'a pas méritée.
 10. **Le cas VIDE est le plus faible des tests** — c'est celui où la moitié des bugs
@@ -908,6 +909,55 @@ désigné ce qui lui manquait.
 
 Le test se fait à voix haute : un nom de propriété permet de dire « ceci en est un / ceci
 n'en est pas un » sans regarder où la chose se trouve. Un nom de lieu ne le permet jamais.
+
+#### Et la règle 8 s'applique aux GARDES : une classe fermée, une garde de classe
+
+Deux fois dans la même journée, un correctif a fermé une **classe** et sa garde a été
+posée sur un **lieu** :
+
+| Le correctif, et ce qu'il fermait | La garde, et ce qu'elle gardait | Ce qui est resté ouvert |
+|---|---|---|
+| « aucun `ArrayFree` suivi d'un Copy* » | « les `.mq5` de la racine » | le robot, qui naît d'un générateur |
+| « aucune attente qui se répète à l'identique » | `Export_H1_Vena` | le cache d'agrégation du robot |
+
+Les deux trous ont été trouvés par l'utilisateur, des heures plus tard, sur des pannes
+coûteuses — un terminal mort, puis un cœur saturé pendant deux heures. Et les deux
+auraient été fermés par le même geste, au moment du **premier** correctif.
+
+> **Quand un correctif ferme une classe, la garde se pose sur la CLASSE — pas sur le
+> fichier où elle est apparue.**
+
+**Le signal est disponible au moment où l'on écrit la garde, et il tient en une
+question : le correctif a-t-il un nom de classe ?** « Aucun `ArrayFree` », « aucune
+boucle sans borne » sont des noms de classe. Alors la garde ne peut pas avoir un nom de
+lieu — « les fichiers de la racine », « ce script-ci ». C'est la règle 8 retournée vers
+l'outillage : on ne demande plus seulement « ce nom désigne-t-il un endroit ? » de ce
+qu'on garde, mais de **la garde elle-même**.
+
+La surface s'écrit alors une fois et se partage : `scripts/mt5/sources-mql5.mjs` rend
+*tout source MQL5 que l'utilisateur peut faire tourner* — les scripts **livrés**,
+découverts, et le robot **produit**, généré pour l'occasion. Le piège était qu'une
+seule des deux familles a la forme d'un fichier : une découverte par extension ne
+pouvait pas voir l'autre, et elle ne le disait pas.
+
+**ET LA RÈGLE JOUE DANS LES DEUX SENS, ce qui s'est vérifié tout de suite.** Élargir la
+surface a fait tomber une troisième garde du même fichier — celle qui interdit une
+plage inversée (`t1 - 1 < t0`) — sur deux appels parfaitement sains du robot, qui lit
+par NOMBRE et non par plage. Cet invariant-là n'est pas une classe : il ne vaut que
+pour les lectures par plage. **Un invariant de lieu garde son lieu** — mais on ne le dit
+pas non plus par un nom de fichier : on le dit par la propriété qui le rend applicable
+(« l'appel passe-t-il deux dates ? »). Sinon on répare une énumération par une autre.
+
+**Quand la classe ne se prouve pas par un critère, elle se tient par un REGISTRE.**
+« Borné » n'est pas une propriété du texte : l'attente fautive bouclait sur
+`while(GetTickCount() < fin && !IsStopped())`, bornée par le temps et défectueuse quand
+même. `boucles-mql5.test.mjs` inscrit donc **chaque** boucle de la surface avec la
+raison pour laquelle elle se termine, écrite en toutes lettres, et échoue **dans les
+deux sens** — une boucle neuve jusqu'à ce que quelqu'un dise ce qui l'arrête, une entrée
+dont la boucle a disparu pour que le registre ne devienne pas une liste de tolérances.
+Son angle mort est déclaré : il relève les `while`, et la pire des deux pannes n'avait
+**aucune boucle** — c'était une répétition par appel, tenue à part sur l'invariant
+« la tentative est mémorisée ».
 
 ### Un angle mort qu'on ne peut pas fermer se déclare dans la garde elle-même
 

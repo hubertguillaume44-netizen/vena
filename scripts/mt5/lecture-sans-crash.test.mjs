@@ -22,15 +22,20 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { readdirSync } from "node:fs";
+import { sourcesMQL5 } from "./sources-mql5.mjs";
 import { borne } from "../lib/tranche.mjs";
 
 const RACINE = new URL("../../", import.meta.url);
-// DÉCOUVERTE, pas énumération (règle 7) : tout script MQL5 de la racine qui lit
-// des bougies est concerné. Un troisième script demain est couvert sans être nommé.
-const SCRIPTS = readdirSync(RACINE)
-  .filter((f) => f.endsWith(".mq5"))
-  .map((f) => [f, readFileSync(new URL(f, RACINE), "utf8")])
-  .filter(([, src]) => src.includes("CopyRates("));
+// ————— LA SURFACE EST LA CLASSE, PAS LE LIEU —————
+// Elle disait « tout script MQL5 DE LA RACINE », et se croyait une découverte : c'en
+// était une, mais sur un LIEU. Le robot naît d'un générateur, n'a pas la forme d'un
+// fichier `.mq5`, et l'interdiction d'`ArrayFree` ne l'a donc jamais couvert — le
+// correctif avait fermé une classe, la garde gardait un dossier.
+// `sourcesMQL5()` rend ce que la classe désigne vraiment : tout source MQL5 que
+// l'utilisateur peut faire tourner, livré OU produit.
+const SCRIPTS = sourcesMQL5()
+  .filter((x) => x.src.includes("CopyRates("))
+  .map((x) => [x.nom, x.src]);
 
 test("aucun script ne DÉTRUIT un tableau qu'il va relire", () => {
   assert.ok(SCRIPTS.length > 0,
@@ -79,7 +84,19 @@ test("aucune plage inversée n'est demandée au terminal, et chaque tranche se j
   for (const [nom, src] of SCRIPTS) {
     const lignes = src.split("\n");
     lignes.forEach((l, i) => {
-      if (!/=\s*CopyRates\s*\(/.test(l)) return;
+      // ————— CET INVARIANT-CI EST DE LIEU, ET IL LE RESTE —————
+      // La classe « aucun ArrayFree » vaut pour TOUT source MQL5 ; celui-ci ne vaut
+      // que pour les lectures PAR PLAGE — deux dates passées au terminal. Le robot,
+      // lui, lit par NOMBRE : `t1 - 1 < t0` n'y a aucun sens, et `InpTracerTranches`
+      // n'y existe pas. Élargir la surface l'a fait échouer sur deux appels
+      // parfaitement sains.
+      //
+      // La règle qui a fait élargir la première joue donc dans les deux sens : un
+      // invariant de LIEU garde son lieu. Mais on ne le dit pas par un nom de
+      // fichier — on le dit par la PROPRIÉTÉ qui le rend applicable : l'appel
+      // passe-t-il une plage ? Un futur script qui lira par plage sera couvert sans
+      // être nommé ; un futur générateur qui lira par nombre ne le sera pas à tort.
+      if (!/=\s*CopyRates\s*\([^)]*,\s*t0\s*,/.test(l)) return;
       // les vingt lignes qui précèdent l'appel portent sa préparation
       const avant = lignes.slice(Math.max(0, i - 20), i).join("\n");
       if (!/if\(t1 - 1 < t0\) continue;/.test(avant)) {
