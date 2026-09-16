@@ -3251,6 +3251,14 @@
             </div>
           </sc-for>
         </div>
+        <!-- Le refus du rail se dit ICI, sous le rail : un message rendu ailleurs
+             ne serait pas vu par qui vient de cliquer une carte de condition. -->
+        <sc-if value="{{ aBsMsg }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:6px 15px;border-bottom:1px solid var(--color-divider);display:flex;gap:10px;align-items:baseline">
+            <span style="font-size:11px;line-height:1.45;flex:1;color:var(--color-accent-900)">{{ bsMsgTxt }}</span>
+            <button type="button" class="lien" style="font-size:11px" onClick="{{ bsMsgFermer }}">compris</button>
+          </div>
+        </sc-if>
         <div style="padding:6px 15px 8px;border-bottom:1px solid var(--color-divider);display:flex;flex-direction:column;gap:4px">
           <span style="font-size:10px;line-height:1.45" class="text-muted">{{ resumeConditions }}</span>
         </div>
@@ -15677,7 +15685,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260916.17';
+  VERSION_APP = '260916.18';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -22311,10 +22319,26 @@ GROUPES = {
               bsRefFond: gf.includes('aucun') ? 'var(--color-accent-100)' : 'transparent',
               bsRefFilet: gf.includes('aucun') ? '2px solid var(--color-accent)' : '2px solid transparent',
               bsRefBadge: gf.includes('aucun') ? 'référence' : 'sortie',
+              // ————— UN REFUS LÉGITIME SE DIT, SINON C'EST UN GESTE MUET —————
+              // Retirer « sans filtre » quand c'est la SEULE condition cochée viderait
+              // le balayage : il n'y aurait plus rien à comparer. Le refus est juste,
+              // et il était SILENCIEUX — `suite.length ? suite : l` rendait la liste
+              // inchangée, l'écran ne bougeait pas, et rien ne disait pourquoi. La
+              // tournée des gestes l'a rapporté muet, et elle avait raison : un
+              // refus qui ne se distingue pas d'une panne EST une panne, pour qui
+              // clique. Le message vit dans `bsMsg`, déjà rendu sous le rail.
+              aBsMsg: !!s.bsMsg,
+              bsMsgTxt: s.bsMsg || '',
+              bsMsgFermer: () => this.setState({ bsMsg: null }),
               bsRefBascule: () => this.setState((p) => {
                 const l = p.gFiltres || [];
+                if (l.length === 1 && l.includes('aucun')) {
+                  return { bsMsg: 'Impossible de retirer « sans filtre » : c\u2019est la seule '
+                    + 'condition cochée, et un balayage sans condition n\u2019a rien à comparer. '
+                    + 'Cochez-en une autre d\u2019abord.' };
+                }
                 const suite = l.includes('aucun') ? l.filter((x) => x !== 'aucun') : [...l, 'aucun'];
-                return { gFiltres: suite.length ? suite : l };
+                return { gFiltres: suite, bsMsg: null };
               }, () => this.ecrireSession()),
             };
           })(),

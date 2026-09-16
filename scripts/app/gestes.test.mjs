@@ -81,7 +81,15 @@ const PAGES = [...new Set(VUES.map(([p]) => p))];
 // régression ; une entrée qui cesse d'être muette est une entrée à retirer, et la
 // garde le dit. Sans le second sens il deviendrait une liste d'exemptions que plus
 // personne ne relève — verte en ne gardant plus rien.
-// DEUX DE PLUS ONT ÉTÉ RETIRÉES à l'enquête suivante, et celles-là ÉTAIENT des
+// DEUX DE PLUS à l'enquête d'après, et les deux pour des raisons OPPOSÉES :
+// « Sans filtre… la référence à battre » était un vrai muet — retirer la seule
+// condition cochée est refusé à juste titre, et le refus était SILENCIEUX ; il
+// se dit maintenant. « Sécurisation, lecture, durée » n'en était pas un : c'est
+// un segment sur sa propre valeur active (`mesOng` vaut déjà `secu`), dont le
+// marquage vit en STYLE et non en classe — c'est le banc qui ne savait pas le
+// lire, et il l'a appris.
+//
+// DEUX DE PLUS AVAIENT ÉTÉ RETIRÉES à l'enquête précédente, et celles-là ÉTAIENT des
 // défauts du produit : « Exporter (CSV) » partait sur un `return` nu quand le TOP
 // est vide, « Ne rien écarter » reposait sept curseurs déjà neutres. Les deux
 // s'offraient comme cliquables en ne pouvant rien faire. Ils se grisent désormais
@@ -95,10 +103,6 @@ const PAGES = [...new Set(VUES.map(([p]) => p))];
 // lui-même non cliquables (`curseur: 'default'`) et qui sont désormais comptés
 // comme défaut de BALISAGE, séparément.
 const MUETS_CONNUS = new Map([
-  ["Mes scans › Nouveau scan · « Sans filtreréférence tous les signaux sont pris — la référence à battre »",
-    "étiquette ou geste ? rendu en <button> — non enquêté"],
-  ["Mes scans › Nouveau scan · « Sécurisation, lecture, durée ×2 »",
-    "repli d'un groupe de réglages — non enquêté"],
   ["Mes scans › Backtest · « Sauvegarder ce résultat »",
     "précondition peut-être non semée — non enquêté"],
   ["Mes scans › Backtest · « Mesurer »",
@@ -422,6 +426,33 @@ test("chaque bouton de chaque vue produit une réaction visible", { timeout: 900
           if (!b) return false;
           const c = b.className || "";
           if (/\bon\b/.test(c) || /\btag-accent\b/.test(c)) return "segment";
+          // ————— ET UN SEGMENT PEUT MARQUER SON ÉTAT EN STYLE, PAS EN CLASSE —————
+          // Les pastilles du rail de mesure ont TOUTES la même classe (`mpast`) : la
+          // courante se distingue par son fond et son bord, posés en style en ligne.
+          // La règle par classe ne la voyait pas, et la tournée rapportait muet un
+          // bouton légitimement inerte — `mesOng` vaut déjà `secu` par défaut, donc
+          // le recliquer repose la même valeur.
+          //
+          // La détection reste un RÉSULTAT, et elle ne connaît aucun jeton de
+          // couleur : parmi les frères de MÊME CLASSE et de MÊME PARENT, celui qui
+          // porte un fond alors que d'autres n'en portent pas EST le courant. C'est
+          // le marquage que le produit a choisi, lu tel qu'il est rendu — pas une
+          // liste de libellés, pas une couleur écrite à la main.
+          // LA CLASSE ENTIÈRE, ET C'EST UNE CORRECTION MESURÉE : groupés sur leur
+          // PREMIÈRE classe, `btn btn-primary` et `btn btn-secondary` tombaient dans
+          // le même groupe — le primaire a un fond plein, les autres non, et la
+          // règle le prenait pour « le courant ». « Mesurer » a ainsi été sauté à
+          // tort, c'est-à-dire que la garde est devenue AVEUGLE sur un vrai muet.
+          // Un groupe de segments partage sa classe EXACTE ; deux variantes de
+          // bouton n'en forment pas un.
+          const fr = [...(b.parentElement && b.parentElement.parentElement
+            ? b.parentElement.parentElement.querySelectorAll("button")
+            : [])].filter((x) => x.offsetParent !== null && x.className === c);
+          if (fr.length > 1 && c) {
+            const opaque = (x) => !/(, ?0\)|\/ ?0\))$/.test(getComputedStyle(x).backgroundColor)
+              && getComputedStyle(x).backgroundColor !== "transparent";
+            if (opaque(b) && fr.some((x) => x !== b && !opaque(x))) return "segment";
+          }
           // ————— ET UN ÉLÉMENT QUE LE PRODUIT DÉCLARE NON ACTIONNABLE —————
           // Les cases « pas encore calculée » de la carte des filtres portent
           // `curseur: 'default'` et un gestionnaire VIDE (`ouvrir: () => {}`) : le
