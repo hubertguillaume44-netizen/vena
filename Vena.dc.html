@@ -7658,6 +7658,20 @@ class Component extends DCLogic {
   // Le corps garde son nom de travail : envelopper sans réindenter cent lignes évite
   // un diff qui cache le geste dans du blanc.
   async exporterRobot(v) {
+    // ————— LA PREMIÈRE CHOSE QU'ON ÉCRIT EST QU'ON EST ENTRÉ —————
+    // Trois instruments refusent de s'exporter sans un mot, et la livraison
+    // précédente a fermé toutes les sorties booléennes de `exporterRobotBrut`. Si
+    // rien ne s'affiche encore, c'est que la fonction n'est pas ENTRÉE — et tant
+    // qu'on ne le sait pas, tout le reste est une hypothèse.
+    //
+    // La trace est inconditionnelle et part AVANT tout test, tout try, tout calcul.
+    // Elle vit dans le fichier de diagnostic, qui survit au rechargement : un message
+    // à l'écran ne sert à rien si la page se recharge avant qu'on l'ait lu.
+    //
+    // Elle porte le symbole : c'est ce qui permettra de dire « entré pour VX-EUR,
+    // jamais entré pour CHINA50 » — la seule mesure qui départage un bouton non
+    // branché d'une sortie muette en aval.
+    this.journaliserErreur('exporterRobot ENTRÉE : ' + ((v && (v.ticker || v.sym)) || '?'));
     try { return await this.exporterRobotBrut(v); } catch (e) {
       const raison = (e && e.message) || String(e) || 'erreur inconnue';
       this.journaliserErreur('exporterRobot : ' + raison);
@@ -15938,7 +15952,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260916.25';
+  VERSION_APP = '260916.26';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les

@@ -37,6 +37,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { genererMQ5, stampMaintenant } from "../../robot-mt5.js";
+import { borne } from "../lib/tranche.mjs";
 
 const SRC = genererMQ5(
   { sym: "GOLD", periode: 9, sl: 0.5, rr: 1.5, entree: "crois", ligne: "mme",
@@ -92,4 +93,38 @@ test("la voisine qui a enseigné la leçon la porte toujours", () => {
     "`AgrConstruire` ne plafonne plus sa demande sur la profondeur disponible : c'est "
     + "d'elle que vient la forme appliquée à l'amorçage, et sa disparition dirait que "
     + "la leçon a été perdue à sa source");
+});
+
+test("le premier jalon est la PREMIÈRE instruction exécutable d'OnInit", () => {
+  // ————— TANT QU'ON NE SAIT PAS SI ON EST ENTRÉ, TOUT EST HYPOTHÈSE —————
+  // L'agent meurt sans imprimer une ligne du robot. Ce jalon borne la panne d'un côté
+  // ou de l'autre : absent, le crash est en portée globale ou au chargement ; présent,
+  // il est dans les appels qui suivent.
+  //
+  // Il ne dépend de RIEN — ni fichier ouvert, ni symbole interrogé, ni tableau. Une
+  // trace qui a besoin de quelque chose ne mesure plus l'entrée : elle mesure ce dont
+  // elle a besoin. C'est pourquoi la garde exige la PREMIÈRE place, pas la présence.
+  const apres = SRC.slice(borne(SRC, "int OnInit()"));
+  const exec = apres.split("\n").map((l) => l.trim())
+    .filter((l) => l && !l.startsWith("//"));
+  assert.equal(exec[0], "int OnInit()", "OnInit a changé de forme — réancrez");
+  assert.equal(exec[1], "{", "OnInit a changé de forme — réancrez");
+  assert.match(exec[2], /^Print\("VENA INIT 1\/3 : entrée OnInit/,
+    "le premier jalon n'est plus la première instruction exécutable d'OnInit — il est "
+    + "précédé de « " + exec[2].slice(0, 60) + " ». Tout ce qui passe avant peut tuer "
+    + "l'agent sans qu'une ligne soit écrite, et la trace ne borne alors plus rien.");
+  // les deux autres jalons encadrent ce qui reste : un aller-retour de moins
+  assert.ok(SRC.includes('Print("VENA INIT 2/3 : journaux et objets posés, avant lecture d\'historique");'),
+    "le jalon d'avant-lecture a disparu : on ne peut plus séparer « les journaux et "
+    + "les objets » de « la lecture d'historique », et il faut un second aller-retour "
+    + "avec l'utilisateur pour la même information");
+  assert.ok(SRC.includes('Print("VENA INIT 3/3 : amorçage terminé, robot prêt");'),
+    "le jalon de fin d'init a disparu : on ne distingue plus « mort pendant "
+    + "l'amorçage » de « mort à la première barre »");
+  // et l'ordre des trois est celui du déroulement, sinon ils ne bornent rien
+  const i1 = SRC.indexOf("VENA INIT 1/3"), i2 = SRC.indexOf("VENA INIT 2/3"),
+    i3 = SRC.indexOf("VENA INIT 3/3");
+  assert.ok(i1 < i2 && i2 < i3,
+    "les trois jalons ne sont plus dans l'ordre du déroulement : ils ne bornent plus "
+    + "rien, ils décrivent");
 });

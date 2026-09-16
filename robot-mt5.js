@@ -621,6 +621,17 @@ void OnDeinit(const int reason) { ConfFermer(); LivFermer(); PanneauNettoyer(); 
 
 int OnInit()
 {
+   // ————— LA PREMIÈRE INSTRUCTION ABSOLUE, AVANT QUOI QUE CE SOIT —————
+   // L'agent du testeur meurt sans imprimer une seule ligne du robot. Tant qu'on ne
+   // sait pas si OnInit est ENTRÉ, tout le reste est une hypothèse : ce Print borne
+   // la panne d'un côté ou de l'autre. S'il n'apparaît pas, le crash est en portée
+   // globale ou au chargement ; s'il apparaît, il est dans les appels qui suivent, et
+   // on l'encadre par dichotomie.
+   //
+   // Il ne dépend de RIEN : ni fichier ouvert, ni symbole interrogé, ni tableau. Une
+   // trace qui a besoin de quelque chose ne mesure plus l'entrée, elle mesure ce dont
+   // elle a besoin.
+   Print("VENA INIT 1/3 : entrée OnInit · ${esc(cfg.sym)} · build ${stamp}");
    ConfOuvrir();
    LivOuvrir();
    trade.SetExpertMagicNumber(InpMagic);
@@ -650,8 +661,12 @@ int OnInit()
       Print("ATTENTION : attachez ce robot sur un graphique H1 — il agrège lui-même les unités supérieures.");
    // le dernier seau déjà clos ne doit pas être joué au démarrage : son ouverture est
    // passée, l'ordre partirait au prix courant des heures plus tard
+   // les deux jalons qui encadrent ce qui reste : un aller-retour de moins si le
+   // premier Print passe et que l'agent meurt quand même
+   Print("VENA INIT 2/3 : journaux et objets posés, avant lecture d'historique");
    dernierSeau = SeauCourant(SEC_SIGNAL);
    SpOuvAmorcer();
+   Print("VENA INIT 3/3 : amorçage terminé, robot prêt");
    g_lancement = TimeCurrent();
    g_pic = AccountInfoDouble(ACCOUNT_EQUITY);
    return(INIT_SUCCEEDED);

@@ -203,3 +203,27 @@ test("aucune sortie booléenne de l'export du robot n'est atteignable sans messa
     + "l'export a réussi — et c'est la seule que l'application ne peut pas corriger "
     + "elle-même");
 });
+
+test("l'export du robot trace son ENTRÉE avant tout le reste", () => {
+  // Trois instruments refusent de s'exporter sans un mot, alors que toutes les sorties
+  // booléennes de `exporterRobotBrut` posent un message. Si rien ne s'affiche encore,
+  // c'est que la fonction n'est pas ENTRÉE — et c'est la seule mesure qui départage un
+  // bouton non branché d'une sortie muette en aval.
+  //
+  // La trace part AVANT tout test, tout try, tout calcul, et vit dans le fichier de
+  // diagnostic : un message à l'écran ne sert à rien si la page se recharge avant
+  // qu'on l'ait lu.
+  const i = APP.indexOf("  async exporterRobot(v) {");
+  assert.ok(i > 0, "exporterRobot a changé de forme — réancrez");
+  const exec = APP.slice(i).split("\n").map((l) => l.trim())
+    .filter((l) => l && !l.startsWith("//"));
+  assert.equal(exec[0], "async exporterRobot(v) {", "réancrez");
+  assert.match(exec[1], /^this\.journaliserErreur\('exporterRobot ENTRÉE : '/,
+    "la trace d'entrée n'est plus la première instruction : elle est précédée de « "
+    + exec[1].slice(0, 60) + " ». Tout ce qui passe avant peut sortir sans écrire, et "
+    + "la trace ne répond alors plus à la seule question qu'elle pose — sommes-nous "
+    + "entrés ?");
+  assert.ok(APP.includes("((v && (v.ticker || v.sym)) || '?')"),
+    "la trace ne porte plus le symbole : elle ne permettrait plus de dire « entré pour "
+    + "VX-EUR, jamais entré pour CHINA50 », qui est précisément le départage cherché");
+});

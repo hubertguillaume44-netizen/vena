@@ -142,7 +142,17 @@ test("le journal de conformité part dans son propre fichier, pas dans celui du 
   assert.match(src, /FILE_COMMON/, "le fichier n'irait pas dans le dossier commun : "
     + "chaque agent de test a son propre bac à sable, introuvable");
   assert.match(src, /StringReplace\(nom, "#", ""\)/, "le # de #HongKong50 n'est pas retiré du nom");
-  assert.match(src, /int OnInit\(\)\s*\{\s*ConfOuvrir\(\);/);
+  // L'INVARIANT EST « LE JOURNAL S'OUVRE AU DÉMARRAGE », PAS L'ADJACENCE.
+  // L'ancre exigeait `ConfOuvrir()` COLLÉ à l'accolade d'OnInit : un jalon de trace
+  // posé en première instruction l'a fait tomber, alors que le journal s'ouvre
+  // toujours. On lit donc le corps d'OnInit et on y cherche l'appel.
+  {
+    const iOI = borne(src, "int OnInit()");
+    const corpsOI = src.slice(iOI, borne(src, "\n}", iOI));
+    assert.match(corpsOI, /^\s*ConfOuvrir\(\);$/m,
+      "ConfOuvrir() n'est plus appelé dans OnInit : le journal de conformité "
+      + "n'existerait qu'à la première écriture, ou pas du tout");
+  }
   assert.match(src, /OnDeinit\(const int reason\) \{ ConfFermer\(\);/);
   // les fins de ligne doivent rester des ÉCHAPPEMENTS dans le MQL5, pas de vrais sauts
   assert.ok(src.includes('"CONF|" + ligne + "\\r\\n"'),

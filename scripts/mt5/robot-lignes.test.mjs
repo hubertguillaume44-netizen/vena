@@ -371,8 +371,15 @@ test('le journal des trades est toujours actif et porte son en-tête', () => {
   const liv = txt.slice(borne(txt, 'void Liv(string ligne)'));
   const corps = liv.slice(0, borne(liv, '}'));
   assert.ok(!/InpConformite/.test(corps), 'Liv() ne doit pas dépendre de InpConformite');
-  assert.match(txt, /OnInit\(\)\s*\{\s*ConfOuvrir\(\);\s*LivOuvrir\(\);/,
-    'le fichier s’ouvre au démarrage');
+  // l'invariant est que les DEUX journaux s'ouvrent dans OnInit, pas qu'ils soient
+  // collés à son accolade : un jalon de trace en première instruction a fait tomber
+  // l'ancre d'adjacence sans que rien ne cesse de s'ouvrir.
+  {
+    const iOI = borne(txt, 'int OnInit()');
+    const corpsOI = txt.slice(iOI, borne(txt, '\n}', iOI));
+    assert.match(corpsOI, /^\s*ConfOuvrir\(\);$/m, 'le journal de conformité ne s’ouvre plus au démarrage');
+    assert.match(corpsOI, /^\s*LivOuvrir\(\);$/m, 'le journal des trades ne s’ouvre plus au démarrage');
+  }
   assert.match(txt, /OnDeinit\(const int reason\) \{ ConfFermer\(\); LivFermer\(\);/,
     'et se ferme à l’arrêt');
 });
