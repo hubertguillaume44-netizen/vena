@@ -35,6 +35,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
+import { POSER_SEMIS } from "./lib/semis.mjs";
 import path from "node:path";
 
 const SOLO = new URL("../../Vena.solo.html", import.meta.url).pathname;
@@ -42,7 +43,68 @@ const CHROMIUMS = [
   process.env.VENA_CHROMIUM,
   "/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
 ].filter(Boolean);
-const PAGES = ["Mes instruments", "Mes scans", "Mes décisions"];
+// ————— SEPT VUES, PAS TROIS PAGES —————
+//
+// Les trois pages portent des SOUS-VUES que la tournée n'ouvrait pas : mesurées,
+// elles ajoutent 85 libellés inédits à l'état peuplé — plus que les trois surfaces
+// (14) et plus que la moitié de ce que la tournée voyait (78). Six écrans que
+// personne n'avait jamais cliqués.
+const VUES = [
+  ["Mes instruments", null],
+  ["Mes scans", "Nouveau scan"], ["Mes scans", "Historique"], ["Mes scans", "Backtest"],
+  ["Mes décisions", "Portefeuille"], ["Mes décisions", "Marché"], ["Mes décisions", "Journal"],
+];
+const PAGES = [...new Set(VUES.map(([p]) => p))];
+// ————— LE REGISTRE DES MUETS CONNUS, ET CE QU'IL COÛTE —————
+//
+// La tournée étendue a trouvé QUATORZE gestes sans réaction visible, dans six
+// sous-vues que personne n'avait jamais cliquées. Ils sont inscrits AVANT enquête :
+// ce sont des constats, pas des diagnostics.
+//
+// CE QUE ÇA COÛTE, écrit à côté de la dette parce qu'un chiffre seul se classe tout
+// seul en bas de la pile : neuf boutons sur lesquels on clique sans que rien ne
+// réponde, et cinq cases qui changent l'état sans le DIRE — la forme « message sans
+// surface », celle qui a motivé cette garde. Ce n'est pas du cosmétique : c'est
+// « ça ne marche pas », la phrase qu'on ne peut pas déboguer.
+//
+// DEUX RÉSERVES, parce qu'une liste vendue pour plus sûre qu'elle n'est coûte plus
+// cher que pas de liste :
+//   · les trois de Backtest demandent peut-être un backtest déjà lancé ; `semis.mjs`
+//     ne couvre pas les préconditions de cette vue. Ce serait une limite du SEMIS,
+//     pas un défaut du produit — et alors c'est le semis qu'on étend.
+//   · les quatre « Sans filtre… » ressemblent à des étiquettes rendues en <button>.
+//     Si c'en sont, le défaut est le BALISAGE — un élément inerte qui se présente
+//     comme cliquable est un défaut réel, mais d'une autre nature.
+//
+// LE REGISTRE NE PEUT PAS POURRIR, et c'est ce qui le distingue d'une liste de
+// tolérances. Il échoue DANS LES DEUX SENS : un muet qui n'y est pas est une
+// régression ; une entrée qui cesse d'être muette est une entrée à retirer, et la
+// garde le dit. Sans le second sens il deviendrait une liste d'exemptions que plus
+// personne ne relève — verte en ne gardant plus rien.
+// SEPT ENTRÉES ONT ÉTÉ RETIRÉES le jour même où elles ont été inscrites, et aucune
+// n'était un défaut du produit — c'est le registre lui-même qui l'a exigé, en
+// échouant sur leur guérison. Les cinq cases de l'agenda et deux cases de la carte
+// des filtres : les premières étaient aveuglées par la borne de 25 mutations de
+// l'observateur, les secondes sont des éléments inertes que le produit déclare
+// lui-même non cliquables (`curseur: 'default'`) et qui sont désormais comptés
+// comme défaut de BALISAGE, séparément.
+const MUETS_CONNUS = new Map([
+  ["Mes scans › Nouveau scan · « Sans filtreréférence tous les signaux sont pris — la référence à battre »",
+    "étiquette ou geste ? rendu en <button> — non enquêté"],
+  ["Mes scans › Nouveau scan · « Sécurisation, lecture, durée ×2 »",
+    "repli d'un groupe de réglages — non enquêté"],
+  ["Mes scans › Nouveau scan · « Exporter (CSV) »",
+    "devrait télécharger ; aucun téléchargement ne part — non enquêté"],
+  ["Mes scans › Historique · « Ne rien écarter »",
+    "btn btn-ghost, PAS actif : devrait remettre le filtre à zéro — non enquêté"],
+  ["Mes scans › Backtest · « Sauvegarder ce résultat »",
+    "précondition peut-être non semée — non enquêté"],
+  ["Mes scans › Backtest · « Mesurer »",
+    "btn btn-primary, pas disabled ; précondition non semée ? — non enquêté"],
+  ["Mes scans › Backtest · « Comparer »",
+    "btn btn-primary, pas disabled ; précondition non semée ? — non enquêté"],
+]);
+
 const EXCLUS = new Map([
   ["J'ai compris", "la porte d'accueil — déjà franchie par le banc"],
   ["Recharger", "recharge la page : tuerait la session du banc"],
@@ -68,7 +130,39 @@ async function lancerNavigateur() {
     .catch(() => assert.fail("Chromium introuvable : posez VENA_CHROMIUM — cette garde ne saute pas."));
 }
 
-async function ouvrir(nav) {
+// ————— LA TOURNÉE S'EXÉCUTE SUR L'ÉTAT PEUPLÉ, ET C'EST LA RÈGLE 10 —————
+//
+// Elle tournait sur un navigateur neuf : l'état où la moitié des boutons n'ont pas
+// encore de raison d'être. « Tout supprimer », « Écarter », « pousser à 2 000 »,
+// les sélecteurs de scan : vingt-et-un gestes qu'un compte vide ne peut PAS
+// produire, donc que la tournée ne pouvait pas atteindre. C'était un angle mort
+// déclaré — « tout état qui exige des données qu'un navigateur neuf n'a pas » —
+// et `semis.mjs` produit exactement ces données, en vérifiant son propre effet.
+// Un angle mort qui devient refermable se ferme.
+//
+// UNE SEULE TOURNÉE, ET SUR LE PEUPLÉ. Mesuré : 142 libellés à vide, 162 peuplé,
+// et l'intersection est presque totale — UN SEUL libellé disparaît en semant,
+// « Commissions du courtier non renseignées », qui est le MÊME bouton sous son
+// autre texte (« … aucun instrument »). Aucun geste n'est perdu : vérifié
+// nommément sur les cinq que le vide est censé seul porter — « Coller ma clé »,
+// « Voir les séries d'exemple », « Déposer le relevé », « Enregistrer une copie »,
+// « Importer mes données », tous PRÉSENTS à l'état peuplé. Deux tournées
+// doubleraient le budget pour rien.
+//
+// UNE SONDE QUI ÉPELLE UNE CHAÎNE DE L'INTERFACE LA NORMALISE. Le contrôle nommé
+// ci-dessus a mordu : « Voir les séries d'exemple » ressortait ABSENT parce que la
+// sonde épelait l'apostrophe DROITE (U+0027) et l'application la TYPOGRAPHIQUE
+// (U+2019). Elle rapportait donc une absence qui n'existait pas — et une absence
+// est une conclusion dont on se sert : celle-là aurait fait déclarer une exception
+// pour un geste qui n'en avait pas besoin.
+//
+// La règle vaut pour toute garde qui écrit un libellé de l'interface dans son
+// propre source : `normApos` ci-dessous, et jamais une comparaison nue. Le piège
+// est invisible à la relecture — les deux caractères se ressemblent dans presque
+// toutes les polices, et c'est pourquoi il se désarme par construction et pas par
+// vigilance.
+export const normApos = (x) => String(x || "").replace(/[\u2019\u02bc\u2018]/g, "'");
+async function ouvrir(nav, semer) {
   const ctx = await nav.newContext({ acceptDownloads: true });
   const p = await ctx.newPage();
   await p.goto("file://" + SOLO);
@@ -83,6 +177,17 @@ async function ouvrir(nav) {
     await porte.click();
     await p.waitForSelector(".dialog-backdrop", { state: "detached", timeout: 10000 }).catch(() => {});
   }
+  if (semer) {
+    // le semis JETTE s'il ne sème rien, et son message nomme le compte demandé et
+    // le compte relu par le chemin du produit. On ne l'enveloppe pas : une tournée
+    // qui s'exécuterait sur un écran vide en croyant mesurer l'état peuplé serait
+    // exactement la panne que ce semis existe pour interdire.
+    await p.evaluate(POSER_SEMIS);
+    await p.evaluate("window.__semis.scan(9)");
+    await p.evaluate("window.__semis.journal(12)");
+    await p.evaluate("window.__semis.decisions(3)");
+    await p.waitForTimeout(400);
+  }
   // l'observateur : compte les mutations, et note si l'une touche un élément
   // visible DANS la fenêtre — « quelque chose est dit, sans défiler »
   await p.evaluate(() => {
@@ -95,9 +200,19 @@ async function ouvrir(nav) {
     };
     new MutationObserver((ms) => {
       window.__mut += ms.length;
-      let vus = 0;
+      // ————— LA BORNE DE 25 ÉTAIT UNE BORNE DE VÉRITÉ, ET SON COMMENTAIRE DISAIT
+      // LE CONTRAIRE —————
+      // Elle s'annonçait « borne du coût, pas de la vérité : une seule suffit ». Une
+      // seule suffit, oui — encore faut-il la REGARDER. Mesuré sur les cases à cocher
+      // de l'agenda : 62 mutations dans le lot, 14 visibles, et la PREMIÈRE visible au
+      // 48e rang. L'observateur s'arrêtait au 25e et rapportait « des mutations, aucune
+      // visible » sur un geste qui fonctionne parfaitement — cinq faux muets, une
+      // seule cause, dans le banc. Un re-rendu de liste émet ses mutations dans
+      // l'ordre du DOM, jamais dans l'ordre de la visibilité.
+      // On balaie donc tout le lot : le coût réel est un parcours de quelques dizaines
+      // d'entrées, et une garde qui économise au point de ne plus voir est une garde
+      // aveugle sans rougir.
       for (const m of ms) {
-        if (vus++ > 25) break; // borne du coût, pas de la vérité : une seule suffit
         if (visible(m.target) || [...m.addedNodes].some(visible)) { window.__mutVisible += 1; return; }
       }
     }).observe(document.body, { subtree: true, childList: true, characterData: true, attributes: true });
@@ -121,6 +236,28 @@ async function calmer(p) {
   if (arrete) await p.waitForTimeout(200);
 }
 
+// Le clic sur le VOILE (z-index 69) : c'est ce qui ferme le tiroir, et rien d'autre
+// ne le ferme — ni Escape, ni un bouton.
+async function clicVoile(p) {
+  return p.evaluate(() => {
+    const v = [...document.querySelectorAll("div")]
+      .find((d) => /z-index: ?69/.test(d.getAttribute("style") || ""));
+    if (!v) return false;
+    v.click();
+    return true;
+  }).catch(() => false);
+}
+
+async function clicParTitre(p, titre) {
+  return p.evaluate((t) => {
+    const b = [...document.querySelectorAll("button")]
+      .find((x) => x.offsetParent !== null && !x.disabled && x.title === t);
+    if (!b) return false;
+    b.click();
+    return true;
+  }, titre).catch(() => false);
+}
+
 async function fermerDialogues(p) {
   // Escape D'ABORD, et sans condition : le TIROIR n'est pas un .dialog-backdrop,
   // et ouvert il recouvre la barre des onglets — un clic Playwright sur l'onglet
@@ -133,13 +270,14 @@ async function fermerDialogues(p) {
   // tous les faux muets de la première tournée avaient le tiroir ouvert au moment
   // du clic. Son voile (position:fixed, z-index:69) porte fermerTiroir : on clique
   // dessus, comme un utilisateur qui clique à côté.
-  await p.evaluate(() => {
-    const voile = [...document.querySelectorAll("div")].find((d) => {
-      const s = d.getAttribute("style") || "";
-      return s.includes("z-index:69") || s.includes("z-index: 69");
-    });
-    if (voile) voile.click();
-  }).catch(() => {});
+  await clicVoile(p);
+  // ET LES TROIS SURFACES, chacune par SON fermeur. Sans ça, l'avis resté ouvert
+  // rendait « Donner mon avis » MUET aux yeux de la tournée — deux vues sur sept
+  // l'ont rapporté comme un défaut du produit alors que le banc mesurait son propre
+  // état. Le fermeur existait déjà, dans la garde des surfaces ; il n'était pas
+  // appelé ici. Une même vérité écrite à un endroit et pas à l'autre.
+  await clicDom(p, "Fermer");            // l'aide
+  await clicParTitre(p, "Fermer");       // l'avis (sa croix)
   for (let k = 0; k < 3 && await p.$(".dialog-backdrop"); k++) {
     await p.keyboard.press("Escape").catch(() => {});
     await p.waitForTimeout(150);
@@ -195,17 +333,41 @@ async function fermerToutesSurfaces(p, clicVoile, clicTitre) {
   }
 }
 
-test("chaque bouton de chaque page produit une réaction visible", { timeout: 600000 }, async () => {
+// Aller à une VUE : la page, PUIS le sous-onglet, avec un rendu entre les deux.
+// Les enchaîner dans le même geste cliquerait un sous-onglet qui n'existe pas
+// encore — c'est le piège qui a fait conclure « page introuvable » sur une page
+// qui s'ouvrait très bien, dans la garde de rendu.
+async function allerA(p, page, sous) {
+  if (!(await clicDom(p, page))) return false;
+  await p.waitForTimeout(sous ? 450 : 350);
+  if (!sous) return true;
+  return p.evaluate((k) => {
+    const b = [...document.querySelectorAll("button")]
+      .find((x) => x.offsetParent !== null && !x.disabled && (x.textContent || "").trim() === k);
+    if (!b) return false;
+    b.click();
+    return true;
+  }, sous).catch(() => false);
+}
+
+test("chaque bouton de chaque vue produit une réaction visible", { timeout: 900000 }, async () => {
   const nav = await lancerNavigateur();
   try {
-    const p = await ouvrir(nav);
+    const p = await ouvrir(nav, true);
+    const t0 = Date.now();
+    let mesures = 0;
     let telech = 0, choixFichier = 0;
     p.on("download", () => { telech += 1; });
     p.on("filechooser", () => { choixFichier += 1; });
     const inertes = [];
-    for (const page of PAGES) {
-      assert.ok(await clicDom(p, page),
-        "la page « " + page + " » est introuvable : la garde ne clique plus rien dessus — réancrez");
+    // Les éléments inertes rendus en <button> : ce ne sont pas des gestes muets,
+    // c'est un défaut de BALISAGE, et il se compte à part pour ne pas se cacher
+    // derrière l'autre.
+    const fauxBoutons = new Set();
+    for (const [page, sous] of VUES) {
+      const vue = page + (sous ? " › " + sous : "");
+      assert.ok(await allerA(p, page, sous),
+        "la vue « " + vue + " » est introuvable : la garde ne clique plus rien dessus — réancrez");
       await p.waitForTimeout(400);
       // tout se déplie : les gestes repliés sont des gestes quand même
       await p.evaluate(() => {
@@ -220,15 +382,62 @@ test("chaque bouton de chaque page produit une réaction visible", { timeout: 60
           .filter(Boolean));
       const uniques = [...new Set(cles)];
       assert.ok(uniques.length > 0,
-        "la page « " + page + " » ne présente AUCUN bouton au banc : cette garde ne "
+        "la vue « " + vue + " » ne présente AUCUN bouton au banc : cette garde ne "
         + "mesurerait rien dessus — une garde qui saute en silence est aveugle sans rougir");
       for (const cle of uniques) {
+        // UN BOUTON DE NAVIGATION EST INERTE SUR SA PROPRE DESTINATION, et c'est son
+        // état légitime. La règle se DÉDUIT de la vue courante (règle 7) plutôt que
+        // de s'énumérer : avec sept vues, une liste écrite à la main aurait sept
+        // entrées à tenir, et c'est un périmètre qui se périme au prochain onglet.
+        // Chacun reste MESURÉ depuis les six autres vues, où il doit réagir.
+        if (cle === page || (sous && cle === sous)) continue;
         if (EXCLUS.has(cle) || EXCLUS_SUR.has(page + " · " + cle)
           || PAGES.includes(cle.replace(/^\d/, ""))) continue;
         await fermerDialogues(p);
-        // revenir sur la page : un clic précédent a pu changer de vue
-        await clicDom(p, page);
+        // revenir sur la VUE : un clic précédent a pu changer de page ou de sous-vue
+        await allerA(p, page, sous);
         await p.waitForTimeout(120);
+        mesures += 1;
+        // UN SEGMENT SUR SA PROPRE VALEUR ACTIVE EST INERTE, comme un bouton de
+        // navigation sur sa destination : c'est la même règle un cran plus bas.
+        // « Haute et basse » (tag tag-accent) et « Ce mois » (jvseg on) sont la valeur
+        // DÉJÀ choisie de leur groupe ; les recliquer ne peut rien changer, et c'est
+        // leur état légitime. La condition se LIT sur la classe rendue — le résultat —
+        // et non sur une liste de libellés, qui se périmerait au prochain segment.
+        // Chacun reste MESURÉ dès qu'un autre segment devient actif.
+        // ET LA LECTURE SE FAIT ICI, APRÈS le retour à la vue — pas avant. Placée
+        // plus haut, elle interrogeait l'écran laissé par le clic PRÉCÉDENT, où le
+        // bouton n'existe pas : elle ne trouvait rien, ne sautait rien, et « Ce mois »
+        // était rapporté muet alors qu'il est simplement déjà choisi. Une garde qui lit
+        // l'état doit le lire au moment où elle agit dessus.
+        // le verdict se lit en CLAIR : un ternaire qui rendait 0 pour « segment »
+        // avalait le cas, et les deux segments actifs sont revenus dans la liste des
+        // muets. Trois issues, trois lignes.
+        const nature = await p.evaluate((k) => {
+          const b = [...document.querySelectorAll("button")].find((x) =>
+            x.offsetParent !== null && !x.disabled
+            && ((x.textContent || "").trim().replace(/\s+/g, " ") || x.title) === k);
+          if (!b) return false;
+          const c = b.className || "";
+          if (/\bon\b/.test(c) || /\btag-accent\b/.test(c)) return "segment";
+          // ————— ET UN ÉLÉMENT QUE LE PRODUIT DÉCLARE NON ACTIONNABLE —————
+          // Les cases « pas encore calculée » de la carte des filtres portent
+          // `curseur: 'default'` et un gestionnaire VIDE (`ouvrir: () => {}`) : le
+          // produit dit lui-même qu'il n'y a rien à cliquer. La condition se lit sur
+          // le style CALCULÉ — le résultat — et non sur une liste de libellés.
+          //
+          // CE N'EST PAS UNE EXEMPTION GRATUITE : qu'un élément inerte soit rendu en
+          // <button> reste un défaut, d'une autre nature — focalisable au clavier,
+          // annoncé comme un bouton par un lecteur d'écran. Il est compté à PART
+          // plutôt que rangé avec les gestes muets : deux défauts distincts ne se
+          // rangent pas sous le même mot, sinon corriger l'un fait disparaître
+          // l'autre du compte sans que personne ne l'ait traité.
+          if (getComputedStyle(b).cursor === "default") return "inerte";
+          return "";
+        }, cle).catch(() => "");
+        if (nature === "inerte") { fauxBoutons.add(vue + " · « " + cle + " »"); continue; }
+        if (nature === "segment") continue;
+
         const avant = await p.evaluate(() => { const m = { m: window.__mut, v: window.__mutVisible }; return m; });
         // les VALEURS des champs sont des propriétés, pas des attributs : un bouton
         // qui remplit un champ (« Voir les séries d'exemple » pose « VX- » dans la
@@ -259,19 +468,38 @@ test("chaque bouton de chaque page produit une réaction visible", { timeout: 60
         const reagi = vif || apres.v > avant.v || telech > dAvant || choixFichier > fAvant
           || champsApres !== champsAvant;
         if (!reagi) {
-          inertes.push(page + " · « " + cle + " »"
+          inertes.push(vue + " · « " + cle + " »"
             + (apres.m > avant.m ? " (des mutations, aucune visible dans la fenêtre)" : " (aucune réaction du tout)"));
         }
         await calmer(p);
       }
     }
-    assert.deepEqual(inertes, [],
-      "Des boutons ne produisent AUCUNE réaction visible — le défaut de la soirée, "
-      + "sous toutes ses formes (menu vide, export muet, bouton MT5, Réautoriser "
-      + "jamais branché, messages sans surface) :\n  " + inertes.join("\n  ")
+    // LE BUDGET EST UNE MESURE, pas une impression : il est rapporté à chaque
+    // exécution, avec le nombre de gestes mesurés. Une tournée qui grossit sans
+    // qu'on le voie finit par être coupée au hasard le jour où elle gêne.
+    console.log("    [gestes] " + mesures + " gestes mesurés sur " + VUES.length
+      + " vues en " + Math.round((Date.now() - t0) / 1000) + " s");
+    // ————— LE REGISTRE ÉCHOUE DANS LES DEUX SENS —————
+    const cleDe = (x) => x.replace(/ \((?:aucune réaction du tout|des mutations[^)]*)\)$/, "");
+    const neufs = inertes.filter((x) => !MUETS_CONNUS.has(cleDe(x)));
+    const vus = new Set(inertes.map(cleDe));
+    const gueris = [...MUETS_CONNUS.keys()].filter((k) => !vus.has(k));
+    assert.deepEqual(gueris, [],
+      gueris.length + " entrée(s) du registre ne sont PLUS muettes :\n  " + gueris.join("\n  ")
+      + "\n\nC'est une bonne nouvelle, et c'est quand même un échec : un registre qu'on "
+      + "ne vide pas devient une liste d'exemptions que plus personne ne relève, et la "
+      + "garde passe au vert en ne gardant plus rien. Retirez ces lignes de MUETS_CONNUS. "
+      + "Si l'entrée a disparu parce que le BOUTON a disparu, dites-le dans le commit : "
+      + "un geste retiré n'est pas un geste réparé.");
+    assert.deepEqual(neufs, [],
+      "Des boutons ne produisent AUCUNE réaction visible, et ils ne sont PAS au registre "
+      + "— le défaut de la soirée, sous toutes ses formes (menu vide, export muet, bouton "
+      + "MT5, Réautoriser jamais branché, messages sans surface) :\n  " + neufs.join("\n  ")
       + "\n\nChaque geste doit faire quelque chose ET le dire dans la fenêtre, sans "
       + "défiler. Si un bouton est légitimement hors de portée du banc (sélecteur "
-      + "natif, état absent d'un navigateur neuf), il s'exclut NOMMÉMENT, avec sa raison.");
+      + "natif, état absent d'un navigateur neuf), il s'exclut NOMMÉMENT, avec sa raison. "
+      + "S'il est un muet CONNU en attente d'enquête, il rejoint MUETS_CONNUS — qui "
+      + "échoue le jour où il guérit, pour qu'il ne devienne pas une liste de tolérances.");
   } finally {
     await nav.close();
   }
