@@ -48,7 +48,11 @@ test("l'export écrit AU FIL : rien ne s'accumule, et les accumulateurs restants
   const iE = APP.indexOf("async ecrireExportAu(sink, entete) {");
   assert.ok(iE > 0, "ecrireExportAu a changé de forme — réancrez, ne laissez pas la garde verte sur du vide");
   const corpsE = APP.slice(iE, borne(APP, "\n  }", iE));
-  assert.ok(corpsE.includes("for await (const [k, vj] of this.blocsExport())")
+  // Réancré : le générateur livre un TROISIÈME élément par bloc — le nombre de
+  // configurations qu'il porte — pour que le compte rendu se dérive de ce qui est
+  // écrit et non d'une lecture d'état faite à côté. La borne du pic mémoire, elle,
+  // n'a pas bougé : c'est toujours un bloc à la fois.
+  assert.ok(corpsE.includes("for await (const [k, vj, nCbloc] of this.blocsExport())")
     && corpsE.includes("await sink.write(m);"),
     "ecrireExportAu n'itère plus le générateur bloc par bloc : d'où viendrait la "
     + "borne du pic mémoire ?");

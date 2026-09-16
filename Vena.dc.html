@@ -15652,7 +15652,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260916.12';
+  VERSION_APP = '260916.13';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -17886,9 +17886,20 @@ GROUPES = {
   // La seule vérité de « qu'est-ce qui part dans un export » : les petites clés
   // du stockage local, puis chaque série (une par une, relue d'IndexedDB), puis
   // chaque scan. Tout consommateur itère — celui qui accumule le dit et l'assume.
+  // Le motif d'une clé de bloc de SÉRIE, tous espaces et tous comptes confondus :
+  // `gros:vena.series.v1<suffixe>|<symbole>`. Il se dérive du nom de la clé écrite,
+  // jamais d'une liste de suffixes — un compte de plus n'a rien à apprendre à
+  // personne.
+  estBlocSerie(k) {
+    return new RegExp('^gros:' + this.CLE_SERIES.replace(/\./g, '\\.') + '[^|]*\\|').test(String(k || ''));
+  }
+  // ————— CHAQUE BLOC DIT CE QU'IL PORTE, AU MOMENT OÙ IL PART —————
+  // Le troisième élément est le nombre de configurations que CE bloc contient. Il
+  // se lit sur `scanC.n`, que le compactage inscrit dans le bloc lui-même : c'est
+  // donc une propriété de ce qui est ÉCRIT, pas une relecture de l'état à côté.
   async *blocsExport() {
     const petit = this.dumpComplet();
-    for (const [k, v] of Object.entries(petit)) yield [k, JSON.stringify(v)];
+    for (const [k, v] of Object.entries(petit)) yield [k, JSON.stringify(v), 0];
     for (const [k, v] of Object.entries(petit)) {
       if (!k.startsWith(this.CLE_SERIES)) continue;
       let idx = [];
@@ -17896,7 +17907,7 @@ GROUPES = {
       for (const sym of idx) {
         const cle = k + '|' + sym;
         const g = await this.grosGet(cle);
-        if (g) yield ['gros:' + cle, JSON.stringify(g)];
+        if (g) yield ['gros:' + cle, JSON.stringify(g), 0];
       }
     }
     const cles = new Set();
@@ -17906,7 +17917,9 @@ GROUPES = {
     }
     for (const cle of cles) {
       const g = await this.grosGet(cle);
-      if (g) yield ['gros:' + cle, JSON.stringify(g)];
+      if (!g) continue;
+      const nC = (g.scanC && g.scanC.n) || (Array.isArray(g.scan) ? g.scan.length : 0);
+      yield ['gros:' + cle, JSON.stringify(g), nC];
     }
   }
   // ————— ÉCRIRE AU FIL : le pic est borné par le PLUS GROS BLOC, pas le stockage —————
@@ -17917,15 +17930,33 @@ GROUPES = {
   // puis relâché avant le suivant ; rien ne s'accumule, quelle que soit la taille.
   async ecrireExportAu(sink, entete) {
     await sink.write('{' + entete + '"donnees":{');
-    let n = 0, octets = 0, maxK = '', maxL = 0, premier = true;
-    for await (const [k, vj] of this.blocsExport()) {
+    // ————— LE COMPTE RENDU DÉCRIT CE QUI EST SORTI, PAS CE QU'ON CROYAIT ÉCRIRE —————
+    //
+    // Le pied annonçait « 10 séries · 0 configuration · 592 Mo » pendant que la page
+    // en montrait 66 et 3 961. Les deux premiers nombres étaient lus dans l'ÉTAT
+    // (`state.deposes`, `lignesScan`) : dix, ce sont les séries d'EXEMPLE, les seules
+    // en mémoire ; zéro, c'est un scan qui vit dans le stockage et pas dans
+    // `lignesScan`. Le troisième venait du FLUX, et lui était juste — c'est pourquoi
+    // 592 Mo restait cohérent avec soixante-six séries.
+    //
+    // Mesuré avant de corriger, sur un puits qui capture : le fichier contenait bien
+    // les DOUZE séries semées dans le stockage pendant que le compte rendu disait
+    // « 10 · 0 ». Personne n'avait perdu de données ; c'est le compte rendu qui
+    // mentait — la classe du `r.ok` sous redirection, en pire, parce qu'ici la phrase
+    // rassure au lieu d'alerter.
+    //
+    // Les trois nombres viennent donc du MÊME endroit : ce qui traverse ce puits.
+    let n = 0, octets = 0, maxK = '', maxL = 0, premier = true, nS = 0, nC = 0;
+    for await (const [k, vj, nCbloc] of this.blocsExport()) {
       const m = (premier ? '' : ',') + JSON.stringify(k) + ':' + vj;
       await sink.write(m);
       n += 1; octets += m.length; premier = false;
+      if (this.estBlocSerie(k)) nS += 1;
+      nC += nCbloc || 0;
       if (vj.length > maxL) { maxL = vj.length; maxK = k; }
     }
     await sink.write('}}');
-    return { n, octets: octets + entete.length + 14, maxK, maxL };
+    return { n, octets: octets + entete.length + 14, maxK, maxL, nS, nC };
   }
   // les bougies chargées sont le plus gros poste de mémoire HORS export, et
   // l'export ne les lit pas (il relit le stockage) : on les relâche avant.
@@ -17941,11 +17972,19 @@ GROUPES = {
     // au fil — l'export chiffré (AES-GCM chiffre en une passe) et le repli Blob
     // des navigateurs sans createWritable. Les autres passent par ecrireExportAu.
     // Il itère le MÊME générateur : deux énumérations divergeraient.
+    // Il compte ce qu'il PREND, comme `ecrireExportAu` compte ce qu'il écrit : ces
+    // deux chemins produisent le même fichier, ils doivent produire le même compte
+    // rendu. Le bilan voyage à côté du dump plutôt que dedans — une clé de plus
+    // dans le dump partirait dans le fichier de l'utilisateur.
     const dump = this.dumpComplet();
-    for await (const [k, vj] of this.blocsExport()) {
-      if (k.startsWith('gros:')) dump[k] = vj;
+    let nS = 0, nC = 0;
+    for await (const [k, vj, nCbloc] of this.blocsExport()) {
+      if (!k.startsWith('gros:')) continue;
+      dump[k] = vj;
+      if (this.estBlocSerie(k)) nS += 1;
+      nC += nCbloc || 0;
     }
-    return dump;
+    return { dump, bilan: { nS, nC } };
   }
   dumpComplet() {
     // la clé d'API n'est jamais exportée : elle est nominative et l'export circule
@@ -18514,13 +18553,16 @@ GROUPES = {
     // ici, et le chiffré ACCUMULE par construction (AES-GCM, une passe)
     this.libererBougiesExport();
     try {
-    const dump = await this.dumpCompletAvecScan();
+    const { dump, bilan: bilanC } = await this.dumpCompletAvecScan();
     // les séries de bougies sont optionnelles : sept ans de H1 sur trente instruments
     // font un fichier que personne n'attend
     if (!avecSeries) {
       for (const k of Object.keys(dump)) {
-        if (k.startsWith('gros:' + this.CLE_SERIES)) delete dump[k];
+        if (this.estBlocSerie(k)) delete dump[k];
       }
+      // et le compte rendu SUIT le retrait : dire « 66 séries » sur un fichier qui
+      // n'en porte aucune serait le défaut qu'on vient de retirer, dans l'autre sens
+      bilanC.nS = 0;
     }
     const licC = this.ligneLicenceExport();
     // même assemblage en morceaux que l'export en clair : le stringify du dump
@@ -18535,16 +18577,21 @@ GROUPES = {
     // l'enveloppe aussi part en morceaux : la base64 du chiffré n'a aucun
     // caractère à échapper, elle s'insère verbatim dans la chaîne JSON
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob(['{"vena_chiffre":1,"algo":"AES-GCM",'
+    // LA TAILLE VIENT DU FICHIER, comme les deux autres nombres. Ce site n'avait
+    // même pas de `o` : il était doublement faux — deux compteurs lus dans l'état et
+    // aucune taille du tout. Le blob chiffré EST le fichier : on le nomme avant de
+    // le donner à l'URL, pour pouvoir lire son `size`.
+    const fichierC = new Blob(['{"vena_chiffre":1,"algo":"AES-GCM",'
       + '"kdf":"PBKDF2-SHA256","iterations":' + this.CHIFFRE_ITER + ','
       + '"sel":' + JSON.stringify(this._b64o(sel)) + ',"iv":' + JSON.stringify(this._b64o(iv))
       + ',"date":' + JSON.stringify(new Date().toISOString()) + ',"donnees":"',
-      this._b64o(chiffre), '"}'], { type: 'application/json' }));
+      this._b64o(chiffre), '"}'], { type: 'application/json' });
+    a.href = URL.createObjectURL(fichierC);
     a.download = 'vena-chiffre-' + new Date().toISOString().slice(0, 10) + '.json';
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 2000);
     try { localStorage.setItem(this.cleGlobale(this.CLE_SAUV), JSON.stringify({
-      t: Date.now(), nC: (this.lignesScan || []).length, nS: (this.state.deposes || []).length })); } catch (e) {}
+      t: Date.now(), nC: bilanC.nC, nS: bilanC.nS, o: fichierC.size })); } catch (e) {}
     this.setState({ sauvDate: Date.now() });
     return Object.keys(dump).length;
     } finally {
@@ -18767,14 +18814,15 @@ GROUPES = {
             + 'Chrome ou Edge écrivent au fil, sans cette limite.' });
           await new Promise((ok) => setTimeout(ok, 50));
         }
-        const dump = await this.dumpCompletAvecScan();
+        const { dump, bilan: bilanB } = await this.dumpCompletAvecScan();
         const blob = new Blob(this.partiesExport(dump, entete), { type: 'application/json' });
         let maxK = '', maxL = 0;
         for (const [k, v] of Object.entries(dump)) {
           const l = (v || '').length;
           if (l > maxL) { maxL = l; maxK = k; }
         }
-        bilan = { n: Object.keys(dump).length, octets: blob.size, maxK, maxL };
+        bilan = { n: Object.keys(dump).length, octets: blob.size, maxK, maxL,
+          nS: bilanB.nS, nC: bilanB.nC };
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
         a.download = nomFichier;
@@ -18785,8 +18833,7 @@ GROUPES = {
       // La DATE de la dernière sauvegarde. Un bouton d'export que personne ne clique ne
       // sauve rien : c'est la date qui pousse à cliquer, et elle n'existait nulle part.
       try { localStorage.setItem(this.cleGlobale(this.CLE_SAUV), JSON.stringify({
-        t: Date.now(), nC: (this.lignesScan || []).length, nS: (this.state.deposes || []).length,
-        o: bilan.octets })); } catch (e) {}
+        t: Date.now(), nC: bilan.nC, nS: bilan.nS, o: bilan.octets })); } catch (e) {}
       // ————— UN SEUL COMPTE RENDU POUR UN SEUL EXPORT —————
       // « Dernier export : … — 66 séries, 3 961 configurations » et « 63 blocs ·
       // 592 Mo exportés » décrivaient le même geste sur deux rangées de la barre
