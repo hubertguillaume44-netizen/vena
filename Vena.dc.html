@@ -7796,6 +7796,23 @@ class Component extends DCLogic {
     a.download = nomFichier;
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    // ————— LA SORTIE DE SUCCÈS ÉTAIT LA SEULE MUETTE —————
+    // Les trois autres sorties de cette fonction posent un message ; celle-ci comptait
+    // sur le FICHIER pour se signaler. Or le fichier est ce que le navigateur peut
+    // refuser de poser : téléchargements automatiques bloqués, second fichier d'une
+    // série refusé, dossier qu'on ne regarde pas. Le robot est alors exporté, rien
+    // n'arrive, et rien ne le dit — exactement « ni fichier ni message ».
+    //
+    // Le dépôt sait déjà que ça se produit : l'infobulle de l'export en lot dit
+    // « autorisez les téléchargements multiples si le navigateur les bloque ». Ce
+    // qu'elle ne faisait pas, c'est le DIRE au moment où ça arrive.
+    //
+    // La confirmation nomme le fichier : sans son nom, « c'est descendu » n'aide pas
+    // à le retrouver, et ne permet pas de distinguer un blocage d'un dossier mal
+    // regardé. C'est la même forme que la confirmation du dépôt au journal des tests.
+    this.setState({ hasardMsg: 'Robot exporté : ' + nomFichier
+      + '. S\u2019il n\u2019apparaît pas dans vos téléchargements, c\u2019est votre navigateur qui '
+      + 'le bloque — autorisez les téléchargements pour ce site, puis recommencez.' });
     return true;
   }
   // Les paliers de la ligne : ceux de SA variante, pas ceux du panneau. Le scan éteint la
@@ -15921,7 +15938,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260916.23';
+  VERSION_APP = '260916.24';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les

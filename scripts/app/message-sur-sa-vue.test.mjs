@@ -35,6 +35,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { borne } from "../lib/tranche.mjs";
 
 const APP = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
 const SEMIS = readFileSync(new URL("./lib/semis.mjs", import.meta.url), "utf8");
@@ -146,4 +147,59 @@ test("tout ce qui jette dans l'export du robot se dit, et se journalise", () => 
   assert.ok(APP.includes("Rien n\\u2019a été téléchargé."),
     "le message ne dit plus que RIEN n'est descendu : l'utilisateur irait chercher un "
     + "fichier à moitié écrit dans son dossier de téléchargements");
+});
+
+test("aucune sortie booléenne de l'export du robot n'est atteignable sans message", () => {
+  // ————— LA SORTIE DE SUCCÈS ÉTAIT LA SEULE MUETTE —————
+  // Rapport : trois robots — CHINA50, AUDJPY, DOW30 — ne produisent NI fichier NI
+  // message, et le `try/catch` de 260916.23 n'y change rien. Aucun message veut dire
+  // aucune exception : le geste sort par un `return` propre.
+  //
+  // L'audit mécanique des sorties le donne sans hypothèse sur les données : les
+  // quatre sorties réelles de `exporterRobotBrut` posent un message — sauf
+  // `return true`, qui comptait sur le FICHIER pour se signaler. Or le fichier est
+  // précisément ce qu'un navigateur peut refuser de poser. Le dépôt le savait déjà,
+  // l'infobulle de l'export en lot le dit — il ne le disait pas AU MOMENT où ça
+  // arrive.
+  //
+  // Les trois symboles ont été mesurés au banc : ils s'exportent sans défaut. La
+  // piste du NOM est donc éliminée, et ce qui reste est chez l'utilisateur — raison
+  // de plus pour que chaque sortie parle.
+  //
+  // LA GARDE DÉCOUVRE, ELLE N'ÉNUMÈRE PAS : elle relève les sorties booléennes du
+  // corps et exige un message dans les lignes qui précèdent. Une cinquième sortie
+  // muette échoue sans que personne ait à l'inscrire ici.
+  //
+  // ANGLE MORT DÉCLARÉ, en deux points, tous deux mesurés :
+  //   · une fonction interne qui rendrait un booléen serait comptée comme une sortie.
+  //     Elle échouerait donc en RÉCLAMANT un message — plus strict que la réalité,
+  //     jamais plus laxiste. C'est le bon sens de l'erreur pour une garde.
+  //   · elle lit le TEXTE, pas l'exécution : une mutation qui désactive le message en
+  //     le gardant sur place (`if (0) this.setState(…)`) ne la fait PAS tomber —
+  //     vérifié. La suppression, elle, tombe. C'est la limite de toute garde qui lit
+  //     du source, et elle se déclare plutôt que de se deviner.
+  const i = APP.indexOf("  async exporterRobotBrut(v) {");
+  assert.ok(i > 0, "exporterRobotBrut a changé de forme — réancrez");
+  const corps = APP.slice(i, borne(APP, "\n  }", borne(APP, "return true;", i)));
+  const lignes = corps.split("\n");
+  const sorties = [];
+  lignes.forEach((l, n) => {
+    if (!/\breturn (true|false);/.test(l) || l.trim().startsWith("//")) return;
+    const avant = lignes.slice(Math.max(0, n - 12), n).join("\n");
+    if (!/hasardMsg/.test(avant)) sorties.push((n + 1) + " : " + l.trim());
+  });
+  assert.deepEqual(sorties, [],
+    "Des sorties de `exporterRobot` rendent la main sans qu'un message ait été posé. "
+    + "Le geste se termine, rien ne descend ou rien ne le dit, et l'utilisateur ne "
+    + "peut pas distinguer « refusé » de « cassé » — c'est le rapport « ni fichier ni "
+    + "message », mot pour mot.\n  " + sorties.join("\n  "));
+  // et le succès nomme le fichier : « c'est descendu » ne permet pas de le retrouver,
+  // ni de distinguer un blocage du navigateur d'un dossier qu'on ne regarde pas
+  assert.ok(APP.includes("this.setState({ hasardMsg: 'Robot exporté : ' + nomFichier"),
+    "la confirmation d'export ne nomme plus le fichier : sans son nom, on ne sait ni "
+    + "où regarder, ni si c'est le navigateur qui l'a bloqué");
+  assert.ok(APP.includes("c\\u2019est votre navigateur qui '"),
+    "le message ne nomme plus la cause la plus probable d'un fichier absent alors que "
+    + "l'export a réussi — et c'est la seule que l'application ne peut pas corriger "
+    + "elle-même");
 });

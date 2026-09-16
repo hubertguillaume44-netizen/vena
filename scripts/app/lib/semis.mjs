@@ -76,7 +76,14 @@ export const POSER_SEMIS = `(() => {
     /** Un scan archivé de \`n\` configurations, posé par poserScan — la seule
      *  porte par laquelle un scan arrive à l'écran. Relu par this.lignesScan. */
     scan(n, syms) {
-      const S = syms || ['VX-EUR', 'VX-500', 'VX-OR'];
+      // ————— LE BANC N'EXPORTAIT QUE CE QU'IL CONNAISSAIT DÉJÀ —————
+      // Trois robots ont été rapportés non exportables : CHINA50, AUDJPY, DOW30 — deux
+      // indices et une croisée en yen, aucune majeure en dollar. Le semis ne posait que
+      // des VX- : des tickers inventés, courts, sans chiffres collés ni devise de
+      // cotation exotique. Le banc exerçait donc exactement la forme de nom qui ne pose
+      // pas de problème. Les trois entrent ici : ce ne sont plus des cas rapportés, ce
+      // sont des cas mesurés à chaque exécution.
+      const S = syms || ['VX-EUR', 'VX-500', 'VX-OR', 'CHINA50', 'AUDJPY', 'DOW30'];
       const id = 'semis-1';
       const scan = [];
       for (let i = 0; i < n; i++) scan.push({ ...ligneDe(S[i % S.length], i), _sid: id });
@@ -108,7 +115,7 @@ export const POSER_SEMIS = `(() => {
      *  complète depuis le scan en mémoire), donc scan() doit passer avant.
      *  Relu par le producteur du produit : normValides(state.valides). */
     decisions(n, syms) {
-      const S = (syms || ['VX-EUR', 'VX-500', 'VX-OR']).slice(0, n);
+      const S = (syms || ['VX-EUR', 'VX-500', 'VX-OR', 'CHINA50', 'AUDJPY', 'DOW30']).slice(0, n);
       if (S.length !== n) throw new Error("semis « décisions » : " + n
         + " demandée(s) pour " + S.length + " symbole(s) disponible(s) — une décision "
         + "par instrument, la table ne peut pas en porter deux du même");
