@@ -1466,7 +1466,7 @@
               <strong style="font-family:var(--font-heading);font-weight:600;font-size:22px;line-height:1.1;max-width:24ch">Cocher les instruments souhaités</strong>
               <span style="font-family:var(--font-heading);font-weight:600;font-size:34px;line-height:.72;flex:0 0 auto;color:rgba(89,128,166,.45)">2</span>
             </div>
-            <span style="font-size:13.5px;line-height:1.6;max-width:54ch" class="text-muted">Cochez-les dans la liste de gauche, puis téléchargez <code>symboles.txt</code> — orthographié comme votre courtier les nomme. Posez-le dans <code>MQL5\Files\vena\</code>.</span>
+            <span style="font-size:13.5px;line-height:1.6;max-width:54ch" class="text-muted">Cochez-les dans la liste de gauche, puis téléchargez la liste — orthographiée comme votre courtier les nomme. Elle doit s’appeler <code>{{ listeChemin }}</code>, c’est ce nom-là que le script lit.</span>
             <!-- pas de dépôt ici : c'est un téléchargement, donc un trait plein et
                  aucune invitation à glisser quoi que ce soit -->
             <div style="margin-top:auto;min-height:58px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:5px;padding:10px 13px;position:relative;border:1px solid rgba(29,31,32,.16)">
@@ -15599,7 +15599,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260916.8';
+  VERSION_APP = '260916.9';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -18419,6 +18419,22 @@ GROUPES = {
   // impératifs (« exportez vos données », « Exportez avant de fermer »), et un
   // « Exporter ma sauvegarde (page Journal) » qui ne désignait AUCUN bouton existant.
   // Renommer le seul libellé aurait fait un quatrième nom, pire que l'imprécision.
+  // ————— LES DEUX BOUTS DU MÊME GESTE PORTENT LE MÊME NOM —————
+  // L'application écrivait « symboles_<compte>.txt » ; Export_H1_Vena.mq5 lit
+  // « vena\\symboles.txt », en dur. Le script se taisait (le chemin qu'il DEMANDE
+  // existe : ce n'est pas le repli muet, sa garde ne pouvait pas l'attraper), et
+  // l'application ne prévenait pas. Le nom du compte n'a rien à faire dans le nom
+  // du fichier : le script ne peut pas le deviner, et deux comptes n'ont jamais
+  // deux listes à la fois dans le même dossier — un terminal, un courtier. Il vit
+  // DANS le fichier, en commentaire d'en-tête, que LireListeFichier ignore déjà.
+  //
+  // Une seule vérité, et c'est le nom que le script lit. Le téléchargement, le
+  // message, l'infobulle et l'instruction à l'écran en dérivent tous ; la garde
+  // (nom-traverse.test.mjs) relit le .mq5 EMBARQUÉ pour vérifier qu'il cherche bien
+  // celui-là — la seule forme qui empêche les deux bouts de re-diverger.
+  LISTE_NOM = 'symboles.txt';
+  LISTE_DOSSIER = 'MQL5\\Files\\vena\\';
+  get LISTE_CHEMIN() { return this.LISTE_DOSSIER + this.LISTE_NOM; }
   COPIE_TXT = 'Enregistrer une copie';
   COPIE_AIDE = 'Une copie datée, à garder de côté ou à emporter sur une autre machine. La sauvegarde automatique, elle, se met à jour seule.';
   CHIFFRE_ITER = 600000;
@@ -21125,12 +21141,12 @@ GROUPES = {
             : 'Liste pour MT5 · cochez des instruments',
           sansListeMt5: noms.length === 0,
           listeMt5Aide: noms.length
-            ? 'Écrit symboles.txt : ' + noms.length + ' instrument' + (noms.length > 1 ? 's' : '')
-              + ', un par ligne, dans l\u2019orthographe de votre courtier. À placer dans '
-              + 'MQL5\\Files\\vena\\ — les deux scripts le lisent, et il n\u2019y a rien à recompiler '
+            ? 'Écrit ' + this.LISTE_NOM + ' : ' + noms.length + ' instrument' + (noms.length > 1 ? 's' : '')
+              + ', un par ligne, dans l\u2019orthographe de votre courtier. À placer en '
+              + this.LISTE_CHEMIN + ' — les deux scripts le lisent, et il n\u2019y a rien à recompiler '
               + 'quand la sélection change.'
             : 'Cochez d\u2019abord les instruments voulus dans la liste de gauche : c\u2019est cette '
-              + 'sélection que symboles.txt porte, et elle seule décide de ce que le terminal exporte.',
+              + 'sélection que ' + this.LISTE_NOM + ' porte, et elle seule décide de ce que le terminal exporte.',
           telechargerListe: () => {
             // L'orthographe vient du relevé quand il existe (nomCourtier lit
             // ligneCourtier) ; l'en-tête doit le DIRE — treize indices rejetés d'un
@@ -21142,7 +21158,7 @@ GROUPES = {
             // #USNDAQ100 — un lecteur qui saute les lignes à dièse jetait dix-neuf
             // noms sur vingt. L'ancien en-tête au dièse reste lisible par le nouveau
             // lecteur (« # » suivi d'une espace), et celui-ci l'est par les deux.
-            const entete = '// symboles.txt — écrit par Véna pour ' + this.nomCompteActif()
+            const entete = '// ' + this.LISTE_NOM + ' — écrit par Véna pour ' + this.nomCompteActif()
               + ' le ' + new Date().toLocaleString('fr-FR') + '\n'
               + (aReleve
                 ? '// ' + noms.length + ' instrument(s) · orthographe du relevé de ' + this.nomCompteActif()
@@ -21155,11 +21171,13 @@ GROUPES = {
             const a = document.createElement('a');
             a.href = URL.createObjectURL(new Blob([entete + noms.join('\n') + '\n'],
               { type: 'text/plain;charset=utf-8' }));
-            a.download = 'symboles_' + this.etiquetteCompte() + '.txt';
+            a.download = this.LISTE_NOM;
             a.click();
             setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-            this.setState({ mt5Copie: 'symboles_' + this.etiquetteCompte() + '.txt écrit — ' + noms.length
-              + ' instrument(s). Placez-le dans MQL5\\Files\\vena\\ (MT5 : Fichier > Ouvrir le dossier de données).' });
+            this.setState({ mt5Copie: this.LISTE_NOM + ' écrit — ' + noms.length
+              + ' instrument(s). Placez-le en ' + this.LISTE_CHEMIN
+              + ' (MT5 : Fichier > Ouvrir le dossier de données). Le compte est écrit DANS le fichier, '
+              + 'en en-tête : le script lit ce nom-là et lui seul.' });
           },
           // Les scripts voyagent DANS le fichier construit : aucune valeur n'y est
           // injectée, et les octets embarqués sont vérifiés IDENTIQUES aux fichiers
@@ -26757,6 +26775,8 @@ GROUPES = {
         choisir: () => this.setState({ triCumul: v }),
       })),
       autoMsg: s.autoMsg || '',
+      listeNom: this.LISTE_NOM,
+      listeChemin: this.LISTE_CHEMIN,
       copieTxt: this.COPIE_TXT,
       copieAide: this.COPIE_AIDE,
       aAutoMsg: !!s.autoMsg,
