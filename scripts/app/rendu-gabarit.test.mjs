@@ -518,3 +518,106 @@ test("la barre permanente tient en DEUX rangées, dans ses deux états chargés"
     await nav.close();
   }
 });
+
+test("la barre : les boutons au bord droit, et l'état de la sauvegarde dit quel fichier", { timeout: 120000 }, async () => {
+  // ————— DEUX DÉFAUTS D'UNE MÊME BARRE, MESURÉS AU RENDU —————
+  //
+  // 1 · Les boutons flottaient à la suite du texte. Dans du mobilier permanent,
+  //     l'œil cherche les gestes toujours au même endroit : ils vivent au bord
+  //     droit, en un GROUPE (margin-left:auto) — sur une fenêtre large ils
+  //     partagent la rangée du texte, ce qui fait space-between sans le déclarer ;
+  //     sur une fenêtre étroite le groupe passe à la ligne ENTIER, jamais un
+  //     bouton seul orphelin d'un côté.
+  // 2 · Dans l'état normal — sauvegarde active — la barre ne disait RIEN : ni quel
+  //     fichier, ni quand. C'est ce silence qui a fait demander si ouvrir
+  //     l'application déclenchait une sauvegarde. Une barre permanente qui se tait
+  //     sur l'état normal ne rassure pas, elle laisse deviner.
+  //
+  // ANGLE MORT, déclaré (règle 9) : le banc mesure UNE largeur de fenêtre. Le
+  // partage de rangée (space-between) et le repli du groupe entier dépendent de
+  // la largeur ; ce qui est mesuré ici est l'invariant des deux — le dernier
+  // bouton touche le bord, quelle que soit la rangée où il a atterri.
+  let chromium;
+  try { ({ chromium } = await import("playwright")); }
+  catch (e) { assert.fail("playwright introuvable — cette garde ne saute pas en silence."); }
+  const executablePath = CHROMIUMS.find((c) => existsSync(c));
+  const nav = await chromium.launch(executablePath ? { executablePath } : {})
+    .catch(() => assert.fail("Chromium introuvable : posez VENA_CHROMIUM — cette garde ne saute pas."));
+  try {
+    const p = await (await nav.newContext()).newPage();
+    await p.goto("file://" + SOLO);
+    await p.waitForFunction(() => document.body && document.body.innerText.length > 400, { timeout: 60000 });
+    const porte = await p.waitForSelector('button:has-text("J\'ai compris")', { timeout: 15000 }).catch(() => null);
+    if (porte) {
+      await porte.click();
+      await p.waitForSelector(".dialog-backdrop", { state: "detached", timeout: 10000 }).catch(() => {});
+    }
+    await p.waitForTimeout(300);
+    const m = await p.evaluate(() => {
+      const el = document.querySelector("button");
+      const fk = Object.keys(el).find((x) => x.startsWith("__reactFiber"));
+      let f = el[fk];
+      while (f && !(f.stateNode && f.stateNode.constructor
+        && f.stateNode.constructor.name === "StreamableComponent")) f = f.return;
+      const inst = f.stateNode.logic;
+      // l'état NORMAL : un fichier de sauvegarde en place, écrit il y a deux minutes
+      inst.handleAuto = { name: "vena-sauvegarde.json" };
+      inst.setState({ autoNom: "vena-sauvegarde.json", autoAttente: false,
+        autoT: Date.now() - 125000, autoMsg: null, autoDetail: null });
+      return new Promise((ok) => setTimeout(() => {
+        const pied = document.getElementById("pied-sauv");
+        if (!pied) return ok(null);
+        const r = pied.getBoundingClientRect();
+        const btns = [...pied.querySelectorAll("button")].filter((b) => b.getBoundingClientRect().width > 4);
+        const dernier = btns.length ? btns[btns.length - 1].getBoundingClientRect() : null;
+        const pad = parseFloat(getComputedStyle(pied).paddingRight) || 0;
+        const txt = pied.innerText || "";
+        const ligne = (txt.match(/Sauvegarde automatique : [^\n]*/) || [""])[0];
+        // le texte reste au FER À GAUCHE. On mesure la RANGÉE DE TEXTE, pas « le
+        // premier texte assez long » : cette seconde forme suivait n'importe quel
+        // span et aurait rapporté un écart qui ne voulait rien dire.
+        const groupeBoutons = [...pied.children].find((c) => c.querySelector("button")
+          && /\? Aide/.test(c.textContent || ""));
+        const rangeeTexte = [...pied.children].find((c) => c !== groupeBoutons
+          && c.children.length > 0 && getComputedStyle(c).display === "flex");
+        const premier = rangeeTexte ? rangeeTexte.getBoundingClientRect() : null;
+        return ok({
+          nBoutons: btns.length,
+          ecartDroit: dernier ? Math.round(r.right - dernier.right - pad) : null,
+          ecartGauche: premier ? Math.round(premier.left - r.left - (parseFloat(getComputedStyle(pied).paddingLeft) || 0)) : null,
+          rangeeTrouvee: !!rangeeTexte,
+          ligne, largeur: Math.round(r.width),
+        });
+      }, 500));
+    });
+    assert.ok(m, "le pied de sauvegarde est introuvable — réancrez");
+    assert.ok(m.nBoutons >= 4,
+      "le banc ne voit que " + m.nBoutons + " bouton(s) dans la barre : il ne mesure "
+      + "pas l'alignement de la rangée qu'il prétend éprouver");
+    assert.ok(m.ecartDroit !== null && m.ecartDroit <= 2,
+      "le dernier bouton s'arrête à " + m.ecartDroit + " px du bord droit de la barre "
+      + "(largeur " + m.largeur + " px) : les gestes ne sont plus alignés au bord. Dans "
+      + "du mobilier permanent, l'œil les cherche toujours au même endroit — ils vivent "
+      + "en un GROUPE poussé à droite (margin-left:auto), jamais à la suite du texte.");
+    assert.ok(m.rangeeTrouvee,
+      "la rangée de texte de la barre est introuvable : la garde ne mesurerait plus "
+      + "l'alignement qu'elle prétend éprouver — réancrez");
+    assert.ok(m.ecartGauche !== null && m.ecartGauche <= 2,
+      "le texte de la barre commence à " + m.ecartGauche + " px du bord gauche : il doit "
+      + "rester au fer à gauche — c'est lui qui, avec les boutons au bord droit, fait le "
+      + "space-between quand la fenêtre est large");
+    // ————— ET L'ÉTAT NORMAL PARLE —————
+    assert.ok(m.ligne,
+      "dans l'état NORMAL — une sauvegarde automatique en place — la barre ne dit rien : "
+      + "ni quel fichier, ni quand. C'est ce silence qui a fait demander si ouvrir "
+      + "l'application déclenchait une sauvegarde.");
+    assert.match(m.ligne, /vena-sauvegarde\.json/,
+      "l'état de la sauvegarde ne nomme pas le FICHIER (« " + m.ligne + " ») : savoir "
+      + "qu'une sauvegarde tourne sans savoir où elle écrit ne répond pas à la question");
+    assert.match(m.ligne, /il y a 2 min|à l’instant/,
+      "l'état de la sauvegarde ne dit pas QUAND (« " + m.ligne + " ») : « active » sans "
+      + "âge ne distingue pas une sauvegarde qui tourne d'une qui a cessé il y a une heure");
+  } finally {
+    await nav.close();
+  }
+});

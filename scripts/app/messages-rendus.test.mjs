@@ -68,10 +68,17 @@ test("le bandeau de perte rend compte : autoMsg, Réautoriser et sauvMsg y viven
     + intrus.join(", ") + ". Seul le dépliement (« Pourquoi ») a le droit d'y vivre — "
     + "tout autre contenu les sépare à l'écran, et le message se remet à parler d'un "
     + "bouton qui est ailleurs.");
-  assert.ok(/<\/span>\s*<sc-if value="\{\{ aSansSauvAccent \}\}"/.test(entre),
-    "la rangée de texte ne se referme plus juste avant le bouton accent : les "
-    + "textes et les boutons repartagent un flux plat, et la barre reprend les "
-    + "quatre bandes qu'elle prenait");
+  // RÉANCRÉ (deuxième fois, et la raison est la même) : les boutons ont pris leur
+  // propre GROUPE, poussé au bord droit — un refactor qui renforce l'invariant a
+  // encore cassé l'approximation qui le mesurait. La structure exacte est
+  // désormais : la rangée de texte se referme, le groupe de boutons s'ouvre, et
+  // le bouton accent est le PREMIER dedans. Le message reste à une rangée de son
+  // bouton, jamais à un pied d'écart comme lorsqu'il vivait après « ? Aide ».
+  assert.ok(/<\/span>\s*(?:<!--[\s\S]*?-->\s*)?<span style="margin-left:auto[^"]*">\s*<sc-if value="\{\{ aSansSauvAccent \}\}"/.test(entre),
+    "la rangée de texte ne se referme plus juste avant le groupe de boutons, ou le "
+    + "bouton accent n'en est plus le premier : textes et boutons repartagent un "
+    + "flux plat, la barre reprend les quatre bandes qu'elle prenait, et les gestes "
+    + "cessent d'être alignés au bord droit où l'œil les cherche");
   assert.ok(pied.includes("{{ sauvMsg }}"),
     "le pied ne rend plus sauvMsg : l'export et l'import déclenchés du bandeau "
     + "rapporteraient dans un tiroir fermé");
@@ -162,4 +169,53 @@ test("le message d'attente de permission dit un état — ni verdict, ni son pro
     poses + " chemin(s) posent ATTENTE_AUTO — il en faut 3 (chargement, vérification "
     + "impossible, périodique sans permission) : un chemin qui recompose sa propre "
     + "phrase re-divergera");
+});
+
+test("l'état de la sauvegarde active : UN producteur, DEUX surfaces", () => {
+  // ————— LE FAIT ÉTAIT PRODUIT DEUX FOIS ET RENDU ZÉRO FOIS —————
+  // Mesuré avant d'écrire, et c'est la mesure qui explique la question de
+  // l'utilisateur (« est-ce qu'ouvrir l'application déclenche une sauvegarde ? ») :
+  // `autoNom` — le nom du fichier — n'était rendu NULLE PART, et les deux phrases
+  // qui auraient pu le dire, `etatSauvegarde` et `aideSauvegarde`, étaient des
+  // producteurs SANS CONSOMMATEUR. Un producteur muet coûte deux fois : il pèse
+  // dans chaque rendu, et il fait croire que la fonction existe.
+  //
+  // Elles sont SUPPRIMÉES (règle 14 : cartographié d'abord — aucune garde n'y
+  // était accrochée) et remplacées par un producteur unique, rendu aux deux
+  // endroits où l'on regarde. Deux copies du même fait divergent : c'est
+  // exactement ce que ces deux-là avaient fini par faire.
+  assert.ok(!APP.includes("etatSauvegarde:") && !APP.includes("aideSauvegarde:"),
+    "les producteurs sans consommateur sont revenus : une phrase calculée à chaque "
+    + "rendu et montrée jamais fait croire que la fonction existe");
+  assert.ok(APP.includes("autoActifTxt: (s.autoNom && !s.autoAttente)"),
+    "le producteur de l'état de sauvegarde a changé de forme — réancrez");
+  const producteurs = (APP.match(/^\s+autoActifTxt:/gm) || []).length;
+  assert.equal(producteurs, 1,
+    producteurs + " producteurs composent l'état de la sauvegarde : deux copies du "
+    + "même fait divergent, et c'est l'histoire de etatSauvegarde/aideSauvegarde");
+  const surfaces = (GAB.match(/\{\{ autoActifTxt \}\}/g) || []).length;
+  assert.equal(surfaces, 2,
+    surfaces + " surface(s) rendent l'état de la sauvegarde — il en faut exactement "
+    + "deux : la barre permanente (où l'on regarde sans cliquer) et le tiroir (où "
+    + "l'on va vérifier). Une seule, et le fait manque là où la question se pose ; "
+    + "trois, et la prochaine divergera.");
+  // …et le fait qu'elle porte : le FICHIER et QUAND
+  assert.ok(APP.includes("'Sauvegarde automatique : ' + s.autoNom"),
+    "l'état ne nomme plus le fichier : « active » sans le nom ne dit pas OÙ ça écrit");
+  assert.ok(APP.includes("this.depuisCourt(s.autoT)"),
+    "l'état ne dit plus quand : « active » sans âge ne distingue pas une sauvegarde "
+    + "qui tourne d'une qui a cessé il y a une heure");
+  // ————— ET LE MOT RELATIF A UN RÉFÉRENTIEL QUI AVANCE (règle 12) —————
+  // « il y a 2 min » se figerait sans battement — et il se figerait précisément
+  // quand personne ne touche à rien, puisque la périodique sort AVANT son setState
+  // quand rien n'a changé. C'est l'instant où l'on regarde la barre.
+  assert.ok(APP.includes("this._batI = setInterval(")
+    && APP.includes("if (this.state.autoT && !this.state.scanEnCours) this.forceUpdate();"),
+    "le battement du mot relatif a disparu : « il y a 2 min » resterait figé sur la "
+    + "valeur du dernier rendu — un mot relatif n'est vrai que depuis un référentiel "
+    + "qui avance (règle 12), et la périodique n'en est pas un : elle sort avant son "
+    + "setState quand rien n'a changé, c'est-à-dire quand on regarde sans agir");
+  assert.ok(APP.includes("if (min < 60) return 'il y a ' + min + ' min';"),
+    "l'âge court a changé de forme — ou il ne bascule plus sur l'heure absolue "
+    + "au-delà d'une heure, où « il y a 7 h » se lit moins bien qu'« à 08:12 »");
 });
