@@ -2387,7 +2387,7 @@
                           <span style="display:{{ vl.fenAff }};font-size:10px;line-height:1.45;color:{{ vl.fenHorsCouleur }}">{{ vl.fenNom }} — {{ vl.fenHors }}</span>
                           <span style="display:flex;gap:3px;flex-wrap:wrap;margin-top:3px">
                             <sc-for list="{{ vl.cibles }}" as="cb3" hint-placeholder-count="2">
-                              <button type="button" class="{{ cb3.cls }}" style="cursor:pointer;border:none;font-family:var(--font-body);font-size:10px;padding:0 5px" title="{{ cb3.aide }}" onClick="{{ cb3.basculer }}">{{ cb3.ab }}</button>
+                              <button type="button" class="{{ cb3.cls }}" style="cursor:pointer;border:none;font-family:var(--font-body);font-size:10px;padding:0 5px" title="{{ cb3.aide }}" onClick="{{ cb3.basculer }}">{{ cb3.nom }}</button>
                             </sc-for>
                           </span>
                         </span>
@@ -2506,6 +2506,22 @@
                 <button class="btn btn-secondary" type="button" style="min-height:2.1rem;font-size:12px;color:var(--color-bg);border-color:color-mix(in srgb,var(--color-bg) 45%,transparent);background:none" onClick="{{ basculerMesures }}" title="Les onze diagnostics — UT, trades, R net, PF, segments, durée moyenne, état, frais. Ils ont servi à VALIDER la ligne, pas à la piloter.">{{ mesuresTxt }}</button>
                 <button class="btn btn-primary" type="button" style="min-height:2.1rem;padding-inline:16px;font-size:12px" onClick="{{ ps.exporterRobots }}" title="Télécharge un Expert Advisor MQL5 par ligne de ce portefeuille. Les fichiers arrivent un par un — autorisez les téléchargements multiples si le navigateur les bloque.">Exporter les robots{{ ps.robotsNb }}</button>
               </div>
+              <!-- ————— LE MESSAGE DE L'EXPORT DE ROBOT VIT OÙ LE GESTE SE FAIT —————
+                   `exporterRobot` a trois refus — générateur inchargeable, filtre sans
+                   équivalent MQL5, générateur qui jette — et tous les trois PARLENT :
+                   ils posent `hasardMsg`. Mesuré : cette phrase n'avait de surface que
+                   sous `vueHistorique`, et les trois boutons qui la déclenchent vivent
+                   sous `vuePortefeuille`. Le complément exact — lisible là où il n'y a
+                   aucun bouton, muet là où ils sont tous les trois.
+                   Le geste répondait donc dans une pièce vide : on clique « Exporter »,
+                   rien ne descend, et rien ne dit pourquoi. C'est « message sans
+                   surface » à sa forme la plus trompeuse — la phrase EXISTE, elle est
+                   juste ailleurs, et une garde qui lit l'état la trouverait posée.
+                   UN producteur, DEUX surfaces : le même `hasardMsg`, rendu aussi ici.
+                   Deux états séparés auraient fini par diverger. -->
+              <sc-if value="{{ aHasardMsg }}" hint-placeholder-val="{{ false }}">
+                <span style="flex-basis:100%;font-size:11.5px;line-height:1.5;color:var(--color-bg)">{{ hasardMsg }}</span>
+              </sc-if>
             </div>
             <!--
               LA PAGE DEVIENT UNE SUITE DE QUESTIONS : chaque grand bloc porte sa
@@ -15871,7 +15887,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260916.20';
+  VERSION_APP = '260916.21';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -25613,7 +25629,16 @@ GROUPES = {
               cls: 'tag ' + (dedans ? 'tag-accent' : 'tag-outline'),
               aide: dedans ? sym + ' est déjà dans ' + (p.nom || 'ce portefeuille') + ' — cliquez pour le retirer'
                 : 'Placer ' + sym + ' dans ' + (p.nom || 'ce portefeuille'),
-              placer: (e) => {
+              // ————— LE MOT DIT CE QUE LE BOUTON FAIT —————
+              // `placer` sous-décrivait : le geste RETIRE aussi, et l'infobulle le dit
+              // déjà (« cliquez pour le retirer »). Le gabarit, lui, lisait `basculer` —
+              // le mot juste — et `cb3.ab` pour un producteur qui émet `nom`. DEUX trous
+              // non résolus sur la même rangée : la pastille se rendait VIDE et INERTE.
+              // Seul le texte a rougi — un `onClick` qui ne résout pas ne se plaint pas,
+              // il ne branche rien. Le défaut vivait depuis toujours et ne s'est montré
+              // qu'au premier portefeuille PEUPLÉ du banc : un tbody sans rangée n'a
+              // aucun trou à résoudre (règle 10).
+              basculer: (e) => {
                 e.stopPropagation();
                 this.majPf(pfListe.map((q, j) => (j !== k ? q
                   : { ...q, syms: dedans ? q.syms.filter((x) => x !== sym) : [...new Set([...q.syms, sym])] })));

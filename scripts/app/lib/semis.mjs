@@ -122,12 +122,33 @@ export const POSER_SEMIS = `(() => {
       // Sous 200 tirages 'verdictHasard' traite le contrôle comme absent : 500.
       const faits = { ...(inst.state.hasardFaits || {}) };
       for (const v of valides) faits[inst.prefixeHasard(v) + '|500'] = { tirages: 500, auDessus: 5 };
+      // ————— LE PORTEFEUILLE ÉTAIT UNE COQUILLE VIDE, ET ÇA CACHAIT TROIS GESTES —————
+      // \`syms: []\` créait un portefeuille qui ne porte aucune ligne. Or \`pfSections\`
+      // rend \`null\` pour un portefeuille sans ligne : la section entière disparaît, et
+      // avec elle « Exporter » (un par ligne) et « Exporter les robots ». La tournée des
+      // gestes passait donc sur cette vue sans jamais VOIR ces boutons — elle était
+      // verte parce qu'ils n'existaient pas, pas parce qu'ils répondaient.
+      //
+      // C'est la règle 10 dans l'outillage même qui existe pour la fermer : le semis
+      // s'était arrêté au cas où la moitié des défauts ne peuvent pas se produire.
       inst.setState({ valides, hasardFaits: faits, _hfRev: (inst._hfRev || 0) + 1,
-        pfs: [{ nom: 'Portefeuille principal', syms: [] }] });
+        pfs: [{ nom: 'Portefeuille principal', syms: S }] });
       inst._idxH = null; inst._idxHT = null;
       inst.forceUpdate();
       const lues = inst.normValides(inst.state.valides);
       exiger('décisions', n, lues.length);
+      // le portefeuille est relu par le chemin du produit : \`symsSuivis\` dérive de
+      // \`pfs\`, et c'est lui que l'application interroge. ANGLE MORT DÉCLARÉ : il prouve
+      // que les instruments sont SUIVIS, pas que la section rend ses rangées — cette
+      // dernière étape n'est lisible qu'une fois la vue ouverte, et c'est la tournée
+      // des gestes qui la mesure, en énumérant « Exporter » sur le Portefeuille.
+      const suivis = inst.symsSuivis || [];
+      const absents = S.filter((sym) => !suivis.includes(sym));
+      if (absents.length) throw new Error("semis « décisions » : " + absents.length
+        + " instrument(s) semé(s) au portefeuille ne ressortent pas de \`symsSuivis\` ("
+        + absents.join(', ') + "). Un portefeuille qui ne porte aucune ligne fait "
+        + "disparaître sa section entière, et avec elle les boutons d'export de robot : "
+        + "la tournée serait verte en ne les voyant pas.");
       const sansVerdict = lues.filter((v) => !inst.verdictHasard(v)).length;
       if (sansVerdict) throw new Error("semis « décisions » : " + sansVerdict + " ligne(s) sur "
         + n + " sans verdict du hasard relu par verdictHasard(). Le compte était juste et le "
