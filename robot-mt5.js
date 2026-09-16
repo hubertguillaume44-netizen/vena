@@ -858,17 +858,40 @@ void SpOuvAmorcer()
    ArrayResize(g_spOuv, SPREAD_FENETRE); ArrayInitialize(g_spOuv, 0.0);
    g_spOuvN = 0; g_spOuvI = 0;
 
+   // ————— ON NE DEMANDE JAMAIS PLUS QUE CE QUI EXISTE —————
+   // AgrConstruire, plus haut, plafonne déjà sa demande sur Bars(), et pour une
+   // raison MESURÉE : demander un nombre fixe fait échouer la lecture tant que
+   // l'historique n'existe pas. Cet amorçage-ci réclamait 6 000 H1 sans condition —
+   // et il tourne à OnInit, AVANT la première barre. La même leçon, non appliquée à
+   // la fonction voisine.
+   int dispoH1 = Bars(_Symbol, PERIOD_H1);
+   int veut = SPREAD_FENETRE;
+   if(dispoH1 > 0 && veut > dispoH1) veut = dispoH1;
    datetime hT[]; double hC[]; int hS[];
-   int nT = CopyTime(_Symbol, PERIOD_H1, 1, SPREAD_FENETRE, hT);
-   int nC = CopyClose(_Symbol, PERIOD_H1, 1, SPREAD_FENETRE, hC);
-   int nS = CopySpread(_Symbol, PERIOD_H1, 1, SPREAD_FENETRE, hS);
+   int nT = CopyTime(_Symbol, PERIOD_H1, 1, veut, hT);
+   int nC = CopyClose(_Symbol, PERIOD_H1, 1, veut, hC);
+   int nS = CopySpread(_Symbol, PERIOD_H1, 1, veut, hS);
    int n = MathMin(nT, MathMin(nC, nS));
    if(n < 1) { Print("Amorçage du plafond de spread : aucune bougie H1 disponible."); return; }
 
+   // ————— ET LA M1 NE SE RÉCLAME PAS À L'AVEUGLE —————
+   // La plage demandée couvre jusqu'à 250 jours : plusieurs centaines de milliers de
+   // barres M1, que le terminal construit EN MÉMOIRE, dans son propre processus. C'est
+   // le geste qui a déjà fait cesser de répondre le terminal sur le script d'export
+   // (AUDNZD, 1,78 million de barres) — ici il part à l'initialisation, sur un agent
+   // de test. Le repli H1 existe déjà et il est déclaré : quand la M1 n'est pas là, on
+   // ne la réclame pas, on prend le repli tout de suite.
    int mS[]; datetime mT[];
-   int nmS = CopySpread(_Symbol, PERIOD_M1, hT[0], hT[n - 1] + 3599, mS);
-   int nmT = CopyTime(_Symbol, PERIOD_M1, hT[0], hT[n - 1] + 3599, mT);
-   int nm = MathMin(nmS, nmT);
+   int nm = 0;
+   if(Bars(_Symbol, PERIOD_M1) > 0)
+   {
+      int nmS = CopySpread(_Symbol, PERIOD_M1, hT[0], hT[n - 1] + 3599, mS);
+      int nmT = CopyTime(_Symbol, PERIOD_M1, hT[0], hT[n - 1] + 3599, mT);
+      nm = MathMin(nmS, nmT);
+   }
+   else
+      Print("Amorçage du plafond de spread : ce compte ne fournit pas de M1 — ",
+            "repli immédiat sur l'agrégat H1, sans la réclamer.");
    if(nm < 1)
       Print("Amorçage du plafond de spread : pas de M1 sur la fenêtre — repli sur ",
             "l'agrégat H1, le plafond sera plus serré que celui du moteur.");
