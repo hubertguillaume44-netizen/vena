@@ -453,7 +453,9 @@ Elles viennent toutes d'un défaut réel de ce dépôt, et chacune est détaill�
     restauration de dépôt, qui ne distingue pas la mutation du travail en cours.
 14. **Une suppression se cartographie avant de se faire** — chaque garde accrochée à ce
     qui part a une fin dite : elle part avec le geste, se réancre sur ce qui reste, ou
-    s'ancre sur l'absence. Jamais en silence — et la prose autour se relit aussi.
+    s'ancre sur l'absence. Jamais en silence — et la prose se cartographie DANS LES DEUX
+    SENS : celle qui reste autour se relit, et celle qu'on **ajoute** pour expliquer le
+    retrait est du contenu neuf, qui entre dans le champ des gardes.
 
 Les règles 6 à 9 sont nées le même jour, sur la même garde. Elles ferment par
 **construction** ce que les cinq premières ne fermaient que par **vigilance** — ou, quand
@@ -1119,6 +1121,41 @@ l'unique fonction par laquelle un lien de paiement s'ouvre » — la fonction ve
 partir. Une consigne périmée a l'autorité des vraies et envoie chercher une panne qui
 n'existe plus : les commentaires autour de ce qu'on supprime se relisent comme les
 gardes, dans le même geste.
+
+#### Et l'inverse : la PROSE QU'ON AJOUTE pour expliquer un retrait entre dans le champ des gardes
+
+La phrase précédente ne couvrait qu'une moitié — le texte qui **reste** autour de ce
+qui part. L'autre moitié est le texte qu'on **écrit** pour dire pourquoi ça part, et
+c'est du contenu neuf : il s'ajoute au fichier, donc il s'ajoute à ce que les gardes
+lisent. Deux fois dans un seul commit — le retrait de la vérification de place :
+
+| Ce que la prose a fait | La garde qui a rougi |
+|---|---|
+| elle **épelait l'appel** qu'elle racontait (`storage.estimate(`) | celle qui interdit sa réintroduction l'a trouvé dans le récit |
+| elle a **éloigné** le `finally` de l'ouverture du writable, 2 200 → 2 385 caractères | celle du `.crswap`, qui cherchait dans une fenêtre |
+
+Aucune ligne de code n'avait bougé dans les deux cas. **Deux faux positifs, et deux
+sorties différentes**, parce que ce n'est pas toujours la garde qui a tort :
+
+- **La prose ne se fait pas passer pour du code.** Le récit d'un retrait cite ce qui
+  est parti — c'est son travail — mais il peut le nommer sans l'épeler comme un
+  appel. C'est la règle 3 vue depuis l'écrivain : on interdit le code, pas le récit
+  du code, donc **le récit évite la forme du code**. Apprendre les commentaires à la
+  garde serait le motif de plus que la règle 3 refuse.
+- **Une garde dont la prise est une DISTANCE n'a pas de prise.** 2 200 caractères
+  était un nombre magique, et la réponse n'était pas 2 600 : la troisième prose
+  l'aurait dépassé. La portée qui compte n'était jamais un nombre de caractères,
+  c'était **la méthode** — `borne(APP, "\n  }", i)`, qui jette si elle ne la trouve pas
+  plutôt que de s'élargir en silence. Changer de forme, pas ajouter un motif.
+
+> **Le texte qu'on ajoute pour expliquer une suppression se cartographie comme le
+> code qu'on retire.** La cartographie de la règle 14 se fait donc dans les DEUX sens :
+> ce qui part, et ce qu'on écrit à la place.
+
+Et le corollaire pratique : une suppression bien expliquée est **longue**, par
+construction — elle porte ses mesures et ses raisons. C'est précisément cette
+longueur qui déborde les fenêtres et qui multiplie les chances d'épeler un motif
+interdit. Plus le retrait est bien documenté, plus il accroche.
 
 ## Le démarrage se chronomètre — mesurer à vide ne mesure personne
 
