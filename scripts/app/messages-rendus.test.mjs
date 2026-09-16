@@ -46,13 +46,13 @@ test("le bandeau de perte rend compte : autoMsg, Réautoriser et sauvMsg y viven
     "le bouton Réautoriser du TIROIR a disparu : c'était le seul bouton nominatif "
     + "restant — le tiroir montrerait l'attente sans offrir le geste");
   // ————— L'ADJACENCE SE LIT SUR LA STRUCTURE, PLUS SUR UNE DISTANCE —————
-  // Réancré : la barre a deux rangées écrites — les textes, puis les boutons —
+  // Réancré : la barre a deux ZONES écrites — les textes, puis les boutons —
   // pour ne plus prendre quatre bandes. Une distance en caractères mesurait
   // l'ancien flux plat ; elle tombait sur un refactor qui RENFORCE l'invariant.
-  // Ce qui compte n'a pas changé : le message est le DERNIER texte de sa rangée
-  // et le bouton accent le PREMIER élément d'après — une rangée d'écart, jamais
+  // Ce qui compte n'a pas changé : le message est le DERNIER texte de sa zone
+  // et le bouton accent le PREMIER élément d'après — une zone d'écart, jamais
   // un pied comme lorsque le message vivait après « ? Aide ». Le rendu le
-  // mesure aussi (rendu-gabarit : deux bandes, dans les deux états chargés).
+  // mesure aussi (rendu-gabarit : UNE rangée à 1440 px, dans les trois états).
   const iMsg = pied.indexOf("{{ autoMsg }}");
   const iAccent = pied.indexOf('onClick="{{ sansSauvAgir }}"');
   assert.ok(iMsg > 0 && iAccent > iMsg,

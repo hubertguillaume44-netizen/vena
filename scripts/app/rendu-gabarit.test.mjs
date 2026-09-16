@@ -374,35 +374,63 @@ test("la barre permanente ne recouvre rien — deux barres cumulées, deux état
   }
 });
 
-test("la barre permanente tient en DEUX rangées, dans ses deux états chargés", { timeout: 120000 }, async () => {
-  // ————— DU MOBILIER PERMANENT SE MESURE EN PART D'ÉCRAN —————
+test("la barre permanente tient en UNE rangée à 1440 px, dans ses trois états", { timeout: 120000 }, async () => {
+  // ————— UN PLAFOND N'EST PAS UN OBJECTIF, ET C'EST CE QUI A LAISSÉ PASSER LE DÉFAUT —————
   //
-  // Le cas réel : quatre bandes pour trois phrases — l'état de sauvegarde, un
-  // message de pause de cinq lignes, et « 63 blocs · 592 Mo exportés » sur sa
-  // propre ligne — soit le quart de la fenêtre pris en permanence par une barre
-  // que personne ne lit deux fois. Mesuré : 112 px et quatre bandes avant,
-  // 85 px et deux après. Trois gestes, et chacun tient une part du gain :
-  //   · le détail de la pause se DÉPLIE (« Pourquoi › ») — nécessaire une fois,
-  //     pas en permanence ;
-  //   · la taille rejoint la ligne qui DATE l'export : un geste, un compte rendu,
-  //     et non deux rangées qui décrivent le même export ;
-  //   · les textes ont leur rangée, les boutons la leur — un compte de rangées
-  //     qui porte du sens s'écrit, il ne se laisse pas calculer par un algorithme
-  //     de placement (la même leçon que les quatre gestes MT5 en trois colonnes).
+  // La version précédente disait « pas plus de DEUX rangées ». Elle était verte
+  // pendant que la barre en faisait systématiquement deux : une borne qu'on
+  // atteint à chaque rendu ne mesure plus rien, elle décrit l'état des lieux.
+  // L'objectif est UNE rangée — texte à gauche, gestes à droite, sur la même
+  // ligne — et il se mesure à la largeur réelle de la fenêtre de l'utilisateur,
+  // 1440 px, dans les TROIS états que la barre sait rendre.
   //
-  // DEUX ÉTATS, ET C'EST UNE MUTATION QUI L'A EXIGÉ. Mesurée seulement APRÈS un
-  // export, cette garde restait VERTE quand on retirait la rangée de texte : le
-  // message raccourci suffit à tenir deux bandes dans cet état-là. C'est dans
-  // l'état « alerte pleine » — aucun export encore, la phrase longue — que la
-  // rangée porte : 4 bandes sans elle, 2 avec, mesuré. Une garde qui n'éprouve
-  // qu'un état déclare invariant ce qui n'est vrai que là.
+  // LA CAUSE EST UNE SEULE DÉCLARATION, ET LA MUTATION DIT LAQUELLE : c'était
+  // `flex-basis:100%` sur la rangée de texte. Elle change la TAILLE DE BASE de
+  // l'élément — la rangée réclame 100 % de la ligne avant tout partage, donc le
+  // groupe de boutons est déjà renvoyé à la ligne suivante quand `margin-left:auto`
+  // aurait pu le pousser à droite. La forme qui tient est `flex:0 1 auto;min-width:0`
+  // — base `auto`, prendre ce qu'il faut, céder si ça déborde — avec des `max-width`
+  // en `ch` sur chaque phrase pour borner par le HAUT. Des `min-width` en `ch`
+  // réclamaient par le bas, la même faute de l'autre côté.
   //
-  // La garde COMPTE LES BANDES ; elle ne borne les pixels que dans l'état du
-  // quotidien. Figer une hauteur ferait tomber la garde sur une police plus
-  // grande ou une fenêtre plus étroite — la structure est l'invariant, pas 85 px.
+  // ET UNE MOITIÉ DU DIAGNOSTIC NE SURVIT PAS À LA MESURE, donc elle n'est pas
+  // écrite ici comme si elle avait tenu. `flex:1 1 auto` était annoncé comme
+  // fautif au même titre ; mesuré sur SEPT largeurs (1440, 1300, 1200, 1100,
+  // 1000, 900, 820) et les trois états, il rend EXACTEMENT la même chose que
+  // `0 1 auto` — même compte de rangées, même hauteur au pixel. `flex-grow` ne
+  // décide pas d'un retour à la ligne : le retour se décide sur la taille de
+  // base, et la place que la croissance aurait prise, `margin-left:auto` la
+  // prenait de toute façon. Seul `flex-basis` déplace la bascule.
   //
-  // ANGLE MORT, déclaré (règle 9) : l'état DÉPLIÉ ajoute sa rangée, exprès — il
-  // n'existe que le temps d'être lu, et la garde ne le mesure pas.
+  // ANGLE MORT QUI EN DÉCOULE, déclaré (règle 9) : cette garde ne peut PAS
+  // attraper un passage à `flex:1 1 auto`, parce qu'il n'y a rien à attraper —
+  // aucune largeur mesurée ne les distingue. On n'ajoute donc pas de garde de
+  // source qui l'interdirait : ce serait interdire une forme sur une gravité
+  // qu'aucune mesure ne montre, et la prochaine personne hériterait d'une
+  // confiance non méritée. Le jour où une largeur les sépare, elle est la source
+  // dont dériver, et cette note dit quoi remplacer.
+  // ELLE MESURE DES ZONES, PAS DES FEUILLES. Le compteur précédent groupait les
+  // `top` des éléments de texte à 10 px près : un groupe de boutons centré
+  // verticalement dans une rangée plus haute que lui (13 px d'écart, mesuré)
+  // comptait pour une bande de plus. Il rapportait deux rangées là où l'œil en
+  // voit une — une mesure fausse qui a l'air d'une mesure. Les zones sont les
+  // ENFANTS DIRECTS du pied : la rangée de texte et le groupe de gestes. Deux
+  // zones qui se chevauchent verticalement sont sur la même rangée, quelle que
+  // soit leur hauteur.
+  //
+  // ANGLE MORT, déclaré (règle 9) : le banc mesure 1440 px, la fenêtre réelle de
+  // l'utilisateur. Entre 1100 et 1440 px, le groupe passe à la ligne selon la
+  // longueur des textes — c'est voulu, le groupe bascule ENTIER et reste au bord
+  // droit, et c'est la garde d'à côté (à sa largeur par défaut) qui tient cet
+  // invariant-là. L'état DÉPLIÉ n'est pas mesuré non plus : il ajoute sa rangée
+  // exprès, le temps d'être lu.
+  //
+  // ET UNE TROISIÈME ZONE EXISTE, VOULUE, hors de portée du banc : la ligne de
+  // purge (`aPurgeLigne`) porte `flex-basis:100%` à dessein — c'est la seule
+  // alerte qui protège d'une perte irréversible, elle prend sa rangée entière et
+  // se referme. Elle ne se rend qu'avec `persistEtat === 'indisponible'`, un
+  // état que ce banc n'a pas ; l'assertion à deux zones dit donc « pas de
+  // troisième zone PERMANENTE », et c'est l'état de purge qui reste non mesuré.
   let chromium;
   try { ({ chromium } = await import("playwright")); }
   catch (e) { assert.fail("playwright introuvable — cette garde ne saute pas en silence."); }
@@ -410,19 +438,18 @@ test("la barre permanente tient en DEUX rangées, dans ses deux états chargés"
   const nav = await chromium.launch(executablePath ? { executablePath } : {})
     .catch(() => assert.fail("Chromium introuvable : posez VENA_CHROMIUM — cette garde ne saute pas."));
   try {
-    const p = await (await nav.newContext()).newPage();
-    const entrer = async () => {
-      await p.waitForFunction(() => document.body && document.body.innerText.length > 400, { timeout: 60000 });
-      const porte = await p.waitForSelector('button:has-text("J\'ai compris")', { timeout: 15000 }).catch(() => null);
-      if (porte) {
-        await porte.click();
-        await p.waitForSelector(".dialog-backdrop", { state: "detached", timeout: 10000 }).catch(() => {});
-      }
-      await p.waitForTimeout(300);
-    };
-    // la pause vient du VRAI producteur : une phrase recopiée dans le banc
+    const p = await (await nav.newContext({ viewport: { width: 1440, height: 900 } })).newPage();
+    await p.goto("file://" + SOLO);
+    await p.waitForFunction(() => document.body && document.body.innerText.length > 400, { timeout: 60000 });
+    const porte = await p.waitForSelector('button:has-text("J\'ai compris")', { timeout: 15000 }).catch(() => null);
+    if (porte) {
+      await porte.click();
+      await p.waitForSelector(".dialog-backdrop", { state: "detached", timeout: 10000 }).catch(() => {});
+    }
+    await p.waitForTimeout(400);
+    // les états viennent des VRAIS producteurs — une phrase recopiée dans le banc
     // mesurerait le banc, pas le produit
-    const semerPause = (avecExport) => p.evaluate((avecExp) => {
+    const semer = (quoi) => p.evaluate((q) => {
       const el = document.querySelector("button");
       const fk = Object.keys(el).find((x) => x.startsWith("__reactFiber"));
       let f = el[fk];
@@ -430,90 +457,139 @@ test("la barre permanente tient en DEUX rangées, dans ses deux états chargés"
         && f.stateNode.constructor.name === "StreamableComponent")) f = f.return;
       const inst = f.stateNode.logic;
       if (typeof inst.PAUSE_AUTO !== "function" || typeof inst.PAUSE_AUTO_DETAIL !== "function") return false;
-      inst.handleAuto = { name: "vena-sauvegarde.json" };
-      const patch = { autoNom: "vena-sauvegarde.json", autoAttente: true,
-        autoMsg: inst.PAUSE_AUTO("il manque " + inst.taille(620756992)),
-        autoDetail: inst.PAUSE_AUTO_DETAIL("vena-sauvegarde.json") };
-      if (avecExp) patch.sauvFait = inst.taille(620756992) + " exportés, 63 blocs.";
-      inst.setState(patch);
+      const cle = inst.cleGlobale(inst.CLE_SAUV);
+      if (q === "actif") {
+        inst.handleAuto = { name: "vena-sauvegarde.json" };
+        inst.setState({ autoNom: "vena-sauvegarde.json", autoAttente: false,
+          autoT: Date.now() - 125000, autoMsg: null, autoDetail: null });
+        return true;
+      }
+      // les deux états d'alerte n'existent QUE s'il y a quelque chose à perdre :
+      // sans ça la barre se tait, et la garde mesurerait une barre vide en
+      // croyant éprouver l'état chargé
+      if (q === "pause") {
+        localStorage.setItem(cle, JSON.stringify({ t: Date.now() - 3600000, nC: 3961, nS: 66, o: 620756992 }));
+        inst.handleAuto = { name: "vena-sauvegarde.json" };
+        inst.setState({ autoNom: "vena-sauvegarde.json", autoAttente: true, deposes: ["vx-eur"],
+          autoMsg: inst.PAUSE_AUTO("il manque " + inst.taille(620756992)),
+          autoDetail: inst.PAUSE_AUTO_DETAIL("vena-sauvegarde.json") });
+        return true;
+      }
+      // ALERTE PLEINE : aucun fichier choisi, aucune copie jamais. Mettre
+      // `sauvDate: 0` ne suffit PAS — la date vient aussi de CLE_SAUV, qu'il faut
+      // RETIRER du stockage ; sans ça le banc remesure l'état précédent et croit
+      // avoir éprouvé celui-ci.
+      localStorage.removeItem(cle);
+      inst.handleAuto = null;
+      inst.setState({ autoNom: null, autoAttente: false, autoMsg: null, autoDetail: null,
+        sauvDate: 0, sauvFait: null, deposes: ["vx-eur"] });
       return true;
-    }, avecExport);
+    }, quoi);
     const mesurer = () => p.evaluate(() => {
       const pied = document.getElementById("pied-sauv");
       if (!pied) return null;
-      const tops = [];
-      for (const e of pied.querySelectorAll("span,button,strong")) {
-        if (e.querySelector("span,button,strong")) continue;     // conteneurs : pas des feuilles
-        const r = e.getBoundingClientRect();
-        if (r.height < 4 || r.width < 4) continue;
-        if (!(e.textContent || "").trim()) continue;
-        if (!tops.some((y) => Math.abs(y - r.top) < 10)) tops.push(r.top);
+      const rp = pied.getBoundingClientRect();
+      const cs = getComputedStyle(pied);
+      // LES ZONES, pas les feuilles : les enfants directs du pied
+      const zones = [...pied.children]
+        .map((c) => ({ el: c, r: c.getBoundingClientRect() }))
+        .filter((z) => z.r.height > 4 && z.r.width > 4);
+      const rangees = [];
+      for (const z of zones) {
+        const b = rangees.find((g) => g.some((o) =>
+          Math.min(o.r.bottom, z.r.bottom) - Math.max(o.r.top, z.r.top) > 0));
+        if (b) b.push(z); else rangees.push([z]);
       }
-      const txt = pied.innerText || "";
-      return { bandes: tops.length, hauteur: Math.round(pied.getBoundingClientRect().height),
-        part: pied.getBoundingClientRect().height / innerHeight,
-        pause: /en pause/.test(txt), export: /Dernière copie/.test(txt),
-        replie: !/fragments de travail/.test(txt),
-        pourquoi: !!pied.querySelector("button.lien") };
+      // le groupe de gestes se reconnaît à ce qu'il EST : le seul qui porte l'Aide
+      const groupe = zones.find((z) => z.el.querySelector("button")
+        && /\? Aide/.test(z.el.textContent || ""));
+      const texte = zones.find((z) => z !== groupe);
+      const btns = [...pied.querySelectorAll("button")].filter((b) => b.getBoundingClientRect().width > 4);
+      const dernier = btns.length ? btns[btns.length - 1].getBoundingClientRect() : null;
+      const t = pied.innerText || "";
+      return {
+        nRangees: rangees.length, nZones: zones.length,
+        hauteur: Math.round(rp.height), part: rp.height / innerHeight,
+        largeur: Math.round(rp.width), nBoutons: btns.length,
+        aGroupe: !!groupe, aTexte: !!texte,
+        ecartGauche: texte ? Math.round(texte.r.left - rp.left - (parseFloat(cs.paddingLeft) || 0)) : null,
+        ecartDroit: dernier ? Math.round(rp.right - dernier.right - (parseFloat(cs.paddingRight) || 0)) : null,
+        pause: /en pause/.test(t), copie: /Dernière copie/.test(t),
+        alerte: /Aucune sauvegarde hors de ce navigateur/.test(t),
+        actif: /Sauvegarde automatique : /.test(t),
+        replie: !/fragments de travail/.test(t),
+        pourquoi: !!pied.querySelector("button.lien"),
+      };
     });
-    const verifier = (m, etat, bornePx) => {
+    const verifier = (m, etat) => {
       assert.ok(m, etat + " : le pied de sauvegarde est introuvable — réancrez");
-      assert.ok(m.pause,
-        etat + " : la pause n'est pas rendue — la garde mesurerait une barre plus "
-        + "légère que l'état qu'elle prétend éprouver, et passerait au vert pour rien");
-      assert.ok(m.replie,
-        etat + " : le détail de la pause est rendu SANS qu'on l'ait déplié — les cinq "
-        + "lignes qui expliquent les fragments et la place sont de nouveau permanentes, "
-        + "et c'est l'information nécessaire une fois, pas tout le temps");
-      assert.ok(m.pourquoi,
-        etat + " : le geste « Pourquoi » a disparu — replier un détail sans laisser le "
-        + "moyen de l'ouvrir ne le raccourcit pas, il le SUPPRIME, et la pause cesse "
-        + "d'être explicable (les fragments supprimables, la place qui manque)");
-      assert.ok(m.bandes <= 2,
-        etat + " : la barre permanente fait " + m.bandes + " bandes (" + m.hauteur
-        + " px, " + Math.round(m.part * 100) + " % de la fenêtre). Une rangée de texte "
-        + "et une rangée de boutons, pas plus : c'est du mobilier permanent — chaque "
-        + "bande qu'il prend, il la prend à chaque seconde, sur toutes les pages, et "
-        + "c'est exactement pourquoi la réservation de hauteur existe : ce qu'il mange, "
-        + "le contenu ne l'a pas.");
-      if (bornePx) {
-        assert.ok(m.part < bornePx,
-          etat + " : la barre prend " + Math.round(m.part * 100) + " % de la fenêtre ("
-          + m.hauteur + " px) — deux bandes comptées mais trop hautes, une phrase qui "
-          + "enveloppe sur trois lignes dans sa bande coûte autant qu'une bande de plus");
-      }
+      assert.equal(m.largeur, 1440,
+        etat + " : le banc ne mesure pas 1440 px (" + m.largeur + ") — c'est la largeur "
+        + "de la fenêtre réelle, et l'objectif d'une rangée est énoncé pour elle");
+      assert.ok(m.aTexte && m.aGroupe,
+        etat + " : le banc ne retrouve pas ses deux zones (texte " + m.aTexte + ", gestes "
+        + m.aGroupe + ") — il ne mesure plus la mise en page qu'il prétend éprouver");
+      assert.equal(m.nZones, 2,
+        etat + " : " + m.nZones + " zone(s) enfant(s) du pied au lieu de 2 — la barre "
+        + "porte une troisième zone, et une zone de plus est une rangée de plus le jour "
+        + "où la fenêtre se resserre");
+      assert.equal(m.nRangees, 1,
+        etat + " : la barre permanente fait " + m.nRangees + " rangée(s) à 1440 px ("
+        + m.hauteur + " px, " + Math.round(m.part * 100) + " % de la fenêtre). L'objectif "
+        + "est UNE : le texte à gauche, les gestes à droite, sur la même ligne. La cause "
+        + "est presque toujours une seule déclaration sur la rangée de texte, et c'est sa "
+        + "TAILLE DE BASE — `flex-basis:100%` réclame toute la ligne avant le moindre "
+        + "partage, et `margin-left:auto` sur le groupe de boutons ne peut plus rien. La "
+        + "forme qui tient est `flex:0 1 auto;min-width:0`, avec un `max-width` en `ch` "
+        + "sur chaque phrase : borner par le haut, jamais réclamer par le bas. "
+        + "(`flex:1 1 auto` n'est PAS en cause : mesuré identique sur sept largeurs.)");
+      assert.ok(m.ecartGauche !== null && m.ecartGauche <= 2,
+        etat + " : le texte commence à " + m.ecartGauche + " px du padding gauche — il "
+        + "reste au fer à gauche, c'est lui qui fait le space-between avec les gestes");
+      assert.ok(m.ecartDroit !== null && m.ecartDroit <= 2,
+        etat + " : le dernier bouton s'arrête à " + m.ecartDroit + " px du padding droit — "
+        + "dans du mobilier permanent, l'œil cherche les gestes toujours au même endroit");
     };
-    // ————— ÉTAT 1 : ALERTE PLEINE — aucun export encore, la phrase longue —————
-    // c'est LUI qui éprouve la rangée de texte : sans elle, quatre bandes
-    await p.goto("file://" + SOLO);
-    await entrer();
-    assert.ok(await semerPause(false),
-      "PAUSE_AUTO / PAUSE_AUTO_DETAIL ont disparu : la garde ne sait plus produire "
-      + "l'état chargé — réancrez-la, ne la laissez pas verte sur un pied vide");
+    // ————— ÉTAT 1 : SAUVEGARDE ACTIVE — le quotidien de quelqu'un qui a un filet —————
+    assert.ok(await semer("actif"), "l'état actif n'a pas pu être semé — réancrez");
     await p.waitForTimeout(500);
+    const actif = await mesurer();
+    assert.ok(actif.actif,
+      "état actif : la ligne d'état de la sauvegarde n'est pas rendue — la garde "
+      + "mesurerait une barre plus légère que l'état qu'elle prétend éprouver");
+    verifier(actif, "sauvegarde active");
+    assert.ok(actif.part < 0.08,
+      "sauvegarde active : la barre prend " + Math.round(actif.part * 100) + " % de la "
+      + "fenêtre (" + actif.hauteur + " px) pour UNE phrase et quatre boutons — une rangée "
+      + "comptée mais trop haute coûte autant qu'une rangée de plus");
+    // ————— ÉTAT 2 : PAUSE + DERNIÈRE COPIE — trois zones de texte sur une rangée —————
+    assert.ok(await semer("pause"), "l'état pause n'a pas pu être semé — réancrez");
+    await p.waitForTimeout(600);
+    const pause = await mesurer();
+    assert.ok(pause.pause && pause.copie,
+      "état pause : la pause (" + pause.pause + ") ou la ligne du dernier export ("
+      + pause.copie + ") n'est pas rendue — la garde mesurerait un autre état");
+    assert.ok(pause.replie,
+      "état pause : le détail de la pause est rendu SANS qu'on l'ait déplié — les lignes "
+      + "qui expliquent les fragments et la place redeviennent permanentes, et c'est de "
+      + "l'information nécessaire une fois, pas tout le temps");
+    assert.ok(pause.pourquoi,
+      "état pause : le geste « Pourquoi » a disparu — replier un détail sans laisser le "
+      + "moyen de l'ouvrir ne le raccourcit pas, il le SUPPRIME");
+    verifier(pause, "pause + dernière copie");
+    // ————— ÉTAT 3 : ALERTE PLEINE — aucun fichier, aucune copie jamais —————
+    assert.ok(await semer("plein"), "l'état alerte pleine n'a pas pu être semé — réancrez");
+    await p.waitForTimeout(600);
     const plein = await mesurer();
-    assert.ok(!plein.export, "état alerte pleine : la ligne du dernier export ne devrait pas être là");
-    verifier(plein, "alerte pleine (aucun export)", 0);
-    // ————— ÉTAT 2 : APRÈS UN EXPORT — le quotidien, et c'est là qu'on borne —————
-    await p.evaluate(() => {
-      const el = document.querySelector("button");
-      const fk = Object.keys(el).find((x) => x.startsWith("__reactFiber"));
-      let f = el[fk];
-      while (f && !(f.stateNode && f.stateNode.constructor
-        && f.stateNode.constructor.name === "StreamableComponent")) f = f.return;
-      const inst = f.stateNode.logic;
-      localStorage.setItem(inst.cleGlobale(inst.CLE_SAUV),
-        JSON.stringify({ t: Date.now() - 3600000, nC: 3961, nS: 66, o: 620756992 }));
-    });
-    await p.reload();
-    await entrer();
-    assert.ok(await semerPause(true), "l'état après export n'a pas pu être semé — réancrez");
-    await p.waitForTimeout(500);
-    const apres = await mesurer();
-    assert.ok(apres.export,
-      "état après export : la ligne « Dernière copie » n'est pas rendue — la garde "
-      + "mesurerait l'autre état et croirait avoir éprouvé celui-ci");
-    verifier(apres, "après un export (le quotidien)", 0.16);
+    assert.ok(plein.alerte,
+      "état alerte pleine : l'alerte n'est pas rendue — c'est l'état le plus chargé de "
+      + "la barre, et une garde qui ne l'atteint pas déclare invariant ce qu'elle n'a "
+      + "éprouvé que sur les états légers");
+    assert.ok(!plein.copie,
+      "état alerte pleine : la ligne « Dernière copie » est là — retirer `sauvDate` ne "
+      + "suffit pas, la date vient AUSSI de CLE_SAUV dans le stockage ; sans ce retrait "
+      + "le banc remesure l'état précédent et croit avoir éprouvé celui-ci");
+    verifier(plein, "alerte pleine (aucun fichier, aucune copie)");
   } finally {
     await nav.close();
   }

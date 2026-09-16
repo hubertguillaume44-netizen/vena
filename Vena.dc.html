@@ -5736,25 +5736,41 @@
     <!-- ————— UNE RANGÉE DE TEXTE, UNE RANGÉE DE BOUTONS —————
          Les phrases et les boutons partageaient le même flux et s'entre-poussaient :
          quatre bandes pour trois phrases, un quart de la fenêtre pris en permanence
-         par du mobilier. Les textes vivent maintenant dans leur propre rangée (pleine
-         largeur), les boutons dans la suivante — un compte de rangées qui porte du
-         sens s'écrit, il ne se laisse pas calculer par un algorithme de placement.
+         par du mobilier. Les textes vivent maintenant dans leur propre ZONE, les
+         boutons dans la leur — deux zones, pas dix enfants libres. À 1440 px, la
+         fenêtre réelle, les deux partagent UNE rangée ; c'est en dessous que le
+         groupe bascule, ENTIER, à la ligne suivante. Un compte de rangées qui porte
+         du sens s'écrit, il ne se laisse pas calculer par un algorithme de placement.
          Le message de pause reste ADJACENT à son bouton : une rangée au-dessus, pas
          un pied d'écart comme lorsqu'il vivait après « ? Aide ». -->
-    <span style="flex-basis:100%;display:flex;gap:14px;align-items:baseline;flex-wrap:wrap;min-width:0">
+    <!-- ————— LA RANGÉE DE TEXTE RÉTRÉCIT, ELLE NE RÉCLAME RIEN —————
+         `flex-basis:100%` était la cause, et une seule déclaration : elle demande
+         la pleine largeur, donc le groupe de boutons partait à la ligne quoi qu'il
+         arrive — `margin-left:auto` ne peut rien contre un frère qui occupe déjà
+         tout. Ce qui décide, c'est la TAILLE DE BASE, et elle seule : `1 1 auto`
+         a été mesuré sur sept largeurs (1440 → 820) et les trois états — même
+         compte de rangées, même hauteur au pixel que `0 1 auto`, parce que la
+         place que la croissance aurait prise, `margin-left:auto` la prenait de
+         toute façon. On garde `0 1 auto` — il rétrécit, il ne réclame pas — sans
+         prétendre que l'autre forme cassait quoi que ce soit ici.
+         Même chose par le bas pour les enfants : les `min-width` en `ch`
+         réservaient une largeur minimale, donc réclamaient elles aussi. Des
+         `max-width` bornent sans rien exiger — le texte passe sur deux lignes DANS
+         sa colonne au lieu de pousser les boutons hors de la rangée. -->
+    <span style="flex:0 1 auto;min-width:0;display:flex;gap:14px;align-items:baseline;flex-wrap:wrap">
     <!-- L'ÉTAT QUAND TOUT VA BIEN. La barre ne disait rien dans cet état-là : ni
          quel fichier, ni quand — d'où la question « est-ce qu'ouvrir l'application
          déclenche une sauvegarde ? ». Une barre permanente qui se tait sur l'état
          normal ne rassure personne ; elle laisse deviner. -->
     <sc-if value="{{ aAutoActif }}" hint-placeholder-val="{{ false }}">
-      <span style="font-size:11.5px;line-height:1.5;flex:1 1 34ch;min-width:28ch">{{ autoActifTxt }}</span>
+      <span style="font-size:11.5px;line-height:1.5;flex:0 1 auto;max-width:46ch">{{ autoActifTxt }}</span>
     </sc-if>
     <sc-if value="{{ sansSauvPlein }}" hint-placeholder-val="{{ false }}">
       <strong style="font-size:13px;line-height:1.35;max-width:24ch;flex:none">Aucune sauvegarde hors de ce navigateur</strong>
-      <span style="font-size:11.5px;flex:1;min-width:52ch;line-height:1.45;opacity:.9">{{ sansSauvTxt }}</span>
+      <span style="font-size:11.5px;flex:0 1 auto;max-width:48ch;line-height:1.45;opacity:.9">{{ sansSauvTxt }}</span>
     </sc-if>
     <sc-if value="{{ sansSauvReduit }}" hint-placeholder-val="{{ false }}">
-      <span style="font-size:12px;flex:1;min-width:38ch;line-height:1.4"><strong>{{ sauvExpTxt }}{{ sauvExpQuand }}</strong>{{ sauvExpSuite }}</span>
+      <span style="font-size:12px;flex:0 1 auto;max-width:46ch;line-height:1.4"><strong>{{ sauvExpTxt }}{{ sauvExpQuand }}</strong>{{ sauvExpSuite }}</span>
     </sc-if>
     <!-- LE MESSAGE ET SON BOUTON VONT ENSEMBLE : le message d'attente précède
          IMMÉDIATEMENT le bouton accent qui porte le geste — adjacents dans le
@@ -5764,7 +5780,7 @@
          même geste, le doublon même que la bascule interdit. Le tiroir garde le
          sien : il y est seul. -->
     <sc-if value="{{ aAutoMsg }}" hint-placeholder-val="{{ false }}">
-      <span style="flex:1 1 30ch;min-width:26ch;font-size:11.5px;line-height:1.5">{{ autoMsg }}<sc-if value="{{ aAutoDetail }}" hint-placeholder-val="{{ false }}"> <button type="button" class="lien" style="font-size:11.5px;color:inherit;text-decoration:underline;text-underline-offset:2px" onClick="{{ basculerPourquoi }}">{{ pourquoiTxt }}</button></sc-if></span>
+      <span style="flex:0 1 auto;max-width:34ch;font-size:11.5px;line-height:1.5">{{ autoMsg }}<sc-if value="{{ aAutoDetail }}" hint-placeholder-val="{{ false }}"> <button type="button" class="lien" style="font-size:11.5px;color:inherit;text-decoration:underline;text-underline-offset:2px" onClick="{{ basculerPourquoi }}">{{ pourquoiTxt }}</button></sc-if></span>
     </sc-if>
     </span>
     <!-- ————— LES BOUTONS AU BORD DROIT —————
@@ -5773,7 +5789,7 @@
          c'est-à-dire space-between sans le déclarer. Sur une fenêtre étroite il passe
          à la ligne ENTIER — jamais un bouton seul orphelin d'un côté — et reste au
          bord. Un groupe, pas six enfants libres : c'est la même leçon que la rangée
-         de texte, et c'est ce qui borne la barre à deux bandes. -->
+         de texte, et c'est ce qui tient la barre en UNE rangée à 1440 px. -->
     <span style="margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
     <sc-if value="{{ aSansSauvAccent }}" hint-placeholder-val="{{ false }}">
       <button type="button" style="cursor:pointer;border:none;background:var(--color-bg);color:var(--color-accent-900);font-family:var(--font-body);font-size:12px;padding:5px 12px;white-space:nowrap" onClick="{{ sansSauvAgir }}">{{ sansSauvBouton }}</button>
@@ -15599,7 +15615,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260916.10';
+  VERSION_APP = '260916.11';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
