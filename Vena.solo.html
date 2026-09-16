@@ -5778,6 +5778,16 @@ window.__venaScripts = {"Vena_Releve.mq5":"Ly8rLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tL
     <sc-if value="{{ sansSauvReduit }}" hint-placeholder-val="{{ false }}">
       <span style="font-size:12px;flex:1;min-width:38ch;line-height:1.4"><strong>{{ sauvExpTxt }}{{ sauvExpQuand }}</strong>{{ sauvExpSuite }}</span>
     </sc-if>
+    <!-- LE MESSAGE ET SON BOUTON VONT ENSEMBLE : le message d'attente précède
+         IMMÉDIATEMENT le bouton accent qui porte le geste — adjacents dans le
+         flux, ils partagent la rangée ou ils passent à la ligne ENSEMBLE. Il
+         était après « ? Aide », à un étage du bouton qu'il servait, et le pied
+         portait un second « Réautoriser » dans son bloc : deux boutons pour le
+         même geste, le doublon même que la bascule interdit. Le tiroir garde le
+         sien : il y est seul. -->
+    <sc-if value="{{ aAutoMsg }}" hint-placeholder-val="{{ false }}">
+      <span style="flex:1 1 30ch;min-width:26ch;font-size:11.5px;line-height:1.5">{{ autoMsg }}</span>
+    </sc-if>
     <sc-if value="{{ aSansSauvAccent }}" hint-placeholder-val="{{ false }}">
       <button type="button" style="cursor:pointer;border:none;background:var(--color-bg);color:var(--color-accent-900);font-family:var(--font-body);font-size:12px;padding:5px 12px;white-space:nowrap" onClick="{{ sansSauvAgir }}">{{ sansSauvBouton }}</button>
     </sc-if>
@@ -5788,9 +5798,6 @@ window.__venaScripts = {"Vena_Releve.mq5":"Ly8rLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tL
     <span style="width:1px;align-self:stretch;background:color-mix(in srgb,var(--color-bg) 30%,transparent)"></span>
     <button type="button" style="cursor:pointer;background:none;border:1px solid color-mix(in srgb,var(--color-bg) 45%,transparent);color:var(--color-bg);font-family:var(--font-body);font-size:12px;padding:4px 11px;white-space:nowrap" onClick="{{ ouvrirAvis }}">Donner mon avis</button>
     <button type="button" style="cursor:pointer;background:none;border:1px solid color-mix(in srgb,var(--color-bg) 45%,transparent);color:var(--color-bg);font-family:var(--font-body);font-size:12px;padding:4px 11px;white-space:nowrap" onClick="{{ ouvrirAide }}" title="Les explications de l’application, cherchables">? Aide</button>
-    <sc-if value="{{ aAutoMsg }}" hint-placeholder-val="{{ false }}">
-      <span style="flex-basis:100%;font-size:11.5px;line-height:1.5;display:flex;gap:12px;align-items:baseline"><span style="flex:1;min-width:30ch">{{ autoMsg }}</span><sc-if value="{{ aReautoriser }}" hint-placeholder-val="{{ false }}"><button type="button" style="cursor:pointer;background:none;border:1px solid color-mix(in srgb,var(--color-bg) 45%,transparent);color:var(--color-bg);font-family:var(--font-body);font-size:12px;padding:4px 11px;white-space:nowrap" onClick="{{ reautoriser }}" title="Redemande au navigateur la permission d’écrire dans le fichier de sauvegarde déjà choisi.">Réautoriser</button></sc-if></span>
-    </sc-if>
     <sc-if value="{{ aSauvMsg }}" hint-placeholder-val="{{ false }}">
       <span style="flex-basis:100%;font-size:11.5px;line-height:1.5">{{ sauvMsg }}</span>
     </sc-if>
@@ -11471,7 +11478,12 @@ GROUPES = {
     const vueIci = this.state.tab + '|' + this.state.vue;
     if (this._vuePrec !== undefined && this._vuePrec !== vueIci
       && (this.state.sauvMsg || this.state.autoMsg || this.state.baremeMsg)) {
-      this.setState({ sauvMsg: null, autoMsg: null, baremeMsg: null });
+      const efface = { sauvMsg: null, baremeMsg: null };
+      // autoMsg porte DEUX natures : le compte rendu d'un geste (s'efface) et
+      // l'ÉTAT d'attente de permission (reste — il est vrai tant que la
+      // permission manque, sur toutes les vues). autoAttente les départage.
+      if (!this.state.autoAttente) efface.autoMsg = null;
+      this.setState(efface);
     }
     this._vuePrec = vueIci;
     // Les barres sont RECRÉÉES quand la vue change : l'observateur de hauteurs suivait
@@ -15588,7 +15600,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260916';
+  VERSION_APP = '260916.2';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -18131,16 +18143,23 @@ GROUPES = {
     this.handleAuto = h;
     try {
       const p = await h.queryPermission({ mode: 'readwrite' });
+      // ————— UN ÉTAT SE DIT COMME UN ÉTAT, PAS COMME UN ÉCHEC —————
+      // Aucune écriture n'a été tentée ici : la permission est simplement
+      // retombée, comme à chaque session — le fonctionnement normal du
+      // navigateur, pas une panne. Et le message ne nomme pas son propre
+      // bouton : il est à côté, permanent — le message dit l'état, le bouton
+      // dit le geste, jamais les deux fois le geste.
       this.setState({ autoNom: h.name,
-        autoMsg: p === 'granted' ? null
-          : 'Sauvegarde automatique en attente : cliquez « Réautoriser » pour reprendre l\u2019écriture dans ' + h.name + '.',
+        autoMsg: p === 'granted' ? null : this.ATTENTE_AUTO,
         autoAttente: p !== 'granted' });
     } catch (e) {
-      this.setState({ autoNom: h.name, autoAttente: true,
-        autoMsg: 'La permission d\u2019écrire dans ' + (h.name || 'le fichier')
-          + ' n\u2019a pas pu être vérifiée : cliquez « Réautoriser ».' });
+      this.setState({ autoNom: h.name, autoAttente: true, autoMsg: this.ATTENTE_AUTO });
     }
   }
+  // la phrase d'état, UNE fois : trois chemins la posent (chargement, vérification
+  // impossible, périodique sans permission) — trois copies divergeraient, et la
+  // garde qui interdit « impossible » et le libellé du bouton la lit par son nom
+  ATTENTE_AUTO = 'La sauvegarde automatique attend votre autorisation pour ce navigateur — elle retombe à chaque session.';
   // ————— LE BOUTON DIT TOUJOURS QUELQUE CHOSE : TROIS ISSUES NOMMÉES —————
   // « Réautoriser » cliquait dans le vide : un refus antérieur est RETENU par le
   // navigateur — requestPermission re-répond « denied » sans dialogue — et les deux
@@ -18209,15 +18228,17 @@ GROUPES = {
         // d'action est la famille du bouton MT5. Les deux refus disent ce qui
         // s'est passé et ce qui reste à faire, dans autoMsg, qui est déjà rendu.
         if (!force) {
-          this.setState({ autoAttente: true,
-            autoMsg: 'Le navigateur n\u2019accorde plus l\u2019écriture dans ' + (h.name || 'le fichier')
-              + ' : cliquez « Réautoriser » pour reprendre la sauvegarde automatique.' });
+          // rien n'a été tenté : la périodique s'arrête AVANT d'écrire — c'est
+          // l'état d'attente, le même qu'au chargement, pas un échec
+          this.setState({ autoAttente: true, autoMsg: this.ATTENTE_AUTO });
           return;
         }
         if ((await h.requestPermission({ mode: 'readwrite' })) !== 'granted') {
-          this.setState({ autoAttente: true,
-            autoMsg: 'Le navigateur n\u2019a pas accordé l\u2019écriture dans ' + (h.name || 'le fichier')
-              + ' : cliquez « Réautoriser » pour réessayer.' });
+          // un refus explicite est RETENU par le navigateur : redemander re-perd
+          // le geste — la même bascule que reautoriserAuto, vers le seul geste utile
+          this.setState({ autoAttente: true, autoARechoisir: true,
+            autoMsg: 'Le navigateur a refusé l\u2019écriture dans ' + (h.name || 'le fichier')
+              + '. Choisissez à nouveau le fichier pour reprendre la sauvegarde.' });
           return;
         }
       }
@@ -18228,7 +18249,11 @@ GROUPES = {
       this.setState({ autoNom: h.name, autoAttente: false,
         autoHeure: new Date().toLocaleTimeString('fr-FR').slice(0, 5), autoMsg: null });
     } catch (e) {
-      this.setState({ autoAttente: true, autoMsg: 'Écriture impossible dans ' + (h.name || 'le fichier') + ' — cliquez « Réautoriser ».' });
+      // ICI une écriture a réellement été tentée (createWritable/write) : dire
+      // qu'elle a échoué est exact — c'est un événement, pas un état supposé
+      this.setState({ autoAttente: true,
+        autoMsg: 'L\u2019écriture dans ' + (h.name || 'le fichier')
+          + ' a échoué — la sauvegarde automatique est en pause.' });
     }
   }
 

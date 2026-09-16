@@ -375,6 +375,23 @@ test("« Réautoriser » sans poignée dit ce qui se passe et offre le choix", {
     assert.ok(!apres.boutonReautoriserReste,
       "« Réautoriser » reste affiché à côté du choix : deux boutons pour la même "
       + "intention, dont un qui re-perd le geste en silence — le défaut A3");
+    // ————— ET L'ÉTAT SURVIT AU CHANGEMENT DE VUE —————
+    // C'est un ÉTAT, pas un message de geste : il est vrai tant que la permission
+    // manque, sur toutes les vues. Le 4e temps efface les messages de geste au
+    // changement de vue — il doit ÉPARGNER celui-ci (autoAttente le départage),
+    // sinon changer de page fait taire un état encore vrai.
+    await clicDom(p, "Mes scans");
+    await p.waitForTimeout(400);
+    const apresVue = await p.evaluate(() => {
+      const msg = [...document.querySelectorAll("span,div")].find((x) =>
+        x.children.length === 0 && /ne peut plus être retrouvé/.test(x.textContent || ""));
+      const r = msg && msg.getBoundingClientRect();
+      return !!(r && r.height > 0);
+    });
+    assert.ok(apresVue,
+      "l'état d'attente a été EFFACÉ par le changement de vue : le 4e temps l'a "
+      + "traité comme un message de geste — un état reste affiché tant que la "
+      + "permission manque, quelle que soit la page");
   } finally {
     await nav.close();
   }

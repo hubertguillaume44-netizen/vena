@@ -33,9 +33,27 @@ test("le bandeau de perte rend compte : autoMsg, Réautoriser et sauvMsg y viven
   assert.ok(pied.includes("{{ autoMsg }}"),
     "le pied ne rend plus autoMsg : les refus de permission redeviennent muets là "
     + "où le geste est fait — mutation : retirer la surface fait tomber ici");
-  assert.ok(pied.includes('onClick="{{ reautoriser }}"'),
-    "le bouton Réautoriser a disparu du pied : tous les messages d'attente le "
-    + "nomment, et il n'existait nulle part avant cette surface");
+  // Réancré (le petit « Réautoriser » du pied est PARTI, en le disant) : il
+  // doublait le bouton accent « Réautoriser la sauvegarde » à trois boutons de
+  // distance — deux boutons pour le même geste, le défaut d'A3 dans le pied
+  // lui-même — et les messages d'attente ne nomment plus leur bouton. Le geste
+  // du pied vit dans le bouton accent (sansSauvAgir, gardé par coherence et
+  // filet-sauvegarde) ; le bouton nominatif du TIROIR reste : il y est seul.
+  assert.ok(pied.includes('onClick="{{ sansSauvAgir }}"'),
+    "le pied n'a plus de bouton d'action : ni réautoriser, ni choisir, ni exporter "
+    + "— le message d'attente prescrirait un geste introuvable");
+  assert.ok(GAB.slice(0, i).includes('onClick="{{ reautoriser }}"'),
+    "le bouton Réautoriser du TIROIR a disparu : c'était le seul bouton nominatif "
+    + "restant — le tiroir montrerait l'attente sans offrir le geste");
+  // et le message précède IMMÉDIATEMENT le bouton accent : adjacents dans le
+  // flux, ils partagent la rangée ou passent à la ligne ENSEMBLE — le message
+  // en bas à gauche pendant que son bouton est en haut à droite était le défaut
+  const iMsg = pied.indexOf("{{ autoMsg }}");
+  const iAccent = pied.indexOf('onClick="{{ sansSauvAgir }}"');
+  assert.ok(iMsg > 0 && iAccent > iMsg && iAccent - iMsg < 400,
+    "le message d'attente n'est plus adjacent au bouton accent du pied ("
+    + (iAccent - iMsg) + " caractères d'écart) : séparés dans le flux, ils se "
+    + "séparent à l'écran dès que la rangée est pleine");
   assert.ok(pied.includes("{{ sauvMsg }}"),
     "le pied ne rend plus sauvMsg : l'export et l'import déclenchés du bandeau "
     + "rapporteraient dans un tiroir fermé");
@@ -82,7 +100,46 @@ test("4e temps : un message de geste s'efface au changement de vue", () => {
   assert.ok(corps.includes("this._vuePrec !== undefined && this._vuePrec !== vueIci"),
     "la comparaison à la vue précédente a disparu — ou efface dès le premier rendu, "
     + "ce qui essuierait un message avant qu'il soit lu (le 2e temps, à rebours)");
-  assert.ok(corps.includes("sauvMsg: null, autoMsg: null, baremeMsg: null"),
-    "le changement de vue n'efface plus les trois messages de geste : deux échecs "
+  // réancré : autoMsg porte DEUX natures — le compte rendu d'un geste (s'efface)
+  // et l'ÉTAT d'attente de permission (reste : il est vrai tant que la permission
+  // manque, sur toutes les vues — le 4e temps ne s'applique pas à un état).
+  // autoAttente les départage.
+  assert.ok(corps.includes("const efface = { sauvMsg: null, baremeMsg: null };"),
+    "le changement de vue n'efface plus les messages de geste : deux échecs "
     + "de deux pages s'empilent à nouveau sous la page suivante");
+  assert.ok(corps.includes("if (!this.state.autoAttente) efface.autoMsg = null;"),
+    "l'effacement de vue n'épargne plus l'état d'attente de permission : "
+    + "changer de page ferait taire un état encore vrai — un état n'est pas "
+    + "un message de geste, il reste affiché tant que la permission manque");
+});
+
+test("le message d'attente de permission dit un état — ni verdict, ni son propre bouton", () => {
+  // ————— « ÉCRITURE IMPOSSIBLE » ÉTAIT UN VERDICT SUR UN NON-ÉVÉNEMENT —————
+  // Au chargement, aucune écriture n'a été tentée : la permission est retombée,
+  // comme à chaque session — le fonctionnement normal du navigateur, pas une
+  // panne. Le mot annonçait une perte là où il n'y a qu'une autorisation à
+  // redonner. Et « cliquez « Réautoriser » » nommait un bouton à trois
+  // centimètres : le message dit l'état, le bouton dit le geste — jamais les
+  // deux fois le geste. La phrase vit dans UNE constante nommée (ATTENTE_AUTO),
+  // posée par les trois chemins d'attente sans tentative.
+  const iC = APP.indexOf("ATTENTE_AUTO = '");
+  assert.ok(iC > 0, "ATTENTE_AUTO a disparu — la phrase d'état n'a plus de source unique : réancrez");
+  const phrase = APP.slice(iC + "ATTENTE_AUTO = '".length, borne(APP, "';", iC));
+  assert.ok(!/impossible/i.test(phrase),
+    "le message d'attente dit « impossible » : un verdict sur une écriture "
+    + "jamais tentée — la permission est retombée, c'est un état, pas un échec");
+  assert.ok(!/Réautoriser/.test(phrase),
+    "le message d'attente nomme son propre bouton : il est à côté, permanent — "
+    + "le message dit l'état, le bouton dit le geste");
+  assert.ok(/attend votre autorisation/.test(phrase) && /à chaque session/.test(phrase),
+    "la phrase d'état ne dit plus ni l'attente ni sa raison (« retombe à chaque "
+    + "session ») : l'utilisateur doit savoir que ce n'est ni sa faute ni un incident");
+  // et les trois chemins d'attente sans tentative la posent par son NOM — une
+  // copie recomposée échapperait à cette garde en gardant l'air d'être couverte
+  const poses = (APP.match(/autoMsg: this\.ATTENTE_AUTO/g) || []).length
+    + (APP.match(/autoMsg: p === 'granted' \? null : this\.ATTENTE_AUTO/g) || []).length;
+  assert.ok(poses >= 3,
+    poses + " chemin(s) posent ATTENTE_AUTO — il en faut 3 (chargement, vérification "
+    + "impossible, périodique sans permission) : un chemin qui recompose sa propre "
+    + "phrase re-divergera");
 });
