@@ -16171,7 +16171,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260917.8';
+  VERSION_APP = '260917.9';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -23281,7 +23281,7 @@ GROUPES = {
             actionTxt: 'Modifier…', action: () => this.setState({ panScan: 'secu' }),
             actionAide: 'Lecture haute et basse, paliers de sécurisation, durée maximale.',
             note: nLect === 2
-              ? 'La bande entre les deux lectures est le critère de conformité au testeur MT5.'
+              ? 'La bande entre les deux lectures encadre UN écart au testeur MT5 : celui de l\u2019ordre des mouvements dans une bougie. Les autres — spread au remplissage, pas de lot, période couverte — ne s\u2019y voient pas.'
               : 'Une seule lecture : le résultat n\u2019est pas encadré, et la bande de conformité au testeur MT5 demande les deux.' },
           { cle: 'frais', nom: 'Frais réels du symbole',
             val: frais ? 'comptés' : 'non comptés', calcul: frais,
@@ -24099,8 +24099,31 @@ GROUPES = {
               + (res.exposes > 1 ? 'nt' : '') + ' sur un palier armé dans sa propre bougie, '
               + 'donc optimiste' + (res.exposes > 1 ? 's' : '')
             : ' · aucune sortie ne repose sur un palier armé dans sa propre bougie';
+        // ————— UNE BANDE NULLE NE PROMET QUE CE QU'ELLE A MESURÉ —————
+        // ————— UNE BANDE NULLE NE PROMET QUE CE QU'ELLE A MESURÉ —————
+        //
+        // Cette phrase disait « exactement ce que le testeur doit rendre, aux frais
+        // près ». C'était une promesse de CONFORMITÉ tirée d'une mesure qui ne couvre
+        // que l'ORDRE INTRA-BOUGIE. Quatre instruments rapportés avaient le bon nombre
+        // de trades, une bande nulle, et une réussite divisée par deux : la phrase les
+        // a certifiés tous les quatre.
+        //
+        // ET SANS SÉCURISATION, LA BANDE EST NULLE PAR CONSTRUCTION. Mesuré sur les dix
+        // séries d'exemple × quatre couples stop/objectif : zéro bougie ambiguë, donc
+        // zéro écart entre les deux lectures. La phrase était alors une tautologie
+        // habillée en certificat — elle constatait qu'une convention jamais invoquée
+        // n'avait rien changé. Voir `scripts/mt5/lecture-ambigue.test.mjs`.
+        //
+        // Ce qu'elle dit maintenant : ce qu'elle a mesuré, et ce qu'elle ne couvre pas.
+        //
+        // LA PROSE VIT AU-DESSUS DU BLOC, ET C'EST VOULU : la garde qui interdit
+        // la promesse cherche dans le corps du `if`, et un récit qui l'épelle
+        // dedans la ferait rougir sur son propre commentaire (règle 3).
         if (b.largeur < 0.05) {
-          return 'exactement ce que le testeur doit rendre, aux frais près — les deux lectures s\u2019accordent' + exp;
+          return (paliers
+            ? 'aucun trade ne dépend de l\u2019ordre des mouvements dans une bougie'
+            : 'sans sécurisation, aucune bougie ne peut être ambiguë — la bande est nulle par construction')
+            + ' · elle ne dit RIEN du spread au remplissage, de l\u2019ordre des ticks, du pas de lot ni de la période couverte' + exp;
         }
         const pct = Math.round((100 * b.indecidables) / Math.max(1, b.n));
         return fr(b.bas, 1) + ' … ' + fr(b.haut, 1) + ' R, pas un chiffre unique — '
