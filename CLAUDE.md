@@ -1105,6 +1105,47 @@ sa copie. Re-déclarer sur place aurait réparé le symptôme en gardant la caus
 quatre copies du même calcul, dont n'importe laquelle pouvait diverger la prochaine
 fois.
 
+#### Et l'inverse : le compte de la SOURCE n'est pas le compte de l'ÉCRAN
+
+La panne fondatrice de cette règle allait dans un sens : la source était juste, le rendu
+était vide. Le cas miroir s'est présenté sur le BALISAGE, et il coûte l'inverse — une
+garde de source aurait réclamé vingt-neuf corrections qui ne réparent rien.
+
+Mesuré : `Vena.dc.html` porte **trente-cinq** affectations d'un gestionnaire vide
+(`x: () => {}`) sur un champ que le gabarit lie à un `onClick`. Rendues — le fichier
+livré, les sept vues, l'état semé — **six** atteignent l'utilisateur. Les vingt-neuf
+autres vivent dans des branches dont l'élément est masqué ou grisé : elles ne mentent à
+personne. Les corriger aurait touché vingt-neuf branches que personne ne peut voir, ce
+qui est la façon ordinaire dont un correctif introduit un défaut.
+
+> **Une garde de source compte les occurrences ; une garde de rendu compte les
+> utilisateurs.**
+
+Et les six qui restaient étaient un défaut de BALISAGE, pas de comportement : un
+`<button>` portant `cursor: default` et un gestionnaire vide entre dans l'ordre de
+tabulation et s'annonce cliquable à un lecteur d'écran, pour ne pas répondre au clic.
+C'est la règle 4 — l'explication (« le curseur dit que ce n'est pas cliquable »)
+contredisait l'étiquette (`<button>`), et c'est l'étiquette qui était le défaut. La case
+non calculée est un `<span>` depuis ; le curseur est parti avec la balise, n'ayant jamais
+eu d'autre travail que de la démentir. `scripts/app/balisage-inerte.test.mjs` tient la
+classe — *aucun élément annoncé cliquable ne porte un geste vide* — et non le lieu où
+elle est apparue.
+
+**Trois questions, trois bancs, et aucun ne couvre les autres** : « le gestionnaire
+est-il branché ? » (`trous-branches`, qui lit les clés émises), « réagit-il ? » (la
+tournée des gestes), « le DOM dit-il la vérité sur ce que c'est ? » (le balisage). Un
+`<span>` inerte répond non à la deuxième et oui à la troisième, et il a raison des deux
+fois. Les deux bancs de rendu parcourent désormais la **même** surface, écrite une fois
+dans `scripts/app/lib/vues.mjs` : deux copies d'une liste d'écrans divergent, et la
+divergence est muette.
+
+**Et la mesure elle-même a rapporté zéro avant de rapporter six.** Les sept clics de
+navigation échouaient tous — l'onglet porte son rang collé au libellé, « 2Mes scans » —
+et les sept vues rendaient leur verdict sur le même écran d'accueil. Encore une mesure
+fausse qui a l'air d'une mesure. La sonde vérifie donc sa prise : moins de quinze
+éléments cliquables sur une vue la fait tomber, plutôt que de laisser passer un zéro qui
+n'a rien regardé.
+
 ### Un mot relatif n'est vrai que depuis un référentiel stable
 
 Deux corrections à un jour d'écart, et c'était deux instances d'un seul énoncé :

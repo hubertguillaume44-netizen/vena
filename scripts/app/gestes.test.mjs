@@ -36,6 +36,7 @@ import assert from "node:assert/strict";
 import { existsSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { POSER_SEMIS } from "./lib/semis.mjs";
+import { VUES, PAGES } from "./lib/vues.mjs";
 import path from "node:path";
 
 const SOLO = new URL("../../Vena.solo.html", import.meta.url).pathname;
@@ -49,12 +50,8 @@ const CHROMIUMS = [
 // elles ajoutent 85 libellés inédits à l'état peuplé — plus que les trois surfaces
 // (14) et plus que la moitié de ce que la tournée voyait (78). Six écrans que
 // personne n'avait jamais cliqués.
-const VUES = [
-  ["Mes instruments", null],
-  ["Mes scans", "Nouveau scan"], ["Mes scans", "Historique"], ["Mes scans", "Backtest"],
-  ["Mes décisions", "Portefeuille"], ["Mes décisions", "Marché"], ["Mes décisions", "Journal"],
-];
-const PAGES = [...new Set(VUES.map(([p]) => p))];
+// Elle vit dans `lib/vues.mjs` : un SECOND banc la parcourt désormais — celui du
+// balisage —, et deux copies d'une même surface divergent en silence.
 // ————— LE REGISTRE DES MUETS CONNUS, ET CE QU'IL COÛTE —————
 //
 // La tournée étendue a trouvé QUATORZE gestes sans réaction visible, dans six
@@ -75,6 +72,20 @@ const PAGES = [...new Set(VUES.map(([p]) => p))];
 //   · les quatre « Sans filtre… » ressemblent à des étiquettes rendues en <button>.
 //     Si c'en sont, le défaut est le BALISAGE — un élément inerte qui se présente
 //     comme cliquable est un défaut réel, mais d'une autre nature.
+//
+// ET LA RÉSERVE DU BALISAGE A ÉTÉ INSTRUITE. Elle disait : « les quatre “Sans
+// filtre…” ressemblent à des étiquettes rendues en <button>. Si c'en sont, le défaut
+// est le BALISAGE — un élément inerte qui se présente comme cliquable est un défaut
+// réel, mais d'une autre nature. » C'en étaient : mesurées sur le fichier livré,
+// SIX cases de la carte du balayage étaient des <button> au gestionnaire vide, dans
+// l'ordre de tabulation, annoncées cliquables. Elles sont des <span> depuis, et la
+// classe entière est tenue par `balisage-inerte.test.mjs`, qui parcourt la MÊME
+// surface que cette tournée — d'où `lib/vues.mjs`.
+//
+// LES DEUX BANCS POSENT DEUX QUESTIONS, ET AUCUN NE COUVRE L'AUTRE : celui-ci
+// demande « ça réagit ? », celui du balisage « le DOM dit-il la vérité sur ce que
+// c'est ? ». Un <span> inerte répondrait non au premier et oui au second, et il
+// aurait raison des deux fois.
 //
 // LE REGISTRE NE PEUT PAS POURRIR, et c'est ce qui le distingue d'une liste de
 // tolérances. Il échoue DANS LES DEUX SENS : un muet qui n'y est pas est une
@@ -100,8 +111,8 @@ const PAGES = [...new Set(VUES.map(([p]) => p))];
 // échouant sur leur guérison. Les cinq cases de l'agenda et deux cases de la carte
 // des filtres : les premières étaient aveuglées par la borne de 25 mutations de
 // l'observateur, les secondes sont des éléments inertes que le produit déclare
-// lui-même non cliquables (`curseur: 'default'`) et qui sont désormais comptés
-// comme défaut de BALISAGE, séparément.
+// lui-même non cliquables et qui relèvent du BALISAGE, tenu séparément par
+// `balisage-inerte.test.mjs` — où elles ont été corrigées depuis.
 // LES TROIS DERNIÈRES SONT PARTIES, ET AUCUNE N'ÉTAIT CE QUE LE REGISTRE SUPPOSAIT.
 // Elles portaient toutes les trois la même hypothèse — « précondition peut-être non
 // semée » — et la réserve écrite au-dessus disait que ce serait alors une limite du

@@ -3590,6 +3590,12 @@
         une case pointillée n'est pas encore calculée — ce qui dispense d'une barre de
         texte séparée.
 
+        DEUX BALISAGES, ET C'EST LA RAISON DE LA BRANCHE. Une case calculée s'ouvre : c'est
+        un bouton. Une case pointillée n'a rien à ouvrir : c'est un <span>. Écrite en
+        <button> avec un curseur « default » et un gestionnaire vide, elle entrait dans
+        l'ordre de tabulation et s'annonçait cliquable à un lecteur d'écran pour ne rien
+        faire — six fois sur cette page, mesuré sur le fichier livré.
+
         Hors de la colonne de droite, et c'est nécessaire : enfermée dedans, ses cases
         tombent sous cinquante pixels et les en-têtes passent sur deux lignes, ce qui tue
         la lecture en damier.
@@ -3610,7 +3616,12 @@
             <sc-for list="{{ carteLignes }}" as="cli" hint-placeholder-count="8">
               <span style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;align-self:center" title="{{ cli.nomLong }}">{{ cli.nom }}</span>
               <sc-for list="{{ cli.cases }}" as="ca" hint-placeholder-count="5">
-                <button type="button" class="cel" style="cursor:{{ ca.curseur }};font-family:var(--font-body);font-size:12px;font-weight:{{ ca.gras }};padding:6px 4px;text-align:center;background:{{ ca.fond }};color:{{ ca.couleur }};border:{{ ca.bord }}" title="{{ ca.aide }}" onClick="{{ ca.ouvrir }}">{{ ca.txt }}</button>
+                <sc-if value="{{ ca.aOuvrir }}" hint-placeholder-val="{{ true }}">
+                <button type="button" class="cel" style="cursor:pointer;font-family:var(--font-body);font-size:12px;font-weight:{{ ca.gras }};padding:6px 4px;text-align:center;background:{{ ca.fond }};color:{{ ca.couleur }};border:{{ ca.bord }}" title="{{ ca.aide }}" onClick="{{ ca.ouvrir }}">{{ ca.txt }}</button>
+                </sc-if>
+                <sc-if value="{{ ca.aInerte }}" hint-placeholder-val="{{ false }}">
+                <span style="font-family:var(--font-body);font-size:12px;line-height:normal;font-weight:{{ ca.gras }};padding:6px 4px;text-align:center;background:{{ ca.fond }};color:{{ ca.couleur }};border:{{ ca.bord }}" title="{{ ca.aide }}">{{ ca.txt }}</span>
+                </sc-if>
               </sc-for>
             </sc-for>
           </div>
@@ -15952,7 +15963,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260917';
+  VERSION_APP = '260917.2';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -22733,10 +22744,31 @@ GROUPES = {
             cases: cols.map((c) => {
               const e = m && m.get(c);
               if (!e) {
+                // ————— UNE CASE VIDE N'EST PAS UN BOUTON, ET LE PRODUIT LE DISAIT DÉJÀ —————
+                //
+                // Elle portait un curseur « default » et un gestionnaire vide : le produit
+                // déclarait lui-même qu'il n'y a rien à ouvrir, et la BALISE disait le
+                // contraire. Mesuré sur le fichier livré, état peuplé, les sept vues
+                // parcourues : SIX éléments annoncés « bouton » par le DOM dont le
+                // gestionnaire ne fait rien — tous ici, tous sur « Nouveau scan ». Ils
+                // entrent dans l'ordre de tabulation, un lecteur d'écran les annonce
+                // cliquables, et le clic ne répond pas.
+                //
+                // C'est la règle 4 : quand l'explication contredit l'étiquette, c'est
+                // l'étiquette qui est le défaut. On retire donc la BALISE, pas le curseur
+                // — et le curseur disparaît avec elle, puisqu'il n'avait d'autre travail
+                // que de démentir la balise.
                 return { txt: '', fond: 'transparent', couleur: 'var(--color-text)',
-                  bord: '1px dashed var(--color-divider)', gras: '400', curseur: 'default',
+                  bord: '1px dashed var(--color-divider)', gras: '400',
+                  // `ouvrir` reste DÉCLARÉ, et à null : les deux branches d'une même
+                  // liste doivent porter les mêmes clés, sans quoi `trous-branches`
+                  // lit le premier élément venu et conclut — à juste titre — qu'un
+                  // gestionnaire lié n'est pas émis. Null plutôt qu'un `() => {}` :
+                  // l'un déclare une absence, l'autre fabrique une action vide, et
+                  // c'est l'action vide qu'on vient de retirer.
+                  aOuvrir: false, aInerte: true, ouvrir: null,
                   aide: (this.VARIANTES_FILTRE[c] || [c])[0] + ' sur ' + this.nomComplet(sym)
-                    + ' : pas encore calculée.', ouvrir: () => {} };
+                    + ' : pas encore calculée.' };
               }
               const t = hi > lo ? (e.total - lo) / (hi - lo) : 1;
               const pc = Math.round(t * 100);
@@ -22746,7 +22778,7 @@ GROUPES = {
                 couleur: pc > 55 ? 'var(--color-bg)' : 'var(--color-text)',
                 bord: '1px solid transparent',
                 gras: e.total === best ? '700' : '400',
-                curseur: 'pointer',
+                aOuvrir: true, aInerte: false,
                 aide: (this.VARIANTES_FILTRE[c] || [c])[0] + ' sur ' + this.nomComplet(sym)
                   + ' : meilleur R net ' + e.total.toFixed(1).replace('.', ',')
                   + ' R. Cliquez pour ouvrir cette configuration.',
