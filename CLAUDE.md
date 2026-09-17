@@ -697,6 +697,47 @@ couverture fuyait. Vérifié ici : désancrer la sélection des clés, retirer l
 marque, retirer le refus de `garderSerie`, ou décider du repli de l'indicateur avant le
 relevé font tomber chacun le test correspondant.
 
+### La mutation ÉPROUVE ; ce qui CONSTRUIT, c'est « la borne coupe, puis on vérifie ce qu'elle a coupé »
+
+Ce n'est pas une règle de plus : c'est la règle 2 vue depuis l'écriture au lieu de la
+vérification. La mutation dit *après coup* qu'une garde est aveugle ; cette formule-ci
+l'empêche *pendant* qu'on l'écrit.
+
+**Trois formes de garde aveugle en un seul chantier, et c'est ce qui les réunit qui
+compte** — dans les trois, une assertion passait sans que rien ne soit regardé :
+
+| La forme | Comment elle devient aveugle | Ce qui la ferme |
+|---|---|---|
+| **la tranche à −1** | `indexOf` rend −1, qui est une borne VALIDE pour `slice` : le motif disparaît et la tranche s'élargit en silence, jusqu'au fichier entier | `borne()`/`borneArriere()`, qui **jettent** en nommant le motif perdu |
+| **la garde vacue** | son sujet a été supprimé ; elle reste verte en ne gardant plus rien | la règle 14 : partir avec le geste, se réancrer, ou s'ancrer sur l'absence |
+| **l'assertion creuse** | sa condition ne MORD pas sur le décor : elle passe avec ou sans le code qu'elle vérifie | prouver que la condition mord, **avant** de vérifier son effet |
+
+La troisième est la plus récente, et elle est passée sous mutation. Elle bornait une
+découpe au 1ᵉʳ janvier 2021 ; l'amorce de 400 jours reculait la borne à novembre 2019,
+donc **aucune bougie n'était coupée** et l'assertion sur ce qui restait passait dans les
+deux sens. Corrigée sur une borne de fin, elle exige maintenant d'abord que la coupe ait
+lieu — `d3.ecT.length > 0 && d3.ecT.length < df.ecT.length` — et seulement ensuite que ce
+qui reste soit du bon côté.
+
+> **La borne coupe, PUIS on vérifie ce qu'elle a coupé.** Et l'énoncé vaut au-delà des
+> dates : toute assertion qui décrit l'effet d'une condition doit d'abord établir que la
+> condition s'est appliquée. Sans ce premier temps, on mesure le décor.
+
+**Le dépôt en portait déjà des instances sans les avoir reliées** — c'est en les relisant
+ensemble qu'on voit qu'elles disent une seule chose :
+
+- `echelle-des-prix` exige `n > 50` trades à chaque échelle avant de comparer les
+  comptes — « une garde qui compte zéro ne garde rien » ;
+- la tournée des gestes tombe sous quinze éléments cliquables par vue, plutôt que de
+  laisser passer un zéro qui n'a rien regardé ;
+- `sautesVues` est la prise du zéro de `sautesSortie`, et `cachesVues` celle de
+  `cachesStop` — un compteur à zéro sans dénominateur a deux sens ;
+- `cachesDispo` distingue « mesuré à zéro » de « pas mesurable sur cette série ».
+
+Les quatre premières vivent dans des tests, la dernière dans le produit. **C'est la même
+exigence des deux côtés, et c'est ce qui la rend générale** : une sonde prouve sa prise
+avant de rapporter, qu'elle rapporte à un test ou à un utilisateur.
+
 ### On interdit le code, pas le récit du code
 
 C'est le piège de **toute garde qui lit du source**, et il s'est présenté trois fois en une
