@@ -170,6 +170,13 @@
   },
   {
    "terme": "Chiffres périmés — relancez le test",
+   "texte": "Le moteur ne teste ni le stop ni l'objectif sur une bougie hors séance ou reconstituée — seul le palier y bouge. Le stop d'un robot, lui, reste dans le carnet du courtier.",
+   "vues": [
+    "Backtest"
+   ]
+  },
+  {
+   "terme": "Chiffres périmés — relancez le test",
    "texte": "La configuration mesurée de cette ligne n'est plus en mémoire : ni dans les scans ouverts, ni dans l'historique. Rien ne permet de vérifier que le panneau la reproduit.",
    "vues": [
     "Backtest"

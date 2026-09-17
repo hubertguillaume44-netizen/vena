@@ -4817,7 +4817,7 @@
 
         <div style="padding:7px 15px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
           <button type="button" class="{{ sensCls }}" style="cursor:pointer;border:none;font-family:var(--font-body);font-size:10px;padding:1px 6px" onClick="{{ basculerSens }}" title="{{ sensAide }}">{{ sensNom }}</button>
-          <span style="font-size:11px" class="text-muted">bougies Daily coupées, session normalisée{{ sessionInfo }}, amorce de 400 jours avant le 01/01/2020</span>
+          <span style="font-size:11px" class="text-muted" title="{{ fenetreHeuresAide }}">bougies Daily coupées sur une fenêtre horaire homogène{{ fenetreHeuresInfo }}, amorce de 400 jours avant le 01/01/2020</span>
           <sc-if value="{{ aRetourHisto }}" hint-placeholder-val="{{ false }}">
             <button type="button" style="cursor:pointer;border:none;background:none;padding:0;font:inherit;font-size:11px;color:var(--color-accent-700);text-decoration:underline;text-underline-offset:2px" onClick="{{ retourHisto }}" title="{{ retourHistoTxt }}">↩ retour à l'historique du scan</button>
           </sc-if>
@@ -12603,6 +12603,11 @@ GROUPES = {
       // les cas du même côté n'est pas du bruit. On ne change pas la règle sur une
       // hypothèse — on met le nombre sous les yeux, là où les données sont.
       _sautesSortie: (trades && trades.sautesSortie) || 0,
+      // LE DÉNOMINATEUR, et il est la moitié de la mesure. Un compteur à zéro dont on
+      // ignore combien de fois la règle a joué ne dit rien : « 0 sur 0 » renvoie
+      // chercher ailleurs, « 0 sur 4 210 » disculpe la règle. Sans lui, on lisait le
+      // même zéro dans les deux cas.
+      _sautesVues: (trades && trades.sautesVues) || 0,
       // Espérance, hors échantillon, tenue, R par R de creux : trois des cinq contrôles
       // en dépendent. Sans elles, le Backtest affichait « 2 / 5 mesurés » sur une
       // configuration parfaitement jugeable — et ne pouvait donc rien proposer d'en faire.
@@ -16237,7 +16242,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260917.12';
+  VERSION_APP = '260917.13';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -23917,9 +23922,28 @@ GROUPES = {
       setSpreadSaisi: (e) => this.maj({ spreadSaisi: e.target.value === '' ? null : Number(e.target.value) }),
       setSwapSaisi: (e) => this.maj({ swapSaisi: e.target.value === '' ? null : Number(e.target.value) }),
       libelleFrais: this.frais && !this.fraisDe(s.btSym).connu ? 'Frais à saisir (aucun relevé pour ce symbole)' : 'Frais du symbole',
-      sessionInfo: this.diag && this.diag[s.btSym] && this.diag[s.btSym].session
-        ? ' (session ' + this.diag[s.btSym].session[0] + ' h – ' + this.diag[s.btSym].session[this.diag[s.btSym].session.length - 1] + ' h UTC · ' + this.diag[s.btSym].ecartees + ' bougies écartées)'
+      // ————— CE CHAMP NOMMAIT LA SÉANCE ET PORTAIT AUTRE CHOSE —————
+      // `diag.session` est `heuresSession`, c'est-à-dire les heures RETENUES par la
+      // fenêtre homogène de `nettoyer` — celles présentes dans toutes les années de la
+      // série. `diag.ecartees` est `df.n - t.length` : les bougies retirées par cette
+      // fenêtre. Ni l'une ni l'autre ne parle de la séance de négociation, qui vit dans
+      // la colonne `sess` et que le moteur lit ailleurs (`releve`).
+      //
+      // Lu comme « la séance du courtier » et « les bougies hors séance », ce champ a
+      // produit un diagnostic faux : deux instruments à fenêtre étroite divergeaient d'un
+      // testeur, deux à fenêtre pleine divergeaient aussi, et on en a conclu que la règle
+      // de séance ne pouvait pas être en cause — alors que le nombre lu ne l'avait jamais
+      // mesurée. C'est la quatrième fois qu'un libellé de champ envoie chercher ailleurs.
+      // Le compte des bougies réellement sautées par la règle est le bandeau `btSautesTxt`.
+      fenetreHeuresInfo: this.diag && this.diag[s.btSym] && this.diag[s.btSym].session
+        ? ' (heures retenues ' + this.diag[s.btSym].session[0] + ' h – ' + this.diag[s.btSym].session[this.diag[s.btSym].session.length - 1] + ' h UTC · ' + this.diag[s.btSym].ecartees + ' bougies hors de cette fenêtre, écartées)'
         : '',
+      fenetreHeuresAide: 'Les heures retenues sont celles présentes dans TOUTES les années de '
+        + 'la série : une année où le courtier a coté une heure de plus la retirerait de '
+        + 'toute la série, faute de quoi la densité changerait en cours de mesure. Les '
+        + 'bougies écartées sont celles qui tombent hors de cette fenêtre. Ce n’est PAS la '
+        + 'séance de négociation du courtier, et ce n’est pas le nombre de bougies que la '
+        + 'règle de séance saute — celui-là est annoncé sous le résultat.',
       setSym: (e) => this.maj({ btSym: e.target.value, venuDeHisto: null }),
       setPeriode: (e) => this.maj({ btPeriode: Number(e.target.value) }),
       setSL: (e) => this.maj({ btSL: Number(e.target.value) }),
@@ -24264,16 +24288,29 @@ GROUPES = {
       })(),
       ...(() => {
         const n = Number(s._sautesSortie) || 0;
+        const vues = Number(s._sautesVues) || 0;
         const tot = (s.res && s.res.n) || 0;
-        return { aBtSautes: n > 0,
-          btSautesTxt: n > 0
-            ? n + ' bougie' + (n > 1 ? 's' : '') + ' hors séance (ou reconstituée'
-              + (n > 1 ? 's' : '') + ') franchissai' + (n > 1 ? 'ent' : 't') + ' le stop '
-              + 'ou l\u2019objectif sans être relevée' + (n > 1 ? 's' : '')
-              + (tot ? ' — sur ' + tot + ' trades' : '')
-              + '. Un robot posé chez le courtier, lui, y serait sorti : c\u2019est '
-              + 'l\u2019ordre de grandeur de l\u2019écart de réussite à attendre avec un testeur.'
-            : '' };
+        // ————— LE ZÉRO SE REND, ET IL SE REND AVEC SA PRISE —————
+        // Trois états, et deux d'entre eux étaient invisibles : la règle n'a jamais joué,
+        // elle a joué sans rien coûter, elle a coûté. Le bandeau ne paraissait qu'au
+        // troisième — donc l'absence de bandeau valait à la fois « disculpée » et « pas
+        // regardée », ce qui est exactement le mode de panne d'une sonde muette.
+        const nb = (x) => x.toLocaleString('fr-FR');
+        return { aBtSautes: tot > 0,
+          btSautesTxt: !vues
+            ? 'Règle de séance : aucune bougie sautée sur ces ' + nb(tot) + ' trades — '
+              + 'elle n\u2019explique aucun écart avec un testeur sur cette configuration.'
+            : n > 0
+              ? nb(n) + ' bougie' + (n > 1 ? 's' : '') + ' hors séance (ou reconstituée'
+                + (n > 1 ? 's' : '') + ') sur ' + nb(vues) + ' sautée' + (vues > 1 ? 's' : '')
+                + ' franchissai' + (n > 1 ? 'ent' : 't') + ' le stop ou l\u2019objectif sans '
+                + 'être relevée' + (n > 1 ? 's' : '') + ' — sur ' + nb(tot) + ' trades. '
+                + 'Un robot posé chez le courtier, lui, y serait sorti : c\u2019est '
+                + 'l\u2019ordre de grandeur de l\u2019écart de réussite à attendre avec un testeur.'
+              : 'Règle de séance : ' + nb(vues) + ' bougie' + (vues > 1 ? 's' : '') + ' sautée'
+                + (vues > 1 ? 's' : '') + ' sur ces ' + nb(tot) + ' trades, et aucune ne '
+                + 'franchissait le stop ni l\u2019objectif — la règle a joué et n\u2019a rien '
+                + 'coûté ici.' };
       })(),
       btBandeTag: s.bande && s.bande.n && s.bande.largeur >= 0.05 ? 'tag-outline' : '',
       // Une ligne rouverte sans sa condition affiche d'autres chiffres sous le même

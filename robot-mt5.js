@@ -343,7 +343,7 @@ input ulong  InpMagic           = ${nb(ctx.magic, 20260901)};
 // quelle build l'avait émis. Le stamp d'export ne répond pas à cette question : il dit
 // QUAND on a exporté, pas DE QUOI. La marque est écrite ici dans la forme exacte que
 // « npm run app:version » cherche, donc ce fichier est daté comme les deux autres.
-#define VENA_VERSION "260917.12"
+#define VENA_VERSION "260917.13"
 //--- Configuration mesurée (ne pas modifier : le backtest ne serait plus valable)
 #define STOP_PCT        ${sl}
 #define OBJECTIF_R      ${rr}
@@ -373,6 +373,16 @@ input int InpPalier3Niveau = ${p(2, 1)};  // Palier 3 — stop porté à (%)
 // robot n'en dépend, et le journal CONF| reste la source de vérité du harnais.
 // L'entrée existe pour ceux qui exécutent sur plusieurs symboles à la fois.
 input bool InpDessin       = true;  // Dessiner entrée, stop, objectif et paliers sur le graphique
+// ————— LE SYMBOLE MESURÉ EST UNE CONDITION, PAS UNE INDICATION —————
+// Un robot posé sur un AUTRE graphique trade quand même : il lit _Symbol, pas le
+// symbole mesuré. Il produit alors des chiffres qui ont l'air d'une mesure de cet
+// instrument et n'en sont pas — le pire mode de panne du dépôt, appliqué au testeur.
+// Le cas s'est présenté : un fichier bâti pour un indice a tourné sur un graphique de
+// métal, et rien à l'écran ne le disait ; le nom du fichier porte pourtant le symbole
+// mesuré (nomRobot), et OnInit n'imprimait qu'un ATTENTION au milieu de dix lignes.
+// Le seul suffixe de courtier légitime (« GOLD » contre « GOLD.r ») garde sa porte, et
+// elle demande un geste explicite : c'est ce qui distingue un choix d'un accident.
+input bool InpSymboleLibre = false; // Autoriser un symbole différent de celui mesuré (suffixe de courtier)
 ${vente ? '#define SENS_VENTE' : '#define SENS_ACHAT'}
 
 // Heures de séance conservées par la MESURE. Véna écarte les heures qui ne sont pas
@@ -719,10 +729,42 @@ int OnInit()
          " · ${esc(cfg.sym)} ${vente ? 'VENTE' : 'ACHAT'} ${esc(cfg.ligne)} ${periode}",
          " · stop ${sl}% R/R ${rr} · attendu ${nb(cfg.n, 0)} trades ===");
    Print("Journées découpées à 00:00 heure serveur, comme les horodatages des CSV mesurés.");
+   // ————— CE QUI A ÉTÉ BÂTI N'EST PAS CE QUI TOURNE —————
+   // L'en-tête du fichier décrit les valeurs du jour de l'export. Les paliers, le
+   // plafond de spread et le nombre de positions sont des « input » : le testeur les
+   // mémorise d'un lancement à l'autre, un fichier .set les remplace, et rien n'en
+   // laissait trace. La durée maximale, elle, est figée à la génération — elle est
+   // imprimée ici parce qu'une ligne qui n'énumère qu'une partie de ce qui décide
+   // laisse croire que le reste ne décide pas. Un test avec des paliers hérités d'un lancement précédent
+   // rend des gagnants coupés et des perdants adoucis, et se lit comme un défaut du
+   // moteur. Ces quatre lignes rendent ce cas DÉCIDABLE depuis le seul journal.
+   PrintFormat("VÉNA ENTRÉES EFFECTIVES 1/2 · paliers %d→%d / %d→%d / %d→%d"
+               + " · durée max %d bougies · positions max %d",
+               InpPalier1Seuil, InpPalier1Niveau, InpPalier2Seuil, InpPalier2Niveau,
+               InpPalier3Seuil, InpPalier3Niveau, DUREE_MAX, InpMaxPositions);
+   PrintFormat("VÉNA ENTRÉES EFFECTIVES 2/2 · risque %.2f %% · plafond spread %.2f ×"
+               + " médiane (+ %.4f %% absolu) · fenêtre d'entrée %d h → %d h"
+               + " · début de semaine %s · déviation %d points · bougies agrégées %d",
+               InpRisquePct, InpSpreadFacteur, InpSpreadMaxPct,
+               InpHeureEntreeDeb, InpHeureEntreeFin,
+               InpPasDebutSemaine ? "interdit" : "autorisé",
+               InpSlippagePoints, InpBougiesAgr);
    Print("Moment d'exécution : ${momTxt}");
    Print("Licence : ${esc(licTxt)}");
    if(StringCompare(_Symbol, "${esc(cfg.sym)}", false) != 0)
-      Print("ATTENTION : ce robot a été mesuré sur ${esc(cfg.sym)}, il tourne sur ", _Symbol);
+   {
+      if(!InpSymboleLibre)
+      {
+         Print("VÉNA REFUSE DE DÉMARRER : ce robot a été mesuré sur ${esc(cfg.sym)}, ",
+               "le graphique porte ", _Symbol, ". Les chiffres d'un test lancé ainsi ",
+               "ressemblent à une mesure de ", _Symbol, " sans en être une. Si c'est le ",
+               "MÊME instrument sous un autre nom chez ce courtier, cochez ",
+               "« Autoriser un symbole différent de celui mesuré ».");
+         return(INIT_FAILED);
+      }
+      Print("ATTENTION : ce robot a été mesuré sur ${esc(cfg.sym)}, il tourne sur ", _Symbol,
+            " — autorisé par InpSymboleLibre. Les chiffres ne mesurent pas ${esc(cfg.sym)}.");
+   }
    if(Period() != PERIOD_H1)
       Print("ATTENTION : attachez ce robot sur un graphique H1 — il agrège lui-même les unités supérieures.");
    // le dernier seau déjà clos ne doit pas être joué au démarrage : son ouverture est

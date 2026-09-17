@@ -1817,6 +1817,96 @@ branche `else if (prudent)` sont l'un et l'autre inertes ; seul le drapeau à sa
 fait bouger les nombres. Les deux premières mutations ont été vérifiées par LECTURE avant
 d'accuser la garde — sans quoi elle passait deux fois pour aveugle à tort.
 
+## Un champ qui nomme mal ce qu'il porte coûte plus cher qu'un champ absent
+
+**Quatre fois, un libellé d'écran a envoyé chercher un défaut là où il n'y en avait
+pas.** Aucun n'était un bug : dans les quatre cas le code calculait juste, et c'est le
+MOT au-dessus du nombre qui mentait sur la grandeur.
+
+| Le champ | Ce qu'il annonçait | Ce qu'il portait | Ce que ça a coûté |
+|---|---|---|---|
+| « Depuis » | la date de début de la mesure | une constante écrite en dur | un tour |
+| « les deux lectures s'accordent » | que le résultat est déterminé | une comparaison qui ne discrimine rien | un tour |
+| « Période couverte » | la période du RÉSULTAT | la couverture des bougies en mémoire | deux tours — 7,7 ans contre 3,4 |
+| « session … · N bougies écartées » | la séance du courtier et les bougies hors séance | la fenêtre horaire homogène de `nettoyer` et les bougies hors d'elle | une inférence fausse : la règle de séance du moteur disculpée par un nombre qui ne l'avait jamais mesurée |
+
+La quatrième est la plus instructive parce qu'elle a produit un **raisonnement**, pas
+seulement une confusion. Deux instruments à fenêtre étroite divergeaient d'un testeur,
+deux à fenêtre pleine divergeaient aussi : « donc ce n'est pas la séance ». La
+corrélation était réelle, la variable n'était pas celle qu'on croyait lire.
+
+> **Un champ absent fait poser la question ; un champ qui ment y répond.** C'est
+> pourquoi il coûte plus cher : personne ne vérifie une réponse qu'il a déjà.
+
+**ET AUCUNE GARDE NE FERME CETTE CLASSE — il faut le dire.** Un libellé est de la prose,
+et la règle 3 interdit d'ancrer une garde sur de la prose ; rien, dans un fichier, ne
+dit qu'un mot désigne bien la grandeur calculée en dessous. Ce qui a été fait est plus
+pauvre et honnête : le champ est **renommé jusque dans son identifiant** —
+`sessionInfo` est devenu `fenetreHeuresInfo` —, et
+`scripts/app/fenetre-nest-pas-seance.test.mjs` s'ancre sur **l'absence** (règle 14,
+troisième issue) pour attraper la réintroduction du mot sur cette grandeur-là. Une
+garde d'un cas, déclarée comme telle.
+
+**Le seuil pour construire une forme est posé d'avance**, comme celui des statuts : le
+jour où un libellé mentira sur une grandeur qu'un test peut RECALCULER — un total, un
+compte, une date lisible ailleurs —, la prise cesse d'être la prose et devient la
+valeur. Une garde pourra alors vérifier que le champ « Période couverte » porte bien la
+période du résultat, parce que les deux sont calculables. Tant que la grandeur n'est
+lisible que dans le mot, il n'y a rien à quoi s'accrocher.
+
+### Son application immédiate : un zéro se rend avec son dénominateur
+
+La même séance a livré un compteur — les bougies sautées par la règle de séance qui
+franchissaient un niveau — et il portait le même défaut d'un cran plus bas : **son zéro
+avait deux sens**. « La règle n'a jamais joué sur cette série » et « elle a joué des
+milliers de fois sans rien coûter » s'écrivaient tous deux `0`, et le bandeau ne
+paraissait QUE lorsque le compte était non nul — si bien que son absence valait aussi
+« pas encore mesuré ». Trois états, un seul rendu.
+
+> **Une sonde qui peut rendre zéro prouve d'abord sa PRISE.** C'est déjà la règle du
+> dépôt pour les sondes de test — moins de quinze éléments cliquables fait tomber la
+> tournée des gestes plutôt que de laisser passer un zéro qui n'a rien regardé. Elle
+> vaut mot pour mot pour une mesure posée dans le PRODUIT.
+
+`sautesVues` est cette prise : toute bougie sautée en position, franchissement ou non.
+Les trois états se rendent tous les trois, en toutes lettres — et celui qui DISCULPE la
+règle (« elle a joué et n'a rien coûté ici ») est celui qui referme la question, donc
+le moins dispensable des trois.
+
+## Ce qu'un robot MQL5 a BÂTI n'est pas ce qu'il a FAIT TOURNER
+
+**L'en-tête du `.mq5` décrit l'export ; les `input` décrivent le lancement, et MT5 les
+mémorise.** Le testeur retient le dernier jeu utilisé par expert, un fichier `.set` le
+remplace, l'onglet Réglages se règle à la main — et rien, dans la sortie du robot, ne
+disait lequel avait servi. Un test lancé avec des paliers hérités d'un lancement
+précédent coupe ses gagnants et adoucit ses perdants ; l'écart se lit alors comme un
+défaut du moteur, et on le cherche dans le moteur.
+
+Les deux lignes `VÉNA ENTRÉES EFFECTIVES` à `OnInit` rendent le cas décidable depuis le
+seul journal. `scripts/mt5/journal-dit-ce-qui-decide.test.mjs` tient la surface par un
+**registre** — la forme de `boucles-mql5`, et pour la même raison : « cette entrée
+décide-t-elle ? » n'est pas une propriété du texte, `InpTaillePolice` et
+`InpSlippagePoints` ont exactement la même forme. Chaque entrée est inscrite avec sa
+raison, et la garde échoue **dans les deux sens**.
+
+### Et un robot ne rend jamais des chiffres qui RESSEMBLENT à une mesure
+
+`nomRobot` compose le nom du fichier avec `cfg.sym` : un `.ex5` nommé
+`Vena_<compte>_Spain35_…` ne peut être né que d'un export de Spain35. Posé sur un
+graphique d'un autre instrument, il tradait quand même — il lit `_Symbol`, pas le
+symbole mesuré — et n'imprimait qu'un `ATTENTION` parmi dix lignes de démarrage. Les
+chiffres obtenus avaient la forme d'une mesure de l'instrument affiché sans en être une.
+
+C'est le pire mode de panne du dépôt, sous sa forme la plus coûteuse : **une mesure
+fausse qui a l'air d'une mesure**, produite par la machine qui sert d'arbitre à tout le
+chantier MT5. L'avertissement est donc devenu un **refus** — `INIT_FAILED` —, avec une
+porte explicite pour le seul cas légitime : le même instrument sous un autre nom chez
+le courtier (« GOLD » contre « GOLD.r »), qui demande de cocher `InpSymboleLibre`.
+
+> **Un accident ne doit pas pouvoir se produire sans un geste ; un choix doit rester
+> possible en un clic.** Entre les deux, un avertissement imprimé ne fait ni l'un ni
+> l'autre.
+
 ## Une sonde dont l'échec est silencieux par conception se garde ailleurs
 
 Le témoin de version comparait ce que sert l'adresse publique à ce que la page est. Il a

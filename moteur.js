@@ -1145,7 +1145,15 @@ export function backtester(df, cfg) {
   const prudent = !!cfg.sortie.prudent;
   // bougies sautées (hors séance ou reconstituées) qui auraient fermé la position :
   // la mesure de ce que la règle de séance retire au résultat. Voir son usage plus bas.
-  let sautes = 0;
+  //
+  // ————— ET SON DÉNOMINATEUR, PARCE QU'UN ZÉRO SANS LUI NE SE LIT PAS —————
+  // `sautes = 0` a deux causes qu'aucun lecteur ne peut distinguer : la règle n'a
+  // JAMAIS joué sur cette série (aucune bougie sautée en position), ou elle a joué des
+  // milliers de fois sans qu'un niveau soit franchi. La première dit « cherchez
+  // ailleurs » ; la seconde dit « la règle joue et ne coûte rien ici ». Compter les
+  // bougies VUES par la règle est ce qui sépare les deux — c'est la prise du zéro, et
+  // sans elle le compteur rapporte une mesure fausse qui a l'air d'une mesure.
+  let sautes = 0, sautesVues = 0;
   // Armer le palier depuis le HAUT de la bougie puis tester le stop contre son BAS
   // suppose que le haut est venu en premier — précisément ce que la bougie ne dit pas.
   // C'était un pis-aller du suivi en Daily, où sans lui aucun point mort n'apparaissait
@@ -1431,6 +1439,7 @@ export function backtester(df, cfg) {
       // AURAIENT fermé la position : c'est le nombre exact de trades que cette règle
       // fait basculer, et il se lit par instrument au lieu de se deviner.
       if (!releve(i)) {
+        sautesVues++;
         const pireX = vente ? exH[i] : exL[i];
         const mieuxX = vente ? exL[i] : exH[i];
         if (d * pireX <= d * sl || d * mieuxX >= d * tp) sautes++;
@@ -1802,6 +1811,10 @@ export function backtester(df, cfg) {
   // un nombre du même ordre que l'écart de réussite avec un testeur veut dire qu'elle
   // l'explique. C'est une MESURE, pas un verdict — elle ne dit pas qui a raison.
   trades.sautesSortie = sautes;
+  // Le dénominateur : combien de bougies la règle a sautées en position, franchissement
+  // ou non. `sautesSortie = 0` sur `sautesVues = 0` ne parle pas de la règle ;
+  // `sautesSortie = 0` sur `sautesVues = 4 210` dit qu'elle a joué et n'a rien coûté.
+  trades.sautesVues = sautesVues;
   return trades;
 }
 
