@@ -1907,6 +1907,77 @@ le courtier (« GOLD » contre « GOLD.r »), qui demande de cocher `InpSymboleL
 > possible en un clic.** Entre les deux, un avertissement imprimé ne fait ni l'un ni
 > l'autre.
 
+#### Et le lendemain, la garde était désarmée — parce qu'elle refusait le cas NORMAL
+
+Le refus comparait les chaînes **brutes**. Chez ce courtier, les indices s'écrivent
+`#HongKong50` là où la mesure porte `HongKong50` : le refus tombait sur **le même
+instrument**, à chaque lancement. La seule sortie offerte était `InpSymboleLibre`, qui
+désarme la garde **entièrement** — et le soir même, elle a laissé passer un robot
+HongKong50 sur les données d'un autre instrument. Exactement ce qu'elle venait d'être
+écrite pour empêcher.
+
+> **Une garde qu'il faut désactiver pour travailler ne garde rien, et elle est pire que
+> pas de garde : on la croit là.** Le coût d'un faux refus n'est pas une gêne, c'est la
+> désactivation — et la désactivation est permanente, alors que le faux refus était
+> ponctuel.
+
+C'est une parente de la règle 1 : on avait demandé « les deux chaînes sont-elles
+identiques ? » (une intention — *le courtier écrit-il le nom comme nous ?*) pour décider
+« est-ce le même instrument ? » (le résultat). La comparaison porte donc sur le **noyau** :
+capitales, tout caractère non alphanumérique retiré, et l'un des deux noms doit être
+**préfixe ou suffixe** de l'autre. Aucune liste de courtiers, aucun tableau de préfixes
+connus — `#` et `.` disparaissent d'eux-mêmes, `GOLD.r` garde `GOLD` en préfixe,
+`FX_EURUSD` garde `EURUSD` en suffixe.
+
+**La règle est mesurée, pas déclarée.** `robot-tient-son-symbole.test.mjs` porte un port
+fidèle et onze cas nommés — dont les deux accidents réels, qui doivent refuser — et un
+test distinct vérifie que le source émis **appelle** la règle, sans quoi le port
+mesurerait une règle que personne n'exécute. L'angle mort est écrit : `GOLD` contre
+`GOLDMINI` passe ; ils partagent leurs prix et le dimensionnement lit la taille de
+contrat du symbole courant, donc le cas est supportable — il n'est pas prouvé inoffensif,
+et chaque acceptation non exacte s'imprime au journal avec les deux noms.
+
+## Refuser est la moitié du travail quand la réponse est disponible
+
+La garde de devise a mordu, et elle a nommé sa cause — journal MT5, robot `260917.13`
+sur `#HongKong50` : *« la valeur du tick (0.01000) est celle de la devise de cotation
+HKD »*, puis zéro trade et solde inchangé. La valeur rendue valait **exactement** taille
+du contrat × pas de cotation : le terminal n'avait pas converti, et le facteur 7 observé
+est celui de EUR/HKD ≈ 8,5. Le statut de la garde est passé de « mécanisme non prouvé »
+à « cause établie » sur cette ligne de journal.
+
+**Et c'était quand même la moitié du travail.** Remplacer un chiffre faux par un refus
+explicite est le bon sens du correctif — mais il laissait un instrument du portefeuille
+sans une seule position, alors que **le taux est dans le terminal** : la paire croisée
+existe, il suffisait de la chercher.
+
+> **Un refus qui remplace un chiffre faux est juste ; un refus quand la réponse est à
+> portée est une capitulation.** La question à poser devant tout refus : *ce qui manque
+> est-il une donnée que personne n'a, ou une donnée que personne n'est allé chercher ?*
+
+`TauxVersCompte` la cherche **par propriété** — devise de base et devise de profit de
+chaque symbole du terminal, dans les deux sens, le cours inversé quand il le faut — et
+jamais par un nom fabriqué : `EURHKD` n'existe pas chez tous les courtiers, `EUR/HKD`,
+`EURHKD.r` et `HKDEUR` oui. Le taux trouvé s'imprime au journal, parce qu'il est ce qui
+sépare un risque de 200 EUR d'un risque de 28. Le refus reste, en **dernier** recours,
+quand aucune paire n'existe — et il le dit alors en toutes lettres, sans quoi il
+renverrait l'utilisateur vérifier l'Observation du marché que le robot vient de parcourir.
+
+### Où la réserve vit : là où la promesse se fait, pas là où le chiffre s'affiche
+
+Tant que la conversion manque, la ligne du portefeuille affiche un R par an qu'aucun
+robot ne peut réaliser chez ce courtier. La tentation est d'écrire l'avertissement **sur
+la ligne** — et c'est le défaut qu'on vient de purger deux sections plus haut : Véna,
+depuis le navigateur, ne sait pas dans quelle devise un courtier cote ni ce qu'il
+renseigne. Un bandeau permanent y serait une affirmation qu'aucune mesure ne soutient.
+
+Le R par an mesure des **prix**, et il reste vrai. Ce qui peut être faux est « un robot
+réalisera ça chez mon courtier » — et cette promesse-là naît **au téléchargement du
+robot**. La réserve vit donc dans l'infobulle du bouton Exporter, où elle est vraie,
+vérifiable, et suivie du geste qui la tranche : lire la première ligne du journal du
+test, qui dit lequel des trois cas s'est produit — converti (avec le taux), refusé (avec
+la paire manquante), ou rien à convertir.
+
 ## Une sonde dont l'échec est silencieux par conception se garde ailleurs
 
 Le témoin de version comparait ce que sert l'adresse publique à ce que la page est. Il a

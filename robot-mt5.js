@@ -343,7 +343,7 @@ input ulong  InpMagic           = ${nb(ctx.magic, 20260901)};
 // quelle build l'avait émis. Le stamp d'export ne répond pas à cette question : il dit
 // QUAND on a exporté, pas DE QUOI. La marque est écrite ici dans la forme exacte que
 // « npm run app:version » cherche, donc ce fichier est daté comme les deux autres.
-#define VENA_VERSION "260917.13"
+#define VENA_VERSION "260917.14"
 //--- Configuration mesurée (ne pas modifier : le backtest ne serait plus valable)
 #define STOP_PCT        ${sl}
 #define OBJECTIF_R      ${rr}
@@ -681,6 +681,64 @@ double AdxAgr(long sec, int per, int shift)
 }
 
 //+------------------------------------------------------------------+
+//+------------------------------------------------------------------+
+//| LE NOYAU D'UN NOM DE SYMBOLE — la décoration du courtier retirée  |
+//|                                                                   |
+//| Le refus sur symbole différent comparait les chaînes BRUTES. Chez |
+//| ce courtier les indices s'écrivent « #HongKong50 » là où la       |
+//| mesure porte « HongKong50 » : le refus tombait sur le MÊME        |
+//| instrument, et la seule sortie était de cocher InpSymboleLibre —  |
+//| ce qui désarmait la garde ENTIÈREMENT. Elle a laissé passer, le   |
+//| soir même, un robot HongKong50 sur des données d'un autre         |
+//| instrument. Une garde qu'on doit désactiver pour travailler ne    |
+//| garde rien, et c'est pire que pas de garde : on la croit là.      |
+//|                                                                   |
+//| LA PROPRIÉTÉ, et non une liste de préfixes connus : on retire ce  |
+//| qui n'est ni lettre ni chiffre, on met en capitales, et l'un des  |
+//| deux noms doit être PRÉFIXE ou SUFFIXE de l'autre. « # », « . »,  |
+//| « _ » disparaissent d'eux-mêmes ; « GOLD.r » → GOLDR garde GOLD   |
+//| en préfixe ; « FX_EURUSD » → FXEURUSD garde EURUSD en suffixe.    |
+//| Aucun tableau à tenir à jour, aucun courtier nommé.               |
+//|                                                                   |
+//| ANGLE MORT, ET IL EST DIT : deux instruments dont l'un est        |
+//| réellement le préfixe de l'autre passeraient — « GOLD » contre    |
+//| « GOLDMINI ». Ils partagent leurs prix, et le dimensionnement lit |
+//| la taille de contrat du symbole COURANT, donc le cas est          |
+//| supportable ; il n'est pas prouvé inoffensif. Chaque acceptation  |
+//| non exacte s'imprime avec les deux noms, pour qu'une acceptation  |
+//| fausse se lise au journal au lieu de se deviner.                  |
+//+------------------------------------------------------------------+
+bool EstAlnum(ushort c)
+{
+   return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
+}
+
+string NoyauSymbole(string s)
+{
+   StringToUpper(s);
+   string sortie = "";
+   for(int i = 0; i < StringLen(s); i++)
+   {
+      ushort c = StringGetCharacter(s, i);
+      if(EstAlnum(c)) sortie += ShortToString(c);
+   }
+   return sortie;
+}
+
+// vrai quand les deux noms désignent le même instrument, décoration comprise
+bool MemeInstrument(string a, string b)
+{
+   string na = NoyauSymbole(a), nb = NoyauSymbole(b);
+   if(StringLen(na) == 0 || StringLen(nb) == 0) return false;
+   if(na == nb) return true;
+   string court = (StringLen(na) <= StringLen(nb)) ? na : nb;
+   string longe = (StringLen(na) <= StringLen(nb)) ? nb : na;
+   int c = StringLen(court), l = StringLen(longe);
+   if(StringSubstr(longe, 0, c) == court) return true;      // préfixe : GOLD.r
+   if(StringSubstr(longe, l - c, c) == court) return true;  // suffixe : FX_EURUSD
+   return false;
+}
+
 void OnDeinit(const int reason) { ConfFermer(); LivFermer(); PanneauNettoyer(); NiveauxNettoyer(); ChartRedraw(0); }
 
 int OnInit()
@@ -753,17 +811,30 @@ int OnInit()
    Print("Licence : ${esc(licTxt)}");
    if(StringCompare(_Symbol, "${esc(cfg.sym)}", false) != 0)
    {
-      if(!InpSymboleLibre)
+      if(MemeInstrument(_Symbol, "${esc(cfg.sym)}"))
       {
-         Print("VÉNA REFUSE DE DÉMARRER : ce robot a été mesuré sur ${esc(cfg.sym)}, ",
-               "le graphique porte ", _Symbol, ". Les chiffres d'un test lancé ainsi ",
-               "ressemblent à une mesure de ", _Symbol, " sans en être une. Si c'est le ",
-               "MÊME instrument sous un autre nom chez ce courtier, cochez ",
-               "« Autoriser un symbole différent de celui mesuré ».");
+         // Accepté SANS que l'utilisateur ait rien à désactiver — et dit, parce qu'une
+         // acceptation par noyau est un jugement du robot, pas une égalité constatée.
+         Print("Symbole : mesuré sur ${esc(cfg.sym)}, graphique ", _Symbol,
+               " — même instrument après retrait de la décoration du courtier (noyau ",
+               NoyauSymbole(_Symbol), "). Si ce n'est PAS le même instrument, retirez ce "
+               + "robot : les chiffres seraient ceux d'un autre marché.");
+      }
+      else if(!InpSymboleLibre)
+      {
+         Print("VÉNA REFUSE DE DÉMARRER : ce robot a été mesuré sur ${esc(cfg.sym)} ",
+               "(noyau ", NoyauSymbole("${esc(cfg.sym)}"), "), le graphique porte ",
+               _Symbol, " (noyau ", NoyauSymbole(_Symbol), "). Les chiffres d'un test ",
+               "lancé ainsi ressemblent à une mesure de ", _Symbol, " sans en être une. ",
+               "Si c'est vraiment le MÊME instrument, cochez « Autoriser un symbole ",
+               "différent de celui mesuré » — mais la décoration ordinaire du courtier ",
+               "(#, point, tiret bas, suffixe) est DÉJÀ acceptée sans rien cocher.");
          return(INIT_FAILED);
       }
-      Print("ATTENTION : ce robot a été mesuré sur ${esc(cfg.sym)}, il tourne sur ", _Symbol,
-            " — autorisé par InpSymboleLibre. Les chiffres ne mesurent pas ${esc(cfg.sym)}.");
+      else
+         Print("ATTENTION : ce robot a été mesuré sur ${esc(cfg.sym)}, il tourne sur ", _Symbol,
+               " — noyaux DIFFÉRENTS, autorisé par InpSymboleLibre. Les chiffres ne "
+               + "mesurent pas ${esc(cfg.sym)}.");
    }
    if(Period() != PERIOD_H1)
       Print("ATTENTION : attachez ce robot sur un graphique H1 — il agrège lui-même les unités supérieures.");
@@ -1301,6 +1372,67 @@ bool ExecutionAutorisee()
 }
 
 //+------------------------------------------------------------------+
+//+------------------------------------------------------------------+
+//| LE TAUX D'UNE DEVISE VERS CELLE DU COMPTE — cherché, pas supposé  |
+//|                                                                   |
+//| REFUSER ÉTAIT LA MOITIÉ DU TRAVAIL. La garde de devise a mordu    |
+//| sur #HongKong50 : valeur du tick 0,01000, celle de la cotation    |
+//| HKD, non convertie — le facteur 7 observé, expliqué. Mais elle    |
+//| laissait l'instrument sans une seule position, alors que le taux  |
+//| est DANS le terminal : la paire croisée existe, il suffit de la   |
+//| trouver. Un refus qui remplace un chiffre faux est juste ; un     |
+//| refus quand la réponse est disponible est une capitulation.       |
+//|                                                                   |
+//| On cherche donc, PAR PROPRIÉTÉ — devise de base et devise de      |
+//| profit du symbole — et non par un nom fabriqué : « EURHKD »       |
+//| n'existe pas chez tous les courtiers, « EUR/HKD », « EURHKD.r »   |
+//| et « HKDEUR » oui. Les deux sens sont acceptés, l'inverse étant   |
+//| l'inverse du cours. L'Observation du marché d'abord, parce qu'un  |
+//| symbole déjà suivi a un cours sans rien charger.                  |
+//|                                                                   |
+//| Le taux est MÉMORISÉ une heure : une paire de devises ne bouge    |
+//| pas d'un dixième de pour-cent en une heure, et parcourir tous les |
+//| symboles du terminal à chaque entrée coûterait plus que ce que la |
+//| conversion rapporte. La mémoire porte les DEUX devises, sinon un  |
+//| second instrument dans une troisième devise relirait ce taux-ci.  |
+//+------------------------------------------------------------------+
+double TauxVersCompte(string de, string vers)
+{
+   if(de == vers) return 1.0;
+   static string   cDe = "", cVers = "";
+   static double   cTaux = 0.0;
+   static datetime cQuand = 0;
+   if(cDe == de && cVers == vers && cTaux > 0.0 && TimeCurrent() - cQuand < 3600)
+      return cTaux;
+
+   for(int vue = 0; vue < 2; vue++)
+   {
+      bool suivis = (vue == 0);
+      int n = SymbolsTotal(suivis);
+      for(int i = 0; i < n; i++)
+      {
+         string nom = SymbolName(i, suivis);
+         if(nom == "") continue;
+         string b = SymbolInfoString(nom, SYMBOL_CURRENCY_BASE);
+         string p = SymbolInfoString(nom, SYMBOL_CURRENCY_PROFIT);
+         bool direct  = (b == de   && p == vers);
+         bool inverse = (b == vers && p == de);
+         if(!direct && !inverse) continue;
+         if(!suivis && !SymbolSelect(nom, true)) continue;
+         double cours = SymbolInfoDouble(nom, SYMBOL_BID);
+         if(cours <= 0.0) cours = iClose(nom, PERIOD_H1, 0);
+         if(cours <= 0.0) continue;
+         double taux = direct ? cours : 1.0 / cours;
+         cDe = de; cVers = vers; cTaux = taux; cQuand = TimeCurrent();
+         PrintFormat("Conversion %s vers %s : taux %.6f, lu sur %s (%s). "
+                     + "Le dimensionnement en tient compte.",
+                     de, vers, taux, nom, direct ? "sens direct" : "cours inversé");
+         return taux;
+      }
+   }
+   return 0.0;
+}
+
 double Volume(double prix, double stop)
 {
    double capital   = AccountInfoDouble(ACCOUNT_BALANCE);
@@ -1341,14 +1473,24 @@ double Volume(double prix, double stop)
       double valCotation = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_CONTRACT_SIZE) * tickSz;
       if(valCotation > 0.0 && MathAbs(tickVal - valCotation) < valCotation * 0.001)
       {
-         PrintFormat("Entrée refusée : la valeur du tick (%.5f) est celle de la devise de "
-                     + "cotation %s, non convertie vers %s. Le terminal n'a pas le taux : "
-                     + "ajoutez la paire croisée à l'Observation du marché. Dimensionner "
-                     + "ainsi risquerait une fraction de ce qui est demandé.",
-                     tickVal, devProfit, devCompte);
-         g_confRefus = StringFormat("tick non converti %s vers %s (%.5f)",
-                       devProfit, devCompte, tickVal);
-         return 0.0;
+         // ON CONVERTIT, et on ne refuse que si le terminal ne porte aucune paire.
+         // Le cas où tickVal serait DÉJÀ converti et vaudrait par coïncidence la valeur
+         // de cotation demande un taux voisin de 1 : la conversion est alors sans effet,
+         // et l'erreur qu'on prendrait à convertir est bornée par cette même coïncidence.
+         double taux = TauxVersCompte(devProfit, devCompte);
+         if(taux > 0.0)
+            tickVal = tickVal * taux;
+         else
+         {
+            PrintFormat("Entrée refusée : la valeur du tick (%.5f) est celle de la devise de "
+                        + "cotation %s, non convertie vers %s, et AUCUNE paire %s/%s n'a été "
+                        + "trouvée dans le terminal. Ajoutez-la à l'Observation du marché. "
+                        + "Dimensionner ainsi risquerait une fraction de ce qui est demandé.",
+                        tickVal, devProfit, devCompte, devProfit, devCompte);
+            g_confRefus = StringFormat("tick non converti %s vers %s (%.5f), aucune paire",
+                          devProfit, devCompte, tickVal);
+            return 0.0;
+         }
       }
    }
 

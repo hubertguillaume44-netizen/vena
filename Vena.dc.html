@@ -16242,7 +16242,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260917.13';
+  VERSION_APP = '260917.14';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -26037,7 +26037,30 @@ GROUPES = {
                   + ' n\u2019a pas d\u2019équivalent MQL5 fidèle. Livrer le robot sans ce '
                   + 'réglage donnerait un nombre de trades différent de la mesure. '
                   + 'Choisissez une configuration qui ne porte pas ce filtre.'
-                : 'Télécharge l\u2019Expert Advisor MQL5 de cette configuration.' };
+                // ————— OÙ LA PROMESSE SE FAIT, ET DONC OÙ LA RÉSERVE VIT —————
+                // Le R par an de la ligne est une mesure sur des prix, et il reste vrai.
+                // Ce qui peut être faux, c'est « un robot réalisera ça chez mon
+                // courtier » — et cette promesse-là naît ICI, au téléchargement, pas sur
+                // la ligne. Mesuré chez un courtier : la valeur du tick d'un indice coté
+                // en HKD était rendue non convertie, et le robot dimensionnait au
+                // septième du risque demandé. Le robot le vérifie maintenant à chaque
+                // entrée, convertit quand le terminal porte la paire, et REFUSE plutôt
+                // que de dimensionner faux.
+                //
+                // La réserve ne va PAS sur la ligne du portefeuille : Véna, depuis le
+                // navigateur, ne sait pas dans quelle devise un courtier cote, ni ce
+                // qu'il renseigne. Un bandeau permanent y serait une affirmation
+                // qu'aucune mesure ne soutient — le défaut qu'on vient de purger
+                // ailleurs. Elle va là où elle est vraie et vérifiable : le journal du
+                // test dit lequel des trois cas s'est produit, en une ligne.
+                : 'Télécharge l\u2019Expert Advisor MQL5 de cette configuration. '
+                  + 'Le R par an ci-dessus mesure des PRIX ; ce qu\u2019un robot en '
+                  + 'réalise dépend aussi de ce que votre courtier déclare. Quand '
+                  + 'l\u2019instrument est coté dans une autre devise que votre compte, '
+                  + 'le robot cherche le taux, l\u2019applique et l\u2019imprime au '
+                  + 'journal ; s\u2019il ne trouve aucune paire, il refuse d\u2019entrer '
+                  + 'plutôt que de risquer une fraction de ce que vous demandez. '
+                  + 'Lisez la première ligne du journal du test.' };
           })(),
           dragStart: (e) => {
             if (e.dataTransfer) e.dataTransfer.setData('text/plain', sym);

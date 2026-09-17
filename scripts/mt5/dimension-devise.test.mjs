@@ -1,8 +1,18 @@
-// STATUT · PANNE OBSERVÉE, MÉCANISME NON PROUVÉ. Le fait est mesuré : sur neuf
-// instruments rejoués, HongKong50 a risqué ~28 EUR par trade quand les trois autres
-// mesurés risquaient 200 — un septième. C'est le SEUL des neuf coté hors EUR/USD (HKD),
-// et EUR/HKD vaut environ 8,5. Le mécanisme — le terminal rend la valeur du tick sans
-// l'avoir convertie — n'est pas prouvé ici : personne ne peut faire tourner MetaTrader.
+// STATUT · CAUSE ÉTABLIE, MESURÉE — relevée au journal MT5 de l'utilisateur, robot
+// 260917.13 sur #HongKong50 : « Entrée refusée : la valeur du tick (0.01000) est celle
+// de la devise de cotation HKD, n… », puis zéro trade et solde inchangé. La valeur
+// rendue vaut EXACTEMENT taille du contrat × pas de cotation : le terminal n'avait pas
+// converti. Le facteur 7 observé (~28 EUR risqués contre 200 attendus) est celui de
+// EUR/HKD ≈ 8,5. Le statut a donc changé : « mécanisme non prouvé » était juste tant
+// que la garde n'avait pas parlé, il ne l'est plus.
+//
+// ————— ET REFUSER N'ÉTAIT QUE LA MOITIÉ DU TRAVAIL —————
+// La garde a remplacé un chiffre faux par un refus explicite, ce qui est le bon sens du
+// correctif. Elle laissait l'instrument sans une seule position, alors que le taux est
+// DANS le terminal : la paire croisée existe. `TauxVersCompte` la cherche par PROPRIÉTÉ
+// — devise de base et devise de profit du symbole, dans les deux sens — jamais par un
+// nom fabriqué : « EURHKD » n'existe pas chez tous les courtiers, « EUR/HKD » et
+// « HKDEUR » oui. Le refus reste, en DERNIER recours, quand aucune paire n'est trouvée.
 //
 // ————— L'HYPOTHÈSE PROPOSÉE ÉTAIT PRESQUE JUSTE, ET IL FAUT DIRE EN QUOI —————
 //
@@ -73,11 +83,51 @@ test("le dimensionnement ne suppose rien sur la devise de cotation", () => {
     + "l'Observation du marché — et c'est le seul geste qui répare.");
 });
 
+test("la conversion est TENTÉE avant le refus, et cherchée par propriété", () => {
+  // ————— UN REFUS QUAND LA RÉPONSE EST DISPONIBLE EST UNE CAPITULATION —————
+  // La garde de 260917.13 a rendu HongKong50 inutilisable : zéro trade, solde inchangé.
+  // Le taux était dans le terminal ; le robot ne le cherchait pas.
+  assert.match(VOL, /double taux = TauxVersCompte\(devProfit, devCompte\);/,
+    "le dimensionnement ne cherche plus le taux : il refuse là où le terminal a la "
+    + "réponse, et rend l'instrument inutilisable au lieu de le mesurer juste.");
+  assert.match(VOL, /if\(taux > 0\.0\)\s*\n\s*tickVal = tickVal \* taux;/,
+    "le taux trouvé n'est plus appliqué à la valeur du tick : il serait cherché pour "
+    + "rien.");
+  // le refus survit — en DERNIER recours, ce que la garde doit distinguer d'un refus sec
+  assert.ok(/AUCUNE paire/.test(VOL),
+    "le refus ne dit plus qu'il est le dernier recours. « Non convertie » seul renvoie "
+    + "l'utilisateur à l'Observation du marché alors que le robot vient d'y chercher : "
+    + "ce qui manque n'est pas la vérification, c'est la paire elle-même.");
+
+  const TAUX = SRC.slice(borne(SRC, "double TauxVersCompte(string de, string vers)"),
+    borne(SRC, "double Volume(double prix, double stop)"));
+  // PAR PROPRIÉTÉ : les devises du symbole, jamais un nom de paire fabriqué
+  assert.match(TAUX, /SymbolInfoString\(nom, SYMBOL_CURRENCY_BASE\)/,
+    "la recherche ne lit plus la devise de BASE des symboles. Sans elle, il ne reste "
+    + "qu'à fabriquer un nom — « EURHKD » — qui n'existe pas chez tous les courtiers.");
+  assert.match(TAUX, /SymbolInfoString\(nom, SYMBOL_CURRENCY_PROFIT\)/,
+    "la recherche ne lit plus la devise de PROFIT des symboles.");
+  assert.match(TAUX, /bool inverse = \(b == vers && p == de\);/,
+    "le sens INVERSE n'est plus accepté : un courtier qui cote HKD/EUR et non EUR/HKD "
+    + "retomberait sur le refus alors que le taux est là.");
+  assert.match(TAUX, /taux = direct \? cours : 1\.0 \/ cours;/,
+    "le cours inversé n'est plus inversé : le dimensionnement serait faux du carré du "
+    + "taux, ce qui est pire que le défaut qu'on répare.");
+  // et il se lit au journal : une conversion silencieuse est un chiffre qu'on ne peut
+  // pas vérifier après coup
+  assert.match(TAUX, /PrintFormat\("Conversion %s vers %s/,
+    "la conversion ne s'imprime plus. Le taux appliqué est ce qui sépare un risque de "
+    + "200 EUR d'un risque de 28 : il doit être relisible dans le journal du test, pas "
+    + "reconstitué de mémoire.");
+});
+
 test("aucune liste d'instruments ni de devises n'est écrite dans le dimensionnement", () => {
   // ————— CE QUI DISTINGUE UNE GARDE DE CLASSE D'UNE GARDE DE CAS —————
   // Nommer HKD, ou HongKong50, fermerait ce cas et laisserait le suivant ouvert. La
   // propriété — « la valeur rendue est-elle convertie ? » — les couvre tous.
-  const devises = VOL.match(/"(?:HKD|JPY|USD|EUR|GBP|AUD|CHF|CAD|SGD)"/g) || [];
+  const TAUX = SRC.slice(borne(SRC, "double TauxVersCompte(string de, string vers)"),
+    borne(SRC, "double Volume(double prix, double stop)"));
+  const devises = (VOL + TAUX).match(/"(?:HKD|JPY|USD|EUR|GBP|AUD|CHF|CAD|SGD)"/g) || [];
   assert.deepEqual(devises, [],
     "le dimensionnement nomme des devises en dur : " + devises.join(", ") + ". Une liste "
     + "ferme le cas mesuré et laisse le suivant ouvert — la propriété les couvre tous, "
