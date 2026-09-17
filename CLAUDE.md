@@ -1146,6 +1146,67 @@ fausse qui a l'air d'une mesure. La sonde vérifie donc sa prise : moins de quin
 éléments cliquables sur une vue la fait tomber, plutôt que de laisser passer un zéro qui
 n'a rien regardé.
 
+### Un motif qui dépend de l'ORDRE désigne l'environnement, pas le code
+
+Trois jours de chantier MQL5 sur un symptôme dont la cause était hors du programme :
+l'agent du testeur mourait après la synchro d'historique, sans une ligne de test. Le
+journal du terminal portait la réponse — `file write error [112]`, disque plein ; 704 Mo
+libres sur 95,8 Go, dont 72 Go dans trois dossiers de terminal. L'agent mourait **avant
+d'exécuter une ligne du robot**.
+
+**Le signal était disponible dès le premier rapport, et il a été lu à l'envers.** « GOLD,
+Germany40 et USNDAQ100 échouent, BRENT et COPPER passent » se lisait comme une propriété
+des instruments — profondeur d'historique, devise de cotation —, et deux hypothèses de
+code en sont sorties. C'était une propriété du **rang** : le premier passé avait son cache
+écrit, les suivants devaient en écrire, et la place manquait.
+
+> **Un défaut du code ne dépend pas de qui est passé avant lui.** Quand le départage est
+> « le premier marche, les suivants non », le suspect est une ressource partagée et
+> consommable — disque, mémoire, descripteurs, quota — pas une ligne du programme.
+
+Le test se fait comme celui des noms de lieu, à voix haute : *ce qui distingue les cas
+qui échouent, est-ce ce qu'ils SONT ou quand ils sont passés ?* Le second ne peut pas
+être une propriété du source.
+
+#### Un correctif raisonné depuis une panne invisible garde son invariant et perd sa cause
+
+Quatre correctifs ont été posés pendant ces trois jours, et ils ne se valent pas :
+
+| D'où il venait | Ce qu'il en reste |
+|---|---|
+| la boucle de 1 800 s par symbole — **mesurée**, journal à l'appui | vrai, et la cause était la bonne |
+| le cache d'agrégation, 2 h 12 de processeur à 100 % — **mesuré** | vrai, et la cause était la bonne |
+| le plafonnement de `SpOuvAmorcer` — **raisonné** depuis une panne que personne ici ne pouvait observer | **l'invariant tient, la cause était fausse** |
+| les six jalons d'initialisation | c'est eux qui ont rendu la mesure décisive |
+
+Les deux premiers sont nés d'un symptôme qu'on pouvait relire ; le troisième d'un
+symptôme qu'il fallait deviner. **Ce n'est pas une raison de ne pas le poser** — la forme
+défensive vaut par elle-même, et le dépôt avait déjà vu ce geste faire cesser de répondre
+un terminal. C'est une raison d'écrire son **statut** dans la garde : « l'invariant se
+tient sur ses propres mérites », jamais « ce qui reste est ».
+
+**Et l'angle mort était déjà déclaré, trois paragraphes plus bas.** La garde disait, dans
+sa note de règle 9 : « elle ne PROUVE pas le diagnostic et ne le prétend pas ». Ça n'a
+servi à rien — au-dessus, un paragraphe affirmait « CE QUI RESTE EST UNE INCOHÉRENCE ENTRE
+DEUX FONCTIONS », et c'est la voix confiante qu'on lit.
+
+> **Un angle mort déclaré ne rattrape pas une affirmation confiante écrite au-dessus de
+> lui.** La règle 9 demande que l'angle mort soit dit ; elle ne dispense pas la phrase
+> elle-même de porter son degré de certitude, à l'endroit où elle est écrite.
+
+#### Une instrumentation qui n'imprime RIEN est une mesure, et elle pointe dehors
+
+Les six jalons `VENA INIT n/6` n'ont jamais rien imprimé, et c'est ce qui a tranché.
+**Une initialisation muette sur six jalons posés dit « le programme n'a pas démarré » ;
+une initialisation muette sans jalons ne disait rien du tout** — ni où elle s'était
+arrêtée, ni si elle avait commencé. L'absence de trace n'est interprétable que si la trace
+était garantie présente.
+
+C'est le pendant de « le runtime le disait, sept fois, à chaque chargement » : là une
+mesure existante était lue comme du bruit, ici une mesure absente est devenue lisible
+parce qu'on savait ce qui aurait dû s'écrire. **Les deux disent qu'une instrumentation
+vaut par ce qu'elle rend DÉCIDABLE, y compris quand elle ne rend rien.**
+
 ### Un mot relatif n'est vrai que depuis un référentiel stable
 
 Deux corrections à un jour d'écart, et c'était deux instances d'un seul énoncé :

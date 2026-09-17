@@ -14,20 +14,40 @@
 //     ni dimensionnement, ni division, ni indice. La corrélation était réelle, la
 //     causalité non.
 //
-// CE QUI RESTE EST UNE INCOHÉRENCE ENTRE DEUX FONCTIONS DU MÊME FICHIER.
-// `AgrConstruire` plafonne sa demande d'historique sur `Bars()`, et son commentaire
-// dit pourquoi : « demander un nombre FIXE fait échouer CopyRates tant que cet
-// historique n'existe pas ». `SpOuvAmorcer`, qui tourne à `OnInit` — AVANT la
-// première barre —, réclamait 6 000 bougies H1 sans condition, puis une plage M1
-// couvrant jusqu'à 250 jours : plusieurs centaines de milliers de barres que le
-// terminal construit EN MÉMOIRE, dans son propre processus.
+// ————— LA CAUSE A ÉTÉ TROUVÉE, ET CE N'ÉTAIT AUCUNE DES NÔTRES —————
 //
-// C'est le geste que le dépôt a déjà vu tuer un terminal, sur le script d'export —
-// AUDNZD, 1,78 million de barres M1, « le terminal cesse de répondre plusieurs
-// minutes par symbole ». Ici il part à l'initialisation, sur un agent de test, et ce
-// qui le distingue d'un instrument à l'autre est la PROFONDEUR d'historique — pas le
-// stop. GOLD, Germany40 et USNDAQ100 ne diffèrent pas par leur configuration : ils
-// diffèrent par ce que le courtier en a.
+// Ce qui suit était écrit ici comme un diagnostic : « ce qui reste est une
+// incohérence entre deux fonctions du même fichier — `SpOuvAmorcer` réclame 6 000
+// bougies H1 sans condition à `OnInit`, et ce qui distingue les instruments est la
+// PROFONDEUR d'historique ». **C'était faux**, et le journal du testeur l'a dit :
+//
+//     file write error [112], file C:\…\MetaQuotes\Tester\5A08E…
+//     WTI: history synchronization error [apply error] · history data load error
+//     cannot get history WTI,H1 · disconnected
+//
+// Erreur 112 = disque plein. Mesuré : 704 Mo libres sur 95,8 Go, dont 72 Go dans
+// trois dossiers de terminal. L'agent mourait AVANT d'exécuter une ligne du robot.
+//
+// LE DISCRIMINANT ÉTAIT L'ORDRE, PAS LE SYMBOLE. « GOLD, Germany40 et USNDAQ100
+// échouent, BRENT et COPPER passent » se lisait comme une propriété des instruments —
+// la profondeur d'historique, la devise de cotation. C'était une propriété du RANG :
+// le premier passé avait son cache écrit, les suivants devaient en écrire, et il n'y
+// avait plus de place. Un défaut du code ne dépend pas de qui est passé avant lui.
+//
+// CE QUE CETTE GARDE GARDE, ET CE QU'ELLE NE GARDE PAS. L'invariant reste sain et se
+// tient sur ses propres mérites, indépendamment de cette affaire : rien de ce qui
+// tourne à `OnInit` ne réclame un volume d'historique qu'il n'a pas vérifié —
+// `AgrConstruire` plafonne déjà sa demande sur `Bars()`, et la fonction voisine ne le
+// faisait pas. Le dépôt a réellement vu ce geste faire cesser de répondre un terminal
+// sur le script d'export (AUDNZD, 1,78 million de barres M1). Ce qui tombe, c'est la
+// CAUSE qu'on lui avait attribuée, pas la forme qu'elle impose.
+//
+// ET L'ANGLE MORT ÉTAIT DÉJÀ DÉCLARÉ TROIS PARAGRAPHES PLUS BAS — « elle ne PROUVE
+// pas le diagnostic et ne le prétend pas ». Il n'a servi à rien : deux voix dans un
+// même fichier, et c'est la confiante qu'on lit. Un angle mort déclaré ne rattrape
+// pas une affirmation écrite au-dessus de lui ; il faut que l'affirmation elle-même
+// porte son statut. D'où la formulation retenue ci-dessus : « l'invariant se tient
+// sur ses propres mérites », jamais « ce qui reste est ».
 //
 // ANGLE MORT DÉCLARÉ (règle 9) : personne ici ne peut faire tourner MetaTrader. Cette
 // garde ne PROUVE pas le diagnostic et ne le prétend pas — elle tient la forme
