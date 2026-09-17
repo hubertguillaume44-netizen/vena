@@ -309,6 +309,12 @@ input string InpDiagDu          = "2020.01.01"; // Diagnostic à partir de cette
 input string InpDiagAu          = "2020.12.31"; // Diagnostic jusqu'à cette date
 input ulong  InpMagic           = ${nb(ctx.magic, 20260901)};
 
+// LA VERSION DE VÉNA QUI A PRODUIT CE ROBOT. Les deux scripts .mq5 la portent depuis
+// 260916.10 ; le générateur, non — et quand un agent de test est mort, rien ne disait
+// quelle build l'avait émis. Le stamp d'export ne répond pas à cette question : il dit
+// QUAND on a exporté, pas DE QUOI. La marque est écrite ici dans la forme exacte que
+// « npm run app:version » cherche, donc ce fichier est daté comme les deux autres.
+#define VENA_VERSION "260917"
 //--- Configuration mesurée (ne pas modifier : le backtest ne serait plus valable)
 #define STOP_PCT        ${sl}
 #define OBJECTIF_R      ${rr}
@@ -650,9 +656,14 @@ int OnInit()
    // Il ne dépend de RIEN : ni fichier ouvert, ni symbole interrogé, ni tableau. Une
    // trace qui a besoin de quelque chose ne mesure plus l'entrée, elle mesure ce dont
    // elle a besoin.
-   Print("VENA INIT 1/3 : entrée OnInit · ${esc(cfg.sym)} · build ${stamp}");
+   // LA VERSION D'ABORD, ET SUR LA MÊME LIGNE QUE L'ENTRÉE. Sans elle on ne sait pas
+   // quelle build tourne — et le stamp d'export ne le dit pas : il date le fichier,
+   // pas le code qui l'a produit. Un .ex5 oublié dans MQL5\\Experts a un stamp, lui
+   // aussi.
+   Print("VENA INIT 1/6 · v", VENA_VERSION, " · build ${stamp} · ${esc(cfg.sym)} · entrée OnInit");
    ConfOuvrir();
    LivOuvrir();
+   Print("VENA INIT 2/6 · journaux ouverts");
    trade.SetExpertMagicNumber(InpMagic);
    trade.SetDeviationInPoints(InpSlippagePoints);
    trade.SetTypeFillingBySymbol(_Symbol);
@@ -680,12 +691,27 @@ int OnInit()
       Print("ATTENTION : attachez ce robot sur un graphique H1 — il agrège lui-même les unités supérieures.");
    // le dernier seau déjà clos ne doit pas être joué au démarrage : son ouverture est
    // passée, l'ordre partirait au prix courant des heures plus tard
-   // les deux jalons qui encadrent ce qui reste : un aller-retour de moins si le
-   // premier Print passe et que l'agent meurt quand même
-   Print("VENA INIT 2/3 : journaux et objets posés, avant lecture d'historique");
+   // ————— SIX JALONS, UN PAR BLOC D'INITIALISATION —————
+   // Trois ne suffisaient pas : entre « journaux posés » et « amorçage fini » il y a
+   // le premier appel à Agreger AVEC de vraies bougies, et la lecture de spread. Le
+   // dernier jalon imprimé borne alors la panne à UN bloc, et c'est ce qui distingue
+   // les trois issues que le journal ne distingue pas tout seul : un ExpertRemove()
+   // s'arrête proprement après un jalon, un dépassement mémoire meurt PENDANT le bloc
+   // le plus gourmand (3/6 ou 4/6), une exception native tue l'agent à l'instruction
+   // même — sans jamais laisser passer le jalon suivant.
+   Print("VENA INIT 3/6 · objets du panneau balayés, avant lecture d'historique");
    dernierSeau = SeauCourant(SEC_SIGNAL);
+   Print("VENA INIT 4/6 · seau courant lu, avant amorçage du spread");
    SpOuvAmorcer();
-   Print("VENA INIT 3/3 : amorçage terminé, robot prêt");
+   Print("VENA INIT 5/6 · amorçage du spread terminé, avant premier agrégat");
+   // LE PREMIER APPEL À Agreger AVEC DE VRAIES BOUGIES, sorti de OnTick et amené ici.
+   // C'est la fenêtre que le journal désigne — 139 ms après « historique prêt » — et
+   // tant qu'il tournait au premier tick, aucun jalon ne pouvait l'encadrer.
+   {
+      bool ok = Agreger(SEC_SIGNAL);
+      PrintFormat("VENA INIT 6/6 · premier agrégat : %s, %d seaux · robot prêt",
+                  ok ? "construit" : "historique insuffisant", g_n);
+   }
    g_lancement = TimeCurrent();
    g_pic = AccountInfoDouble(ACCOUNT_EQUITY);
    return(INIT_SUCCEEDED);

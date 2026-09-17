@@ -95,38 +95,41 @@ test("la voisine qui a enseigné la leçon la porte toujours", () => {
     + "la leçon a été perdue à sa source");
 });
 
-test("le premier jalon est la PREMIÈRE instruction exécutable d'OnInit", () => {
-  // ————— TANT QU'ON NE SAIT PAS SI ON EST ENTRÉ, TOUT EST HYPOTHÈSE —————
-  // L'agent meurt sans imprimer une ligne du robot. Ce jalon borne la panne d'un côté
-  // ou de l'autre : absent, le crash est en portée globale ou au chargement ; présent,
-  // il est dans les appels qui suivent.
+test("les SIX jalons d'initialisation sont là, dans l'ordre, la version en tête", () => {
+  // ————— TANT QU'ON NE SAIT PAS OÙ L'ON EST ARRIVÉ, TOUT EST HYPOTHÈSE —————
+  // L'agent meurt 139 ms après « historique prêt », sans un message. Trois jalons ne
+  // suffisaient pas : entre « journaux posés » et « amorçage fini » il reste le
+  // balayage des objets, la lecture du seau, et le PREMIER appel à Agreger avec de
+  // vraies bougies — celui-là tournait au premier tick, donc aucun jalon ne pouvait
+  // l'encadrer. Il est remonté dans OnInit, entre deux jalons.
   //
-  // Il ne dépend de RIEN — ni fichier ouvert, ni symbole interrogé, ni tableau. Une
-  // trace qui a besoin de quelque chose ne mesure plus l'entrée : elle mesure ce dont
-  // elle a besoin. C'est pourquoi la garde exige la PREMIÈRE place, pas la présence.
+  // Six jalons distinguent les trois issues que le journal ne distingue pas seul :
+  // un ExpertRemove() s'arrête PROPREMENT après un jalon ; un dépassement mémoire
+  // meurt PENDANT le bloc le plus gourmand ; une exception native tue à l'instruction
+  // même. Dans les trois cas, c'est le dernier jalon imprimé qui borne.
   const apres = SRC.slice(borne(SRC, "int OnInit()"));
-  const exec = apres.split("\n").map((l) => l.trim())
-    .filter((l) => l && !l.startsWith("//"));
+  const exec = apres.split("\n").map((l) => l.trim()).filter((l) => l && !l.startsWith("//"));
   assert.equal(exec[0], "int OnInit()", "OnInit a changé de forme — réancrez");
   assert.equal(exec[1], "{", "OnInit a changé de forme — réancrez");
-  assert.match(exec[2], /^Print\("VENA INIT 1\/3 : entrée OnInit/,
-    "le premier jalon n'est plus la première instruction exécutable d'OnInit — il est "
-    + "précédé de « " + exec[2].slice(0, 60) + " ». Tout ce qui passe avant peut tuer "
-    + "l'agent sans qu'une ligne soit écrite, et la trace ne borne alors plus rien.");
-  // les deux autres jalons encadrent ce qui reste : un aller-retour de moins
-  assert.ok(SRC.includes('Print("VENA INIT 2/3 : journaux et objets posés, avant lecture d\'historique");'),
-    "le jalon d'avant-lecture a disparu : on ne peut plus séparer « les journaux et "
-    + "les objets » de « la lecture d'historique », et il faut un second aller-retour "
-    + "avec l'utilisateur pour la même information");
-  assert.ok(SRC.includes('Print("VENA INIT 3/3 : amorçage terminé, robot prêt");'),
-    "le jalon de fin d'init a disparu : on ne distingue plus « mort pendant "
-    + "l'amorçage » de « mort à la première barre »");
-  // et l'ordre des trois est celui du déroulement, sinon ils ne bornent rien
-  const i1 = SRC.indexOf("VENA INIT 1/3"), i2 = SRC.indexOf("VENA INIT 2/3"),
-    i3 = SRC.indexOf("VENA INIT 3/3");
-  assert.ok(i1 < i2 && i2 < i3,
-    "les trois jalons ne sont plus dans l'ordre du déroulement : ils ne bornent plus "
-    + "rien, ils décrivent");
+  // LA VERSION EST DANS LA PREMIÈRE INSTRUCTION, pas seulement présente : un .ex5
+  // oublié dans MQL5\\Experts porte un stamp d'export lui aussi, et le stamp date le
+  // FICHIER, pas le code qui l'a écrit.
+  assert.match(exec[2], /^Print\("VENA INIT 1\/6 · v", VENA_VERSION,/,
+    "la première instruction d'OnInit n'imprime plus la version — elle est « "
+    + exec[2].slice(0, 60) + " ». Sans elle, un agent qui meurt ne dit pas quelle build "
+    + "tournait, et on corrige à l'aveugle une version qui n'est peut-être pas celle "
+    + "qui plante.");
+  // LES SIX, ET DANS L'ORDRE : un jalon déplacé ne borne plus, il décrit.
+  const rangs = [...SRC.matchAll(/VENA INIT (\d)\/6/g)].map((m) => Number(m[1]));
+  assert.deepEqual(rangs, [1, 2, 3, 4, 5, 6],
+    "les six jalons ne sont plus au complet ni dans l'ordre du déroulement (relevé : "
+    + JSON.stringify(rangs) + "). Chacun borne UN bloc d'initialisation ; celui qui "
+    + "manque est le bloc qu'on ne pourra pas innocenter.");
+  // et le sixième couvre le premier agrégat RÉEL, ce que le tick faisait hors de portée
+  assert.match(apres, /bool ok = Agreger\(SEC_SIGNAL\);/,
+    "le premier appel à Agreger est ressorti d'OnInit : il repart au premier tick, "
+    + "hors de tout jalon — or c'est exactement la fenêtre que le journal désigne, "
+    + "139 ms après la fin de la synchronisation");
 });
 
 test("aucune lecture d'historique ne se refait indéfiniment : la TENTATIVE est mémorisée", () => {

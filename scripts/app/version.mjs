@@ -53,12 +53,24 @@ const MARQUE = /(VERSION_APP = ')([^']+)(')/;
 // livré » ne veut pas dire « le script a été recompilé ». Seul le journal MT5
 // peut trancher, à condition qu'il le dise.
 //
-// DÉCOUVERT, PAS ÉNUMÉRÉ : tout .mq5 de la racine qui porte la marque suit. Un
-// troisième script serait daté sans être nommé ici — et s'il ne porte pas la
-// marque, la garde (scripts/mt5/version-compilee.test.mjs) le dira.
+// DÉCOUVERT PAR LA MARQUE, PAS PAR L'EXTENSION — et c'est une correction.
+//
+// Il disait « tout .mq5 de la racine qui porte la marque », et c'était encore un
+// nom de LIEU : le robot ne porte pas l'extension, puisqu'il naît d'un générateur.
+// Résultat mesuré — les deux scripts journalisaient leur version au démarrage
+// depuis 260916.10, le robot n'en portait AUCUNE. Quand son agent de test est mort,
+// rien ne disait quelle build l'avait produit, et le stamp d'export ne répond pas à
+// cette question : il dit QUAND on a exporté, pas DE QUOI.
+//
+// C'est la troisième fois en deux jours qu'un correctif reste dans le fichier où il
+// est né (ArrayFree, l'attente d'historique, la version). La sortie est la même :
+// on découvre par ce que la chose EST — elle porte la marque — et non par où elle
+// vit. Un générateur qui l'écrit dans le source qu'il émet est daté comme les
+// autres, sans être nommé ici.
 const MARQUE_MQ5 = /(#define VENA_VERSION ")([^"]+)(")/;
+const PORTEURS = [".mq5", ".js"];
 const scriptsMt5 = () => readdirSync(RACINE)
-  .filter((f) => f.endsWith(".mq5"))
+  .filter((f) => PORTEURS.some((e) => f.endsWith(e)))
   .map((f) => path.join(RACINE, f))
   .filter((ch) => MARQUE_MQ5.test(readFileSync(ch, "utf8")));
 
