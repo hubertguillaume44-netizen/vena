@@ -458,7 +458,7 @@ d'URL est fabricable par l'acheteur, et son absence ne prouve rien non plus, alo
 charge de la preuve pèse sur le **vendeur**. La case à cocher reste, et sa fonction reste
 entière : elle fait **consentir**. C'est la facture qui **prouve**.
 
-## Les quatorze règles, dans l'ordre où elles se servent
+## Les quinze règles, dans l'ordre où elles se servent
 
 Elles viennent toutes d'un défaut réel de ce dépôt, et chacune est détaillée plus bas.
 
@@ -487,7 +487,8 @@ Elles viennent toutes d'un défaut réel de ce dépôt, et chacune est détaill�
     envoyé, jamais ce qui est reçu ; et un avertissement de runtime est une mesure, pas
     du bruit.
 12. **Un mot relatif n'est vrai que depuis un référentiel stable** — un élément engendré,
-    figé ou collant n'a ni « depuis quand » ni « depuis où ».
+    figé ou collant n'a ni « depuis quand » ni « depuis où » ; et un CHEMIN relatif non
+    plus, sous un document servi par réécriture.
 13. **Une mutation se défait par le mécanisme qui l'a faite** — jamais par une
     restauration de dépôt, qui ne distingue pas la mutation du travail en cours.
 14. **Une suppression se cartographie avant de se faire** — chaque garde accrochée à ce
@@ -495,6 +496,10 @@ Elles viennent toutes d'un défaut réel de ce dépôt, et chacune est détaill�
     s'ancre sur l'absence. Jamais en silence — et la prose se cartographie DANS LES DEUX
     SENS : celle qui reste autour se relit, et celle qu'on **ajoute** pour expliquer le
     retrait est du contenu neuf, qui entre dans le champ des gardes.
+
+15. **Une sonde dont l'échec est SILENCIEUX PAR CONCEPTION se garde ailleurs** — le
+    silence peut être le bon choix, et il rend alors le défaut indistinguable du cas
+    normal. Le témoin ne peut pas être son propre témoin.
 
 Les règles 6 à 9 sont nées le même jour, sur la même garde. Elles ferment par
 **construction** ce que les cinq premières ne fermaient que par **vigilance** — ou, quand
@@ -1811,6 +1816,44 @@ quelconque. Éprouvé par mutation, et il a fallu trois essais : le tableau `ord
 branche `else if (prudent)` sont l'un et l'autre inertes ; seul le drapeau à sa racine
 fait bouger les nombres. Les deux premières mutations ont été vérifiées par LECTURE avant
 d'accuser la garde — sans quoi elle passait deux fois pour aveugle à tort.
+
+## Une sonde dont l'échec est silencieux par conception se garde ailleurs
+
+Le témoin de version comparait ce que sert l'adresse publique à ce que la page est. Il a
+été MUET depuis le jour où il a été écrit, et personne ne l'a vu — parce qu'il est muet
+quand il échoue, et que c'est **le bon choix** : un fichier ouvert en `file://`, un avion,
+un pare-feu ne doivent pas produire un avertissement permanent. *L'absence d'information
+n'est pas une information.*
+
+La conséquence n'avait pas été tirée : un chemin faux devient alors indistinguable d'un
+utilisateur à jour. Le silence choisi pour le cas légitime couvre aussi le cas cassé.
+
+> **Le témoin ne peut pas être son propre témoin.** Quand une sonde est conçue pour se
+> taire en cas d'échec, rien à l'intérieur d'elle ne signalera jamais qu'elle a cessé de
+> fonctionner : la vérification vit nécessairement dehors.
+
+Ici, dehors veut dire `scripts/app/manifeste-version.test.mjs` : il lie les trois sources
+qui doivent s'accorder — le chemin où `publier-solo` dépose, celui que `netlify.toml` sert,
+celui que l'application demande. Le défaut n'était dans aucune des trois prise isolément ;
+il était dans leur **désaccord**.
+
+**Et la classe est probablement plus large qu'un cas.** Toute lecture qui retombe en
+silence — un `catch` qui rend `null`, un `if (!r.ok) return`, un repli sur une valeur par
+défaut — a le même besoin. Elles ne sont pas recensées ; c'est une file, pas une panne.
+
+### Sa cause dans cette occurrence : la règle 12, appliquée à une URL
+
+`netlify.toml` sert `/app` par une **réécriture** (`status = 200`), pas une redirection :
+l'URL du document reste « /app », sans barre finale, donc la base des chemins relatifs est
+« / » et `fetch('version.json')` partait à la racine du site. Un chemin relatif emprunte
+son sens à un point fixe — « depuis où » — et un document servi sous deux formes n'en a
+pas. C'est le même énoncé que « ci-dessous » depuis une barre collante et « hier » sur une
+fenêtre figée, sur un référentiel qu'on n'aurait pas pensé y ranger.
+
+**Et un chemin absolu n'est pas la réponse générale** : en `file://` — l'usage recommandé —
+`/app/version.json` devient `file:///app/version.json`, un voisin qui n'existera jamais.
+Les deux référentiels s'écrivent donc tous les deux, plutôt qu'un chemin qui a l'air
+général. C'est la garde `aucun-voisin` qui l'a dit, et elle avait raison.
 
 ## Le test qui tient la convention
 
