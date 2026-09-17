@@ -68,6 +68,7 @@ copyFileSync(SOLO, SORTIE);
 writeFileSync(path.join(path.dirname(SORTIE), "version.json"),
   JSON.stringify({ version: vSource }) + "\n");
 
+
 // 4. LE HABILLAGE. L'application charge sa feuille de style et son paquet depuis
 //    `_ds/…/`, qui ne sont PAS dans le dépôt. Sans eux la page se charge, mais la mise
 //    en page s'effondre : textes superposés, dialogue par-dessus l'accroche. Ce n'est

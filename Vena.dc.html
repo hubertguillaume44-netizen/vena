@@ -11832,7 +11832,31 @@ GROUPES = {
   async verifierVersionServie() {
     let servie = '';
     try {
-      const r = await fetch('version.json', { cache: 'no-store' });
+      // ————— UN CHEMIN RELATIF N'A PAS DE BASE STABLE ICI —————
+      // `fetch('version.json')` résout contre l'URL du DOCUMENT. `netlify.toml` sert
+      // /app par une RÉÉCRITURE (status 200) vers /app/index.html : l'URL affichée
+      // reste « /app », sans barre finale, donc la base est « / » et la requête part
+      // sur /version.json — 404, depuis toujours.
+      //
+      // Et le mode d'échec est le pire possible : la lecture ratée se TAIT par
+      // conception (voir les trois issues ci-dessus, et c'est le bon choix pour le
+      // hors-ligne). Le témoin était donc muet par construction depuis qu'il existe,
+      // et son silence est indistinguable de « vous êtes à jour ».
+      //
+      // C'est la règle 12 appliquée à une URL : un chemin relatif emprunte son sens à
+      // un point fixe — « depuis où ». Un document servi par réécriture sous deux
+      // formes (/app et /app/index.html) n'en a pas. On écrit donc le chemin ABSOLU,
+      // le même que celui où `publier-solo` dépose le manifeste.
+      // ————— DEUX RÉFÉRENTIELS, ET UN SEUL CHEMIN NE PEUT PAS SERVIR LES DEUX —————
+      // Servi : netlify.toml rend /app par une RÉÉCRITURE (status 200), donc l'URL du
+      // document reste « /app », sans barre finale — la base des URL relatives est « / »
+      // et `fetch('version.json')` partait sur /version.json. 404 depuis toujours, et
+      // muet, parce que l'échec de lecture se tait par conception.
+      // Ouvert en file:// : il n'y a pas de racine de site, et « /app/version.json »
+      // y deviendrait file:///app/version.json — un voisin qui n'existera jamais.
+      // On écrit donc les deux, plutôt qu'un chemin qui a l'air général.
+      const chemin = location.protocol === 'file:' ? 'version.json' : '/app/version.json';
+      const r = await fetch(chemin, { cache: 'no-store' });
       if (!r.ok) return;
       servie = String((await r.json() || {}).version || '');
     } catch (e) { return; }
@@ -16070,7 +16094,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260917.6';
+  VERSION_APP = '260917.7';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
