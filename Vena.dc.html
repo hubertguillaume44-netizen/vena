@@ -4649,6 +4649,9 @@
         <sc-if value="{{ aRepriseManques }}" hint-placeholder-val="{{ false }}">
           <span style="border:1px solid currentColor;padding:3px 9px;font-size:11px;white-space:normal;text-align:left;max-width:80ch" title="Les chiffres affichés viennent de la mesure enregistrée. Les réglages du panneau, eux, ne sont pas ceux qui les ont produits : cliquer « Mesurer » mesurerait une autre stratégie sous le même nom.">{{ repriseManquesTxt }}</span>
         </sc-if>
+        <sc-if value="{{ aBtCaches }}" hint-placeholder-val="{{ false }}">
+          <span style="border:1px solid currentColor;padding:3px 9px;font-size:11px;white-space:normal;text-align:left;max-width:80ch" title="La fenêtre horaire homogène ne garde que les heures cotées TOUTES les années : les autres sont retirées de la série avant toute mesure. Leur extrême manque donc au moteur, alors qu'un testeur MT5 le voit sur son graphique complet. Un stop touché là n'est pas vu, et un perdant devient gagnant.">{{ btCachesTxt }}</span>
+        </sc-if>
         <sc-if value="{{ aBtSautes }}" hint-placeholder-val="{{ false }}">
           <span style="border:1px solid currentColor;padding:3px 9px;font-size:11px;white-space:normal;text-align:left;max-width:80ch" title="Le moteur ne teste ni le stop ni l'objectif sur une bougie hors séance ou reconstituée — seul le palier y bouge. Le stop d'un robot, lui, reste dans le carnet du courtier.">{{ btSautesTxt }}</span>
         </sc-if>
@@ -12608,6 +12611,18 @@ GROUPES = {
       // chercher ailleurs, « 0 sur 4 210 » disculpe la règle. Sans lui, on lisait le
       // même zéro dans les deux cas.
       _sautesVues: (trades && trades.sautesVues) || 0,
+      // ————— LES BOUGIES QUE LA FENÊTRE HOMOGÈNE RETIRE —————
+      // Population DISJOINTE des précédentes : celles-là n'entrent jamais dans la série,
+      // donc leur extrême manque à `eh`/`eb` et le moteur ne peut PAS y voir un stop
+      // touché. Mesuré chez l'utilisateur sur sept instruments : zéro écartée → 1,6 à
+      // 3,2 points d'écart au testeur, neuf cents écartées → 7,2 et 11,5.
+      _cachesVues: (trades && trades.cachesVues) || 0,
+      _cachesStop: (trades && trades.cachesStop) || 0,
+      _cachesObj: (trades && trades.cachesObj) || 0,
+      _cachesDeux: (trades && trades.cachesDeux) || 0,
+      // false = la série est ANTÉRIEURE à cette version et ne porte pas les colonnes.
+      // Ce n'est pas zéro : rien n'a été mesuré, et les deux ne se confondent pas.
+      _cachesDispo: !!(trades && trades.cachesDispo),
       // Espérance, hors échantillon, tenue, R par R de creux : trois des cinq contrôles
       // en dépendent. Sans elles, le Backtest affichait « 2 / 5 mesurés » sur une
       // configuration parfaitement jugeable — et ne pouvait donc rien proposer d'en faire.
@@ -16242,7 +16257,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260917.14';
+  VERSION_APP = '260917.15';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -18058,7 +18073,17 @@ GROUPES = {
       ...(brut.mh && brut.mb
         ? { mh: Int8Array.from(brut.mh), mb: Int8Array.from(brut.mb) } : {}),
       ...(brut.eh && brut.eb ? { eh: f32(brut.eh), eb: f32(brut.eb) } : {}),
-      ...(brut.ah && brut.ab ? { ah: f32(brut.ah), ab: f32(brut.ab) } : {}) };
+      ...(brut.ah && brut.ab ? { ah: f32(brut.ah), ab: f32(brut.ab) } : {}),
+      // ————— LES BOUGIES ÉCARTÉES SONT ENREGISTRÉES, ET ELLES NE COÛTENT RIEN —————
+      // Trois colonnes, pas quatorze : l'instant et les deux extrêmes, tout ce qu'il
+      // faut pour demander « ce niveau a-t-il été franchi ici ? ». Neuf cents bougies
+      // pèsent quinze kilo-octets contre plus d'un mégaoctet pour la série qui les
+      // accompagne. Sans elles, la mesure des franchissements cachés exigerait de
+      // réimporter le CSV à chaque rechargement de page — et un compteur qui rend zéro
+      // parce que les données ont disparu est indistinguable d'un compteur qui a
+      // vraiment mesuré zéro. C'est ce prix-là qu'on refuse, pas les kilo-octets.
+      ...(brut.ecT && brut.ecH && brut.ecL
+        ? { ecT: Float64Array.from(brut.ecT), ecH: f32(brut.ecH), ecL: f32(brut.ecL) } : {}) };
   }
   decompacter(b) {
     if (!b || !b.compact) return b;
@@ -18074,6 +18099,9 @@ GROUPES = {
       ...(b.mh && b.mb ? { mh: ar(b.mh), mb: ar(b.mb) } : {}),
       ...(b.eh && b.eb ? { eh: ar(b.eh), eb: ar(b.eb) } : {}),
       ...(b.ah && b.ab ? { ah: ar(b.ah), ab: ar(b.ab) } : {}),
+      // Absentes d'un enregistrement d'avant cette version : leur absence reste une
+      // absence, et le bandeau dit « réimportez » au lieu d'annoncer zéro.
+      ...(b.ecT && b.ecH && b.ecL ? { ecT: ar(b.ecT), ecH: ar(b.ecH), ecL: ar(b.ecL) } : {}),
       ordreConnu: b.ordreConnu, retourConnu: b.retourConnu, sessRenseigne: b.sessRenseigne };
   }
   // ————— LES BOUGIES M1 : un espace à part, jamais dans le moteur —————
@@ -24311,6 +24339,36 @@ GROUPES = {
                 + (vues > 1 ? 's' : '') + ' sur ces ' + nb(tot) + ' trades, et aucune ne '
                 + 'franchissait le stop ni l\u2019objectif — la règle a joué et n\u2019a rien '
                 + 'coûté ici.' };
+      })(),
+      ...(() => {
+        const dispo = !!s._cachesDispo;
+        const vues = Number(s._cachesVues) || 0;
+        const st = Number(s._cachesStop) || 0;
+        const ob = Number(s._cachesObj) || 0;
+        const dx = Number(s._cachesDeux) || 0;
+        const tot = (s.res && s.res.n) || 0;
+        const ec = (this.diag && this.diag[s.btSym] && this.diag[s.btSym].ecartees) || 0;
+        const nb = (x) => x.toLocaleString('fr-FR');
+        // ————— TROIS ÉTATS, ET LE TROISIÈME EST CELUI QU'ON OUBLIE —————
+        // « rien à mesurer », « mesuré », et « pas mesurable ici » — ce dernier parce
+        // qu'une série enregistrée avant cette version ne porte pas les bougies
+        // écartées. Le confondre avec zéro annoncerait une disculpation qu'aucune
+        // mesure ne soutient, sur le chemin même qu'on instrumente pour trancher.
+        return { aBtCaches: tot > 0 && ec > 0,
+          btCachesTxt: !dispo
+            ? nb(ec) + ' bougies ont été écartées de la fenêtre horaire, et cette série a '
+              + 'été enregistrée avant qu\u2019on les retienne : leurs franchissements ne '
+              + 'sont PAS mesurés ici. Réimportez le CSV d\u2019origine pour le savoir.'
+            : (st + ob + dx) === 0
+              ? nb(vues) + ' bougie' + (vues > 1 ? 's' : '') + ' écartée'
+                + (vues > 1 ? 's' : '') + ' de la fenêtre horaire ' + (vues > 1 ? 'sont tombées' : 'est tombée')
+                + ' pendant une position ouverte, et aucune ne franchissait le stop ni '
+                + 'l\u2019objectif — la fenêtre ne cache rien sur ces ' + nb(tot) + ' trades.'
+              : 'Bougies écartées de la fenêtre horaire pendant une position : ' + nb(vues)
+                + ', dont ' + nb(st) + ' au stop, ' + nb(ob) + ' à l\u2019objectif et '
+                + nb(dx) + ' aux deux (indécidable). Le moteur ne les voit pas — un '
+                + 'testeur, oui. Sur ' + nb(tot) + ' trades, c\u2019est l\u2019ordre de '
+                + 'grandeur de ce que la fenêtre vous cache.' };
       })(),
       btBandeTag: s.bande && s.bande.n && s.bande.largeur >= 0.05 ? 'tag-outline' : '',
       // Une ligne rouverte sans sa condition affiche d'autres chiffres sous le même

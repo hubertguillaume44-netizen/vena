@@ -1966,6 +1966,78 @@ Les trois états se rendent tous les trois, en toutes lettres — et celui qui D
 règle (« elle a joué et n'a rien coûté ici ») est celui qui referme la question, donc
 le moins dispensable des trois.
 
+## Ce que la fenêtre horaire homogène RETIRE, le moteur ne peut pas le voir
+
+**STATUT · PANNE OBSERVÉE, MÉCANISME NON PROUVÉ.** Le fait est mesuré chez l'utilisateur
+sur sept instruments, robots réexportés, garde de symbole active, périodes alignées et
+**aucune sécurisation sur aucune ligne** — donc les 21 % d'ambigus des paliers ne
+s'appliquent à aucune. Le mécanisme est lu dans le source ; aucun journal n'est entré
+dans `scripts/mt5/`.
+
+| écartées | trades V → MT5 | réussite V → MT5 |
+|---|---|---|
+| 0 · GOLD | 465 → 463 | 49,5 → 48,0 (**−1,6**) |
+| 0 · US30 | 141 → 141 | 34,8 → 32,6 (**−2,2**) |
+| 0 · SILVEREURO | 157 → 163 | 36,9 → 33,7 (**−3,2**) |
+| 912 · HongKong50 | 162 → 161 | 51,9 → 44,7 (**−7,2**) |
+| 895 · IBEX 35 | 91 → 89 | 41,8 → 30,3 (**−11,5**) |
+
+**La séparation est binaire et sans contre-exemple**, et ce qui la rend décisive n'est pas
+l'ordre : c'est que le nombre **absolu** de trades basculés est le même des deux côtés,
+dix à douze. 12/162 = 7,2 %, 10/91 = 11,5 % — l'écart en points n'était que le
+dénominateur. Ce n'est plus une grandeur qui classe, c'est une prédiction qui tombe juste.
+
+`nettoyer` retire les bougies hors fenêtre horaire **avant toute mesure** : leur extrême
+n'entre ni dans `h`/`l` ni dans `eh`/`eb`, et `const exH = df.eh || df.h` est tout ce que
+le backtest regarde. Un stop touché pendant ces heures n'existe pas pour le moteur ; un
+testeur, sur son graphique H1 complet, le voit. **Un perdant devient gagnant — biais d'un
+seul signe.**
+
+### Le candidat précédent est mort par son propre dénominateur
+
+Les bougies sautées par `releve(i)` allaient à l'**envers** du symptôme :
+
+| | sautées / franchissantes | écart |
+|---|---|---|
+| SILVEREURO | 413 / **53** | −3,2 |
+| GOLD | 79 / **58** | −1,6 |
+| IBEX 35 | 21 / **6** | −11,5 |
+
+Cinquante-trois franchissements non relevés pour 3,2 points ; six pour 11,5. **Les deux
+populations sont disjointes** — `releve` saute des bougies *présentes* dans la série,
+`ecartees` compte celles qui n'y sont *jamais entrées* — et une seule explique quoi que
+ce soit. C'est le dénominateur, posé la veille pour donner sa prise au zéro, qui a tué
+l'hypothèse qu'il servait.
+
+### Ce qui est livré, et la prédiction écrite AVANT la mesure
+
+`nettoyer` retient les trois seules colonnes utiles des bougies écartées — l'instant et
+les deux extrêmes, une quinzaine de kilo-octets pour neuf cents bougies contre plus d'un
+mégaoctet pour la série. `backtesterSuivi` compte celles qui, **en position**,
+franchissaient le stop ou l'objectif, réparties **stop / objectif / les deux**, la
+troisième case à part parce que rien ne dit lequel d'abord.
+
+**La prédiction est dans la garde, pour être relue telle quelle** : environ **dix** sur
+IBEX, **douze** sur HongKong50, **zéro** sur GOLD, US30 et SILVEREURO. Si le compteur rend
+ça, le statut passe à « cause établie » ; sinon c'est la prédiction qui tombe, par écrit.
+
+**Et le troisième état est celui qu'on oublie.** Une série enregistrée avant cette version
+ne porte pas les colonnes : `cachesDispo` vaut faux, et le bandeau dit « réimportez le
+CSV » au lieu d'annoncer zéro. Confondre les deux disculperait la fenêtre sans qu'aucune
+mesure ait eu lieu — sur le chemin même qu'on instrumente pour trancher.
+
+**La série de banc porte le défaut qu'aucune famille d'exemple n'a** : les dix cotent les
+mêmes heures toutes les années, donc `fenetreHomogene` n'y écarte rien et la propriété y
+serait inéprouvable. Le banc fait coter 9 h→17 h en 2020 et 8 h→17 h en 2021 ; l'heure 8
+est écartée, et c'est là qu'on pose les mèches. Zéro octet chez l'utilisateur — la même
+règle que l'échelle des prix.
+
+**Une assertion de cette garde n'est pas tombée sous mutation, et c'est comme ça qu'on l'a
+su.** Elle bornait la découpe au 1ᵉʳ janvier 2021 ; l'amorce de 400 jours reculait la
+borne à novembre 2019, donc aucune bougie n'était coupée et l'assertion passait avec ou
+sans le filtre. La borne de FIN, elle, coupe — et la garde exige désormais qu'elle coupe
+avant de vérifier ce qu'elle a coupé.
+
 ## Ce qu'un robot MQL5 a BÂTI n'est pas ce qu'il a FAIT TOURNER
 
 **L'en-tête du `.mq5` décrit l'export ; les `input` décrivent le lancement, et MT5 les

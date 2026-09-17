@@ -170,6 +170,13 @@
   },
   {
    "terme": "Chiffres périmés — relancez le test",
+   "texte": "La fenêtre horaire homogène ne garde que les heures cotées TOUTES les années : les autres sont retirées de la série avant toute mesure. Leur extrême manque donc au moteur, alors qu'un testeur MT5 le voit sur son graphique complet. Un stop touché là n'est pas vu, et un perdant devient gagnant.",
+   "vues": [
+    "Backtest"
+   ]
+  },
+  {
+   "terme": "Chiffres périmés — relancez le test",
    "texte": "Le moteur ne teste ni le stop ni l'objectif sur une bougie hors séance ou reconstituée — seul le palier y bouge. Le stop d'un robot, lui, reste dans le carnet du courtier.",
    "vues": [
     "Backtest"

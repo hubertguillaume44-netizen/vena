@@ -160,6 +160,25 @@ export function nettoyer(df) {
   const { depart, heures } = fenetreHomogene(df.t);
   const t = [], o = [], h = [], l = [], c = [], v = [], sp = [], sess = [], mh = [], mb = [],
     eh = [], eb = [], ah = [], ab = [];
+  // ————— CE QUE LA FENÊTRE RETIRE EST GARDÉ À PART, ET C'EST TOUT —————
+  //
+  // Une bougie écartée ne pousse rien dans `t`, `h`, `l`, `eh`, `eb` : elle n'existe
+  // pas pour le moteur. Son extrême est donc absent de la série mesurée, alors que le
+  // testeur MT5 le voit sur son graphique H1 complet. Un stop touché pendant ces
+  // heures-là n'est pas vu, et un trade perdant devient gagnant — biais d'un SEUL
+  // signe, ce qui le rend décidable.
+  //
+  // Mesuré chez l'utilisateur sur sept instruments, périodes alignées, aucun palier :
+  // zéro écartée donne un écart de réussite de 1,6 à 3,2 points (le frottement
+  // d'exécution) ; environ 900 écartées donnent 7,2 et 11,5 points. La séparation est
+  // binaire et sans contre-exemple, et le nombre ABSOLU de trades basculés est le même
+  // des deux côtés — dix à douze —, l'écart en points n'étant que le dénominateur.
+  //
+  // On ne garde que trois colonnes : l'instant et les deux extrêmes. C'est tout ce
+  // qu'il faut pour demander « ce niveau a-t-il été franchi ici ? », et ça pèse une
+  // quinzaine de kilo-octets pour neuf cents bougies contre plus d'un mégaoctet pour la
+  // série. Les garder ENTIÈRES reviendrait à ne rien écarter.
+  const ecT = [], ecH = [], ecL = [];
   const spSrc = df.sp || df.spreadPts;
   const sessSrc = df.sess;
   const mhSrc = df.mh, mbSrc = df.mb, ehSrc = df.eh, ebSrc = df.eb;
@@ -167,7 +186,11 @@ export function nettoyer(df) {
   for (let i = 0; i < df.n; i++) {
     const d = new Date(df.t[i]);
     if (debut !== null && df.t[i] < debut) continue;
-    if (d.getUTCFullYear() < depart || !heures.has(d.getUTCHours())) continue;
+    if (d.getUTCFullYear() < depart || !heures.has(d.getUTCHours())) {
+      // hors de la fenêtre horaire homogène : retirée de la série, retenue ici
+      ecT.push(df.t[i]); ecH.push(df.h[i]); ecL.push(df.l[i]);
+      continue;
+    }
     t.push(df.t[i]); o.push(df.o[i]); h.push(df.h[i]); l.push(df.l[i]); c.push(df.c[i]); v.push(df.v[i]);
     sp.push(spSrc ? (spSrc[i] || 0) : 0);
     // pas de colonne = pas de restriction : une série exportée avant cette colonne doit
@@ -223,6 +246,7 @@ export function nettoyer(df) {
     ? ah.reduce((a, x, i) => a + (x > 0 && ab[i] > 0 ? 1 : 0), 0) / (t.length || 1)
     : 0;
   return { t, o, h, l, c, v, sp, sess, mh, mb, eh, eb, ah, ab, n: t.length, ecartees: df.n - t.length,
+    ecT, ecH, ecL,
     heuresSession: [...heures].sort((a, b) => a - b), grain,
     spreadPct, spreadPctMoyen, spreadRenseigne: !!spreadPct, sessRenseigne, ordreConnu, retourConnu };
 }
@@ -241,7 +265,11 @@ export function nettoyer(df) {
 export const CHAMPS_SERIE = ['t', 'o', 'h', 'l', 'c', 'v', 'sp', 'sess',
   'mh', 'mb', 'eh', 'eb', 'ah', 'ab', 'spreadPct'];
 export const CHAMPS_META = ['n', 'grain', 'heuresSession', 'ecartees', 'spreadPctMoyen',
-  'spreadRenseigne', 'sessRenseigne', 'ordreConnu', 'retourConnu'];
+  'spreadRenseigne', 'sessRenseigne', 'ordreConnu', 'retourConnu',
+  // Les bougies écartées voyagent avec la série mais ne sont PAS indexées par bougie :
+  // elles ne peuvent pas entrer dans CHAMPS_SERIE, que `garder` filtre par indice. Un
+  // filtrage par indice de série les massacrerait en silence.
+  'ecT', 'ecH', 'ecL'];
 
 /** Copie d'une série, colonnes et métadonnées comprises. `garder` filtre les indices. */
 export function copierSerie(df, garder) {
@@ -531,8 +559,20 @@ export function decouper(df, debut, fin) {
     ? a.reduce((k, x, i) => k + (x >= 0 && b2[i] >= 0 ? 1 : 0), 0) / n : 0);
   const partPx = (a, b2) => (a.length === n && n
     ? a.reduce((k, x, i) => k + (x > 0 && b2[i] > 0 ? 1 : 0), 0) / n : 0);
+  // Les bougies ÉCARTÉES suivent la MÊME découpe de dates. Les recopier entières
+  // compterait des franchissements hors de la période mesurée — et c'est exactement le
+  // défaut qui a invalidé la moitié des tableaux de comparaison : quand les périodes
+  // diffèrent, ce ne sont pas les mêmes trades.
+  const ecT = [], ecH = [], ecL = [];
+  if (df.ecT && df.ecH && df.ecL) {
+    for (let k = 0; k < df.ecT.length; k++) {
+      if (df.ecT[k] < d0 || df.ecT[k] > d1) continue;
+      ecT.push(df.ecT[k]); ecH.push(df.ecH[k]); ecL.push(df.ecL[k]);
+    }
+  }
   return { t, o, h, l, c, v, n, grain: df.grain,
     heuresSession: df.heuresSession, ecartees: df.ecartees,
+    ...(df.ecT && df.ecH && df.ecL ? { ecT, ecH, ecL } : {}),
     ...(aMin ? { mh, mb, ordreConnu: part(mh, mb) } : { ordreConnu: 0 }),
     ...(aExe ? { eh, eb } : {}),
     ...(aApr ? { ah, ab, retourConnu: partPx(ah, ab) } : { retourConnu: 0 }),
@@ -1154,6 +1194,21 @@ export function backtester(df, cfg) {
   // bougies VUES par la règle est ce qui sépare les deux — c'est la prise du zéro, et
   // sans elle le compteur rapporte une mesure fausse qui a l'air d'une mesure.
   let sautes = 0, sautesVues = 0;
+  // ————— ET LES BOUGIES QUI N'ONT JAMAIS ATTEINT LA SÉRIE —————
+  //
+  // Population DISJOINTE de la précédente, et il a fallu un tour pour le voir :
+  // `releve(i)` saute des bougies PRÉSENTES dans la série (hors séance, reconstituées) ;
+  // celles-ci ont été retirées par `nettoyer`, elles n'y sont jamais entrées. Aucune ne
+  // peut être comptée par l'autre chemin.
+  //
+  // C'est la seule des deux qui explique la mesure : SILVEREURO porte 53 franchissements
+  // NON RELEVÉS pour 3,2 points d'écart, IBEX en porte 6 pour 11,5 points — le compteur
+  // de `releve` va donc à l'envers du symptôme. Les écartées, elles, le suivent
+  // exactement : zéro écartée → 1,6 à 3,2 points, neuf cents écartées → 7,2 et 11,5.
+  let cachesVues = 0, cachesStop = 0, cachesObj = 0, cachesDeux = 0;
+  const ecTc = df.ecT, ecHc = df.ecH, ecLc = df.ecL;
+  const nEc = ecTc && ecHc && ecLc ? ecTc.length : 0;
+  let iEc = 0;
   // Armer le palier depuis le HAUT de la bougie puis tester le stop contre son BAS
   // suppose que le haut est venu en premier — précisément ce que la bougie ne dit pas.
   // C'était un pis-aller du suivi en Daily, où sans lui aucun point mort n'apparaissait
@@ -1418,6 +1473,22 @@ export function backtester(df, cfg) {
   };
 
   for (let i = Math.max(depart, 1); i < df.n; i++) {
+    // Les bougies ÉCARTÉES qui tombent avant celle-ci. Le pointeur avance à chaque
+    // bougie, en position ou non — sinon il retarderait et compterait au mauvais trade —
+    // et seul le comptage est conditionné par `enPos`.
+    while (iEc < nEc && ecTc[iEc] < df.t[i]) {
+      if (enPos) {
+        cachesVues++;
+        const auStop = d * (vente ? ecHc[iEc] : ecLc[iEc]) <= d * sl;
+        const auObj = d * (vente ? ecLc[iEc] : ecHc[iEc]) >= d * tp;
+        // « les deux » est compté À PART : la bougie a franchi le stop ET l'objectif,
+        // et rien ne dit lequel d'abord. La ranger d'un côté fabriquerait un verdict.
+        if (auStop && auObj) cachesDeux++;
+        else if (auStop) cachesStop++;
+        else if (auObj) cachesObj++;
+      }
+      iEc++;
+    }
     if (enPos) {
       // Hors séance : le stop suit, l'ordre attend. `majSecu` d'abord, aucune sortie
       // ensuite — c'est ce que fait le testeur, vérifié sur 538 sorties dont aucune
@@ -1815,6 +1886,16 @@ export function backtester(df, cfg) {
   // ou non. `sautesSortie = 0` sur `sautesVues = 0` ne parle pas de la règle ;
   // `sautesSortie = 0` sur `sautesVues = 4 210` dit qu'elle a joué et n'a rien coûté.
   trades.sautesVues = sautesVues;
+  // Les bougies écartées vues en position, et ce qu'elles franchissaient. `cachesVues`
+  // est la PRISE du zéro : sans lui, « 0 franchissement » vaut à la fois « la fenêtre ne
+  // retire rien ici » et « elle retire et ça ne coûte rien ».
+  trades.cachesVues = cachesVues;
+  trades.cachesStop = cachesStop;
+  trades.cachesObj = cachesObj;
+  trades.cachesDeux = cachesDeux;
+  // `null` quand la série ne PORTE pas les colonnes — une série enregistrée avant cette
+  // version. Zéro voudrait dire « mesuré à zéro », et c'est faux : rien n'a été mesuré.
+  trades.cachesDispo = nEc > 0 || (!!ecTc && !!ecHc && !!ecLc);
   return trades;
 }
 
