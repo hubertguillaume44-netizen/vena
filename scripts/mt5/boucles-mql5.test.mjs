@@ -1,3 +1,7 @@
+// STATUT · CAUSE ÉTABLIE, MESURÉE. Les deux pannes qui ouvrent ce registre ont été
+// OBSERVÉES : 1 800 s par symbole au journal MT5, puis 2 h 12 de processeur à 100 %
+// sans un seul test terminé. Invariant et cause tiennent tous les deux.
+//
 // ————— AUCUNE BOUCLE D'UN SOURCE MQL5 NE TOURNE SANS BORNE DITE —————
 //
 // Deux pannes en un jour, même forme, deux fichiers :

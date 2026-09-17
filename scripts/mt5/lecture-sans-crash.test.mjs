@@ -1,3 +1,13 @@
+// STATUT · PANNE OBSERVÉE, MÉCANISME NON PROUVÉ. La mort du terminal est un fait — le
+// journal de l'utilisateur porte l'access violation sur US2000.cash, et la séquence
+// ci-dessous s'y lit. Ce qui reste une hypothèse est le MÉCANISME : qu'ArrayFree laisse
+// un tampon que CopyRates réutilise. Personne ici ne peut faire tourner MetaTrader pour
+// le confirmer.
+//
+// C'est une troisième valeur, et elle est née en marquant ce fichier : entre « cause
+// établie » et « correctif de forme » il y a le cas où la PANNE est mesurée et son
+// EXPLICATION devinée. Les confondre avec l'une ou l'autre mentirait dans les deux sens.
+//
 // ————— UN SCRIPT NE DOIT PAS POUVOIR TUER LE TERMINAL DE QUELQU'UN —————
 //
 // `Export_H1_Vena` a fait mourir MetaTrader sur US2000.cash : « Access violation

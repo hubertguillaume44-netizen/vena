@@ -1,3 +1,8 @@
+// STATUT · CAUSE ÉTABLIE, MESURÉE. La panne a été OBSERVÉE dans le journal MT5 avant
+// d'être corrigée : trente minutes par symbole, « 50 000 demandées, -1 reçues » répété
+// deux cents fois à l'identique. Ce correctif ferme ce qu'on a vu, pas ce qu'on a
+// supposé — et son invariant comme sa cause tiennent tous les deux.
+//
 // ————— UN ÉCHEC QUI SE RÉPÈTE N'EST PLUS UNE ATTENTE, C'EST UNE BOUCLE —————
 //
 // `AttendreHistorique` a une détection d'épuisement — deux tours au même compte et à

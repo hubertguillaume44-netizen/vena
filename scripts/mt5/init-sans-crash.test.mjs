@@ -1,3 +1,15 @@
+// STATUT · CORRECTIF DE FORME, CAUSE NON ÉTABLIE. L'invariant se tient sur ses propres
+// mérites — rien qui tourne à OnInit ne réclame un volume d'historique qu'il n'a pas
+// vérifié —, et le dépôt a réellement vu ce geste faire cesser de répondre un terminal
+// sur le script d'export. Mais la panne qui a fait écrire cette garde avait une AUTRE
+// cause, trouvée depuis : le disque du poste était plein (file write error 112). Rien
+// ici n'a diagnostiqué quoi que ce soit, et le corps de cette note le détaille.
+//
+// CE STATUT EST EN TÊTE, ET C'EST LE GESTE QUE CETTE GARDE A COÛTÉ. La réserve était
+// déjà écrite — trois paragraphes plus bas, en note de règle 9 — et elle n'a servi à
+// rien : au-dessus d'elle, un paragraphe affirmait « CE QUI RESTE EST UNE INCOHÉRENCE
+// ENTRE DEUX FONCTIONS », et c'est la voix confiante qu'on lit.
+//
 // ————— CE QUI TOURNE AVANT LA PREMIÈRE BARRE NE DEMANDE PAS L'IMPOSSIBLE —————
 //
 // Rapport : le robot généré tue l'agent du testeur au démarrage — historique

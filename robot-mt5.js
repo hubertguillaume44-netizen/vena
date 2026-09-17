@@ -343,7 +343,7 @@ input ulong  InpMagic           = ${nb(ctx.magic, 20260901)};
 // quelle build l'avait émis. Le stamp d'export ne répond pas à cette question : il dit
 // QUAND on a exporté, pas DE QUOI. La marque est écrite ici dans la forme exacte que
 // « npm run app:version » cherche, donc ce fichier est daté comme les deux autres.
-#define VENA_VERSION "260917.3"
+#define VENA_VERSION "260917.4"
 //--- Configuration mesurée (ne pas modifier : le backtest ne serait plus valable)
 #define STOP_PCT        ${sl}
 #define OBJECTIF_R      ${rr}
@@ -675,6 +675,13 @@ void OnDeinit(const int reason) { ConfFermer(); LivFermer(); PanneauNettoyer(); 
 
 int OnInit()
 {
+   // STATUT · INSTRUMENTATION, AUCUNE CAUSE PRÉTENDUE (les six jalons). Ils n'ont rien
+   // réparé et ne diagnostiquent rien par eux-mêmes. Ils ont servi une fois, et par
+   // leur SILENCE : six jalons posés et pas une ligne imprimée disent « le programme
+   // n'a jamais démarré », ce qu'une initialisation muette SANS jalons ne disait pas —
+   // elle ne distinguait pas « bloqué au premier bloc » de « jamais entré ». C'est ce
+   // qui a renvoyé la recherche hors du robot, vers le poste : disque plein.
+   //
    // ————— LA PREMIÈRE INSTRUCTION ABSOLUE, AVANT QUOI QUE CE SOIT —————
    // L'agent du testeur meurt sans imprimer une seule ligne du robot. Tant qu'on ne
    // sait pas si OnInit est ENTRÉ, tout le reste est une hypothèse : ce Print borne

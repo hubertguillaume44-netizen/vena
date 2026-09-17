@@ -444,7 +444,9 @@ Elles viennent toutes d'un défaut réel de ce dépôt, et chacune est détaill�
    règle 7 vue depuis l'amont, au moment où l'on nomme ; et elle vaut pour les GARDES
    elles-mêmes : un correctif qui ferme une classe ne se garde pas sur un fichier.
 9. **Un angle mort qu'on ne peut pas fermer se déclare dans la garde elle-même** — sinon la
-   garde suivante hérite d'une confiance qu'elle n'a pas méritée.
+   garde suivante hérite d'une confiance qu'elle n'a pas méritée ; et il se déclare **DANS
+   l'affirmation, en tête**, jamais dans une note en dessous : entre les deux, c'est la
+   voix confiante qu'on lit.
 10. **Le cas VIDE est le plus faible des tests** — c'est celui où la moitié des bugs
     d'état ne peuvent pas se produire, et c'est celui qu'on écrit spontanément.
 11. **Seul le rendu prouve que la valeur arrive** — une garde de source voit ce qui est
@@ -983,6 +985,62 @@ Et la conséquence pratique : un angle mort déclaré est un angle mort qui a un
 péremption**. Le jour où une source dont dériver apparaît, la note dit exactement quoi
 remplacer. Un angle mort passé sous silence ne se rouvre jamais, parce que personne ne sait
 qu'il est là.
+
+#### La déclaration vit EN TÊTE de l'affirmation, pas en note sous elle
+
+La règle ci-dessus a été appliquée à la lettre et n'a rien empêché. `init-sans-crash`
+portait, dans sa note de règle 9 : « elle ne PROUVE pas le diagnostic et ne le prétend
+pas ». Trois paragraphes plus haut, elle affirmait « CE QUI RESTE EST UNE INCOHÉRENCE
+ENTRE DEUX FONCTIONS DU MÊME FICHIER ». La cause était fausse, la réserve était juste, et
+c'est la cause qu'on a lue — pendant trois jours, jusqu'à ce que le journal du terminal
+dise « disque plein ».
+
+> **Une réserve placée sous une affirmation ne la tempère pas : elle la suit.** Ce qu'on
+> retient d'un bloc de prose, c'est sa première phrase et son ton, pas sa dernière
+> nuance. Déclarer l'angle mort quelque part dans la garde satisfait la règle 9 et rate
+> ce qu'elle voulait.
+
+**La forme retenue est une ligne de STATUT, première ligne du fichier, avant le titre.**
+Deux valeurs, et elles se lisent d'un coup d'œil :
+
+| La ligne | Ce qu'elle promet |
+|---|---|
+| `STATUT · CAUSE ÉTABLIE, MESURÉE` | la panne a été observée avant d'être corrigée — invariant ET cause tiennent |
+| `STATUT · CORRECTIF DE FORME, CAUSE NON ÉTABLIE` | l'invariant vaut par lui-même ; la cause qu'on lui prêtait n'est pas prouvée |
+| `STATUT · PANNE OBSERVÉE, MÉCANISME NON PROUVÉ` | la panne est un fait mesuré ; l'explication qu'on en donne est une hypothèse |
+| `STATUT · INSTRUMENTATION, AUCUNE CAUSE PRÉTENDUE` | ça ne répare rien et n'explique rien — ça rend quelque chose décidable |
+
+Les gardes du chantier MQL5 la portent, et c'est là qu'elle se lit le mieux :
+`attente-sans-fin` et `boucles-mql5` en établie, `init-sans-crash` en forme,
+`lecture-sans-crash` en panne observée, les six jalons du robot en instrumentation. Le
+distinguo était dans les têtes de trois personnes ; il est dans les fichiers.
+
+**LA TROISIÈME VALEUR EST NÉE EN APPLIQUANT LES DEUX PREMIÈRES**, et c'est la meilleure
+preuve qu'il fallait l'écrire. Le schéma était binaire — mesurée ou devinée. En marquant
+`lecture-sans-crash`, aucune des deux ne convenait : la mort du terminal est un FAIT
+(journal de l'utilisateur, access violation sur US2000.cash) et c'est le MÉCANISME
+(ArrayFree laisse un tampon que CopyRates réutilise) qui reste une hypothèse. La classer
+« établie » aurait promis un mécanisme prouvé ; « correctif de forme » aurait nié une
+panne réelle. Un schéma qu'on applique découvre ses manques ; un schéma qu'on énonce ne
+les découvre jamais.
+
+**LA PORTÉE S'ARRÊTE ICI, ET C'EST DÉLIBÉRÉ.** Les autres gardes du dépôt ne portent pas
+de statut. Le leur poser demanderait de reconstituer de mémoire comment chacune est née —
+c'est-à-dire d'écrire dans le dépôt des affirmations qu'aucune mesure ne soutient, ce que
+la règle 5 interdit précisément. **Une ligne de statut fausse est pire que pas de ligne
+du tout** : elle a la forme d'une provenance vérifiée. La convention s'applique donc là où
+la distinction a été gagnée, et à toute garde neuve, dont la provenance est connue au
+moment où on l'écrit.
+
+**ET CELLE-CI NE TIENT QUE PAR DISCIPLINE — il faut le dire.** Aucune garde ne vérifie
+qu'un statut est présent ni qu'il est honnête : une ligne de statut est de la prose, et
+la règle 3 interdit d'ancrer une garde sur de la prose. On ne peut pas non plus la
+dériver — rien dans un fichier ne dit si sa cause a été mesurée. **Le seuil pour en
+construire une est écrit d'avance** : le jour où une garde livrée portera un statut
+« cause établie » sur un diagnostic qui se révèle faux, la discipline aura montré sa
+limite, et il faudra une prise qui ne soit pas la prose — la plus probable étant
+d'exiger, dans le statut « établie », la citation d'une trace mesurée qu'un test peut
+retrouver ailleurs dans le dépôt.
 
 ### Le cas VIDE est le plus faible des tests, et c'est celui qu'on écrit
 
