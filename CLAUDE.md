@@ -1359,6 +1359,44 @@ mesure existante était lue comme du bruit, ici une mesure absente est devenue l
 parce qu'on savait ce qui aurait dû s'écrire. **Les deux disent qu'une instrumentation
 vaut par ce qu'elle rend DÉCIDABLE, y compris quand elle ne rend rien.**
 
+### Une grandeur qui CLASSE bien les cas n'est pas pour autant la grandeur du mécanisme
+
+C'est la voisine de la règle précédente — là, un motif qui dépend du RANG désigne
+l'environnement ; ici, un motif qui suit une VARIABLE désigne peut-être une autre
+variable, cachée derrière celle qu'on regarde.
+
+Deux instances mesurées, à deux jours d'écart, sur le même chantier :
+
+| La grandeur qui classait | Ce qu'on en concluait | Pourquoi elle classait quand même |
+|---|---|---|
+| la **largeur de bande** entre les deux lectures | « les configurations larges divergent du testeur » | elle suit la volatilité, qui suit tout le reste — et deux exceptions l'ont cassée |
+| le **nombre de barres H1** | « moins de barres, plus d'écart : Véna en jette » | il suit la largeur de séance, la politique de cotation du courtier ET la profondeur d'historique. Ce que Véna jette n'en est qu'un terme parmi quatre |
+
+**Le nombre de barres est l'exemple parfait parce que l'ordre était PARFAIT** : cinq
+instruments, aucune exception, du plus large au plus étroit. Et c'est justement ce qui
+aurait dû alerter.
+
+> **Un ordre trop propre est un indice FAIBLE, pas fort.** Une variable composite —
+> en aval de plusieurs mécanismes à la fois — classe mieux que la vraie cause, parce
+> qu'elle en agrège les effets et en lisse le bruit. La vraie cause, elle, a presque
+> toujours des exceptions : un instrument où le mécanisme joue et ne coûte rien.
+
+Le test se fait avant de croire l'ordre, et il tient en deux questions :
+
+1. **La grandeur du mécanisme a-t-elle son propre nom ?** Ici oui — ce n'est pas « le
+   nombre de barres », c'est « le nombre de bougies que `fenetreHomogene` écarte ».
+2. **Est-elle mesurable SÉPARÉMENT ?** Ici oui, et c'est ce qui referme le cas sans
+   rien coûter : `ecartees` est stocké avec chaque série et affiché sur le panneau.
+
+Quand les deux réponses sont oui, on ne discute pas l'ordre — on lit l'autre chiffre.
+Quand la seconde est non, l'ordre reste une piste et se dit comme telle.
+
+**Et la confusion a une source récurrente : on lit la grandeur DISPONIBLE au lieu de la
+grandeur VOULUE**, parce que la disponible est déjà à l'écran. C'est la même racine que
+« un champ qui nomme mal ce qu'il porte », vue depuis le lecteur au lieu du libellé : là
+le mot mentait sur le nombre, ici le nombre est juste et c'est la question qu'on lui pose
+qui ne lui appartient pas.
+
 ### Un mot relatif n'est vrai que depuis un référentiel stable
 
 Deux corrections à un jour d'écart, et c'était deux instances d'un seul énoncé :
