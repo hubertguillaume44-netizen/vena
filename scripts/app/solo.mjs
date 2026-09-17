@@ -116,7 +116,10 @@ html = remplacer(html, vieuxResources, `  var __R = ${JSON.stringify(reactB64)};
       { type: "text/javascript" }));
   }`, "Vena.dc.html");
 
-// Les cinq points où la page nomme un fichier voisin.
+// Les cinq motifs par lesquels la page nomme un fichier voisin — SIX occurrences :
+// `robot-mt5.js` est nommé deux fois, à l'export et au préchargement du juge du
+// refus. `remplacer` remplace TOUTES les occurrences (split/join), donc les deux
+// sont réécrites ; compter les motifs et non les points l'avait fait croire unique.
 html = remplacer(html,
   "await import('./robot-mt5.js?v=' + (window.__venaRobotV || Date.now()))",
   "await import(window.__siv.robot)", "Vena.dc.html");

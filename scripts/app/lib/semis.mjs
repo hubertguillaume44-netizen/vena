@@ -119,7 +119,29 @@ export const POSER_SEMIS = `(() => {
       if (S.length !== n) throw new Error("semis « décisions » : " + n
         + " demandée(s) pour " + S.length + " symbole(s) disponible(s) — une décision "
         + "par instrument, la table ne peut pas en porter deux du même");
-      const valides = S.map((sym, i) => ({ ...ligneDe(sym, i), sens: 'achat', ut: 'H1' }));
+      // ————— LE BANC N'EXERÇAIT QUE LE SUCCÈS —————
+      // Sept rapports « Exporter ne produit rien » en trois jours, et le départage a
+      // fini par être le FILTRE : « Sous résistance » n'a pas d'équivalent MQL5, le
+      // générateur le refuse. Le semis ne posait que des lignes à filtre ADX — toutes
+      // exportables — donc la tournée cliquait « Exporter » et voyait un fichier
+      // descendre, à chaque fois, sur le seul cas qui marche.
+      //
+      // C'est la règle 10 dans l'outillage : le cas éprouvé était celui où le défaut ne
+      // peut pas se produire. UNE ligne refusée suffit à faire exister le refus, et
+      // c'est le minimum pour qu'un bouton grisé, une infobulle et un message aient
+      // quelque chose à garder.
+      //
+      // Elle porte sa photo de réglages (_reg) plutôt qu'un intitulé : etatDeLigne lit
+      // _reg en priorité, et c'est par là que la vraie application transporte les
+      // réglages d'une ligne validée. Poser un filtreNom seul aurait semé l'APPARENCE
+      // du filtre sans le filtre — une mesure fausse qui a l'air d'une mesure.
+      //
+      // (Pas d'accent grave dans ces commentaires : ils vivent DANS un littéral
+      // gabarit, et le premier en fermerait la chaîne. Le module a déjà été cassé
+      // deux fois par là.)
+      const valides = S.map((sym, i) => ({ ...ligneDe(sym, i), sens: 'achat', ut: 'H1',
+        ...(i === 0 ? { _reg: { fResist: true, utResist: 'D1', resistLookback: 20, resistMarge: 1 },
+          filtreNom: 'Sous résistance D1 20 (marge 1 %)' } : {}) }));
       // LE VERDICT SE SÈME PAR LA CLÉ DU PRODUIT, jamais par des champs devinés.
       // Première version : des hasP/hasN/hasAu posés sur la ligne — inventés,
       // ignorés en silence, et la colonne rendait « contrôler » comme si aucun
@@ -156,6 +178,16 @@ export const POSER_SEMIS = `(() => {
         + absents.join(', ') + "). Un portefeuille qui ne porte aucune ligne fait "
         + "disparaître sa section entière, et avec elle les boutons d'export de robot : "
         + "la tournée serait verte en ne les voyant pas.");
+      // la ligne refusée est RELUE par le chemin du produit : \`refusExport\` est la
+      // fonction que le bouton et le refus interrogent tous les deux. Sans ce contrôle,
+      // une photo de réglages mal formée sèmerait une ligne parfaitement exportable et
+      // la tournée exercerait de nouveau le seul succès — sans se plaindre.
+      const refusee = lues.filter((v) => inst.refusExport && inst.refusExport(v));
+      if (refusee.length !== 1) throw new Error("semis « décisions » : " + refusee.length
+        + " ligne(s) refusée(s) à l'export de robot, 1 attendue. La ligne porteuse de "
+        + "\`fResist\` ne ressort pas de \`refusExport()\` : le banc n'exercerait de nouveau "
+        + "que le chemin qui réussit, et c'est précisément ce qui a laissé passer sept "
+        + "rapports « Exporter ne produit rien ».");
       const sansVerdict = lues.filter((v) => !inst.verdictHasard(v)).length;
       if (sansVerdict) throw new Error("semis « décisions » : " + sansVerdict + " ligne(s) sur "
         + n + " sans verdict du hasard relu par verdictHasard(). Le compte était juste et le "

@@ -29,6 +29,35 @@ export const SPREAD_FENETRE = 250 * 24;
 // secondes par bougie agrégée, sur la même horloge que le moteur
 const SECONDES = { H1: 3600, H4: 14400, D1: 86400, W1: 604800 };
 
+// ————— LES QUATRE FILTRES QUI REFUSENT L'EXPORT, ET CE QUE ÇA COÛTE —————
+//
+// Un rapport a mis trois instruments au même verdict — « Exporter ne produit rien » —
+// et le départage n'était ni le symbole, ni la devise, ni la profondeur d'historique :
+// les trois lignes muettes portaient « Sous résistance D1 20 (marge 1 %) », celle qui
+// s'exportait portait « ADX D1(14) > 20 ». C'est cette table qui refuse.
+//
+// LE MOT « INCONNU » DIT PLUS QUE LA MESURE NE PERMET. Mesuré en lisant le moteur et
+// le robot côte à côte : aucun des quatre n'est fondamentalement intransposable. Le
+// robot agrège déjà ses propres seaux et en garde les hauts (g_h[]), et LigneAgr y
+// fait déjà tourner une boucle de plus-haut-sur-N-seaux. Ce qui manque est du CODE,
+// pas une capacité — c'est un chantier, pas une fatalité, et il s'ordonne par coût :
+//
+//   · fResist  « Sous résistance »       le plus haut des N seaux précédents, marge en
+//                                        % — la boucle existe déjà, une dizaine de lignes ;
+//   · fPivot   « Au-dessus du pivot »    (H+L+C)/3 du seau précédent, mêmes tableaux ;
+//   · fNuage   « Au-dessus du nuage »    Ichimoku : deux lignes et un décalage de 26
+//                                        seaux — plus de code, aucune machinerie neuve ;
+//   · fZone    « Hors zone de résistance » sommets locaux, regroupement par proximité,
+//                                        comptage des touches, mémoire — le seul dont la
+//                                        FIDÉLITÉ au moteur est réellement en jeu.
+//
+// TANT QUE CE CHANTIER N'EST PAS FAIT, LE REFUS EST LE BON COMPORTEMENT : livrer un
+// robot amputé de son filtre donnerait un nombre de trades différent de la mesure, et
+// un robot qui ne reproduit pas sa mesure est pire qu'un robot absent. Ce qui a été
+// corrigé, c'est que le refus se sache AVANT le clic — le bouton s'éteint et son
+// infobulle nomme le réglage, pour qu'on choisisse une autre configuration au lieu de
+// recliquer. Voir `refusExport` dans Vena.dc.html, qui appelle CETTE fonction : une
+// seconde liste là-bas divergerait de celle-ci, et promettrait ce qu'on refuse ici.
 const INCONNUS = {
   fNuage: 'Au-dessus du nuage', fPivot: 'Au-dessus du pivot',
   fResist: 'Sous résistance', fZone: 'Hors zone de résistance',
@@ -314,7 +343,7 @@ input ulong  InpMagic           = ${nb(ctx.magic, 20260901)};
 // quelle build l'avait émis. Le stamp d'export ne répond pas à cette question : il dit
 // QUAND on a exporté, pas DE QUOI. La marque est écrite ici dans la forme exacte que
 // « npm run app:version » cherche, donc ce fichier est daté comme les deux autres.
-#define VENA_VERSION "260917.2"
+#define VENA_VERSION "260917.3"
 //--- Configuration mesurée (ne pas modifier : le backtest ne serait plus valable)
 #define STOP_PCT        ${sl}
 #define OBJECTIF_R      ${rr}

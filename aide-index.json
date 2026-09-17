@@ -309,13 +309,6 @@
    ]
   },
   {
-   "terme": "Exporter",
-   "texte": "Télécharge l'Expert Advisor MQL5 de cette configuration.",
-   "vues": [
-    "Portefeuille"
-   ]
-  },
-  {
    "terme": "Exporter en CSV",
    "texte": "Enregistre la liste complète en CSV, ouvrable dans un tableur",
    "vues": [

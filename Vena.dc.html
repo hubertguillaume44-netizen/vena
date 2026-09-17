@@ -2409,7 +2409,7 @@
                         <button type="button" class="lien" style="font-size:11px;justify-self:end;padding:3px 7px;white-space:nowrap;color:{{ vl.retirerPfCouleur }}" title="{{ vl.retirerPfAide }}" onClick="{{ vl.retirerPf }}">{{ vl.retirerPfTxt }}</button>
                       </div>
                       <span style="padding:9px 14px;display:flex;flex-direction:column;gap:3px;align-items:center">
-                        <button class="btn btn-primary" type="button" style="min-height:1.8rem;font-size:11px;padding-inline:10px;width:100%" onClick="{{ vl.exporterRobot }}" title="Télécharge l'Expert Advisor MQL5 de cette configuration.">Exporter</button>
+                        <button class="btn btn-primary" type="button" style="min-height:1.8rem;font-size:11px;padding-inline:10px;width:100%" onClick="{{ vl.exporterRobot }}" disabled="{{ vl.robBloque }}" title="{{ vl.robAide }}">Exporter</button>
                         <span class="{{ vl.deployCls }}" style="font-size:10px;white-space:nowrap" title="{{ vl.deployAide }}">{{ vl.deployTxt }}</span>
                         <span style="display:block;font-size:10px;line-height:1.4;text-align:center;color:{{ vl.deployCouleur }}">{{ vl.deployDetail }}</span>
                       </span>
@@ -2435,7 +2435,7 @@
                         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
                           <button class="btn btn-secondary" type="button" style="min-height:1.85rem;font-size:11px;padding-inline:11px" onClick="{{ vl.auBacktest }}">Rouvrir en Backtest</button>
                           <button class="btn btn-secondary" type="button" style="min-height:1.85rem;font-size:11px;padding-inline:11px" onClick="{{ basculerMesures }}">{{ mesuresTxt }}</button>
-                          <button type="button" class="{{ vl.faireCls }}" style="cursor:pointer;border:none;font-family:var(--font-body);font-size:10px;padding:1px 6px;white-space:nowrap" title="{{ vl.faireAide }}" onClick="{{ vl.faire }}">{{ vl.faireTxt }}</button>
+                          <button type="button" class="{{ vl.faireCls }}" style="cursor:pointer;border:none;font-family:var(--font-body);font-size:10px;padding:1px 6px;white-space:nowrap" title="{{ vl.faireAide }}" disabled="{{ vl.faireBloque }}" onClick="{{ vl.faire }}">{{ vl.faireTxt }}</button>
                           <button type="button" class="lien" style="margin-inline-start:auto;font-size:11px;color:var(--color-neutral-700)" title="{{ vl.retirerPfAide }}" onClick="{{ vl.retirerPf }}">{{ vl.retirerPfLien }}</button>
                         </div>
                       </div>
@@ -7668,6 +7668,39 @@ class Component extends DCLogic {
   //
   // Le corps garde son nom de travail : envelopper sans réindenter cent lignes évite
   // un diff qui cache le geste dans du blanc.
+  // ————— LE REFUS D'EXPORT EST UNE PROPRIÉTÉ DE LA LIGNE, PAS UN ACCIDENT DU CLIC —————
+  //
+  // Un rapport a mis trois instruments au même verdict : « Exporter » ne produit rien.
+  // Le départage n'était ni le symbole, ni la devise, ni la profondeur d'historique —
+  // c'était le FILTRE. Les trois lignes muettes portaient « Sous résistance D1 20 » ;
+  // celle qui s'exportait portait « ADX D1(14) > 20 », tout le reste identique.
+  //
+  // Mesuré au banc sur une ligne dont la photo de réglages porte `fResist` :
+  // `filtresBloquants` rend « Sous résistance », le refus part, aucun fichier ne
+  // descend, et depuis que `hasardMsg` a sa seconde surface sous le portefeuille, la
+  // phrase est LUE là où le bouton vit. Le refus se disait donc déjà.
+  //
+  // CE QUI MANQUAIT EST EN AMONT : le bouton s'offrait PLEIN, en accent, pour refuser.
+  // « Ne rien écarter » et « Exporter (CSV) » ont reçu le même correctif deux jours
+  // plus tôt, et c'est la même forme — un bouton plein qui refuse est pire qu'un
+  // bouton éteint qui explique, parce qu'il fait recliquer au lieu de faire choisir.
+  //
+  // LA CONDITION EST UN RÉSULTAT (règle 1). On ne demande pas « la ligne porte-t-elle
+  // un filtre réputé inexportable ? » — ce serait réécrire ici la liste du générateur.
+  // On appelle la fonction QUI REFUSE, sur l'état résolu de la ligne : le bouton et le
+  // refus ne peuvent pas diverger, puisqu'ils lisent le même verdict.
+  //
+  // Rend la liste des réglages bloquants, en clair, ou null.
+  refusExport(v) {
+    // le juge n'est pas encore chargé : on n'invente pas de verdict — le bouton reste
+    // offert, et le refus du clic dira ce qu'il y a à dire. Un faux « bloqué » serait
+    // pire qu'un bouton offert, il retirerait un geste qui marche.
+    if (!this._modRobot || !v) return null;
+    try {
+      const l = this._modRobot.filtresBloquants(this.etatDeLigne(v)) || [];
+      return l.length ? l.join(', ') : null;
+    } catch (e) { return null; }
+  }
   async exporterRobot(v) {
     // ————— LA PREMIÈRE CHOSE QU'ON ÉCRIT EST QU'ON EST ENTRÉ —————
     // Trois instruments refusent de s'exporter sans un mot, et la livraison
@@ -7856,14 +7889,25 @@ class Component extends DCLogic {
   }
   // toutes les lignes d'un portefeuille, une par une : le navigateur ne sait pas zipper
   async exporterRobots(liste) {
-    let ok = 0, ko = 0;
+    // ————— UN LOT QUI REFUSE NOMME CE QU'IL A REFUSÉ —————
+    // « un filtre sans équivalent MQL5 fidèle, ou une grille de scan non mémorisée »
+    // est une généralité : elle dit qu'il y a eu un refus, jamais lequel ni sur quoi.
+    // L'utilisateur ne peut qu'y RECLIQUER. Nommer l'instrument et son réglage lui
+    // permet de CHOISIR une autre configuration, qui est le seul geste utile ici.
+    let ok = 0;
+    const refuses = [];
     for (const v of liste || []) {
-      if (await this.exporterRobot(v)) ok++; else ko++;
+      const refus = this.refusExport(v);
+      if (await this.exporterRobot(v)) ok++;
+      else refuses.push(this.nomComplet(v.sym) + (refus ? ' (' + refus + ')' : ''));
       await new Promise((z) => setTimeout(z, 350));
     }
-    if (ko) {
-      this.setState({ hasardMsg: ok + ' robot(s) exporté(s), ' + ko
-        + ' refusé(s) : un filtre sans équivalent MQL5 fidèle, ou une grille de scan non mémorisée.' });
+    if (refuses.length) {
+      this.setState({ hasardMsg: ok + ' robot(s) exporté(s). Refusé(s) : '
+        + refuses.join(' · ') + '. Un réglage entre parenthèses n\u2019a pas '
+        + 'd\u2019équivalent MQL5 fidèle — choisissez pour cet instrument une '
+        + 'configuration qui ne le porte pas. Sans parenthèses, la grille du scan '
+        + 'n\u2019est plus en mémoire : le détail est dans le fichier de diagnostic.' });
     }
   }
   basculerValide(sym, cfg) {
@@ -11805,6 +11849,16 @@ GROUPES = {
     const M = await import('./moteur.js');
     this.M = M;
     this.N = await import('./scan-noyau.js');
+    // ————— LE JUGE DU REFUS D'EXPORT SE CHARGE AU DÉMARRAGE —————
+    // `filtresBloquants` vit dans le générateur de robot, et le générateur ne se
+    // chargeait qu'AU CLIC : un bouton ne peut pas se griser sur un verdict qui
+    // n'arrive qu'après le geste. On le précharge donc ici.
+    // ET ON NE DUPLIQUE PAS SA TABLE. Recopier les quatre filtres inexportables dans
+    // le producteur aurait donné deux listes à tenir d'accord ; le jour où elles
+    // divergent, l'application promet un robot que l'export refuse — exactement la
+    // panne qu'on ferme. Le producteur appelle la MÊME fonction que le refus.
+    try { this._modRobot = await import('./robot-mt5.js?v=' + (window.__venaRobotV || Date.now())); }
+    catch (e) { this._modRobot = null; }
     this.testerWorkers();
     this.migrerGrille();
     const session = this.lireSession();
@@ -15963,7 +16017,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260917.2';
+  VERSION_APP = '260917.3';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -25620,6 +25674,17 @@ GROUPES = {
           courtier: c.principal ? c.principal.courtier : '—',
           tagCourtier: c.principal ? 'tag-accent' : 'tag-outline',
           exporterRobot: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.exporterRobot(v); },
+          // le refus, su AVANT le clic — même verdict que celui du refus lui-même
+          ...(() => {
+            const refus = this.refusExport(v);
+            return { robBloque: !!refus,
+              robAide: refus
+                ? 'Robot non exportable pour cette configuration : ' + refus
+                  + ' n\u2019a pas d\u2019équivalent MQL5 fidèle. Livrer le robot sans ce '
+                  + 'réglage donnerait un nombre de trades différent de la mesure. '
+                  + 'Choisissez une configuration qui ne porte pas ce filtre.'
+                : 'Télécharge l\u2019Expert Advisor MQL5 de cette configuration.' };
+          })(),
           dragStart: (e) => {
             if (e.dataTransfer) e.dataTransfer.setData('text/plain', sym);
             this.setState({ dragSym: sym, dragDepuis: null, dragPf: null });
@@ -25633,7 +25698,11 @@ GROUPES = {
           // ————— UNE SEULE ACTION PAR LIGNE : celle de l'étape où elle en est —————
           // Trois boutons sur chaque ligne demandaient à l'utilisateur de choisir lui-même
           // laquelle des trois lui restait à faire. C'est la ligne qui le sait.
-          ...(() => {
+          // `faireBloque: false` par DÉFAUT, puis surchargé par la seule branche qui
+          // peut refuser : sans ce défaut, six des sept branches laisseraient le trou
+          // `disabled` sans valeur — et un attribut qui ne résout rien ne rougit pas,
+          // il ne branche simplement rien.
+          ...(() => ({ faireBloque: false, ...(() => {
             const vr = { ...v, _sid: v.sid || v._sid };
             // même source que la fiche et le portefeuille : l'état du tirage est dans
             // `dec`, jamais recalculé dans la portée du producteur
@@ -25656,6 +25725,16 @@ GROUPES = {
                 faireAide: 'Le contrôle à ' + (f ? f.tirages : 0) + ' tirages ne tranche pas. Le rejouer à un autre nombre de tirages peut le trancher.' };
             }
             if (!j || !j.exporte) {
+              // le même verdict que le refus, lu avant le geste
+              const refus = this.refusExport(v);
+              if (refus) {
+                return { faireTxt: 'Robot MT5', faireCls: 'tag tag-outline', faire: rob,
+                  faireBloque: true,
+                  faireAide: 'Robot non exportable : ' + refus + ' n’a pas d’équivalent '
+                    + 'MQL5 fidèle. Livrer le robot sans ce réglage donnerait un nombre de '
+                    + 'trades différent de la mesure. Choisissez une configuration qui ne '
+                    + 'porte pas ce filtre.' };
+              }
               return { faireTxt: 'Robot MT5', faireCls: 'tag tag-accent', faire: rob,
                 faireAide: 'Télécharge l’Expert Advisor de cette configuration, et note la date d’export.' };
             }
@@ -25678,7 +25757,7 @@ GROUPES = {
             }
             return { faireTxt: 'Backtest', faireCls: 'tag tag-neutral', faire: bt,
               faireAide: 'Rejouer cette configuration dans le Backtest.' };
-          })(),
+          })() }))(),
           retirer: (e) => { e.stopPropagation(); this.basculerValide(sym, v); },
           // ————— LA DESTINATION, LIGNE PAR LIGNE —————
           // Trier ces lignes, c'est décider laquelle va où. Tant que la seule commande
