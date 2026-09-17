@@ -12510,10 +12510,26 @@ GROUPES = {
     const neuf = cat.find((x) => this.aSerieChargee(x)) || cat[0];
     return (!neuf || neuf === cur) ? null : neuf;
   }
+  // ————— UN RECADRAGE QUI ÉCRASE UNE REPRISE NE PEUT PAS SE TAIRE —————
+  //
+  // Il tourne en TÊTE de `testerUneFois` : un instrument absent du compte ouvert est
+  // remplacé, `venuDeHisto` effacé, `erreur` remise à null. Sur une reprise, la ligne
+  // avait bien restauré son symbole — et le panneau mesurait la configuration d'IBEX
+  // sur une série d'exemple, rendant un chiffre plausible et FAUX.
+  //
+  // Le recadrage reste juste : mesurer un symbole que le compte n'a pas est impossible.
+  // Ce qui ne l'était pas, c'est de le faire sans le dire, en effaçant au passage la
+  // trace qui aurait permis de s'en apercevoir.
   recadrerBtSym() {
     const neuf = this.recadrageBtSym();
     if (!neuf) return false;
-    this.setState({ btSym: neuf, venuDeHisto: null, erreur: null }, () => this.lancerTest());
+    const venait = this.state.venuDeHisto;
+    this.setState({ btSym: neuf, venuDeHisto: null,
+      erreur: venait
+        ? 'La ligne portait ' + venait + ', absent du compte ouvert : le panneau est '
+          + 'retombé sur ' + neuf + '. Les chiffres qui suivent ne sont PAS ceux de la '
+          + 'ligne — changez de compte, ou déposez la série de ' + venait + '.'
+        : null }, () => this.lancerTest());
     return true;
   }
   async testerUneFois() {
@@ -15537,6 +15553,23 @@ GROUPES = {
   //
   // Rend la liste des réglages qui ne correspondent pas, en clair. Vide = fidèle.
   // `null` = impossible à juger, ce qui n'est pas la même chose et se dit autrement.
+  // ————— DEUX LISTES DE FILTRES SE COMPARENT RÉSOLUES, JAMAIS PAR LEUR LIBELLÉ —————
+  //
+  // `ecartLigne` comparait les DOUZE PREMIERS CARACTÈRES du libellé de la ligne, en
+  // regex, contre un libellé produit par un AUTRE producteur : « ADX au-dessu » contre
+  // « ADX D1(14)>20 · Lecture basse · Frais courtier ». Le même filtre, deux
+  // vocabulaires, et un écart annoncé sur une reprise fidèle.
+  //
+  // Une garde qui crie à tort perd sa créance : la prochaine fois qu'elle a raison,
+  // personne ne la lit. Et douze est un NOMBRE MAGIQUE — une distance, pas une prise.
+  //
+  // On compare donc les objets résolus, indépendamment de l'ordre des clés et des
+  // éléments. Les libellés ne servent plus qu'à DIRE ce qui diffère, jamais à le décider.
+  memesFiltres(a, b) {
+    const norm = (f) => (f || []).map((x) => JSON.stringify(Object.keys(x || {}).sort()
+      .map((k) => [k, x[k]]))).sort().join('|');
+    return norm(a) === norm(b);
+  }
   repriseEcart(r, etatFinal) {
     const attendu = this.cfgDeLigne(r);
     if (!attendu || !etatFinal) return null;
@@ -15548,10 +15581,15 @@ GROUPES = {
     if (!obtenu) return null;
     // une projection stable : deux listes de filtres équivalentes doivent se comparer
     // égales quel que soit l'ordre des clés ou des éléments
-    const norm = (f) => (f || []).map((x) => JSON.stringify(Object.keys(x || {}).sort()
-      .map((k) => [k, x[k]]))).sort().join('|');
     const manques = [];
-    if (norm(attendu.filtres) !== norm(obtenu.filtres)) {
+    // L'INSTRUMENT D'ABORD : `recadrerBtSym` remplace en silence un symbole absent du
+    // compte ouvert, efface `venuDeHisto` et remet l'erreur à null. La configuration
+    // d'IBEX mesurée sur une série d'exemple rend un chiffre plausible et faux — c'est
+    // le plus dangereux des écarts, parce qu'il ne se voit pas dans les réglages.
+    if (etatFinal.btSym && r.sym && String(etatFinal.btSym) !== String(r.sym)) {
+      manques.push('l\u2019instrument mesuré est ' + etatFinal.btSym + ', la ligne portait ' + r.sym);
+    }
+    if (!this.memesFiltres(attendu.filtres, obtenu.filtres)) {
       const n = (attendu.filtres || []).length;
       manques.push(n
         ? 'la condition de la ligne (' + (r.filtreNom || n + ' filtre(s)') + ') n\u2019est pas celle du panneau'
@@ -15598,11 +15636,21 @@ GROUPES = {
     cmp('entrée', s.btEntree, a.entree);
     cmp('ligne', s.btLigne, a.ligne);
     cmp('sens', s.btSens, a.sens);
-    // le filtre ne se compare pas champ à champ : on dit ce qui est actif de chaque côté
-    const ici = this.filtresTexte(this.cfgCourante()) || 'aucune condition';
-    if (a.filtreNom && !new RegExp(a.filtreNom.split('·')[0].trim().slice(0, 12)
-      .replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i').test(ici)) {
-      dits.push('condition : « ' + ici + ' » ici, « ' + a.filtreNom + ' » sur la ligne');
+    // ————— LE FILTRE SE COMPARE RÉSOLU —————
+    // Ancienne forme : les douze premiers caractères du libellé de la ligne, en regex,
+    // contre le libellé du panneau — deux producteurs, deux vocabulaires, et « ADX
+    // au-dessu » introuvable dans « ADX D1(14)>20 ». Un écart annoncé sur une reprise
+    // fidèle, et une garde qui crie à tort n'est plus lue quand elle a raison.
+    const cfgIci = this.cfgCourante();
+    const ici = this.filtresTexte(cfgIci) || 'aucune condition';
+    // ANGLE MORT DÉCLARÉ (règle 9) : sans `cfgLigne`, la configuration mesurée de la
+    // ligne est introuvable et RIEN ne permet de comparer deux filtres. On se TAIT
+    // alors, plutôt que de comparer des libellés — un silence est plus honnête qu'un
+    // écart inventé, et le cas est couvert ailleurs : `repriseIncertaine` le dit à
+    // l'écran. (Pas de branche vide ici pour le porter : du code mort se lit comme une
+    // règle de décision, ce que `void ordre;` a coûté dans le moteur.)
+    if (s.cfgLigne && !this.memesFiltres((s.cfgLigne || {}).filtres, (cfgIci || {}).filtres)) {
+      dits.push('condition : « ' + ici + ' » ici, « ' + (a.filtreNom || '—') + ' » sur la ligne');
     }
     return 'Ce backtest ne rend pas les chiffres de la ligne : ' + res.n + ' trades et '
       + (res.total >= 0 ? '+' : '') + res.total.toFixed(1) + ' R ici, contre ' + a.n
@@ -16171,7 +16219,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260917.9';
+  VERSION_APP = '260917.10';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -20384,7 +20432,15 @@ GROUPES = {
         // le décompte PERTINENT pour le groupe où l'on est, et lui seul
         const compte = groupe === 'decide'
           ? (valides.length ? this.pl(valides.length, 'ligne rangée', 'lignes rangées') : 'aucune ligne rangée')
-          : (nSeries ? this.pl(nSeries, 'série', 'séries') : 'aucune série');
+          // ————— « 10 SÉRIES » À CÔTÉ DE « COMPTE Nº 1 » SE LIT COMME LE COMPTE —————
+          // `deposes` vit dans ETAT_DERIVE : remis à zéro au changement de compte, puis
+          // repeuplé par `reprendreSeries`. Il compte ce qui est CHARGÉ EN MÉMOIRE, pas
+          // ce que le compte porte. Sur le Backtest, il a affiché « 10 séries » à côté
+          // de « Compte nº 1 » pendant que le compte en portait 66 — et sur un écran où
+          // l'on vient de perdre son instrument, ce chiffre ressemble à une perte de
+          // données. Le chiffre était juste ; c'est son SUJET qui manquait.
+          : (nSeries ? this.pl(nSeries, 'série en mémoire', 'séries en mémoire')
+            : 'aucune série en mémoire');
         const nomCompte = this.nomCompteActif();
 
         // ————— UNE SEULE TÂCHE, LA PLUS URGENTE DU GROUPE OÙ L'ON EST —————

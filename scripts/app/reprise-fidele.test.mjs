@@ -86,6 +86,24 @@ test("une reprise qui ne restitue pas la condition de la ligne le DIT",
     assert.match(ecran, /Reprise INCOMPLÈTE|Reprise non vérifiable|Condition de la ligne NON restaurée/,
       "le signal est posé dans l'état mais n'apparaît pas à l'écran : un drapeau que "
       + "personne ne lit est le défaut qu'on vient de retirer, pas sa correction.");
+    // ————— ET UNE REPRISE FIDÈLE NE DOIT RIEN CRIER —————
+    // Une garde qui crie à tort perd sa créance : la prochaine fois qu'elle a raison,
+    // personne ne la lit. C'est arrivé — `ecartLigne` comparait les DOUZE premiers
+    // caractères du libellé de la ligne, en regex, contre un libellé d'un AUTRE
+    // producteur (« ADX au-dessu » contre « ADX D1(14)>20 ») et annonçait un écart sur
+    // une reprise parfaitement fidèle. Les filtres se comparent RÉSOLUS depuis.
+    const fidele = await p.evaluate("(() => { const l = " + INSTANCE + ";"
+      + " const v = l.normValides(l.state.valides)[1];"
+      + " l.versBacktest({ ...v });"
+      + " return { manques: l.state.repriseManques, sym: l.state.btSym, vSym: v.sym }; })()");
+    assert.equal(fidele.sym, fidele.vSym,
+      "la reprise n'a pas restauré l'instrument (" + fidele.sym + " au lieu de "
+      + fidele.vSym + ") : le panneau mesurerait une autre série sous les réglages de "
+      + "la ligne, et rendrait un chiffre plausible et faux.");
+    assert.equal(fidele.manques, null,
+      "une reprise FIDÈLE annonce un écart : " + JSON.stringify(fidele.manques)
+      + ". Une garde qui crie à tort perd sa créance — et c'est exactement ce que "
+      + "faisait la comparaison de libellés qu'on vient de retirer.");
   } finally {
     await nav.close();
   }
