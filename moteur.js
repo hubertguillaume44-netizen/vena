@@ -1435,7 +1435,14 @@ export function backtester(df, cfg) {
       // qui décide si l'extrême favorable est atteint avant le stop
       const haussiere = d * (df.c[i] - df.o[i]) >= 0;
       if (!haussiere && !prudent && armerAvant) majSecu(i);
-      const ordre = (haussiere || prudent) ? ['sl', 'tp'] : ['tp', 'sl'];
+      // ————— UN `ordre` ÉTAIT CALCULÉ ICI, PUIS JETÉ PAR `void ordre;` —————
+      // Il portait un commentaire qui expliquait sa sémantique, et se lisait donc comme
+      // LA règle de décision de la bougie ambiguë. La vraie décision vit plus bas, dans
+      // la cascade `if (ambigu && ordreConnuA(i)) … else if (prudent) … else …`.
+      // Éprouvé par mutation : neutraliser ce tableau ne changeait RIEN aux résultats ;
+      // seul le drapeau `prudent` à sa racine les fait bouger. Du code mort qui se lit
+      // comme la règle coûte plus cher que pas de code : il a envoyé deux mutations
+      // au mauvais endroit avant qu'on le remarque.
       // bougie ambiguë : elle contient le stop ET l'objectif. L'ordre réel des
       // mouvements y est inconnu, donc le sort du trade est décidé par une
       // convention, pas par la donnée. Compté pour pouvoir le dire.
@@ -1568,7 +1575,6 @@ export function backtester(df, cfg) {
         if (okTp) sortie = ['tp', tp];
         else if (!okRien) sortie = armeActif ? ['sl', slArme] : (okVieux ? ['sl', sl] : null);
       }
-      void ordre;
       ambiguTrade = ambiguTrade || indecis;
       if (sortie) {
         let motif = sortie[0];

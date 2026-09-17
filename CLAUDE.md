@@ -1758,6 +1758,60 @@ refaire, le second un chantier chiffré dont le refus actuel est le comportement
 livrer un robot amputé de son filtre donnerait un nombre de trades différent de la mesure,
 c'est-à-dire exactement ce que la section ci-dessus vient d'établir comme le critère.
 
+## Un palier armé rend la bougie H1 indécidable — et c'est le signe du résultat qui bascule
+
+**STATUT · CAUSE ÉTABLIE, MESURÉE dans le dépôt** pour les nombres ci-dessous ;
+**RAPPORTÉE, NON REPRODUITE** pour les neuf rejeux du testeur qui ont mené ici (ils sont
+sur le poste de l'utilisateur, aucun journal n'est entré dans `scripts/mt5/`).
+
+Véna évalue ses paliers de sécurisation sur les **clôtures H1** ; MT5 déplace le stop et
+le lit en **intrabar**. Sur les mêmes entrées, les sorties divergent. Le dépôt le savait
+et l'avait écrit — au-dessus de `comparerMt5` — avec une conclusion qui a coûté des
+semaines : *« un désaccord qui n'est pas une erreur »*. Vraie sur son domaine, elle se
+lisait comme « il n'y a rien à regarder ».
+
+**Mesuré sur les dix familles d'exemple**, même configuration, trois jeux de paliers :
+
+| jeu de paliers | trades ambigus (moyenne) | familles où la convention CHANGE LE SIGNE |
+|---|---|---|
+| aucun | **0 %** | 0 / 10 |
+| point mort à 25 % | **21 %** | **5 / 10** |
+| paliers progressifs | **27 %** | **6 / 10** |
+
+Et ça suit la volatilité : VX-EUR (8 %) reste à 3–4 % d'ambiguïté, VX-BTC (60 %) monte à
+47–52 %. Sur VX-BTC avec un simple point mort : 83 trades ambigus sur 177, résultat
+**−41 R ou +86 R** selon la convention d'ordre intra-bougie.
+
+> **Sans palier, la convention n'est jamais invoquée ; avec un palier, elle décide du
+> signe.** Ce n'est pas une marge d'arrondi qu'on mentionne en note — c'est la moitié des
+> configurations dont le chiffre affiché a le signe opposé sous l'autre lecture.
+
+**La bougie H1 ne PORTE PAS l'information, et aucun correctif ne l'y mettra.** Une bougie
+qui monte assez pour armer le point mort puis redescend le toucher n'a pas dit dans quel
+ordre. Trois issues, et c'est un arbitrage produit, pas une question technique :
+
+| | Ce que ça fait | Ce que ça coûte |
+|---|---|---|
+| **borner** | afficher le résultat dans les deux conventions au-delà d'un seuil d'ambiguïté, et dire combien de trades sont indéterminés | deux chiffres là où l'utilisateur en lit un ; l'infobulle du produit conseille DÉJÀ de cocher les deux lectures et de lire l'écart — ce serait le calculer à sa place |
+| **refuser** | ne pas proposer de paliers tant que la mesure ne peut pas les trancher | retire une fonction utilisée, et les paliers sont ce qui rapproche le backtest d'un vrai suivi |
+| **descendre** | évaluer les paliers sous la H1 | demande des données que l'utilisateur n'exporte pas — et l'export MT5 sait écrire les colonnes d'ORDRE des extrêmes (`ah`/`ab`), que le moteur lit déjà (`ordreConnuA`), ce qui est une quatrième voie partielle et non mesurée |
+
+**Le réglage qui décide de tout est celui que la ligne n'affiche pas.** `reglages`, la
+chaîne de configuration d'une ligne de portefeuille, est bâtie sur l'entrée, la ligne, la
+période, le stop et le R/R — **jamais sur la sécurisation**. Deux lignes dont l'une porte
+des paliers et l'autre non s'affichent identiquement. Quand on a cherché à savoir
+lesquelles des neuf lignes rejouées portaient un palier, la réponse n'était pas lisible à
+l'écran : il fallait appeler `paliersDe(v)`. *Le seul réglage capable de renverser le
+signe du résultat est absent de la ligne qui décrit la configuration.*
+
+`scripts/mt5/lecture-ambigue.test.mjs` tient les deux bouts : le **zéro** sans palier —
+sur lequel repose la réfutation de l'hypothèse intra-bougie telle qu'elle avait d'abord
+été posée — et la **magnitude** avec palier, exigée sur le SIGNE et non sur un écart
+quelconque. Éprouvé par mutation, et il a fallu trois essais : le tableau `ordre` et la
+branche `else if (prudent)` sont l'un et l'autre inertes ; seul le drapeau à sa racine
+fait bouger les nombres. Les deux premières mutations ont été vérifiées par LECTURE avant
+d'accuser la garde — sans quoi elle passait deux fois pour aveugle à tort.
+
 ## Le test qui tient la convention
 
 `scripts/app/nom-vena.test.mjs` échoue si l'ancien nom réapparaît ailleurs que dans la

@@ -9452,9 +9452,28 @@ GROUPES = {
 
   // ————— comparer le robot MT5 au backtest —————
   // Le rapport du testeur est collé tel quel ; on n'y cherche que les dates d'ENTRÉE.
-  // Les sorties diffèrent par construction — Véna sort sur palier de sécurité, MT5 lit
-  // le niveau du stop en intrabar — donc les comparer produirait un désaccord qui n'est
-  // pas une erreur. L'entrée, elle, doit tomber sur la même bougie.
+  // Les sorties diffèrent par construction — Véna évalue ses paliers sur les CLÔTURES
+  // H1, MT5 déplace le stop et le lit en INTRABAR. L'entrée, elle, doit tomber sur la
+  // même bougie.
+  //
+  // ————— « UN DÉSACCORD QUI N'EST PAS UNE ERREUR » ÉTAIT ÉCRIT ICI, SANS SON COMBIEN —————
+  //
+  // La phrase était vraie sur son domaine et fausse comme garantie générale : elle se
+  // lisait « il n'y a rien à regarder », et elle a servi des semaines à ne pas regarder
+  // cette classe. Mesuré depuis, sur les dix séries d'exemple :
+  //
+  //   sans palier          0 % de trades ambigus   ·  0/10 familles où le SIGNE change
+  //   point mort à 25 %   21 % en moyenne          ·  5/10
+  //   paliers progressifs 27 % en moyenne          ·  6/10
+  //
+  // Sur VX-BTC avec un simple point mort : 83 trades ambigus sur 177, et le résultat
+  // vaut -41 R ou +86 R selon la convention d'ordre intra-bougie. Le désaccord ne porte
+  // donc PAS sur quelques pour cent — il porte sur le signe, et sur une information que
+  // la bougie H1 ne contient pas.
+  //
+  // Ce qui reste vrai : ce n'est pas une erreur de PORTAGE, et c'est pourquoi on
+  // n'apparie que les entrées. Ce qui était faux : en conclure qu'il n'y a rien à
+  // mesurer. `scripts/mt5/lecture-ambigue.test.mjs` tient les nombres ci-dessus.
   comparerMt5(journal, texte, tolH) {
     const t = String(texte || '').trim();
     if (!t || !journal || !journal.length) return null;
@@ -9539,9 +9558,11 @@ GROUPES = {
     // d'affilée AVANT la première divergence. Au-delà, la comparaison est contaminée :
     // les deux moteurs n'autorisent qu'une position à la fois, et comme les sorties
     // diffèrent par construction (paliers sur clôtures H1 d'un côté, niveau du stop lu en
-    // intrabar de l'autre), un seul trade refermé plus tôt rend le moteur disponible plus
-    // tôt, lui fait prendre un signal que l'autre laissait passer, et désynchronise tout
-    // ce qui suit — à règle d'entrée identique.
+    // intrabar de l'autre — voir l'en-tête de `comparerMt5` et ce que ça coûte), un seul
+    // trade refermé plus tôt rend le moteur disponible plus tôt, lui fait prendre un
+    // signal que l'autre laissait passer, et désynchronise tout ce qui suit — à règle
+    // d'entrée identique. C'est aussi la piste la plus sérieuse pour un compte de trades
+    // qui EXPLOSE d'un côté : une sortie trop précoce libère la place pour une réentrée.
     const orphelins = [...best.orphMt5.map((x) => x - best.dec), ...best.orphSiv];
     const premiere = orphelins.length ? Math.min(...orphelins) : null;
     const avant = premiere === null ? best.paires.length
@@ -16017,7 +16038,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260917.4';
+  VERSION_APP = '260917.5';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
