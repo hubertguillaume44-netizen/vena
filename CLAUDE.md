@@ -458,7 +458,7 @@ d'URL est fabricable par l'acheteur, et son absence ne prouve rien non plus, alo
 charge de la preuve pèse sur le **vendeur**. La case à cocher reste, et sa fonction reste
 entière : elle fait **consentir**. C'est la facture qui **prouve**.
 
-## Les quinze règles, dans l'ordre où elles se servent
+## Les seize règles, dans l'ordre où elles se servent
 
 Elles viennent toutes d'un défaut réel de ce dépôt, et chacune est détaillée plus bas.
 
@@ -501,6 +501,11 @@ Elles viennent toutes d'un défaut réel de ce dépôt, et chacune est détaill�
     silence peut être le bon choix, et il rend alors le défaut indistinguable du cas
     normal. Le témoin ne peut pas être son propre témoin.
 
+16. **Une garde se juge aussi sur ses FAUX REFUS** — une garde correcte peut être
+    annulée par son propre taux de faux positifs. Le coût d'un faux refus n'est pas
+    une gêne : c'est la DÉSACTIVATION, et la désactivation est permanente quand le
+    faux refus était ponctuel.
+
 Les règles 6 à 9 sont nées le même jour, sur la même garde. Elles ferment par
 **construction** ce que les cinq premières ne fermaient que par **vigilance** — ou, quand
 rien ne peut le fermer, elles l'écrivent. La onzième est née de la panne la plus large du
@@ -510,7 +515,10 @@ une barre collante. La treizième est née d'un incident évité de justesse : u
 `git checkout --` posé pour défaire une mutation aurait emporté le correctif même qu'elle
 éprouvait. La quatorzième est née de l'élagage des trois familles mortes : six gardes
 s'accrochaient à ce qui partait — dont une dont personne ne savait qu'elle empruntait sa
-source à l'affaire supprimée — et chacune a eu une fin dite.
+source à l'affaire supprimée — et chacune a eu une fin dite. La seizième est née en une
+soirée : une garde livrée le matin refusait le cas NORMAL — le « # » que ce courtier met
+devant ses indices — et l'utilisateur l'a désactivée le soir, comme il fallait pour
+travailler. Elle a immédiatement laissé passer ce qu'elle venait d'interdire.
 
 ## Le défaut a un nom : demander une INTENTION pour prédire un RÉSULTAT
 
@@ -589,6 +597,53 @@ de repli est exactement ce qui retire cette garantie.
 menti dans une version livrée : elle est partie dans le commit qui l'activait. Mais ce
 délai était celui d'une relecture, pas celui d'une garde — et une relecture ne se
 reproduit pas à la demande.
+
+## Une garde se juge aussi sur ses faux refus
+
+**Les quinze premières règles parlent de gardes qui ne voient pas assez.** Celle-ci parle
+d'une garde qui voyait juste et qui a été **annulée** — non par un défaut de son critère,
+mais par son taux de faux refus. Elle a vécu une journée.
+
+> **Le coût d'un faux refus n'est pas une gêne, c'est la DÉSACTIVATION.** Et la
+> désactivation est permanente quand le faux refus était ponctuel. Une garde qu'il faut
+> désactiver pour travailler ne garde rien — et elle est pire que pas de garde, parce
+> qu'on la croit là.
+
+Le refus comparait les chaînes **brutes**. Chez ce courtier, les indices s'écrivent
+`#HongKong50` là où la mesure porte `HongKong50` : le refus tombait sur **le même
+instrument**, à chaque lancement. La seule sortie offerte était `InpSymboleLibre`, qui
+désarme la garde **entièrement** — et le soir même, elle a laissé passer un robot
+HongKong50 sur les données d'un autre instrument. Exactement ce qu'elle venait d'être
+écrite pour empêcher.
+
+C'est une parente de la règle 1 : on avait demandé « les deux chaînes sont-elles
+identiques ? » (une intention — *le courtier écrit-il le nom comme nous ?*) pour décider
+« est-ce le même instrument ? » (le résultat). La comparaison porte donc sur le **noyau** :
+capitales, tout caractère non alphanumérique retiré, et l'un des deux noms doit être
+**préfixe ou suffixe** de l'autre. Aucune liste de courtiers, aucun tableau de préfixes
+connus — `#` et `.` disparaissent d'eux-mêmes, `GOLD.r` garde `GOLD` en préfixe,
+`FX_EURUSD` garde `EURUSD` en suffixe.
+
+**La règle est mesurée, pas déclarée.** `robot-tient-son-symbole.test.mjs` porte un port
+fidèle et onze cas nommés — dont les deux accidents réels, qui doivent refuser — et un
+test distinct vérifie que le source émis **appelle** la règle, sans quoi le port
+mesurerait une règle que personne n'exécute. L'angle mort est écrit : `GOLD` contre
+`GOLDMINI` passe ; ils partagent leurs prix et le dimensionnement lit la taille de
+contrat du symbole courant, donc le cas est supportable — il n'est pas prouvé inoffensif,
+et chaque acceptation non exacte s'imprime au journal avec les deux noms.
+
+### Et le geste qui en sort : une propriété, pas une énumération
+
+La question à poser en écrivant une garde n'est donc plus seulement « qu'est-ce qu'elle
+laisse passer ? » mais **« sur quels cas légitimes va-t-elle tomber ? »** — et si la
+réponse est « le cas courant chez un utilisateur », la garde est déjà morte. Une porte de
+sortie n'y suffit pas : c'est elle qu'on prendra, une fois, définitivement.
+
+La sortie est la même que pour la règle 8 : remplacer l'égalité littérale par la
+**propriété** qu'on voulait vraiment tester. Ici, « les deux chaînes sont-elles
+identiques ? » est devenu « les deux noms désignent-ils le même instrument ? », et la
+porte `InpSymboleLibre` est redevenue ce qu'elle aurait toujours dû être : un dernier
+recours que personne n'a de raison d'actionner.
 
 ## Une garde d'étanchéité se pose à la frontière d'ÉCRITURE
 
@@ -1909,33 +1964,12 @@ le courtier (« GOLD » contre « GOLD.r »), qui demande de cocher `InpSymboleL
 
 #### Et le lendemain, la garde était désarmée — parce qu'elle refusait le cas NORMAL
 
-Le refus comparait les chaînes **brutes**. Chez ce courtier, les indices s'écrivent
-`#HongKong50` là où la mesure porte `HongKong50` : le refus tombait sur **le même
-instrument**, à chaque lancement. La seule sortie offerte était `InpSymboleLibre`, qui
-désarme la garde **entièrement** — et le soir même, elle a laissé passer un robot
-HongKong50 sur les données d'un autre instrument. Exactement ce qu'elle venait d'être
-écrite pour empêcher.
-
-> **Une garde qu'il faut désactiver pour travailler ne garde rien, et elle est pire que
-> pas de garde : on la croit là.** Le coût d'un faux refus n'est pas une gêne, c'est la
-> désactivation — et la désactivation est permanente, alors que le faux refus était
-> ponctuel.
-
-C'est une parente de la règle 1 : on avait demandé « les deux chaînes sont-elles
-identiques ? » (une intention — *le courtier écrit-il le nom comme nous ?*) pour décider
-« est-ce le même instrument ? » (le résultat). La comparaison porte donc sur le **noyau** :
-capitales, tout caractère non alphanumérique retiré, et l'un des deux noms doit être
-**préfixe ou suffixe** de l'autre. Aucune liste de courtiers, aucun tableau de préfixes
-connus — `#` et `.` disparaissent d'eux-mêmes, `GOLD.r` garde `GOLD` en préfixe,
-`FX_EURUSD` garde `EURUSD` en suffixe.
-
-**La règle est mesurée, pas déclarée.** `robot-tient-son-symbole.test.mjs` porte un port
-fidèle et onze cas nommés — dont les deux accidents réels, qui doivent refuser — et un
-test distinct vérifie que le source émis **appelle** la règle, sans quoi le port
-mesurerait une règle que personne n'exécute. L'angle mort est écrit : `GOLD` contre
-`GOLDMINI` passe ; ils partagent leurs prix et le dimensionnement lit la taille de
-contrat du symbole courant, donc le cas est supportable — il n'est pas prouvé inoffensif,
-et chaque acceptation non exacte s'imprime au journal avec les deux noms.
+Le refus comparait les chaînes BRUTES, et ce courtier écrit ses indices `#HongKong50`
+là où la mesure porte `HongKong50` : il tombait sur le MÊME instrument, l'utilisateur
+a coché `InpSymboleLibre` pour travailler, et la garde ainsi désarmée a laissé passer
+le soir même ce qu'elle venait d'interdire. C'est la **règle 16**, née là — voir
+« Une garde se juge aussi sur ses faux refus », plus haut, où la forme retenue (la
+comparaison par NOYAU) est écrite avec ses onze cas mesurés.
 
 ## Refuser est la moitié du travail quand la réponse est disponible
 
