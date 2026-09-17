@@ -4640,6 +4640,18 @@
         <sc-if value="{{ aErreur }}" hint-placeholder-val="{{ false }}">
           <span style="border:1px solid currentColor;padding:3px 9px;font-size:11px">{{ erreur }}</span>
         </sc-if>
+        <!-- ————— CE QUI MANQUE SE NOMME, « RÉGLAGES MODIFIÉS » NE SE DÉCODE PAS —————
+             Cinq lignes rouvertes affichaient « sans filtre » en portant chacune un
+             filtre, sous deux étiquettes — « CHIFFRES PÉRIMÉS » et « réglages
+             modifiés » — qu'aucun lecteur ne lit comme « ces réglages ne sont pas ceux
+             qui ont produit ce chiffre ». Le bandeau dit maintenant QUOI diffère, et
+             que les chiffres affichés viennent de la mesure enregistrée. -->
+        <sc-if value="{{ aRepriseManques }}" hint-placeholder-val="{{ false }}">
+          <span style="border:1px solid currentColor;padding:3px 9px;font-size:11px;white-space:normal;text-align:left;max-width:80ch" title="Les chiffres affichés viennent de la mesure enregistrée. Les réglages du panneau, eux, ne sont pas ceux qui les ont produits : cliquer « Mesurer » mesurerait une autre stratégie sous le même nom.">{{ repriseManquesTxt }}</span>
+        </sc-if>
+        <sc-if value="{{ btRepriseIncertaine }}" hint-placeholder-val="{{ false }}">
+          <span style="border:1px solid currentColor;padding:3px 9px;font-size:11px;white-space:normal;text-align:left;max-width:80ch" title="La configuration mesurée de cette ligne n'est plus en mémoire : ni dans les scans ouverts, ni dans l'historique. Rien ne permet de vérifier que le panneau la reproduit.">Reprise non vérifiable : la configuration mesurée de cette ligne est introuvable. Ce que le panneau montre n'est peut-être pas ce qui a produit ces chiffres.</span>
+        </sc-if>
         <sc-if value="{{ btVarianteRatee }}" hint-placeholder-val="{{ false }}">
           <span style="border:1px solid currentColor;padding:3px 9px;font-size:11px;max-width:70ch" title="La ligne cliquée portait une condition que le backtest n'a pas pu retrouver. Les chiffres décrivent une AUTRE configuration : plus de trades, un autre résultat. Relancez le scan pour rejouer la ligne fidèlement.">Condition de la ligne NON restaurée</span>
         </sc-if>
@@ -6775,7 +6787,7 @@ class Component extends DCLogic {
     gRrs: '1,5 2,0 2,5 3,0 3,5 4,0',
     gEntrees: ['croisement_ou_rebond'], gLignes: ['ema'], gFiltres: ['aucun'],
     btSym: null, reglagesOuverts: false, venuDeHisto: null, univers: [],
-    res: null, seg: null, courbe: [], varianteRatee: false, ligneAttendue: null, cfgLigne: null, ecartLigne: '', scanN: 0, scanRev: 0, archives: [], scanVu: null, scanEnCours: false, scanTestes: 0,
+    res: null, seg: null, courbe: [], varianteRatee: false, repriseManques: null, repriseIncertaine: false, ligneAttendue: null, cfgLigne: null, ecartLigne: '', scanN: 0, scanRev: 0, archives: [], scanVu: null, scanEnCours: false, scanTestes: 0,
     tradesMin: 40, segMin: 3, marche: null, tri: 'total', erreur: null, recherche: '', parSymbole: 1,
     deposes: [], survol: false, messageDepot: null, spreadSaisi: null, swapSaisi: null,
     manquePlace: null, filetPropose: false, majServie: null,
@@ -14483,7 +14495,13 @@ GROUPES = {
         btSym: r.sym, btPeriode: r.periode, btSL: r.sl, btRR: r.rr,
         btEntree: r.entree || r._reg.btEntree, btLigne: r.ligne || r._reg.btLigne };
       const fin = { ...this.state, ...suite };
+      // la photo peut être INCOMPLÈTE : on vérifie ce qu'elle a restitué plutôt que de
+      // le proclamer. `varianteRatee: false` posé d'office était l'affirmation la plus
+      // fausse des deux chemins.
+      const manquesA = this.repriseEcart(r, fin);
       this.setState({ ...suite,
+        repriseManques: manquesA && manquesA.length ? manquesA : null,
+        repriseIncertaine: manquesA === null && !!(r.filtre || r.filtreNom),
         reglagesRejoues: (forcage && forcage.secuPrudent)
           ? 'Même configuration que la ligne, mais en LECTURE BASSE : les bougies ambiguës sont tranchées contre vous. L\u2019écart avec l\u2019historique est la part du résultat qui dépend de l\u2019ordre des mouvements à l\u2019intérieur d\u2019une bougie.'
           : 'Configuration de la ligne restaurée à l\u2019identique : sa condition, sa sécurisation ('
@@ -14567,7 +14585,13 @@ GROUPES = {
       btEntree: r.entree || gUtil.btEntree || this.state.btEntree,
       btLigne: r.ligne || gUtil.btLigne || this.state.btLigne };
     const etatFinal = { ...this.state, ...suite };
+    // CE QUI VA TOURNER contre CE QUE LA LIGNE ÉTAIT — le seul juge honnête de la
+    // fidélité d'une reprise. `varianteRatee` ci-dessous ne couvre que le cas « aucune
+    // source trouvée » ; il reste parce que d'autres écrans le lisent.
+    const manquesB = this.repriseEcart(r, etatFinal);
     this.setState({ ...suite,
+      repriseManques: manquesB && manquesB.length ? manquesB : null,
+      repriseIncertaine: manquesB === null && !!(r.filtre || r.filtreNom),
       // la variante n'a pas été retrouvée alors que la ligne en portait une : les chiffres
       // qui vont s'afficher ne décrivent PAS la ligne cliquée, et il faut le dire fort
       varianteRatee: !rejoue && !patchV && !this.cfgDeLigne(r) && !!(r.filtre || r.filtreNom),
@@ -15492,6 +15516,59 @@ GROUPES = {
       entree: { ...modele.entree, periode },
       sortie: { ...modele.sortie, sl: { ...modele.sortie.sl, valeur: sl }, tp: { valeur: rr } } };
   }
+  // ————— LA REPRISE SE JUGE SUR CE QU'ELLE A RESTITUÉ, PAS SUR SA SOURCE —————
+  //
+  // Rapport : cinq lignes rouvertes en Backtest, cinq panneaux affichant « filtres ·
+  // aucun actif sur 10 » et « Conditions : sans filtre » — alors que les cinq lignes du
+  // portefeuille nomment chacune un filtre. Les compteurs, eux, correspondaient aux
+  // lignes : les chiffres venaient du résultat enregistré, pas des réglages montrés à
+  // côté. Quiconque clique « Mesurer » depuis cet écran mesure une autre stratégie sous
+  // le même nom.
+  //
+  // LE DRAPEAU EXISTANT NE POUVAIT PAS L'ATTRAPER, et c'est encore la règle 1.
+  // `varianteRatee` demandait « une source a-t-elle été trouvée ? » — `!patchV &&
+  // !cfgDeLigne(r)` — pour prédire « le panneau montre-t-il les réglages de la ligne ? ».
+  // Les deux divergent dès qu'une source est trouvée mais incomplète, et le chemin
+  // `r._reg` était pire encore : il posait `varianteRatee: false` d'office et annonçait
+  // « Configuration de la ligne restaurée à l'identique » sans avoir rien vérifié.
+  //
+  // On compare donc CE QUI VA TOURNER à CE QUE LA LIGNE ÉTAIT : `cfgCourante` sur l'état
+  // résultant contre `cfgDeLigne`. Décider après, pas avant.
+  //
+  // Rend la liste des réglages qui ne correspondent pas, en clair. Vide = fidèle.
+  // `null` = impossible à juger, ce qui n'est pas la même chose et se dit autrement.
+  repriseEcart(r, etatFinal) {
+    const attendu = this.cfgDeLigne(r);
+    if (!attendu || !etatFinal) return null;
+    let obtenu = null;
+    try {
+      obtenu = this.cfgCourante(r.sym, Number(r.periode), Number(r.sl), Number(r.rr),
+        etatFinal, { entree: r.entree, ligne: r.ligne });
+    } catch (e) { return null; }
+    if (!obtenu) return null;
+    // une projection stable : deux listes de filtres équivalentes doivent se comparer
+    // égales quel que soit l'ordre des clés ou des éléments
+    const norm = (f) => (f || []).map((x) => JSON.stringify(Object.keys(x || {}).sort()
+      .map((k) => [k, x[k]]))).sort().join('|');
+    const manques = [];
+    if (norm(attendu.filtres) !== norm(obtenu.filtres)) {
+      const n = (attendu.filtres || []).length;
+      manques.push(n
+        ? 'la condition de la ligne (' + (r.filtreNom || n + ' filtre(s)') + ') n\u2019est pas celle du panneau'
+        : 'le panneau applique une condition que la ligne n\u2019avait pas');
+    }
+    const secuA = JSON.stringify((attendu.sortie || {}).securisation || null);
+    const secuB = JSON.stringify((obtenu.sortie || {}).securisation || null);
+    if (secuA !== secuB) manques.push('la sécurisation diffère');
+    if (Number((attendu.sortie || {}).duree_max || 0) !== Number((obtenu.sortie || {}).duree_max || 0)) {
+      manques.push('la durée maximale diffère');
+    }
+    if ((attendu.sens || 'achat') !== (obtenu.sens || 'achat')) manques.push('le sens diffère');
+    if (!!(attendu.sortie || {}).prudent !== !!(obtenu.sortie || {}).prudent) {
+      manques.push('la lecture des bougies ambiguës diffère');
+    }
+    return manques;
+  }
   attenduDe(r, forcage) {
     if (!r || forcage) return null;
     return { sym: r.sym, n: Number(r.n) || 0, total: Number(r.total) || 0,
@@ -16094,7 +16171,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260917.7';
+  VERSION_APP = '260917.8';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -24048,6 +24125,12 @@ GROUPES = {
       // il se lisait après coup, quand on avait déjà cru au nombre. L'avertissement monte
       // donc à côté du total, là où le regard se pose.
       btVarianteRatee: !!s.varianteRatee,
+      aRepriseManques: !!(s.repriseManques && s.repriseManques.length),
+      btRepriseIncertaine: !!s.repriseIncertaine,
+      repriseManquesTxt: (s.repriseManques && s.repriseManques.length)
+        ? 'Reprise INCOMPLÈTE — ' + s.repriseManques.join(' ; ')
+          + '. Les chiffres ci-dessus viennent de la mesure enregistrée ; les réglages du panneau ne sont pas ceux qui les ont produits.'
+        : '',
       aEcartLigne: !!s.ecartLigne,
       ecartLigneTxt: s.ecartLigne || '',
       // Sans sécurisation, et sur une série qui porte la minute des extrêmes, les deux

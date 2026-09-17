@@ -162,6 +162,20 @@
    ]
   },
   {
+   "terme": "Chiffres périmés — relancez le test",
+   "texte": "Les chiffres affichés viennent de la mesure enregistrée. Les réglages du panneau, eux, ne sont pas ceux qui les ont produits : cliquer « Mesurer » mesurerait une autre stratégie sous le même nom.",
+   "vues": [
+    "Backtest"
+   ]
+  },
+  {
+   "terme": "Chiffres périmés — relancez le test",
+   "texte": "La configuration mesurée de cette ligne n'est plus en mémoire : ni dans les scans ouverts, ni dans l'historique. Rien ne permet de vérifier que le panneau la reproduit.",
+   "vues": [
+    "Backtest"
+   ]
+  },
+  {
    "terme": "Choisir un fichier de sauvegarde",
    "texte": "Choisit un fichier sur votre disque. Véna y réécrit tout, chaque minute. Aucun vidage de navigateur ne l’atteint.",
    "vues": [
