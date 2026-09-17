@@ -1670,6 +1670,60 @@ et reste au-dessus de 1,8 quel que soit le lissage, mesuré sur cinq largeurs de
 rien. C'était mesurer la mauvaise grandeur : deux courbes indiscernables peuvent porter
 des profils de variance opposés. La forme n'est pas la statistique.
 
+## La transposition JS → MQL5 lit le marché à l'identique — et sur quoi ça repose
+
+**PROVENANCE · RAPPORTÉE PAR L'UTILISATEUR, NON CONSIGNÉE DANS LE DÉPÔT.** Cette section
+est écrite en premier lieu pour dire d'où elle vient. Quatre robots rejoués sur historique
+complet — 40 000 barres, qualité 99 % — donnent **quasiment le même nombre de trades que
+Véna**, trois légèrement en dessous et un légèrement au-dessus en résultat. La mesure a été
+faite sur le poste de l'utilisateur ; aucun journal n'est entré dans `scripts/mt5/`, et les
+chiffres exacts ne sont pas ici. Le statut honnête est donc **panne absente, rapportée** —
+pas « établie » au sens des cinq gardes, qui exigerait une trace qu'un test peut relire.
+
+**CE QUE LE COMPTE DE TRADES TRANCHE, ET C'EST LA QUESTION DU MOIS.** Deux implémentations
+peuvent différer sur ce qu'elles DÉCIDENT ou sur ce qu'elles PAIENT, et un écart de R net
+seul ne distingue pas les deux. Le **nombre** de trades, lui, ne dépend que des entrées :
+même compte, mêmes entrées, donc même lecture du marché. C'était déjà le discriminant du
+harnais — `references.mjs` porte ses avant/après au trade près (62 contre 503, corrigé en
+502 contre 503 ; 420 → 352 contre 355 au testeur) — mais à l'échelle d'une configuration à
+la fois, sur historique partiel. Sur quatre robots et l'historique complet, la réponse
+tient : **l'écart résiduel n'est pas dans la décision, il est dans l'exécution** — spread
+au remplissage, ordre des ticks dans la bougie.
+
+### Un écart qui CHANGE DE SIGNE n'est pas un coût mal modélisé
+
+C'est l'inférence qui clôt le dossier, et elle vaut au-delà de MT5.
+
+> **Un biais de modélisation a un signe.** Un spread sous-estimé, une commission oubliée,
+> un swap au mauvais sens : chacun pousse TOUS les cas du même côté. Quand quatre mesures
+> se répartissent trois d'un côté et une de l'autre, ce qui reste est du bruit
+> d'exécution, pas une erreur de modèle.
+
+Le test se fait avant de chercher : *l'écart a-t-il un signe ?* S'il en a un, on cherche un
+terme manquant et on le trouvera. S'il change de signe, chercher un terme manquant est une
+chasse sans gibier — et c'est là qu'un mois se perd. La dispersion autour de zéro est une
+information sur la NATURE de l'écart, pas seulement sur sa taille.
+
+**Ce qui en ferait un fait du dépôt plutôt qu'un rapport**, et c'est peu : les quatre
+journaux de ces rejeux dans `scripts/mt5/`, joints au jeu de référence. Le harnais sait
+déjà les lire — `lireRapportMt5`, `apparier`, `comparer` — et `references.mjs` dit
+explicitement que ses `nVéna`/`rVéna` sont « un repère historique, pas une cible ». Avec
+les journaux, ils deviendraient une cible, et la phrase ci-dessus cesserait d'avoir besoin
+de sa ligne de provenance.
+
+### Ce qui reste, et ce que ça pèse
+
+| | Ce que c'est | Ce que ça coûte |
+|---|---|---|
+| **Le cinquième robot** | il divergeait sur des données TRONQUÉES ; à refaire sur historique complet | un rejeu — et une divergence sur données tronquées n'est pas une divergence |
+| **Les quatre filtres non transposables** | `fResist` ~10 lignes, `fPivot` ~8, `fNuage` plus de code sans machinerie neuve, `fZone` le seul dont la fidélité soit en jeu | une file d'attente, pas une panne — détaillée au-dessus de la table `INCONNUS` de `robot-mt5.js` |
+
+**Aucun des deux n'est un défaut ouvert**, et c'est la raison d'être de ce tableau : sans
+lui, « il reste deux choses » se lit comme deux pannes. Le premier est une mesure à
+refaire, le second un chantier chiffré dont le refus actuel est le comportement JUSTE —
+livrer un robot amputé de son filtre donnerait un nombre de trades différent de la mesure,
+c'est-à-dire exactement ce que la section ci-dessus vient d'établir comme le critère.
+
 ## Le test qui tient la convention
 
 `scripts/app/nom-vena.test.mjs` échoue si l'ancien nom réapparaît ailleurs que dans la

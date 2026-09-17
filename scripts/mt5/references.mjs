@@ -21,6 +21,14 @@
  * `nVéna` / `rVéna` sont les chiffres que Véna affichait AU MOMENT DE L'EXPORT
  * (en-tête « Mesuré »), avant les corrections de suivi H1. Ils servent de repère
  * historique, pas de cible.
+ *
+ * ET C'EST CE QUI MANQUE POUR FAIRE DU VERDICT UN FAIT DU DÉPÔT. Quatre robots rejoués
+ * sur historique complet (40 000 barres, qualité 99 %) rendent quasiment le même nombre
+ * de trades que Véna — donc les mêmes entrées, donc la même lecture du marché. Cette
+ * mesure a été faite sur le poste de l'utilisateur et n'est PAS ici : aucun de ces
+ * quatre journaux n'est entré dans ce dossier. Les y joindre transformerait ces repères
+ * en cibles, et le harnais sait déjà les lire (lireRapportMt5, apparier, comparer).
+ * Voir CLAUDE.md, « La transposition JS vers MQL5 lit le marché à l'identique ».
  */
 export const PALIERS_REFERENCE = [
   [25, 0],
