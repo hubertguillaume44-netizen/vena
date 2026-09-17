@@ -7880,6 +7880,38 @@ class Component extends DCLogic {
   // exporté avec « 25→0 / 50→25 / 75→50 » pour une ligne marquée « aucune sécurisation ».
   // On passe par la même résolution que le Backtest, pour que les deux ne puissent pas
   // se contredire.
+  // ————— UNE CHAÎNE DE CONFIGURATION QUI TAIT UN RÉGLAGE MENT PAR OMISSION —————
+  //
+  // `reglages` décrivait une ligne par son entrée, sa ligne de référence, sa période,
+  // son stop et son R/R — et TAISAIT la sécurisation. Deux lignes dont l'une porte un
+  // point mort et l'autre rien s'affichaient donc à l'identique.
+  //
+  // Ce n'est pas un oubli cosmétique : mesuré sur les dix séries d'exemple, un point
+  // mort à 25 % rend 22 % des trades indécidables en moyenne, et sur cinq familles sur
+  // dix le résultat CHANGE DE SIGNE selon la convention de lecture. Le seul réglage
+  // capable de renverser le signe était le seul absent de la description.
+  //
+  // Et ça a coûté : en cherchant ce qui distinguait quatre configurations divergentes
+  // de cinq concordantes, on a lu ces chaînes, conclu « pas de sécurisation », et
+  // cherché ailleurs pendant des semaines. Une absence de VOCABULAIRE prise pour une
+  // absence de RÉGLAGE — la règle 1 dans une chaîne d'affichage.
+  //
+  // « Aucune sécurisation » S'ÉCRIT, le silence ne suffit pas. Un champ qui disparaît
+  // quand il vaut zéro est indistinguable d'un champ qu'on ne montre pas, et c'est
+  // exactement la confusion qui vient d'être payée.
+  secuTexte(v) {
+    const g = this.etatDeLigne({ ...(v || {}), _sid: (v && (v._sid || v.sid)) }) || this.state;
+    if (g.btBE && g.typeSecu === 'trailing') {
+      const d = Number(g.trailingPct) || 0;
+      // `fr` n'est pas dans la portée de la classe (garde `portee-script`) : on formate
+      // ici, à la virgule française, plutôt que d'importer un helper pour un chiffre.
+      return d > 0 ? 'Stop suiveur ' + String(d.toFixed(1)).replace('.', ',') + ' %' : 'Stop suiveur';
+    }
+    const p = this.paliersDe(v);
+    if (!p.length) return 'Aucune sécurisation';
+    const txt = p.map(([seuil, niv]) => seuil + '\u2192' + niv).join(' · ');
+    return (p.length === 1 && Number(p[0][1]) === 0 ? 'Point mort ' : 'Paliers ') + txt;
+  }
   paliersDe(v) {
     const g = this.etatDeLigne({ ...(v || {}), _sid: (v && (v._sid || v.sid)) }) || this.state;
     if (!g.btBE) return [];
@@ -16038,7 +16070,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260917.5';
+  VERSION_APP = '260917.6';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -25501,6 +25533,7 @@ GROUPES = {
             ? (v.entree ? (ENTREES_TXT[v.entree] || v.entree) + ' · ' : '')
               + (v.ligne ? (LIGNES_TXT[v.ligne] || v.ligne) + ' ' : '') + v.periode
               + ' · ' + fr(v.sl, 1) + ' % / ' + fr(v.rr, 1)
+              + ' · ' + this.secuTexte(v)
             : 'aucune configuration connue — revalidez-le depuis l\u2019historique',
           // deux lignes serrées : l'entrée au-dessus, stop et R/R en dessous
           reglagesEntree: v.periode
@@ -25508,7 +25541,7 @@ GROUPES = {
               + (v.ligne ? (LIGNES_TXT[v.ligne] || v.ligne) + ' ' : '') + v.periode
             : 'configuration inconnue',
           reglagesChiffres: v.periode
-            ? 'stop ' + fr(v.sl, 1) + ' % · R/R ' + fr(v.rr, 1)
+            ? 'stop ' + fr(v.sl, 1) + ' % · R/R ' + fr(v.rr, 1) + ' · ' + this.secuTexte(v)
             : 'revalidez-le depuis l\u2019historique',
           filtres: v.filtres || 'filtres inconnus',
           filtresAucun: v.filtres === 'Aucun filtre' || !v.filtres,
