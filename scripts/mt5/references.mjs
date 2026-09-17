@@ -29,6 +29,21 @@
  * quatre journaux n'est entré dans ce dossier. Les y joindre transformerait ces repères
  * en cibles, et le harnais sait déjà les lire (lireRapportMt5, apparier, comparer).
  * Voir CLAUDE.md, « La transposition JS vers MQL5 lit le marché à l'identique ».
+ *
+ * ————— ALIGNER LES DATES AVANT DE COMPARER QUOI QUE CE SOIT —————
+ *
+ * Une demi-journée a été perdue sur AUDUSD : 423 trades côté MT5 contre 104 côté Véna,
+ * soit un facteur 4,07 — et Véna avait mesuré 3,4 ans quand le testeur tournait sur 6,6.
+ * Ramené au même nombre d'années, l'écart tombe à ~2,1. La moitié venait de la
+ * comparaison, pas du produit.
+ *
+ * Le panneau l'annonçait « depuis 01/01/2020 » sur une série qui commence en 2023 : le
+ * champ portait la date EN DUR, lié à rien. Il affiche depuis la période réellement
+ * couverte, lue dans les bougies, et signale quand elle est plus courte.
+ *
+ * LA CONSIGNE : avant de rapprocher un rapport MT5 d'une mesure Véna, relever les deux
+ * fenêtres et les rendre identiques. Un écart de COMPTE n'est interprétable qu'à période
+ * égale — et un ratio proche d'un entier (4,07) invite d'autant plus à conclure vite.
  */
 export const PALIERS_REFERENCE = [
   [25, 0],

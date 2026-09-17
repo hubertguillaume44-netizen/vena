@@ -4649,6 +4649,9 @@
         <sc-if value="{{ aRepriseManques }}" hint-placeholder-val="{{ false }}">
           <span style="border:1px solid currentColor;padding:3px 9px;font-size:11px;white-space:normal;text-align:left;max-width:80ch" title="Les chiffres affichés viennent de la mesure enregistrée. Les réglages du panneau, eux, ne sont pas ceux qui les ont produits : cliquer « Mesurer » mesurerait une autre stratégie sous le même nom.">{{ repriseManquesTxt }}</span>
         </sc-if>
+        <sc-if value="{{ btCouvertureCourte }}" hint-placeholder-val="{{ false }}">
+          <span style="border:1px solid currentColor;padding:3px 9px;font-size:11px;white-space:normal;text-align:left;max-width:80ch" title="{{ btCouvertureAide }}">Période partielle : {{ btCouverture }}. Une comparaison à un test MT5 lancé sur une autre période compare deux choses différentes.</span>
+        </sc-if>
         <sc-if value="{{ btRepriseIncertaine }}" hint-placeholder-val="{{ false }}">
           <span style="border:1px solid currentColor;padding:3px 9px;font-size:11px;white-space:normal;text-align:left;max-width:80ch" title="La configuration mesurée de cette ligne n'est plus en mémoire : ni dans les scans ouverts, ni dans l'historique. Rien ne permet de vérifier que le panneau la reproduit.">Reprise non vérifiable : la configuration mesurée de cette ligne est introuvable. Ce que le panneau montre n'est peut-être pas ce qui a produit ces chiffres.</span>
         </sc-if>
@@ -4677,8 +4680,13 @@
             <sc-raw-select class="input" style="min-height:1.8rem;height:1.8rem;font-size:12px;padding:0 6px" value="{{ btSym }}" onChange="{{ setSym }}">
               <sc-for list="{{ symboles }}" as="sy" hint-placeholder-count="6"><option value="{{ sy.nom }}">{{ sy.etiq }}</option></sc-for>
             </sc-raw-select></label>
-          <label style="display:flex;flex-direction:column;gap:2px"><span style="font-size:9px;letter-spacing:.06em;text-transform:uppercase" class="text-muted">Depuis</span>
-            <input class="input" style="min-height:1.8rem;height:1.8rem;font-size:12px;padding:0 6px" type="text" value="01/01/2020" disabled="{{ true }}"></label>
+          <!-- La période COUVERTE, lue dans les bougies — l'ancien champ portait la
+               date du 1er janvier 2020 en constante, liée à rien, et grisée : elle se lisait
+               comme un paramètre mesuré. AUDUSD y annonçait 2020 sur une série qui
+               commence en 2023, et la comparaison au testeur portait sur deux périodes
+               différentes sans que rien ne le dise. -->
+          <label style="display:flex;flex-direction:column;gap:2px"><span style="font-size:9px;letter-spacing:.06em;text-transform:uppercase" class="text-muted">Période couverte</span>
+            <input class="input" style="min-height:1.8rem;height:1.8rem;font-size:12px;padding:0 6px" type="text" value="{{ btCouverture }}" title="{{ btCouvertureAide }}" disabled="{{ true }}"></label>
           <label style="display:flex;flex-direction:column;gap:2px"><span style="font-size:9px;letter-spacing:.06em;text-transform:uppercase" class="text-muted">Unité</span>
             <sc-raw-select class="input" style="min-height:1.8rem;height:1.8rem;font-size:12px;padding:0 6px" value="{{ ut }}" onChange="{{ setUt }}">
               <sc-for list="{{ uts }}" as="u" hint-placeholder-count="3"><option value="{{ u.v }}">{{ u.nom }}</option></sc-for>
@@ -16219,7 +16227,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260917.10';
+  VERSION_APP = '260917.11';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -24197,6 +24205,42 @@ GROUPES = {
             ? 'ré-exportez ' + s.btSym + ' — cette série n\u2019a pas les colonnes haut_apres / bas_apres, '
               + 'qui disent ce que le prix a fait après le second extrême de l\u2019heure'
             : '' };
+      })(),
+      // ————— « DEPUIS 01/01/2020 » ÉTAIT ÉCRIT EN DUR DANS LE GABARIT —————
+      //
+      // Un champ de saisie grisé portant la date du 1er janvier 2020 en CONSTANTE
+      // d'attribut — lié à rien, calculé depuis rien, et
+      // grisé — donc lu comme un paramètre qui fait autorité. AUDUSD y affichait
+      // « depuis 01/01/2020 » alors que sa série commence en 2023, et seule la durée en
+      // petit (3,4 ans) le trahissait. Le testeur MT5, lui, tournait bien sur 6,6 ans :
+      // la comparaison portait sur deux périodes différentes, et l'écart de comptes
+      // qu'on en a tiré était faux de moitié.
+      //
+      // La borne DEMANDÉE n'est pas la borne MESURÉE. On affiche donc ce que la série
+      // couvre vraiment, lu dans ses bougies — un résultat, pas une constante.
+      ...(() => {
+        const df = this.serieH1(s.btSym);
+        if (!df || !df.n || !df.t) {
+          return { btCouverture: 'aucune série chargée', btCouvertureCourte: false,
+            btCouvertureAide: 'Aucune bougie en mémoire pour cet instrument : la période '
+              + 'couverte ne peut pas être établie.' };
+        }
+        const d0 = new Date(df.t[0]), d1 = new Date(df.t[df.n - 1]);
+        const jj = (d) => String(d.getUTCDate()).padStart(2, '0') + '/'
+          + String(d.getUTCMonth() + 1).padStart(2, '0') + '/' + d.getUTCFullYear();
+        const ans = (df.t[df.n - 1] - df.t[0]) / (365.25 * 86400000);
+        // le repère HISTORIQUE de l'application : ce que la page annonçait en dur
+        const vise = Date.UTC(2020, 0, 1);
+        const courte = df.t[0] > vise + 86400000 * 31;
+        return {
+          btCouverture: jj(d0) + ' → ' + jj(d1) + ' · ' + fr(ans, 1) + ' ans',
+          btCouvertureCourte: courte,
+          btCouvertureAide: courte
+            ? 'Cette série commence le ' + jj(d0) + ', pas en janvier 2020. Toute '
+              + 'comparaison à un test MT5 lancé sur une autre période compare deux '
+              + 'choses différentes — alignez les dates avant de conclure.'
+            : 'La période réellement couverte par les bougies en mémoire, lue dans la '
+              + 'série elle-même.' };
       })(),
       btBandeTag: s.bande && s.bande.n && s.bande.largeur >= 0.05 ? 'tag-outline' : '',
       // Une ligne rouverte sans sa condition affiche d'autres chiffres sous le même
