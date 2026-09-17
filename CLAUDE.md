@@ -353,6 +353,40 @@ où les tendances meurent avant la fin — exactement ce qu'un balayage de crois
 moyennes est censé trouver, ou ne pas trouver. Le critère a l'air d'un cadrage, c'est un
 réglage du marché.
 
+### Aucune famille n'est cotée sous 1 — et ce n'est pas au générateur de le corriger
+
+Un rapport a nommé l'angle mort : 423 trades côté MT5 contre 104 côté Véna sur **le
+premier instrument coté sous 1** jamais éprouvé (0,65 ; les cinq autres, tous d'accord à
+quelques unités, sont à 96, 99, 1790, 29000). Mesuré ici : les dix familles vont de
+**1,0850** (VX-EUR) à 61 200 (VX-BTC), et les huit références MT5 non plus ne descendent
+sous 1. Un défaut qui ne se réveille que là avait toute la place pour vivre.
+
+**Descendre une famille sous 1 paraissait la réponse, et c'est la mauvaise.** Changer un
+niveau de prix change les bougies, donc périme les scans enregistrés de tout le monde, et
+se paie en `vena-exemple-v3` — voir la graine gelée plus haut. *Le prix d'éprouver une
+propriété du moteur n'a pas à être payé par les données des utilisateurs.* Une série de
+banc coûte zéro octet chez eux.
+
+**La propriété se garde donc directement**, dans `scripts/mt5/echelle-des-prix.test.mjs` :
+tout ce que le moteur décide est en pourcentage — stop, objectif, plafond de spread —,
+donc multiplier tous les prix par une constante ne peut pas changer le nombre de trades.
+Trois échelles, 1790 / 96 / 0,65, spread tenu à 0,012 % du cours à chacune. **C'est la
+CLASSE et non le cas** : elle attrape un défaut à 0,000012 aussi bien qu'à 0,65, et elle
+n'a aucune liste d'instruments à tenir à jour (règle 8 appliquée à la garde).
+
+**Elle n'a rien attrapé, et son statut le dit** : 130 trades aux trois échelles. Deux
+choses en sortent quand même, et elles rétrécissent la recherche :
+
+| Ce qui a été éprouvé | Ce que ça élimine |
+|---|---|
+| grain forcé à 2 décimales (mutation) : spread relevé 0,012 % → **12,02 %** sur l'instrument à 0,65 | le compte passe de 130 à 130. **Le plafond de spread ne peut pas produire un écart de comptes** — même faux d'un facteur mille |
+| le stop, l'objectif et les paliers lus dans le source émis | `prix × (1 ± STOP_PCT/100)` : aucun point, aucun `Digits`, aucune constante absolue. Le refus « stop sous le minimum courtier » RETIRE des entrées, il n'en ajoute pas |
+
+**Ce qu'aucune des deux ne couvre, et qui reste le suspect** : un CSV réel abîmé — prix
+tronqués à l'export, colonne de spread en points d'un autre pas, bougies plates par
+arrondi. Ces trois-là ne se distinguent pas d'une série saine par leur ÉCHELLE, donc
+l'invariance ne les voit pas, et c'est écrit dans l'angle mort de la garde.
+
 ## Le compte de découverte n'existe plus
 
 Il était le **sixième compte** d'un sélecteur qui en offre cinq, avec ses bougies écrites
