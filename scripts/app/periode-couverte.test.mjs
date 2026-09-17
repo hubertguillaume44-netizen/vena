@@ -38,10 +38,10 @@ test("aucune BORNE de période n'est écrite en dur dans le gabarit", () => {
 });
 
 test("la période affichée est LIÉE à la série, et l'écart se signale", () => {
-  const champ = APP.slice(borne(APP, "Période couverte</span>"),
-    borne(APP, "</label>", borne(APP, "Période couverte</span>")));
+  const champ = APP.slice(borne(APP, "Bougies en mémoire</span>"),
+    borne(APP, "</label>", borne(APP, "Bougies en mémoire</span>")));
   assert.match(champ, /value="\{\{ btCouverture \}\}"/,
-    "le champ « Période couverte » n'est plus lié à `btCouverture` : il afficherait de "
+    "le champ « Bougies en mémoire » n'est plus lié à `btCouverture` : il afficherait de "
     + "nouveau une valeur qui ne vient pas des bougies.");
 
   // le producteur lit la SÉRIE, pas un réglage — ancré sur l'appel

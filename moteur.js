@@ -1143,6 +1143,9 @@ export function backtester(df, cfg) {
   // quoi sécuriser ou gagner, on tranche toujours en défaveur (stop d'abord, palier
   // posé seulement en fin de bougie). Donne la borne basse du résultat.
   const prudent = !!cfg.sortie.prudent;
+  // bougies sautées (hors séance ou reconstituées) qui auraient fermé la position :
+  // la mesure de ce que la règle de séance retire au résultat. Voir son usage plus bas.
+  let sautes = 0;
   // Armer le palier depuis le HAUT de la bougie puis tester le stop contre son BAS
   // suppose que le haut est venu en premier — précisément ce que la bougie ne dit pas.
   // C'était un pis-aller du suivi en Daily, où sans lui aucun point mort n'apparaissait
@@ -1411,7 +1414,29 @@ export function backtester(df, cfg) {
       // Hors séance : le stop suit, l'ordre attend. `majSecu` d'abord, aucune sortie
       // ensuite — c'est ce que fait le testeur, vérifié sur 538 sorties dont aucune
       // hors séance et 103 paliers qui, eux, s'y déplacent.
-      if (!releve(i)) { majSecu(i, false); continue; }
+      // ————— CE QUI EST SAUTÉ ICI SE COMPTE, PARCE QUE ÇA NE SE VOIT PAS —————
+      //
+      // Hors séance, ou sur une bougie reconstituée, ni le stop ni l'objectif ne sont
+      // testés : seul le palier bouge. Véna ne peut donc PAS perdre un trade sur une
+      // telle bougie, alors que le stop du robot dort dans le carnet du courtier.
+      //
+      // La règle a été mesurée — journal GOLD du 5 septembre 2026, 538 entrées et 538
+      // sorties, aucune hors séance — mais SUR UN SEUL INSTRUMENT. Trois rejeux MT5
+      // rapportés depuis montrent une réussite systématiquement plus basse côté testeur
+      // (rapports 0,72 · 0,60 · 0,83), et un écart qui pousse les trois cas du même côté
+      // n'est pas du bruit : il y a un terme manquant.
+      //
+      // ON NE CHANGE PAS LA RÈGLE SUR UNE HYPOTHÈSE — on la rend MESURABLE là où les
+      // données sont, chez l'utilisateur. Le compteur relève les bougies sautées qui
+      // AURAIENT fermé la position : c'est le nombre exact de trades que cette règle
+      // fait basculer, et il se lit par instrument au lieu de se deviner.
+      if (!releve(i)) {
+        const pireX = vente ? exH[i] : exL[i];
+        const mieuxX = vente ? exL[i] : exH[i];
+        if (d * pireX <= d * sl || d * mieuxX >= d * tp) sautes++;
+        majSecu(i, false);
+        continue;
+      }
       // Un stop en attente se pose dès l'OUVERTURE quand le cours y est déjà au-delà :
       // la modification part au premier tick, avant tout mouvement de la bougie. Ne
       // tester que l'extrême de la bougie la retardait d'une heure — et sur GOLD le
@@ -1771,6 +1796,12 @@ export function backtester(df, cfg) {
     tr.R_net = tr.R - comm - swap;
   }
   trades.compteEntrees = { candidates: nEntCand, filtrees: nEntFiltrees };
+  // Ce que la règle de séance a retiré : des bougies où le stop ou l'objectif était
+  // franchi, et qui n'ont pas été relevées parce qu'elles sont hors séance ou
+  // reconstituées. Zéro veut dire que la règle n'a rien coûté sur cette configuration ;
+  // un nombre du même ordre que l'écart de réussite avec un testeur veut dire qu'elle
+  // l'explique. C'est une MESURE, pas un verdict — elle ne dit pas qui a raison.
+  trades.sautesSortie = sautes;
   return trades;
 }
 

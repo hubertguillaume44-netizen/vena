@@ -4649,6 +4649,9 @@
         <sc-if value="{{ aRepriseManques }}" hint-placeholder-val="{{ false }}">
           <span style="border:1px solid currentColor;padding:3px 9px;font-size:11px;white-space:normal;text-align:left;max-width:80ch" title="Les chiffres affichés viennent de la mesure enregistrée. Les réglages du panneau, eux, ne sont pas ceux qui les ont produits : cliquer « Mesurer » mesurerait une autre stratégie sous le même nom.">{{ repriseManquesTxt }}</span>
         </sc-if>
+        <sc-if value="{{ aBtSautes }}" hint-placeholder-val="{{ false }}">
+          <span style="border:1px solid currentColor;padding:3px 9px;font-size:11px;white-space:normal;text-align:left;max-width:80ch" title="Le moteur ne teste ni le stop ni l'objectif sur une bougie hors séance ou reconstituée — seul le palier y bouge. Le stop d'un robot, lui, reste dans le carnet du courtier.">{{ btSautesTxt }}</span>
+        </sc-if>
         <sc-if value="{{ btCouvertureCourte }}" hint-placeholder-val="{{ false }}">
           <span style="border:1px solid currentColor;padding:3px 9px;font-size:11px;white-space:normal;text-align:left;max-width:80ch" title="{{ btCouvertureAide }}">Période partielle : {{ btCouverture }}. Une comparaison à un test MT5 lancé sur une autre période compare deux choses différentes.</span>
         </sc-if>
@@ -4685,7 +4688,7 @@
                comme un paramètre mesuré. AUDUSD y annonçait 2020 sur une série qui
                commence en 2023, et la comparaison au testeur portait sur deux périodes
                différentes sans que rien ne le dise. -->
-          <label style="display:flex;flex-direction:column;gap:2px"><span style="font-size:9px;letter-spacing:.06em;text-transform:uppercase" class="text-muted">Période couverte</span>
+          <label style="display:flex;flex-direction:column;gap:2px"><span style="font-size:9px;letter-spacing:.06em;text-transform:uppercase" class="text-muted">Bougies en mémoire</span>
             <input class="input" style="min-height:1.8rem;height:1.8rem;font-size:12px;padding:0 6px" type="text" value="{{ btCouverture }}" title="{{ btCouvertureAide }}" disabled="{{ true }}"></label>
           <label style="display:flex;flex-direction:column;gap:2px"><span style="font-size:9px;letter-spacing:.06em;text-transform:uppercase" class="text-muted">Unité</span>
             <sc-raw-select class="input" style="min-height:1.8rem;height:1.8rem;font-size:12px;padding:0 6px" value="{{ ut }}" onChange="{{ setUt }}">
@@ -12593,6 +12596,13 @@ GROUPES = {
     this.setState({ res, seg, courbe, bande, nTrades: trades.length, signature: sig,
       // ce que les filtres ont RETIRÉ, compté par le moteur pendant la mesure
       btEntrees: (trades && trades.compteEntrees) || null,
+      // ————— CE QUE LA RÈGLE DE SÉANCE RETIRE, COMPTÉ —————
+      // Hors séance, le moteur ne teste ni le stop ni l'objectif : le robot, lui, laisse
+      // son stop dans le carnet du courtier. Trois rejeux MT5 rapportés montrent une
+      // réussite systématiquement plus basse côté testeur, et un écart qui pousse tous
+      // les cas du même côté n'est pas du bruit. On ne change pas la règle sur une
+      // hypothèse — on met le nombre sous les yeux, là où les données sont.
+      _sautesSortie: (trades && trades.sautesSortie) || 0,
       // Espérance, hors échantillon, tenue, R par R de creux : trois des cinq contrôles
       // en dépendent. Sans elles, le Backtest affichait « 2 / 5 mesurés » sur une
       // configuration parfaitement jugeable — et ne pouvait donc rien proposer d'en faire.
@@ -16227,7 +16237,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260917.11';
+  VERSION_APP = '260917.12';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -24233,14 +24243,37 @@ GROUPES = {
         const vise = Date.UTC(2020, 0, 1);
         const courte = df.t[0] > vise + 86400000 * 31;
         return {
+          // ————— CE CHAMP DÉCRIT LES DONNÉES, PAS LE RÉSULTAT AFFICHÉ À CÔTÉ —————
+          // Nommé « Période couverte », il s'est lu comme « la période de ce
+          // résultat » — et un rapport a relevé l'écart : 7,7 ans de bougies en
+          // mémoire, 3,4 ans sur le résultat. Les deux étaient justes et
+          // décrivaient deux choses. Un résultat enregistré porte la fenêtre de SA
+          // mesure, pas celle des bougies d'aujourd'hui ; c'est « CHIFFRES PÉRIMÉS »
+          // qui dit qu'il faut remesurer. Le champ s'appelle donc « Bougies en
+          // mémoire », et son infobulle sépare les deux explicitement.
           btCouverture: jj(d0) + ' → ' + jj(d1) + ' · ' + fr(ans, 1) + ' ans',
           btCouvertureCourte: courte,
           btCouvertureAide: courte
             ? 'Cette série commence le ' + jj(d0) + ', pas en janvier 2020. Toute '
               + 'comparaison à un test MT5 lancé sur une autre période compare deux '
               + 'choses différentes — alignez les dates avant de conclure.'
-            : 'La période réellement couverte par les bougies en mémoire, lue dans la '
-              + 'série elle-même.' };
+            : 'Ce que les bougies en mémoire couvrent AUJOURD\u2019HUI, lu dans la série '
+              + 'elle-même. Un résultat déjà mesuré porte la fenêtre de SA mesure, qui peut '
+              + 'être plus courte — l\u2019écart entre les deux est ce que « chiffres périmés » '
+              + 'signale, et une remesure le referme.' };
+      })(),
+      ...(() => {
+        const n = Number(s._sautesSortie) || 0;
+        const tot = (s.res && s.res.n) || 0;
+        return { aBtSautes: n > 0,
+          btSautesTxt: n > 0
+            ? n + ' bougie' + (n > 1 ? 's' : '') + ' hors séance (ou reconstituée'
+              + (n > 1 ? 's' : '') + ') franchissai' + (n > 1 ? 'ent' : 't') + ' le stop '
+              + 'ou l\u2019objectif sans être relevée' + (n > 1 ? 's' : '')
+              + (tot ? ' — sur ' + tot + ' trades' : '')
+              + '. Un robot posé chez le courtier, lui, y serait sorti : c\u2019est '
+              + 'l\u2019ordre de grandeur de l\u2019écart de réussite à attendre avec un testeur.'
+            : '' };
       })(),
       btBandeTag: s.bande && s.bande.n && s.bande.largeur >= 0.05 ? 'tag-outline' : '',
       // Une ligne rouverte sans sa condition affiche d'autres chiffres sous le même

@@ -343,7 +343,7 @@ input ulong  InpMagic           = ${nb(ctx.magic, 20260901)};
 // quelle build l'avait émis. Le stamp d'export ne répond pas à cette question : il dit
 // QUAND on a exporté, pas DE QUOI. La marque est écrite ici dans la forme exacte que
 // « npm run app:version » cherche, donc ce fichier est daté comme les deux autres.
-#define VENA_VERSION "260917.11"
+#define VENA_VERSION "260917.12"
 //--- Configuration mesurée (ne pas modifier : le backtest ne serait plus valable)
 #define STOP_PCT        ${sl}
 #define OBJECTIF_R      ${rr}
@@ -1266,9 +1266,49 @@ double Volume(double prix, double stop)
    double distance  = MathAbs(prix - stop);
    if(distance <= 0.0) return 0.0;
 
-   double tickVal = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_VALUE);
+   // ————— LA VALEUR DU TICK EST CENSÉE ÊTRE DANS LA DEVISE DU COMPTE —————
+   // Pour dimensionner un STOP, c'est la valeur du tick À PERTE qui fait foi :
+   // SYMBOL_TRADE_TICK_VALUE est un alias de la valeur à PROFIT, et les deux
+   // diffèrent sur certains instruments. On prend la bonne, avec repli.
+   double tickVal = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_VALUE_LOSS);
+   if(tickVal <= 0.0) tickVal = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_VALUE);
    double tickSz  = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_SIZE);
    if(tickVal <= 0.0 || tickSz <= 0.0) return 0.0;
+
+   // ————— ET ON VÉRIFIE QU'ELLE L'EST VRAIMENT, AU LIEU DE LE CROIRE —————
+   //
+   // Rapport : HongKong50 risquait 28 EUR par trade là où les trois autres
+   // instruments risquaient 200 — un septième. C'est le SEUL des neuf coté hors
+   // EUR/USD : il est en HKD, et EUR/HKD vaut environ 8,5.
+   //
+   // La documentation dit que TICK_VALUE est rendu dans la devise du DÉPÔT. Le
+   // testeur ne peut le faire que s'il dispose du taux de conversion — la paire
+   // croisée doit être dans l'Observation du marché. Quand elle manque, il rend la
+   // valeur en devise de COTATION, sans le dire, et le robot risque alors le
+   // montant divisé par le taux.
+   //
+   // LE TEST N'EST PAS « LES DEVISES DIFFÈRENT-ELLES ? » — ce serait une intention.
+   // C'est « la valeur rendue est-elle ENCORE celle de la devise de cotation ? »,
+   // qu'on sait calculer : en devise de cotation, un tick vaut taille du contrat ×
+   // pas de cotation, exactement. Si les devises diffèrent ET que tickVal vaut ce
+   // produit, c'est qu'aucune conversion n'a eu lieu.
+   string devCompte = AccountInfoString(ACCOUNT_CURRENCY);
+   string devProfit = SymbolInfoString(_Symbol, SYMBOL_CURRENCY_PROFIT);
+   if(devCompte != devProfit)
+   {
+      double valCotation = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_CONTRACT_SIZE) * tickSz;
+      if(valCotation > 0.0 && MathAbs(tickVal - valCotation) < valCotation * 0.001)
+      {
+         PrintFormat("Entrée refusée : la valeur du tick (%.5f) est celle de la devise de "
+                     + "cotation %s, non convertie vers %s. Le terminal n'a pas le taux : "
+                     + "ajoutez la paire croisée à l'Observation du marché. Dimensionner "
+                     + "ainsi risquerait une fraction de ce qui est demandé.",
+                     tickVal, devProfit, devCompte);
+         g_confRefus = StringFormat("tick non converti %s vers %s (%.5f)",
+                       devProfit, devCompte, tickVal);
+         return 0.0;
+      }
+   }
 
    double perteParLot = distance / tickSz * tickVal;
    if(perteParLot <= 0.0) return 0.0;
