@@ -223,3 +223,87 @@ test("le compte est RENDU, et le producteur le relève", () => {
     "le comptage n'est plus conditionné par `enPos` : il relèverait des franchissements "
     + "hors position, où aucun stop n'existe.");
 });
+
+// ————— ET LE COMPTEUR COMPTE-T-IL JUSTE ? PERSONNE NE L'AVAIT DEMANDÉ —————
+//
+// Les gardes ci-dessus vérifient que le compteur EXISTE, qu'il a une prise, qu'il SUIT
+// la mèche, qu'il survit à la découpe et au stockage. Aucune ne vérifie que son NOMBRE
+// est le bon. Sa prédiction est tombée — 5 et 28 quand il en fallait ~10 et ~12, avec la
+// direction inversée — et pendant trois jours la question « est-ce la prédiction ou le
+// compteur qui a tort ? » est restée posée sans que personne la mesure. Elle ne coûtait
+// pas un rejeu : elle est dans le dépôt.
+//
+// LA MESURE EST UN RECOMPTE INDÉPENDANT, écrit depuis la DÉFINITION et non depuis le
+// code : « une bougie écartée dont l'instant tombe pendant une position ouverte, et dont
+// l'extrême franchit le stop ou l'objectif de CE trade ». Le compteur du moteur, lui,
+// avance un pointeur en flux (`while (iEc < nEc && ecTc[iEc] < df.t[i])`) dans la boucle
+// principale et lit l'état `enPos` au passage. Deux implémentations sans rapport — l'une
+// par trade, l'autre par bougie — et l'objectif redérivé de son côté plutôt que lu.
+//
+// MESURÉ, sur trois niveaux de mèche et sur les QUATRE nombres :
+//
+//   mèche 0 %     vues 25 · stop  2 · obj  1 · deux  0     compteur == recompte
+//   mèche 0,5 %   vues 25 · stop 10 · obj 13 · deux  0     compteur == recompte
+//   mèche 3 %     vues 25 · stop  0 · obj  0 · deux 25     compteur == recompte
+//
+// **Le compteur compte juste. C'est donc la PRÉDICTION qui avait tort**, et l'hypothèse
+// des bougies écartées meurt sur sa propre mesure plutôt que sur un doute.
+//
+// ANGLE MORT DÉCLARÉ (règle 9), en tête : un recompte indépendant attrape une erreur
+// d'IMPLÉMENTATION — un pointeur mal avancé, une borne de position décalée, un sens
+// inversé. Il n'attrape pas une erreur de DÉFINITION partagée : si « franchir » devait
+// se lire autrement, les deux se tromperaient ensemble et s'accorderaient quand même.
+// Ce qui limite la portée à ce qu'elle annonce — le compteur fait ce qu'il DIT faire.
+//
+// Et un cas ne peut pas se produire, donc n'est pas éprouvé : une bougie écartée à
+// l'instant EXACT d'une entrée ou d'une sortie. Les deux populations sont disjointes
+// (garde plus haut), et entrées comme sorties tombent sur des bougies de la série.
+test("le compteur s'accorde à un recompte INDÉPENDANT, sur les quatre nombres", () => {
+  // écrit depuis la définition : par TRADE, fenêtre ouverte, objectif redérivé
+  const recompter = (df, trades, rr) => {
+    let vues = 0, stop = 0, obj = 0, deux = 0;
+    for (const tr of trades) {
+      const vente = tr.sens === "vente";
+      const d = vente ? -1 : 1;
+      const sl = tr.sl_initial;
+      const tp = tr.entree + d * rr * Math.abs(tr.entree - sl);
+      for (let k = 0; k < df.ecT.length; k++) {
+        const ts = df.ecT[k];
+        if (ts <= tr.entree_t || ts >= tr.sortie_t) continue;
+        vues++;
+        const auStop = d * (vente ? df.ecH[k] : df.ecL[k]) <= d * sl;
+        const auObj = d * (vente ? df.ecL[k] : df.ecH[k]) >= d * tp;
+        if (auStop && auObj) deux++; else if (auStop) stop++; else if (auObj) obj++;
+      }
+    }
+    return { vues, stop, obj, deux };
+  };
+
+  let mordu = 0;
+  for (const m of [0, 0.005, 0.03]) {
+    const df = serie(m);
+    const tr = jouer(df);
+    const r = recompter(df, tr, BASE.rr);
+    // ————— LA PRISE AVANT LE VERDICT —————
+    // Un banc où rien ne franchit rendrait quatre zéros des deux côtés et « s'accorderait »
+    // sans avoir rien comparé. On exige que la mesure MORDE au moins une fois.
+    if (r.stop + r.obj + r.deux > 0) mordu++;
+    const dit = (q) => `mèche ${m * 100} % — ${q} : compteur ${tr["caches" + q]}, `
+      + `recompte ${r[q.toLowerCase()]}`;
+    assert.equal(tr.cachesVues, r.vues, dit("Vues")
+      + ". Le DÉNOMINATEUR diverge : le compteur ne regarde pas la même population que "
+      + "la définition — bougies écartées tombant pendant une position ouverte.");
+    assert.equal(tr.cachesStop, r.stop, dit("Stop")
+      + ". Le compte des stops manqués est faux. C'est le chiffre sur lequel repose "
+      + "tout le dossier des bougies écartées : un perdant devenu gagnant.");
+    assert.equal(tr.cachesObj, r.obj, dit("Obj")
+      + ". Le compte des objectifs manqués est faux — et c'est LUI qui porte la "
+      + "direction du mécanisme, donc le signe de ce qu'il prétend expliquer.");
+    assert.equal(tr.cachesDeux, r.deux, dit("Deux")
+      + ". La case indécidable diverge : ranger d'un côté ce qui va dans « les deux » "
+      + "fabriquerait un verdict que la donnée ne porte pas.");
+  }
+  assert.ok(mordu >= 2, `seulement ${mordu} niveau(x) de mèche produisent un `
+    + "franchissement : les autres comparent quatre zéros à quatre zéros, ce qui "
+    + "s'accorde toujours. La garde mesurerait le décor.");
+});

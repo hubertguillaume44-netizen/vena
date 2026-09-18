@@ -2403,6 +2403,62 @@ message posé après `SymbolSelect` satisferait une recherche de chaîne et ne s
 rien. Éprouvé par mutation — déplacer le `PrintFormat` d'une ligne fait tomber la garde.
 Son angle mort est déclaré : elle ne peut pas vérifier que la ligne sera **lue**.
 
+##### C'EST LA PRÉDICTION QUI AVAIT TORT, PAS LE COMPTEUR — mesuré, sans rejeu
+
+La question est restée ouverte trois jours : *5 et 28 avec une direction inversée, sur une
+population que le compteur seul mesure — est-ce la prédiction qui se trompait, ou lui ?*
+Elle ne coûtait pas un rejeu ; elle était dans le dépôt, et personne ne l'avait posée.
+
+**Les cinq gardes existantes vérifiaient qu'il EXISTE, qu'il a une prise, qu'il SUIT la
+mèche, qu'il survit à la découpe et au stockage. Aucune ne vérifiait que son NOMBRE est le
+bon.** C'est la forme que ce dépôt connaît : une garde qui mesure que quelque chose bouge
+n'a jamais mesuré que ça bouge JUSTE.
+
+La mesure est un **recompte indépendant**, écrit depuis la définition et non depuis le
+code : *une bougie écartée dont l'instant tombe pendant une position ouverte, et dont
+l'extrême franchit le stop ou l'objectif de CE trade.* Le compteur du moteur avance un
+pointeur en flux dans la boucle principale et lit `enPos` au passage ; le recompte
+parcourt par TRADE et redérive l'objectif au lieu de le lire. Deux implémentations sans
+rapport.
+
+| mèche | vues | stop | objectif | les deux | |
+|---|---|---|---|---|---|
+| 0 % | 25 | 2 | 1 | 0 | **accord** |
+| 0,5 % | 25 | 10 | 13 | 0 | **accord** |
+| 3 % | 25 | 0 | 0 | 25 | **accord** |
+
+**Le compteur compte juste, sur les quatre nombres et aux trois niveaux.** Donc l'hypothèse
+des bougies écartées meurt **sur sa propre mesure** et non sur un doute — c'est la
+meilleure façon dont une hypothèse puisse mourir, et c'est le compteur lui-même qui l'a
+tuée.
+
+**L'angle mort est déclaré et il est réel** : un recompte indépendant attrape une erreur
+d'IMPLÉMENTATION — pointeur mal avancé, borne de position décalée, sens inversé (vérifié
+par mutation : inverser les extrêmes sur l'objectif fait tomber la garde). Il n'attrape pas
+une erreur de DÉFINITION partagée : si « franchir » devait se lire autrement, les deux se
+tromperaient ensemble et s'accorderaient quand même. La portée est donc exactement ce
+qu'elle annonce — **le compteur fait ce qu'il DIT faire**.
+
+> **Vérifier qu'une mesure BOUGE n'est pas vérifier qu'elle compte JUSTE**, et c'est la
+> seconde qui décide si une hypothèse est morte ou si c'est l'instrument. Le départage
+> demande une seconde implémentation, écrite depuis l'énoncé — pas depuis la première.
+
+**Et l'énoncé général est plus large que ce cas** : c'est la règle de la PRISE, déplacée
+du rapport vers la réfutation.
+
+> **Une prédiction réfutée par un instrument non vérifié ne réfute rien.**
+
+Le dépôt exigeait déjà qu'une sonde prouve sa prise avant de RAPPORTER — `sautesVues`
+pour `sautesSortie`, `cachesVues` pour `cachesStop`, quinze éléments cliquables avant un
+verdict de tournée. Il manquait la moitié symétrique : **qu'un instrument prouve sa
+justesse avant de TUER quelque chose.** Un compteur non vérifié qui contredit une
+prédiction laisse les deux debout, et c'est le pire état d'un dossier — on croit avoir
+éliminé, on a seulement échangé une incertitude contre une autre.
+
+Le coût de l'oubli se lit ici : la prédiction est tombée le 18 septembre, et l'hypothèse
+est restée dans les limbes **trois jours** — ni vivante ni morte — faute d'une mesure qui
+tenait dans une heure et ne demandait aucun rejeu.
+
 ### Le candidat précédent est mort par son propre dénominateur
 
 Les bougies sautées par `releve(i)` allaient à l'**envers** du symptôme :
