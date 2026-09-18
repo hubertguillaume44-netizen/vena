@@ -2145,6 +2145,40 @@ valeur. Une garde pourra alors vérifier que le champ « Période couverte » po
 période du résultat, parce que les deux sont calculables. Tant que la grandeur n'est
 lisible que dans le mot, il n'y a rien à quoi s'accrocher.
 
+### Un correctif juste sur sa CIBLE et faux sur ce qu'il TOUCHE
+
+Les cinq cas ci-dessus sont des libellés qui mentaient dès leur écriture. Le sixième est
+différent, et il coûte plus cher parce qu'il naît d'une réparation :
+
+> **Le correctif était juste sur ce qu'il visait et faux sur ce qu'il touchait.**
+
+Le cas mesuré : la colonne de période rendait un tiret muet qui couvrait trois causes.
+Le correctif l'a branchée sur les trades MESURÉS — juste, le tiret a disparu, les trois
+causes se nomment. Mais « les trades mesurés » est la période **active**, et le libellé
+au-dessus disait « **Période mesurée** ».
+
+**Le libellé n'est pas devenu faux : il était JUSTE, et le correctif en a fait un
+mensonge.** Vérifié dans l'historique plutôt que de mémoire — il existait à deux
+endroits avant le changement, et il décrivait correctement les bornes enregistrées. Une
+ligne de code a changé de SOURCE ; pas une ligne du libellé n'a bougé ; et c'est le
+libellé qui s'est mis à mentir.
+
+> **Quand un correctif change la SOURCE d'une valeur affichée, le libellé qui la nomme
+> entre dans le diff — même si aucune de ses lignes n'a bougé.** Un diff ne montre que
+> ce qu'on a écrit ; il ne montre jamais ce qu'on vient de rendre faux ailleurs.
+
+C'est le **miroir exact de la règle 14** : là, on cartographie la prose qui entoure ce
+qu'on SUPPRIME ; ici, le libellé qui surmonte ce qu'on REBRANCHE. La question à se poser
+au moment de rebrancher tient en une ligne : *qu'est-ce qui, à l'écran, PROMET ce que
+cette valeur était ?*
+
+**Et aucune garde ne ferme cette classe non plus** — pour la même raison que la section
+ci-dessus : un libellé est de la prose. Ce qui a été fait est plus pauvre et vérifiable :
+les trois périodes portent chacune son nom **jusque dans les identifiants** (`mesT0`,
+`actT1`), et `rAn-divise-par-la-mesuree` lit ces noms dans le calcul des bornes. Un
+lecteur qui rebranche `mesT0` sur une borne active écrit désormais une contradiction
+visible à la ligne même où il la commet.
+
 ### Son application immédiate : un zéro se rend avec son dénominateur
 
 La même séance a livré un compteur — les bougies sautées par la règle de séance qui
