@@ -465,6 +465,13 @@
    ]
   },
   {
+   "terme": "Les secteurs",
+   "texte": "Le moteur a changé de règle depuis que ces chiffres ont été mesurés : ils ne sont pas comparables à ce que le Backtest calcule aujourd'hui. Mesuré sur un banc : la même configuration rendait 4,00 R avant une correction et 14,93 R après, à nombre de trades identique.",
+   "vues": [
+    "Portefeuille"
+   ]
+  },
+  {
    "terme": "Ligne · périodes",
    "texte": "La ligne que le prix doit franchir, et ses longueurs en bougies de l’unité — chaque valeur cochée multiplie le calcul.",
    "vues": [

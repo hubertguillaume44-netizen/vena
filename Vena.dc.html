@@ -2179,6 +2179,9 @@
               <button class="btn btn-secondary" type="button" style="min-height:1.9rem;font-size:11px" title="Remet la configuration validée et sa place dans les portefeuilles telles qu'elles étaient avant le dernier retrait." onClick="{{ annulerRetrait }}">Annuler le retrait{{ annulRetraitTxt }}</button>
             </sc-if>
             <span style="font-size:12px" class="text-muted">{{ aRangerCourt }}</span>
+            <sc-if value="{{ aPfPerimees }}" hint-placeholder-val="{{ false }}">
+              <span class="{{ pfPerimeesTag }}" style="font-size:11px;white-space:normal;text-align:left;max-width:70ch" title="Le moteur a changé de règle depuis que ces chiffres ont été mesurés : ils ne sont pas comparables à ce que le Backtest calcule aujourd'hui. Mesuré sur un banc : la même configuration rendait 4,00 R avant une correction et 14,93 R après, à nombre de trades identique.">{{ pfPerimeesTxt }}</span>
+            </sc-if>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
             <!--
@@ -12489,7 +12492,10 @@ GROUPES = {
       if (this._testRedemande) {
         this._testRedemande = false;
         let change = true;
-        try { change = this.sigCourante() !== this.state.signature; } catch (e) {}
+        // MÊME valeur que les trois autres lecteurs : lire `sigCourante()` ici pendant
+        // que le résultat porte la signature de la ligne rouverte rendait « ça a changé »
+        // toujours vrai, donc relançait le calcul en boucle sur une ligne incomplète.
+        try { change = this.sigAMesurer() !== this.state.signature; } catch (e) {}
         if (change) setTimeout(() => this.lancerTest(), 0);
       }
     }
@@ -12551,7 +12557,7 @@ GROUPES = {
     if (this.recadrerBtSym()) return;
     // rien n'a changé depuis le dernier calcul : ne pas recharger les séries,
     // ne pas recalculer, ne pas réécrire la session.
-    if (this.state.res && this.state.signature === this.sigCourante()) return;
+    if (this.state.res && this.state.signature === this.sigAMesurer()) return;
     this.chargerBaremes();
     this.reprendreFichierAuto();
     await this.charger(this.state.btSym);
@@ -12567,7 +12573,7 @@ GROUPES = {
     // La signature doit porter la configuration RÉELLEMENT mesurée, sinon ouvrir une
     // ligne dont les réglages de panneau coïncident avec le test précédent sauterait le
     // recalcul et laisserait les anciens chiffres sous le nouvel intitulé.
-    const sig = this.signature(this.state.cfgLigne || cfg);
+    const sig = this.sigAMesurer();
     if (sig === this.state.signature && this.state.res) return;
     // le backtest est un calcul synchrone long : on rend la main une fois avant,
     // sinon le clic d'onglet est perdu et l'interface gèle sans rien annoncer.
@@ -16257,7 +16263,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260917.15';
+  VERSION_APP = '260918';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -16288,7 +16294,38 @@ GROUPES = {
     this._sigC = { cle, val };
     return val;
   }
-  perime() { return !this.state.res || this.state.signature !== this.sigCourante(); }
+  // ————— LA SIGNATURE DE CE QUI SERA MESURÉ : UNE VALEUR, TROIS LECTEURS —————
+  //
+  // Le défaut : `lancerTest` ENREGISTRAIT `signature(cfgLigne || cfg)` — la
+  // configuration de la ligne rouverte — pendant que `perime()` comparait à
+  // `sigCourante()`, qui ne lit QUE le panneau. Deux configurations, jamais la même
+  // valeur, donc jamais d'accord.
+  //
+  // Et ce n'est pas un cas rare : une ligne dont les filtres ne se reconstituent pas
+  // depuis le panneau garde `cfgLigne` — c'est exactement la « Reprise INCOMPLÈTE » que
+  // le bandeau annonce. Sur ces lignes-là, « Sauvegarder ce résultat » restait grisé
+  // POUR TOUJOURS, après une mesure réussie, avec le message qui demandait de mesurer et
+  // l'en-tête qui affirmait que tout était à jour. Trois affirmations dont deux
+  // dérivées, et aucune ne pouvait converger.
+  //
+  // La sortie n'est pas d'ajuster un des deux côtés : c'est qu'il n'y ait plus deux
+  // côtés. `sigAMesurer()` est LA valeur — ce que le prochain « Mesurer » calculera — et
+  // les trois lecteurs la lisent : le raccourci de `lancerTest`, l'enregistrement du
+  // résultat, et `perime()`.
+  //
+  // La mémoïsation suit la même règle : `sigCourante` est mémoïsée sur les réglages,
+  // celle de la ligne sur l'IDENTITÉ de l'objet — `cfgLigne` ne change que lorsqu'on
+  // rouvre une ligne ou qu'on touche un réglage, et `maj()` le met à null dans ce cas.
+  // Sérialiser à chaque rendu était le coût que la mémo avait été écrite pour éviter.
+  sigAMesurer() {
+    const c = this.state.cfgLigne;
+    if (!c) return this.sigCourante();
+    if (this._sigL && this._sigL.cfg === c) return this._sigL.val;
+    const val = this.signature(c);
+    this._sigL = { cfg: c, val };
+    return val;
+  }
+  perime() { return !this.state.res || this.state.signature !== this.sigAMesurer(); }
 
   sauverBacktest() {
     const s = this.state, r = s.res;
@@ -26263,6 +26300,27 @@ GROUPES = {
           valides: toutes,
           aRanger,
           aARanger: aRanger.length > 0,
+          // ————— COMBIEN DE LIGNES AFFICHENT UN CHIFFRE QUE LE MOTEUR NE CALCULE PLUS —————
+          //
+          // La péremption était détectable ligne par ligne (`aMvVieux`), et il fallait
+          // ouvrir chacune pour la voir. Un utilisateur lisait +43,3 R là où le moteur
+          // dit +38,3 R, et décidait dessus. La détection existait, la question
+          // « combien ? » n'avait pas de réponse sans douze clics.
+          //
+          // Le compte porte sa PRISE : « 0 sur 12 » se lit, « rien » ne se lit pas — et
+          // un zéro sans dénominateur voudrait aussi dire « aucune ligne ».
+          ...(() => {
+            const vieilles = toutes.filter((x) => x.aMvVieux).length;
+            return { aPfPerimees: toutes.length > 0,
+              pfPerimeesTxt: !vieilles
+                ? toutes.length + (toutes.length > 1 ? ' lignes mesurées' : ' ligne mesurée')
+                  + ' sous la règle actuelle du moteur'
+                : vieilles + ' ligne' + (vieilles > 1 ? 's' : '') + ' sur ' + toutes.length
+                  + ' porte' + (vieilles > 1 ? 'nt' : '') + ' un chiffre antérieur à la '
+                  + 'règle actuelle du moteur — rouvrez-les en Backtest et mesurez pour '
+                  + 'les remettre à jour.',
+              pfPerimeesTag: vieilles ? 'tag tag-outline' : 'tag tag-neutral' };
+          })(),
           ...(() => {
             const t = this.state.triDec || {};
             const fleche = (cle) => (t.cle !== cle ? '' : t.sens === 1 ? ' \u25be' : ' \u25b4');

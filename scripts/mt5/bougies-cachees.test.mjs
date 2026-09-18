@@ -1,5 +1,8 @@
-// STATUT · PANNE OBSERVÉE, MÉCANISME NON PROUVÉ — et c'est un cran de plus que
-// « instrumentation » sans être « cause établie », alors il faut dire lequel.
+// STATUT · INSTRUMENTATION, AUCUNE CAUSE PRÉTENDUE — depuis le 18 septembre 2026.
+// Le fichier a porté « panne observée, mécanisme non prouvé » le temps d'une prédiction
+// écrite d'avance ; elle est tombée sur les magnitudes ET sur la direction, et le statut
+// a suivi plutôt que de se laisser réinterpréter. Le détail est au paragraphe « LA
+// PRÉDICTION » plus bas, avec les chiffres mesurés.
 //
 // LE FAIT est mesuré, chez l'utilisateur, sur sept instruments rejoués le 18 septembre
 // 2026 avec des robots réexportés, la garde de symbole active, les périodes alignées
@@ -29,11 +32,45 @@
 // sont DISJOINTES : `releve` saute des bougies présentes dans la série, `ecartees`
 // compte celles qui n'y sont jamais entrées. Une seule explique quoi que ce soit.
 //
-// ————— LA PRÉDICTION, ÉCRITE AVANT LA MESURE —————
-// Elle est ici pour être relue telle quelle, pas ajustée après coup : environ DIX sur
-// IBEX, environ DOUZE sur HongKong50, ZÉRO sur GOLD, US30 et SILVEREURO. Si le compteur
-// rend ça chez l'utilisateur, le statut de ce fichier passe à « cause établie » ; s'il
-// rend autre chose, c'est la prédiction qui tombe, et elle tombera par écrit.
+// ————— LA PRÉDICTION, ÉCRITE AVANT LA MESURE — ET SON VERDICT —————
+//
+// Elle était : environ DIX sur IBEX, DOUZE sur HongKong50, ZÉRO sur GOLD, US30 et
+// SILVEREURO. Mesurée le 18 septembre 2026, cinq CSV réimportés :
+//
+//   GOLD        aucune                                      0   ✓
+//   US30        aucune                                      0   ✓
+//   SILVEREURO  aucune                                      0   ✓
+//   IBEX 35      5 — 2 stop,  3 objectif, 0 les deux      ~10   ✗
+//   HongKong50  28 — 4 stop, 14 objectif, 2 les deux      ~12   ✗
+//
+// LES TROIS ZÉROS TIENNENT, et c'est un vrai résultat : sur un instrument à séance
+// large, la fenêtre homogène n'écarte rien et ne peut donc rien cacher.
+//
+// LES DEUX MAGNITUDES TOMBENT, et IBEX est une réfutation propre : cinq bougies vues en
+// position, donc AU PLUS cinq trades — l'angle mort déclaré plus bas est une borne
+// SUPÉRIEURE. Il en fallait dix. La borne est sous le besoin, et aucune lecture ne
+// rattrape ça.
+//
+// ET LA DIRECTION TOMBE AUSSI, ce qui est plus décisif que les magnitudes : sur les deux
+// instruments les objectifs manqués dépassent les stops manqués — 3 contre 2, 14 contre
+// 4. Manquer un stop rend Véna OPTIMISTE ; manquer un objectif la rend PESSIMISTE. Le
+// solde net pousse donc Véna SOUS le testeur, et l'écart observé la mettait AU-DESSUS.
+// Le mécanisme a le signe inverse de ce qu'il devait expliquer — le critère du signe,
+// appliqué à l'hypothèse qui a fait naître ce compteur.
+//
+// LE STATUT NE PASSE PAS À « CAUSE ÉTABLIE », et il ne passe pas non plus à rien : le
+// compteur reste, comme INSTRUMENTATION. Il a fait exactement son travail — il a tué
+// l'hypothèse qui l'avait fait naître, chiffres à l'appui, au lieu de la laisser vivre
+// sur une corrélation.
+//
+// ET LA MESURE A TROUVÉ PLUS GROS QU'ELLE-MÊME. Les cinq lignes remesurées ont toutes
+// chuté : IBEX +36,6 R → +5,6 R à compte de trades identique, contre +1,6 R au testeur.
+// L'écart de 35 R devient 4 R. Les deux « divergents » sont exactement ceux qui ont le
+// plus chuté (−85 % et −70 %) quand les trois concordants bougeaient de 12 à 25 % : la
+// séparation binaire sur `ecartees` corrélait vraisemblablement l'ANCIENNETÉ du scan, pas
+// la fenêtre horaire. Quatrième instance de « une grandeur qui classe bien n'est pas
+// celle du mécanisme », et la première où c'est le décor de la comparaison qui était
+// périmé, pas la variable. Voir `scripts/app/moteur-v-suit-le-moteur.test.mjs`.
 //
 // ANGLE MORT DÉCLARÉ (règle 9) — trois, et aucun n'est refermable ici :
 //  1. Le compteur dit combien de BOUGIES franchissaient un niveau, pas combien de
