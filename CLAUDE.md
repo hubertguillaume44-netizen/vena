@@ -3073,6 +3073,47 @@ trades mesurés, comme la période de la même rangée — **deux producteurs po
 durée finiraient par se contredire sur la même ligne**, ce qui est précisément ce qui a
 été rapporté : une durée d'un côté, deux tirets de l'autre.
 
+## Deux défauts sur le même chemin, dont chacun rend l'autre plausible
+
+**C'est une forme de DIAGNOSTIC, pas de code, et elle est née d'une alternative posée à
+tort.** Le rapport sur la courbe disait : *« deux lectures, et les deux sont des défauts —
+soit la référence est calculée sur 2022–2026, soit elle est calculée sur toute la fenêtre
+et tracée à partir de 2022 »*. Le code portait **les deux**.
+
+> **Un défaut seul se diagnostique ; deux défauts sur le même chemin, non — parce que
+> chacun fournit une explication au symptôme de l'autre.** Le tracé qui part tard rend
+> crédible un total calculé sur la fenêtre courte ; un total qui mélange les fenêtres rend
+> crédible un tracé qui commence là où il commence. L'alternative n'est jamais éprouvée :
+> elle a déjà sa réponse, deux fois.
+
+**Le test se fait au moment où l'on écrit « soit… soit… » :** *le code peut-il porter les
+deux ?* Si oui, l'alternative n'est pas une alternative, c'est une liste — et il faut les
+mesurer séparément. Une disjonction est une hypothèse sur le nombre de défauts, et elle
+n'est presque jamais justifiée : rien n'interdit à deux causes de vivre dans la même
+fonction, et elles y vivent d'autant plus volontiers qu'elles produisent un symptôme
+cohérent.
+
+**Le dépôt en portait déjà deux instances, sans les avoir reliées** :
+
+| Le cas | Les deux termes | Ce qu'ils produisaient ensemble |
+|---|---|---|
+| le résidu de **10 R** | le dépôt lu à 10 000 € au lieu de 20 000, ET le risque en % de l'équité COURANTE | un « dépassement de stop de 11 % » — cohérent, chiffré, cohérent avec l'autre instrument, et entièrement fabriqué. Trois formes ont été bâties dessus |
+| la **courbe de capital** | le prix de base pris par série, ET les points antérieurs sautés | un tracé plus court et un total mélangé, chacun expliquant l'autre |
+
+**Et la section voisine en est l'INVERSE exact, ce qui achève de la nommer.** Là — l'accord
+qui tient par annulation d'erreurs — deux défauts composent un résultat JUSTE, et rien
+dans un maillon pris seul ne dit lequel des deux accords on a. Ici, deux défauts composent
+un symptôme **explicable**, et rien dans une lecture prise seule ne dit qu'il en reste une
+autre. Les deux disent la même chose depuis deux bouts :
+
+> **Sur un chemin qui porte deux défauts, aucun maillon lu seul ne tranche.** Le départage
+> se fait sur ce que les maillons produisent ENSEMBLE — une garde qui les lie, ou une
+> mesure qui les sépare —, jamais sur la vraisemblance de l'explication qu'on en tire.
+
+**La conséquence pratique est la moins intuitive** : quand une hypothèse explique bien le
+symptôme, ce n'est pas une raison de s'arrêter. C'est le moment de demander ce qui
+l'expliquerait AUSSI bien — et de le chercher dans le même code, pas ailleurs.
+
 ## Un accord qui tient par ANNULATION D'ERREURS
 
 **C'est la voisine de la règle 15, et elle est pire.** Là, une sonde muette rend le défaut
