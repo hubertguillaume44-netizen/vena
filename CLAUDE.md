@@ -2179,6 +2179,39 @@ pas constant sur la ligne. **Tant que ces deux-là ne sont pas lus, chercher une
 troisième cause de fond serait chercher au-delà de ce qui est déjà mesurable** — la
 règle du refus : la donnée manque-t-elle, ou personne n'est-il allé la chercher ?
 
+#### Les trois formes du terme de 10 R, chiffrées AVANT d'ouvrir la liste
+
+Écrites ici pour être relues telles quelles : une prédiction posée après la mesure ne
+vaut rien. Elles se départagent sur la liste des trades de HongKong50, sans rejeu.
+
+**Et la première meurt par le SIGNE, avant d'être regardée.** Des trades neutres côté
+MT5 — 0,00 R rangés au dénominateur de la réussite — **remontent** le R prévu de +1 R
+chacun : ils éloignent de +4,00 R au lieu d'en rapprocher. C'est le critère du signe
+appliqué une troisième fois dans ce dossier, et il coûte zéro mesure.
+
+| | ce qu'il faudrait | comment la liste tranche |
+|---|---|---|
+| **A · neutres côté Véna** | **11,6** trades à 0,00 R chez Véna, et ~0 chez MT5 | compter les 0,00 R de chaque côté |
+| **B · gain moyen plus petit** | gain moyen MT5 **1,293 R** contre **1,431 R** chez Véna, soit **−9,7 %** | moyenne des R positifs, des deux côtés |
+| **C · perte au-delà du stop** | perte moyenne MT5 **−1,112 R** au lieu de −1,000, soit **11,2 % de dépassement** | moyenne des R négatifs côté MT5 |
+
+**A est ASYMÉTRIQUE ou rien** : des neutres en nombre égal des deux côtés ne déplacent
+presque pas le résidu — il en faudrait **69** sur 162 trades pour fermer 10 R. Si la
+liste montre des 0,00 R des deux côtés en nombre comparable, A est mort aussi.
+
+**C est le suspect que le dossier n'avait pas nommé, et c'est le plus cohérent avec
+l'instrument** : un stop dépassé de 11 % en moyenne est la signature d'un **gap**, et
+HongKong50 porte ~900 bougies écartées, c'est-à-dire des frontières de séance. Véna,
+qui ne voit pas ces bougies, sort exactement au stop ; un testeur, lui, sort au premier
+prix disponible de l'autre côté du trou.
+
+> **Si C tient, IBEX et HongKong50 redeviennent une seule famille — mais par leurs
+> DEUX faces.** Les mêmes bougies manquantes y cacheraient un franchissement (IBEX :
+> un perdant devenu gagnant) et y creuseraient une sortie (HongKong50 : un perdant
+> payé plus cher que son stop). Ce serait la seule hypothèse à expliquer les deux
+> instruments sans terme libre — et elle est fausse dès que la perte moyenne MT5 rend
+> −1,00.
+
 ### Le candidat précédent est mort par son propre dénominateur
 
 Les bougies sautées par `releve(i)` allaient à l'**envers** du symptôme :
