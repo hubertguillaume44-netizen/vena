@@ -2905,6 +2905,100 @@ celui de chaque rangée — et non le gabarit. Sa première assertion est une PR
 aucune note n'est rendue, elle tombe en nommant ce piège, plutôt que de vérifier des
 absences sur un écran vide.
 
+## Une déclaration valide qui ne peint rien, et personne ne le dit
+
+**STATUT · PANNE OBSERVÉE (RAPPORTÉE), MÉCANISME MESURÉ DANS LE DÉPÔT.** L'utilisateur
+rapporte une page qui a perdu sa structure entière — tous les cadres disparus — « sans une
+seule erreur de console », pour un `var(--color-border)` qui n'existe pas dans le système
+lié. Le mécanisme se relit : une propriété personnalisée non résolue rend la déclaration
+INVALIDE, et `border-style` retombe à `none`.
+
+> **Une couleur peut échouer de deux façons, et aucune des deux ne se plaint.** Le jeton
+> n'existe pas : la déclaration est jetée. Ou le jeton existe et vaut la même couleur que
+> ce sur quoi il se pose : la déclaration s'applique, et ne produit rien.
+
+**Le second cas a été mesuré ici, et il contredisait la maquette.** `--color-neutral-100`
+vaut `#f5f5f8` ; le fond de carte `--color-bg` vaut `#f2f2f3`. Le « bandeau teinté » d'un
+en-tête de section est donc **trois unités PLUS CLAIR que sa carte** — il ne teinte rien.
+Le jeton qui porte ce rôle dans ce système s'appelle `--color-surface` (`#e9e9ea`), neuf
+unités plus sombre, et c'est son nom qui le désigne.
+
+`scripts/app/couleur-qui-existe.test.mjs` tient les deux, et chacun se garde là où il est
+lisible :
+
+| Le défaut | Où il se voit | Ce que la garde lit |
+|---|---|---|
+| le jeton n'existe pas | dans le SOURCE — un nom se lit | tout `var(--…)` écrit, contre les définitions de la feuille vendorée **et** de celle qui est réellement livrée |
+| le jeton ne teinte pas | au RENDU seulement | la luminance de la bande contre celle de la première couleur DIFFÉRENTE au-dessus d'elle |
+
+**La feuille livrée ne voyage pas en clair.** Elle part en `data:text/css;base64` pour que
+le fichier unique se suffise en `file://`. Un relevé à plat du solo n'y trouve donc aucune
+définition et déclarerait les vingt-trois propriétés orphelines — une garde qui accuse
+tout n'accuse rien. Elle est décodée, et c'est elle qu'on lit.
+
+**Et la comparaison saute les parents de la MÊME teinte.** L'en-tête d'une section porte
+parfois sa rangée, tintée pareil : se comparer à elle rend toujours zéro, c'est-à-dire un
+verdict sur le décor. Éprouvé par mutation, dans les deux sens — un jeton inexistant, et
+le retour au jeton plus clair, qui tombe en annonçant **−4 unités**.
+
+**Ce qui n'est pas fermé, et qui est relevé.** Treize autres fonds de l'application sont
+posés en `--color-neutral-100` ; plusieurs sont dans le même cas et ne teintent rien. La
+garde ne couvre que les trois bandeaux d'en-tête du portefeuille — c'est écrit dans sa
+tête, et c'est une file, pas une panne.
+
+## Une grille dont les colonnes portent du sens compte ses cellules
+
+**STATUT · CAUSE ÉTABLIE — symptôme RAPPORTÉ sur `260918.7`, cause relue DANS LE DÉPÔT.**
+« Retirer » occupait la colonne « Période à tester », qui se tassait à gauche. L'en-tête
+déclarait **sept** pistes, le corps **huit**.
+
+La cause est une suppression : « Retirer » vivait à côté de « Part », la colonne « Part »
+est partie, et il est resté — il s'est décalé d'un cran et a partagé la cellule des dates.
+
+> **Deux gabarits écrits l'un en face de l'autre sont deux vérités à tenir d'accord, et
+> elles divergent sur la première suppression.** C'est la même famille que « une grille
+> dont le nombre de colonnes porte du sens s'écrit, elle ne se calcule pas », vue depuis
+> l'autre bout : là on déléguait le compte à `auto-fit`, ici on l'écrivait deux fois.
+
+Il n'y en a plus qu'un, `grilleLigne`, lu par l'en-tête et par chaque rangée, et « Retirer »
+a sa propre piste — sans intitulé, parce que c'est une action de rangée, mais elle EXISTE
+des deux côtés.
+
+**La garde mesure au RENDU, et c'est ce qui la rend juste.** Deux gabarits identiques dans
+le source ne prouvent pas deux grilles identiques à l'écran : c'est la grille CALCULÉE qui
+décale, et elle dépend de la largeur du parent, du `gap`, d'une piste `max-content`.
+`scripts/app/grille-compte-ses-cellules.test.mjs` compare les pistes résolues en pixels et
+le compte de cellules. Mutation : retirer une cellule d'en-tête la fait tomber en nommant
+les deux comptes.
+
+### Et le tiret qui couvrait trois causes
+
+Même écran, même rapport : la colonne rendait « — » sur toutes les lignes. Mesuré : le
+repli de `normValides` — celui qui complète une ligne validée depuis la meilleure ligne
+connue — ne recopiait pas `t0`/`t1`. Ils n'étaient pas dans sa liste de champs.
+
+> **Un tiret qui couvre trois causes n'en nomme aucune : il disculpe sans avoir
+> regardé.** C'est la règle des trois états, celle des quatre calculs du portefeuille,
+> appliquée à une date.
+
+Deux corrections, et la première est la plus importante : **la période vient désormais des
+trades MESURÉS**, c'est-à-dire de la même liste que la frise, le bilan et la corrélation.
+La page ne peut donc plus afficher une durée d'un côté et deux tirets de l'autre — ce qui
+est exactement ce qui a été rapporté, et ce qui a fait croire que les bornes existaient.
+À défaut, les bornes enregistrées ; à défaut de tout, la cellule DIT ce qui manque —
+« bougies / non chargées », « configuration / introuvable », « bornes / non enregistrées ».
+
+### Une infobulle qui recouvre une action est une action perdue
+
+Le `title` du dépli vivait sur la rangée ENTIÈRE : une infobulle native s'ouvre sous le
+curseur où qu'il soit, donc celle-ci s'ouvrait au-dessus du bouton « Exporter » de la
+rangée suivante et le masquait. Elle vit sur le chevron — quatorze pixels, à gauche, loin
+de tout bouton.
+
+**La garde qui tenait le dépli s'est réancrée** (règle 14, deuxième issue) : son ancre
+portait le `title` de la rangée, qui est parti ; son invariant — la rangée se déplie au
+clic, donc la coupure de propagation du retrait a un objet — n'a pas bougé.
+
 ## Un accord qui tient par ANNULATION D'ERREURS
 
 **C'est la voisine de la règle 15, et elle est pire.** Là, une sonde muette rend le défaut

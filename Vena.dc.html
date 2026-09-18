@@ -175,12 +175,29 @@
            padding: 6px 9px; display: flex; align-items: center; gap: 8px; min-height: 2.1rem; }
   .champ:hover { border-color: var(--color-accent);
                  background: color-mix(in srgb, var(--color-accent) 8%, var(--color-neutral-100)); }
-  .rang { cursor: pointer; padding: 8px 0 8px 12px; display: grid; align-items: center; gap: 12px; }
+  .rang { cursor: pointer; padding: 9px 0 9px 12px; display: grid; align-items: center; gap: 12px; }
   .rang:hover { background: color-mix(in srgb, var(--color-accent) 7%, transparent); }
   .tete { cursor: pointer; width: 100%; font: inherit; text-align: left; border: none;
-          background: none; padding: 9px 16px; display: flex; align-items: baseline;
+          background: none; padding: 12px 16px; display: flex; align-items: baseline;
           gap: 12px; flex-wrap: wrap; }
   .tete:hover { background: color-mix(in srgb, var(--color-accent) 6%, transparent); }
+  /* ————— BANDEAU TEINTÉ = EN-TÊTE DE CARTE ; NOTE = TEXTE NU SOUS UN FILET —————
+     La distinction ne tient pas au filet, qui est partout : elle tient au FOND. Sans
+     lui, un en-tête de section pliable se lit comme un paragraphe de plus. Le corollaire
+     est une contrainte sur ce qui précède : deux bandes grises adjacentes ne se
+     distinguent pas l'une de l'autre, donc la note qui vient au-dessus reste sur le fond
+     de la carte. C'est l'utilisateur qui a repéré le cas où elles se touchaient.
+     Un modificateur, et non `.tete` tout court : les deux autres en-têtes de ce fichier
+     (le repli d'un rendez-vous, celui de la preuve d'achat) ne sont pas des cartes, et
+     les teinter n'a pas été mesuré. */
+  /* MESURÉ, et c'est l'inverse de ce qu'on attendait : `--color-neutral-100` vaut
+     #f5f5f8 et le fond de carte `--color-bg` vaut #f2f2f3. Le « bandeau teinté » de la
+     maquette est donc trois unités PLUS CLAIR que ce sur quoi il se pose : il ne teinte
+     rien, et il ne le dit pas — aucune erreur, aucune console, juste une bande qui
+     n'existe pas. Le jeton qui porte ce rôle dans ce système s'appelle `--color-surface`
+     (#e9e9ea), neuf unités plus sombre, et c'est son nom qui le désigne. */
+  .tete.carte { background: var(--color-surface); }
+  .tete.carte:hover { background: color-mix(in srgb, var(--color-accent) 9%, transparent); }
   /* L'onglet d'un portefeuille : il porte son compte et son R par an, pour choisir
      sans ouvrir. L'actif est souligné par un filet d'accent — pas par une couleur de
      fond seule, qui ne se voit pas en niveaux de gris. */
@@ -2468,8 +2485,15 @@
             -->
             <div style="overflow-x:auto">
               <div style="min-width:960px;border:1px solid var(--color-divider)">
-                <div style="display:grid;grid-template-columns:minmax(0,1fr) 150px;background:var(--color-neutral-100);border-bottom:1px solid var(--color-divider)">
-                  <span style="display:grid;grid-template-columns:14px minmax(0,1fr) 80px 84px 88px 100px 112px;gap:12px;align-items:center;padding:7px 0 7px 12px">
+                <!-- ————— UNE GRILLE DONT LES COLONNES PORTENT DU SENS COMPTE SES CELLULES —————
+                     L'en-tête déclarait SEPT pistes, le corps HUIT : « Retirer » vivait à
+                     côté de « Part », la colonne « Part » est partie, et il est resté — il
+                     s'est décalé d'un cran et partageait la cellule des dates, qui se
+                     tassaient à gauche. Deux gabarits sont DEUX VÉRITÉS à tenir d'accord,
+                     et elles ont divergé sur une suppression. Il n'y en a plus qu'un,
+                     `grilleLigne`, lu ici et par chaque rangée. -->
+                <div style="display:grid;grid-template-columns:minmax(0,1fr) 150px;background:var(--color-surface);border-bottom:1px solid var(--color-divider)">
+                  <span style="display:grid;grid-template-columns:{{ grilleLigne }};gap:12px;align-items:center;padding:7px 0 7px 12px">
                     <span></span>
                     <!-- ce qui est COMMUN aux lignes vit ici, une fois, au lieu d'être
                          répété sur chacune : la note est l'intersection des réglages
@@ -2488,14 +2512,21 @@
                     <span style="font-size:10px;letter-spacing:.05em;text-transform:uppercase;text-align:right" class="text-muted">Profit factor</span>
                     <span style="font-size:10px;letter-spacing:.05em;text-transform:uppercase" class="text-muted">Le hasard</span>
                     <span style="font-size:10px;letter-spacing:.05em;text-transform:uppercase;text-align:right" class="text-muted">Période à tester</span>
+                    <span></span>
                   </span>
                   <span style="font-size:10px;letter-spacing:.05em;text-transform:uppercase;padding:7px 14px;text-align:center" class="text-muted">Robot</span>
                 </div>
                 <sc-for list="{{ ps.lignes }}" as="vl" hint-placeholder-count="5">
                   <div style="border-bottom:1px solid var(--color-divider);background:{{ vl.fondSel }}" draggable="true" onDragStart="{{ vl.dragStart }}" onDragEnd="{{ vl.dragEnd }}">
                     <div style="display:grid;grid-template-columns:minmax(0,1fr) 150px;align-items:center">
-                      <div class="rang" style="grid-template-columns:14px minmax(0,1fr) 80px 84px 88px 100px 112px max-content;font-size:13px" onClick="{{ vl.deplier }}" title="{{ vl.deplierAide }}">
-                        <span style="font-size:9px" class="text-muted">{{ vl.chevDepli }}</span>
+                      <!-- l'infobulle du dépli vit sur le CHEVRON, pas sur la rangée.
+                           Posée sur la rangée entière, elle s'ouvrait sous le curseur où
+                           qu'il soit — y compris juste au-dessus du bouton « Exporter » de
+                           la rangée suivante, qu'elle recouvrait. Une infobulle qui
+                           recouvre une action est une action perdue tant qu'elle est
+                           ouverte, et l'utilisateur l'a rapportée comme telle. -->
+                      <div class="rang" style="grid-template-columns:{{ grilleLigne }};font-size:13px" onClick="{{ vl.deplier }}">
+                        <span style="font-size:9px;cursor:help" class="text-muted" title="{{ vl.deplierAide }}">{{ vl.chevDepli }}</span>
                         <span style="display:flex;flex-direction:column;gap:2px;min-width:0">
                           <strong>{{ vl.nom }}</strong>
                           <span style="font-size:11px;line-height:1.45" class="text-muted">{{ vl.reglagesPropres }}</span>
@@ -2521,8 +2552,10 @@
                           </sc-if>
                         </span>
                         <!-- la période MESURÉE, au format que le testeur MT5 attend, en
-                             largeur fixe : c'est ce qu'on recopie, pas ce qu'on lit -->
-                        <span style="display:flex;flex-direction:column;gap:1px;align-items:flex-end;font-family:Consolas,ui-monospace,monospace;font-size:11px;line-height:1.35" title="{{ vl.periodeAide }}">
+                             largeur fixe : c'est ce qu'on recopie, pas ce qu'on lit. Quand
+                             elle manque, les deux mêmes lignes portent CE QUI manque —
+                             un tiret couvrirait trois causes et n'en nommerait aucune. -->
+                        <span style="display:flex;flex-direction:column;gap:1px;align-items:flex-end;font-family:{{ vl.periodePolice }};font-size:{{ vl.periodeTaille }};line-height:1.35;color:{{ vl.periodeEncre }};cursor:help" title="{{ vl.periodeAide }}">
                           <span>{{ vl.periodeT0 }}</span>
                           <span>{{ vl.periodeT1 }}</span>
                         </span>
@@ -2744,8 +2777,12 @@
               réponse dans son titre, plié ou déplié. Les valeurs ne bougent pas —
               seuls les plis sont nouveaux.
             -->
-            <div style="border:1px solid var(--color-divider)">
-              <button type="button" class="tete" onClick="{{ basculerComparaison }}">
+            <!-- une SECTION est un objet blueprint : le filet vient de la classe, les
+                 quatre marques d'angle disent que c'en est un, et le bandeau teinté de
+                 son en-tête le distingue d'une note. -->
+            <div class="blueprint">
+              <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+              <button type="button" class="tete carte" onClick="{{ basculerComparaison }}">
                 <span style="font-size:9px" class="text-muted">{{ chevComparaison }}</span>
                 <span style="font-family:var(--font-heading);font-size:19px">Est-ce que ça bat le fait de ne rien faire ?</span>
                 <span style="font-size:12px;line-height:1.5;color:var(--color-accent-700);flex:1;min-width:24ch">{{ ps.bhMeilleur }}</span>
@@ -2905,14 +2942,15 @@
               </sc-if>
             </div>
             <sc-if value="{{ ps.aBhHasard }}" hint-placeholder-val="{{ false }}">
-            <div style="border:1px solid var(--color-divider)">
+            <div class="blueprint">
+              <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
               <!-- ————— LE RÉGLAGE VA OÙ IL Y A LA PLACE, PAS SUR SA PROPRE RANGÉE —————
                    « Creux redouté » occupait une rangée de 40 px pour un champ de 50 px de
                    large. Il vit au bout de l'en-tête de sa section, où la place est déjà
                    payée. Il reste HORS du bouton : un champ de saisie dans un bouton
                    basculerait la section à chaque clic dans le champ. -->
-              <div style="display:flex;align-items:center">
-                <button type="button" class="tete" style="flex:1;min-width:0" onClick="{{ basculerTirages }}" title="{{ ps.bhHasardAide }}">
+              <div style="display:flex;align-items:center;background:var(--color-surface)">
+                <button type="button" class="tete carte" style="flex:1;min-width:0" onClick="{{ basculerTirages }}" title="{{ ps.bhHasardAide }}">
                   <span style="font-size:9px" class="text-muted">{{ chevTirages }}</span>
                   <span style="font-family:var(--font-heading);font-size:19px">Et si j'avais eu moins de chance ?</span>
                   <span style="font-size:12px;line-height:1.5;color:var(--color-accent-700);flex:1;min-width:24ch">{{ ps.bhHasardTxt }}</span>
@@ -2963,8 +3001,9 @@
               </sc-if>
             </div>
             </sc-if>
-            <div style="border:1px solid var(--color-divider)">
-              <button type="button" class="tete" onClick="{{ basculerCout }}">
+            <div class="blueprint">
+              <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+              <button type="button" class="tete carte" onClick="{{ basculerCout }}">
                 <span style="font-size:9px" class="text-muted">{{ chevCout }}</span>
                 <span style="font-family:var(--font-heading);font-size:19px">Combien ça coûte vraiment ?</span>
                 <span style="font-size:12px;line-height:1.5;color:var(--color-accent-700);flex:1;min-width:24ch">{{ ps.coutResume }}</span>
@@ -7440,6 +7479,12 @@ class Component extends DCLogic {
       return { ...v, reprise: true, periode: best.periode, sl: best.sl, rr: best.rr,
         entree: best.entree, ligne: best.ligne, n: best.n, total: best.total, rAn: best.rAn,
         dd: best.dd, positifs: best.positifs, segTotal: best.segTotal, pf: best.pf,
+        // LES BORNES DE LA MESURE, que ce repli laissait tomber. Elles sont sur la
+        // meilleure ligne connue depuis que le scan les enregistre ; ne pas les recopier
+        // ici rendait « Période à tester » muette sur toute ligne complétée par ce
+        // chemin — c'est-à-dire toute ligne validée avant que la configuration soit
+        // mémorisée avec elle.
+        t0: best.t0, t1: best.t1,
         oos: best.oos, nuits: best.nuits, winRate: best.winRate,
         filtre: best.filtre, filtreNom: best.filtreNom, sens: best.sens || 'achat',
         sid: best._sid, ut: v.ut || this.state.ut };
@@ -16973,7 +17018,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260918.7';
+  VERSION_APP = '260918.8';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -27304,8 +27349,14 @@ GROUPES = {
               : segs[0].filter((y) => segs.every((l) => l.includes(y)));
             const enLettres = (nn) => (['', 'une', 'deux', 'trois', 'quatre', 'cinq', 'six',
               'sept', 'huit', 'neuf', 'dix'][nn] || String(nn));
+            // ————— LES QUATRE CALCULS, UNE SEULE LISTE DE TRADES —————
+            // Relevée AVANT les rangées : la période à tester de chaque ligne s'y lit
+            // aussi, et elle doit venir de la même source que la frise — sans quoi la
+            // page affiche une durée d'un côté et deux tirets de l'autre, ce qui est
+            // exactement ce qui a été rapporté.
+            const cal = this.pfCalculs(lignes);
             const maxAn = Math.max(1e-9, ...rAns.map((x) => Math.abs(x)));
-            const lignesPart = lignes.map((x) => {
+            const lignesPart = lignes.map((x, iL) => {
               const a = nombre(x.rAn);
               const part = sommeAn > 0 ? a / sommeAn * 100 : 0;
               const cleL = k + '|' + (x.ticker || x.sym);
@@ -27313,7 +27364,65 @@ GROUPES = {
               // les réglages PROPRES à cette ligne : ce que la note d'en-tête n'a pas
               // hissé. Le compte de trades reste sur la ligne — il ne peut pas être commun.
               const propres = segmentsDe(x).filter((y) => !communs.includes(y));
-              return { ...x,
+              // ————— « — » COUVRE DEUX ÉTATS, DONC IL DISCULPE SANS AVOIR REGARDÉ —————
+              //
+              // La colonne rendait deux tirets sur toutes les lignes, et le tiret ne
+              // disait pas lequel des cas : la variante ne porte pas ses bornes, ou elles
+              // sont là et personne ne les lit. Mesuré : les lignes validées par le repli
+              // de `normValides` perdaient `t0`/`t1` — ils n'étaient pas dans la liste des
+              // champs recopiés depuis la meilleure ligne connue.
+              //
+              // La période vient donc d'ABORD des trades mesurés — la même liste que la
+              // frise, le bilan et la corrélation, donc la page ne peut pas se
+              // contredire —, à défaut des bornes enregistrées, et à défaut de rien elle
+              // DIT ce qui manque. C'est la règle des trois états, appliquée à une date.
+              const trL = (cal.pfCalcSrc[iL] || {});
+              const per = (() => {
+                const jp2 = (ms) => { const d = new Date(ms);
+                  return d.getUTCFullYear() + '.' + String(d.getUTCMonth() + 1).padStart(2, '0')
+                    + '.' + String(d.getUTCDate()).padStart(2, '0'); };
+                const dates = (a2, b2, quoi) => ({
+                  periodeDates: true, periodeT0: jp2(a2), periodeT1: jp2(b2),
+                  periodePolice: 'Consolas,ui-monospace,monospace', periodeTaille: '11px',
+                  periodeEncre: 'var(--color-text)',
+                  periodeAide: 'Du ' + jp2(a2) + ' au ' + jp2(b2) + ' \u2014 ' + quoi
+                    + ' Reportez ces deux dates telles quelles dans le testeur MT5 : un '
+                    + 'robot lancé sur toute la série ne rejoue pas les mêmes trades, et '
+                    + 'comparer deux périodes différentes ne compare rien.' });
+                if (trL.trades && trL.trades.length) {
+                  let a2 = Infinity, b2 = -Infinity;
+                  for (const t of trL.trades) { if (t.e < a2) a2 = t.e; if (t.s > b2) b2 = t.s; }
+                  return dates(a2, b2, 'du premier au dernier trade que cette configuration '
+                    + 'prend aujourd\u2019hui, remesuré à l\u2019instant.');
+                }
+                const v2 = x._v || x;
+                if (v2.t0 && v2.t1) {
+                  return dates(v2.t0, v2.t1, 'les bornes enregistrées à la validation. '
+                    + 'Les bougies de cet instrument ne sont pas chargées ici, donc la '
+                    + 'mesure n\u2019a pas été refaite.');
+                }
+                const manque = trL.motif === 'bougies non chargées'
+                  ? ['bougies', 'non chargées']
+                  : trL.motif === 'configuration introuvable'
+                    ? ['configuration', 'introuvable']
+                    : ['bornes', 'non enregistrées'];
+                return { periodeDates: false, periodeT0: manque[0], periodeT1: manque[1],
+                  periodePolice: 'var(--font-body)', periodeTaille: '10px',
+                  periodeEncre: 'var(--color-accent-700)',
+                  periodeAide: trL.motif === 'bougies non chargées'
+                    ? 'Les bougies de cet instrument ne sont pas chargées et cette ligne ne '
+                      + 'porte pas de bornes enregistrées : Véna ne peut pas dire ici sur '
+                      + 'quelle période elle a été mesurée. Déposez la série, ou rouvrez la '
+                      + 'ligne en Backtest.'
+                    : trL.motif === 'configuration introuvable'
+                      ? 'La configuration exacte de cette ligne ne se retrouve pas : elle '
+                        + 'n\u2019est pas rejouable, donc sa période n\u2019est pas '
+                        + 'recalculable. Relancez le scan sur cet instrument.'
+                      : 'Cette ligne a été mise de côté avant que les bornes de la mesure '
+                        + 'soient enregistrées, et ses bougies ne sont pas chargées ici. '
+                        + 'Rouvrez-la en Backtest : la période se relit à la remesure.' };
+              })();
+              return { ...x, ...per,
                 reglagesPropres: propres.concat(x.n + ' trades').join(' \u00b7 '),
                 partTxt: sommeAn > 0 ? Math.round(part) + ' %' : '—',
                 // une longueur CSS toujours valide : une part à « — » dessine une barre VIDE
@@ -27394,8 +27503,6 @@ GROUPES = {
             // porte combien de ses parts sont mortes : effacer le chiffre le rendrait
             // illisible, le laisser nu le rendrait faux.
             const nPerimPf = lignesPart.filter((x) => x.aMvVieux).length;
-            // ————— LES QUATRE CALCULS, UNE SEULE LISTE DE TRADES —————
-            const cal = this.pfCalculs(lignes);
             const nonVerif = lignes.filter((x) => !x.verifie).length;
             return { cle: String(kv), nom: p.nom || 'Portefeuille ' + (k + 1), tout,
               aLignes: true, aVide: false, nLignes: lignes.length,
@@ -27786,6 +27893,12 @@ GROUPES = {
                   bhDetail: !o } }) };
           })() };
       })(),
+      // ————— LE GABARIT DE LA GRILLE DES LIGNES, ÉCRIT UNE FOIS —————
+      // Huit pistes : le chevron, l'instrument, R/an, le pire creux, le facteur de
+      // profit, le hasard, la période à tester, et le retrait. La dernière n'a pas
+      // d'intitulé — c'est une action de rangée —, mais elle EXISTE des deux côtés :
+      // c'est son absence en en-tête qui faisait tasser les dates.
+      grilleLigne: '14px minmax(0,1fr) 80px 84px 88px 100px 112px 74px',
       partTete: s.bhPart === undefined ? 50 : s.bhPart,
       setPartTete: (e) => this.setState({ bhPart: Math.min(100, Math.max(0, Number(e.target.value))) }),
       risqueTete: s.risquePct,

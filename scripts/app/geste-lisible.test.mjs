@@ -65,7 +65,13 @@ test("le retrait n'entraîne pas le dépli de la rangée qui le porte", () => {
     "le retrait ne coupe plus la propagation : il vit dans la zone cliquable de la "
     + "rangée, dont le clic DÉPLIE. Le geste partirait doublé — un retrait et un "
     + "dépli — et l'écran bougerait pour deux raisons à la fois.");
-  assert.ok(APP.includes('onClick="{{ vl.deplier }}" title="{{ vl.deplierAide }}"'),
+  // ————— L'INVARIANT SURVIT, SON ANCRE A BOUGÉ (règle 14, deuxième issue) —————
+  // L'ancre portait le `title` du dépli, posé sur la rangée entière. Il en est parti :
+  // une infobulle native s'ouvre sous le curseur où qu'il soit, et celle-ci recouvrait
+  // le bouton « Exporter » de la rangée suivante — rapporté. Elle vit sur le chevron.
+  // Ce que cette garde protège n'a pas changé : la rangée se déplie toujours au clic,
+  // donc la coupure de propagation gardée ci-dessus a toujours un objet.
+  assert.ok(APP.includes('<div class="rang" style="grid-template-columns:{{ grilleLigne }};font-size:13px" onClick="{{ vl.deplier }}">'),
     "la rangée ne se déplie plus au clic : la coupure gardée ci-dessus n'aurait plus "
     + "d'objet, et cette garde deviendrait verte en ne gardant rien");
 });
