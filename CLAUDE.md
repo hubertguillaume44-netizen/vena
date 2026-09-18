@@ -1787,6 +1787,21 @@ n'audite un complément du nom.
 Le geste coûte une commande : un ordinal se compte avant de s'écrire, ou il se remplace
 par ce qu'on sait vraiment (« une de plus », « encore une fois ») qui ne promet rien.
 
+**Et la règle a resservi deux jours plus tard, sur une DURÉE au lieu d'un rang.** « Le
+défaut avait vécu des mois sous les yeux de tout le monde » : un ordre de grandeur juré
+là où `git log -S` répondait. Compté, c'était **quatre jours** — et le chiffre juste n'a
+rien changé à l'argument, parce que ce n'était pas le bon chiffre.
+
+> **Le compte utile est le nombre d'OCCASIONS MANQUÉES, pas le temps écoulé.** « Des
+> mois » cherchait à dire « personne ne l'a vu », et la durée ne le dit pas : elle est
+> compatible avec un fichier que personne n'a rouvert. Le nombre de commits qui ont
+> traversé le fichier, lui, le dit — **trente et un** sur ces quatre jours.
+
+Les deux fois, la commande existait et tenait dans une ligne ; les deux fois, le nombre
+était dans une apposition. **Un nombre placé dans le PRÉDICAT se fait vérifier ; dans une
+apposition, non** — et « depuis des mois » est une apposition, exactement comme « la
+troisième instance de ».
+
 **Mais elles n'en portent pas le MOT** : le verdict est « fenêtre fixe » — voir « Quand
 l'explication doit contredire l'étiquette » plus haut. Ce paragraphe a d'abord dit
 l'inverse (« c'est voulu, ce n'est pas un défaut à corriger ») et il avait tort : le seuil
@@ -3630,6 +3645,13 @@ endroit — `EtatRobot`, lu par les deux formes.
 > tiret qui couvre trois causes n'en nomme aucune ; le conseil qui en couvre trois en
 > nomme une et se trompe sur les autres — ce qui est pire, parce qu'il a la forme d'une
 > réponse. Personne ne vérifie un conseil qu'il vient de recevoir.
+
+**Et ce qu'il coûte n'est pas l'erreur, c'est l'ARRÊT.** Un conseil a la forme d'une
+réponse, donc il met fin à la recherche : celui qui le lit ne cherche plus pourquoi son
+robot est arrêté, il va cliquer sur un bouton qui ne changera rien, et il reviendra en
+disant que le robot ne démarre pas. C'est la famille de « un champ absent fait poser la
+question ; un champ qui ment y répond », poussée d'un cran — **un conseil faux est plus
+coûteux qu'un silence**, parce que le silence, lui, laisse chercher.
 
 **ET C'EST LA CONTRAINTE DE PLACE QUI L'A TROUVÉ, PAS UNE RELECTURE.** Compté plutôt que
 juré : la phrase attrape-tout a été posée le 14 septembre et retirée le 18, et
