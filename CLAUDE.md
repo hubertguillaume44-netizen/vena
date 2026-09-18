@@ -1160,6 +1160,32 @@ La conséquence pratique est un geste de fin de renommage, pas un de plus au dé
 *après avoir renommé, chercher ce que le nouveau nom ramasse.* S'il ne ramasse rien, la
 question « qu'est-ce que ces choses ont en commun ? » n'a pas encore reçu sa réponse.
 
+##### Et l'absorption laisse DEUX entrées pour une règle — la tension est déclarée, pas réglée
+
+Absorber n'a pas fusionné : « un “seul” se périme sans bruit » et « un nombre ou un
+quantificateur en apposition se compte » vivent chacune dans leur chapitre, reliées par
+un renvoi. **C'est exactement la forme que ce fichier interdit ailleurs** — la consigne de
+recopie n'est pas doublée dans PASSATION.md, parce que *deux copies divergent, et la
+divergence est muette*.
+
+Ce qui la fait tolérer ici : ce ne sont pas deux copies d'un même énoncé, ce sont **deux
+instances avec leur propre preuve** — un « seul » qui en cachait deux d'un côté, un
+ordinal faux de deux de l'autre. Déplacer l'une priverait son chapitre de ce qui l'a fait
+écrire, et un chapitre sans son cas fondateur redevient une consigne qu'on croit sur
+parole.
+
+**Mais le renvoi croisé n'a AUCUNE PRISE, et il faut le dire** : un renvoi est de la
+prose, la règle 3 interdit d'y ancrer une garde, et rien dans le dépôt ne verra le jour
+où l'une des deux sera reformulée sans l'autre. Seul un lecteur qui ouvre les deux
+chapitres le verra — c'est-à-dire personne, la plupart du temps.
+
+**Le seuil est donc écrit d'avance**, comme celui des statuts et celui de la
+fragmentation en littéraux : *le jour où les deux énoncés cesseront de se paraphraser*,
+la tolérance tombe — une seule des deux garde l'énoncé, l'autre devient un renvoi nu qui
+ne porte plus que son exemple. On ne le fait pas avant, parce que deux instances valent
+mieux qu'une pour comprendre une règle ; on le reconnaîtra parce que le signal est un
+désaccord, pas une ressemblance.
+
 #### Et la règle 8 s'applique aux GARDES : une classe fermée, une garde de classe
 
 Deux fois dans la même journée, un correctif a fermé une **classe** et sa garde a été
