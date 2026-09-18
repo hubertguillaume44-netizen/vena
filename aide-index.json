@@ -878,6 +878,13 @@
    ]
   },
   {
+   "terme": "trades",
+   "texte": "La durée est la période MESURÉE : la fenêtre que cette configuration a balayée, bornes et fenêtre choisie comprises. C'est elle qui divise le R par an — une année sans trade est une année de rendement nul, pas une année qui n'existe pas.",
+   "vues": [
+    "Backtest"
+   ]
+  },
+  {
    "terme": "Unité",
    "texte": "La taille des bougies balayées. H4 et Daily sont reconstruits depuis vos bougies horaires.",
    "vues": [

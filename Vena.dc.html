@@ -2551,6 +2551,9 @@
                             </sc-for>
                             <span class="{{ vl.verifCls }}" style="font-size:10px" title="{{ vl.verifAide }}">{{ vl.verifTxt }}</span>
                           </span>
+                          <sc-if value="{{ vl.aDernierTrade }}" hint-placeholder-val="{{ false }}">
+                            <span style="font-size:10px;line-height:1.45;margin-top:2px;color:{{ vl.dernierTradeEncre }}" title="{{ vl.dernierTradeAide }}">{{ vl.dernierTradeTxt }}</span>
+                          </sc-if>
                         </span>
                         <span style="text-align:right;white-space:nowrap"><strong>{{ vl.rAn }}</strong></span>
                         <span style="text-align:right;white-space:nowrap">{{ vl.dd }}</span>
@@ -2753,8 +2756,8 @@
                   <div style="position:relative;display:grid;grid-template-columns:210px minmax(0,1fr) 64px;gap:5px 12px;align-items:center">
                     <sc-for list="{{ ps.friseLignes }}" as="fl2" hint-placeholder-count="4">
                       <span style="display:contents">
-                        <span style="font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="{{ fl2.t0 }} → {{ fl2.t1 }}">{{ fl2.nom }}</span>
-                        <span style="height:11px;background:var(--color-neutral-200);position:relative"><span style="position:absolute;left:{{ fl2.gauche }};width:{{ fl2.largeur }};top:0;bottom:0;background:var(--color-accent-700)"></span></span>
+                        <span style="font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="{{ fl2.aide }}">{{ fl2.nom }}</span>
+                        <span style="height:11px;background:var(--color-neutral-200);position:relative" title="{{ fl2.aide }}"><span style="position:absolute;left:{{ fl2.gauche }};width:{{ fl2.largeur }};top:0;bottom:0;background:var(--color-accent-700)"></span><span style="display:{{ fl2.marqueAff }};position:absolute;left:{{ fl2.marqueGauche }};top:-2px;bottom:-2px;width:2px;background:var(--color-accent-900)"></span></span>
                         <span style="font-size:11px;text-align:right" class="text-muted">{{ fl2.duree }}</span>
                       </span>
                     </sc-for>
@@ -4952,7 +4955,10 @@
       -->
       <div style="background:var(--color-accent-900);color:var(--color-bg);padding:7px 16px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">
         <span style="font-family:var(--font-heading);font-weight:600;font-size:24px;line-height:1;letter-spacing:-.01em">{{ btTotal }}</span>
-        <span style="font-size:12px;opacity:.8">{{ btN }} trades · {{ btAnnees }} · {{ btSymNom }}</span>
+        <span style="font-size:12px;opacity:.8" title="La durée est la période MESURÉE : la fenêtre que cette configuration a balayée, bornes et fenêtre choisie comprises. C'est elle qui divise le R par an — une année sans trade est une année de rendement nul, pas une année qui n'existe pas.">{{ btN }} trades · {{ btAnnees }} · {{ btSymNom }}</span>
+        <sc-if value="{{ aBtDernier }}" hint-placeholder-val="{{ false }}">
+          <span style="font-size:12px;color:{{ btDernierEncre }}" title="{{ btDernierAide }}">{{ btDernierTxt }}</span>
+        </sc-if>
         <span style="border:1px solid currentColor;padding:2px 7px;font-size:9px;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap" title="{{ btMotifs }}">{{ btVerdict }}</span>
         <sc-if value="{{ perime }}" hint-placeholder-val="{{ false }}">
           <span style="border:1px solid currentColor;padding:2px 7px;font-size:9px;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap">Mesure en cours…</span>
@@ -10806,7 +10812,12 @@ GROUPES = {
           const tr = this.mesurer(sym, cfg, v.ut || this.state.ut, df);
           out = tr && tr.length
             ? { trades: tr.map((t) => ({ e: t.entree_t, s: t.sortie_t,
-              r: (t.R_net !== undefined ? t.R_net : t.R) })), motif: '' }
+              r: (t.R_net !== undefined ? t.R_net : t.R) })),
+              // ————— LA PORTE UNIQUE PORTE AUSSI LA FENÊTRE —————
+              // La projection en `{e, s, r}` perdait le stamp du moteur, et tout ce qui
+              // vient après retombait sur la période ACTIVE sans le dire. La fenêtre
+              // voyage avec la liste : elle n'est redérivable par personne en aval.
+              fen: tr.fenetreMesuree || null, motif: '' }
             : { trades: null, motif: 'aucun trade sous cette configuration' };
         } catch (e) { out = { trades: null, motif: 'mesure impossible' }; }
         if (memo.size > 24) memo.clear();
@@ -10841,6 +10852,9 @@ GROUPES = {
     for (const x of vivantes) {
       let tot = 0, a = Infinity, b = -Infinity;
       for (const t of x.trades) { tot += t.r; if (t.e < a) a = t.e; if (t.s > b) b = t.s; }
+      // la fenêtre MESURÉE de la ligne, jamais l'étalement de ses trades : annualiser
+      // sur l'étalement gonfle le chiffre d'une configuration éteinte
+      if (x.fen && x.fen.t1 > x.fen.t0) { a = x.fen.t0; b = x.fen.t1; }
       brutTotal += tot;
       const ans = (b - a) / AN;
       if (ans > 0.05) brutAn += tot / ans;
@@ -10865,10 +10879,20 @@ GROUPES = {
     // MÊME grille — pas sur le conteneur. Une bande calée sur la carte se décale de la
     // largeur de la colonne des noms et affirme alors une fenêtre commune fausse : le
     // défaut exact qu'elle sert à rendre visible.
-    const axe = (() => {
-      if (!vivantes.length) return null;
+    // Un couple {mesurée, active} par ligne, calculé UNE fois : l'axe, les barres, la
+    // marque du dernier trade et le libellé le lisent tous les quatre. Trois périodes
+    // recalculées à quatre endroits finiraient par se contredire sur la même rangée.
+    const bornesDe = (x) => {
       let a = Infinity, b = -Infinity;
-      for (const x of vivantes) for (const t of x.trades) { if (t.e < a) a = t.e; if (t.s > b) b = t.s; }
+      for (const t of x.trades) { if (t.e < a) a = t.e; if (t.s > b) b = t.s; }
+      const f = x.fen && x.fen.t1 > x.fen.t0 ? x.fen : null;
+      return { actT0: a, actT1: b, mesT0: f ? f.t0 : a, mesT1: f ? f.t1 : b, mesuree: !!f };
+    };
+    const bornes = vivantes.map(bornesDe);
+    const axe = (() => {
+      if (!bornes.length) return null;
+      let a = Infinity, b = -Infinity;
+      for (const x of bornes) { if (x.mesT0 < a) a = x.mesT0; if (x.mesT1 > b) b = x.mesT1; }
       return b > a ? { t0: a, t1: b, span: b - a } : null;
     })();
     const pct = (ms) => (axe ? Math.max(0, Math.min(100, (ms - axe.t0) / axe.span * 100)) : 0);
@@ -10974,11 +10998,26 @@ GROUPES = {
         : '',
       // ————— LA FRISE : LA BANDE COMMUNE EST UNE RANGÉE DE LA MÊME GRILLE —————
       aFrise: !!axe,
-      friseLignes: vivantes.map((x) => {
-        let a = Infinity, b = -Infinity;
-        for (const t of x.trades) { if (t.e < a) a = t.e; if (t.s > b) b = t.s; }
-        return { nom: x.nom, gauche: pct(a) + '%', largeur: Math.max(0.5, pct(b) - pct(a)) + '%',
-          duree: f1((b - a) / AN, 1) + ' ans', t0: jp(a), t1: jp(b) };
+      // ————— LA BARRE EST LA PÉRIODE MESURÉE ; LA MARQUE EST LE DERNIER TRADE —————
+      // Une barre courte se lisait « pas assez de données » alors qu'elle pouvait dire
+      // « la configuration a cessé de produire des signaux » — trois causes, un seul
+      // trait. La barre dit désormais ce qui a ÉTÉ BALAYÉ, et la marque dit jusqu'où ça
+      // a produit : une extinction se voit d'un coup d'œil, par l'écart entre les deux.
+      friseLignes: vivantes.map((x, k) => {
+        const b = bornes[k];
+        const mort = (b.mesT1 - b.actT1) / AN;
+        return { nom: x.nom,
+          gauche: pct(b.mesT0) + '%', largeur: Math.max(0.5, pct(b.mesT1) - pct(b.mesT0)) + '%',
+          duree: f1((b.mesT1 - b.mesT0) / AN, 1) + ' ans',
+          t0: jp(b.mesT0), t1: jp(b.mesT1),
+          // la marque ne paraît que si elle dit quelque chose : collée au bout de la
+          // barre, elle serait du décor sur toutes les lignes vivantes
+          marqueAff: mort >= this.SEUIL_MORT ? 'block' : 'none',
+          marqueGauche: pct(b.actT1) + '%',
+          aide: 'Balayé du ' + jp(b.mesT0) + ' au ' + jp(b.mesT1) + '. Dernier trade le '
+            + jp(b.actT1) + (mort >= this.SEUIL_MORT
+              ? ' — plus aucun signal sur les ' + f1(mort, 1) + ' dernières années balayées.'
+              : '.') };
       }),
       friseBandeGauche: axe && !fen.vide ? pct(fen.t0) + '%' : '0%',
       friseBandeLargeur: axe && !fen.vide ? Math.max(0, pct(fen.t1) - pct(fen.t0)) + '%' : '0%',
@@ -17093,10 +17132,22 @@ GROUPES = {
   // passage du spread déduit après coup au spread porté par le prix d'entrée. Sans lui,
   // un résultat en cache serait relu comme s'il venait de la nouvelle règle.
   MOTEUR_V = 'e4';
+  // ————— À PARTIR DE QUAND UN SILENCE SE DIT —————
+  //
+  // UN AN de fenêtre balayée sans un seul signal. Le seuil est un arbitrage et il est
+  // écrit : une configuration peut légitimement se taire plusieurs mois — un régime
+  // range, un filtre sélectif — sans que ça dise quoi que ce soit. Une année entière
+  // de fenêtre balayée sans une entrée, elle, change la décision : c'est la différence
+  // entre « elle attend » et « elle ne se déclenche plus ».
+  //
+  // Il ne pilote QUE la mention du silence et son encre — la date du dernier trade,
+  // elle, s'affiche toujours. Un seuil qui déciderait aussi de MONTRER la date
+  // reproduirait le défaut : l'information manquerait là où elle n'alerte pas encore.
+  SEUIL_MORT = 1;
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260918.10';
+  VERSION_APP = '260918.11';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -25058,6 +25109,35 @@ GROUPES = {
       // « 6,6 ans ». Ce seul endroit ajoutait « ans » à un nombre brut, et la même page
       // pouvait donc afficher « 1,3 ans » ici et « 1,4 an » deux blocs plus haut.
       btAnnees: res ? this.ansTxt((Number(res.annees) || 0) * this.AN_MS) : '—',
+      // ————— LE PANNEAU DIT AUSSI JUSQU'OÙ ÇA A PRODUIT —————
+      // La durée ci-dessus est désormais la période MESURÉE — la fenêtre balayée. Elle
+      // ne dit donc plus quand les signaux se sont arrêtés, et c'est précisément ce
+      // qu'il faut lire avant de mettre de l'argent sur une configuration.
+      ...(() => {
+        if (!res || !Number.isFinite(res.dernierTrade)) {
+          return { aBtDernier: false, btDernierTxt: '', btDernierEncre: '', btDernierAide: '' };
+        }
+        const d = new Date(res.dernierTrade);
+        const mois = String(d.getUTCMonth() + 1).padStart(2, '0') + '/' + d.getUTCFullYear();
+        // Le silence est ce qui reste de la fenêtre APRÈS le dernier trade. Il se lit
+        // sur les deux BORNES stampées, jamais par une soustraction de durées : deux
+        // durées arrondies qui se soustraient ne rendent pas un intervalle.
+        const fen = (this._tradesBt && this._tradesBt.fenetreMesuree) || null;
+        const silence = fen && Number.isFinite(fen.t1)
+          ? (fen.t1 - res.dernierTrade) / this.AN_MS : 0;
+        return {
+          aBtDernier: true,
+          btDernierTxt: 'dernier trade en ' + mois
+            + (silence >= this.SEUIL_MORT
+              ? ' — rien depuis ' + fr(silence, 1) + ' ans' : ''),
+          btDernierEncre: silence >= this.SEUIL_MORT
+            ? 'var(--color-accent-900)' : 'var(--color-neutral-600)',
+          btDernierAide: 'La durée affichée à côté est la période MESURÉE : la fenêtre que '
+            + 'cette configuration a balayée, et le dénominateur du R par an. Elle ne dit '
+            + 'pas jusqu’où les signaux ont continué — c’est ce que dit cette ligne. Une '
+            + 'année sans trade est une année de rendement nul, pas une année qui '
+            + 'n’existe pas : elle compte dans le R par an, et c’est voulu.' };
+      })(),
       btRAn: res ? sg(res.rAn, 1) + ' R' : '—',
       btWin: res ? (res.nGains === undefined ? fr(res.winRate, 0) + ' %' : res.nGains + ' / ' + res.nPertes + ' / ' + (res.neutres || 0)) : '—',
       btWinDetail: res
@@ -27469,10 +27549,30 @@ GROUPES = {
                     + 'robot lancé sur toute la série ne rejoue pas les mêmes trades, et '
                     + 'comparer deux périodes différentes ne compare rien.' });
                 if (trL.trades && trL.trades.length) {
+                  // ————— LA COLONNE PORTE LA PÉRIODE MESURÉE, PAS L'ACTIVE —————
+                  // Elle portait « du premier au dernier trade » : la période ACTIVE. Trois
+                  // causes y rendaient la même barre courte — bougies manquantes,
+                  // configuration éteinte, fenêtre choisie — et c'est cette colonne qu'on
+                  // reporte dans le testeur. Reporter l'étalement des trades au lieu de la
+                  // fenêtre balayée fait tourner le robot sur une autre période que la
+                  // mesure : exactement ce que l'aide ci-dessous interdit.
                   let a2 = Infinity, b2 = -Infinity;
                   for (const t of trL.trades) { if (t.e < a2) a2 = t.e; if (t.s > b2) b2 = t.s; }
-                  return dates(a2, b2, 'du premier au dernier trade que cette configuration '
-                    + 'prend aujourd\u2019hui, remesuré à l\u2019instant.');
+                  const f2 = trL.fen && trL.fen.t1 > trL.fen.t0 ? trL.fen : null;
+                  const m0 = f2 ? f2.t0 : a2, m1 = f2 ? f2.t1 : b2;
+                  const mort2 = (m1 - b2) / (365.25 * 86400000);
+                  return { ...dates(m0, m1, 'la fenêtre que cette configuration a BALAYÉE, '
+                    + 'remesurée à l’instant. Dernier trade le ' + jp2(b2)
+                    + (mort2 >= this.SEUIL_MORT
+                      ? ' — plus aucun signal sur les '
+                        + mort2.toFixed(1).replace('.', ',') + ' dernières années balayées.'
+                        + ' Une année sans trade est une année de rendement nul, pas une '
+                        + 'année qui n’existe pas : elle compte dans le R par an.'
+                      : '.')),
+                    // les trois périodes portent chacune son nom — aucune ne se déduit
+                    // d'une autre, et la rangée ne peut pas afficher l'une en croyant
+                    // montrer l'autre
+                    mesT0: m0, mesT1: m1, actT1: b2, morte: mort2 };
                 }
                 const v2 = x._v || x;
                 if (v2.t0 && v2.t1) {
@@ -27512,7 +27612,38 @@ GROUPES = {
                 ? (Date.parse(per.periodeT1.replace(/\./g, '-') + 'T00:00:00Z')
                   - Date.parse(per.periodeT0.replace(/\./g, '-') + 'T00:00:00Z')) / (365.25 * 86400000)
                 : null;
+              // ————— LE LIBELLÉ QUI MANQUAIT : JUSQU'OÙ ÇA A PRODUIT —————
+              //
+              // La date est ABSOLUE (règle 12) : « il y a trois ans » vieillirait sans se
+              // démentir sur une fenêtre figée. La durée de silence l'accompagne parce
+              // qu'elle est ce qui décide, et elle se relit contre la date à côté.
+              //
+              // Le seuil ne pilote QUE la mention du silence et l'encre. La date du
+              // dernier trade s'affiche toujours : la cacher sous le seuil ferait
+              // manquer l'information là où elle n'alerte pas encore.
+              const mois = (ms) => { const d = new Date(ms);
+                return String(d.getUTCMonth() + 1).padStart(2, '0') + '/' + d.getUTCFullYear(); };
+              const finiL = Number.isFinite(per.actT1);
+              const mortL = finiL && Number.isFinite(per.morte) ? per.morte : 0;
               return { ...x, ...per,
+                aDernierTrade: finiL,
+                dernierTradeTxt: finiL
+                  ? 'dernier trade en ' + mois(per.actT1)
+                    + (mortL >= this.SEUIL_MORT
+                      ? ' — rien depuis ' + mortL.toFixed(1).replace('.', ',') + ' ans'
+                      : '')
+                  : '',
+                dernierTradeEncre: mortL >= this.SEUIL_MORT
+                  ? 'var(--color-accent-900)' : 'var(--color-neutral-600)',
+                dernierTradeAide: finiL
+                  ? 'Trois périodes se distinguent, et une barre courte peut venir de '
+                    + 'n’importe laquelle. Bougies disponibles : ce dont vous disposez. '
+                    + 'Période MESURÉE : ce que la configuration a balayé — c’est elle '
+                    + 'qui est affichée à gauche, et c’est par elle que le R par an est '
+                    + 'divisé. Période active : du premier au dernier trade. Un écart entre '
+                    + 'les deux dernières veut dire que la configuration a cessé de '
+                    + 'produire des signaux, pas que les données manquent.'
+                  : '',
                 verifTxt: x.verifie ? 'vérifié contre le testeur'
                   : 'non vérifié \u2014 ' + (ansL !== null
                     ? 'mesure sur ' + ansL.toFixed(1).replace('.', ',') + ' ans'

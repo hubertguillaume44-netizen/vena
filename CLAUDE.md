@@ -3261,6 +3261,114 @@ répondre.
 > question à se poser en l'écrivant : *est-ce que je vérifie le RÉSULTAT, ou la façon
 > dont il a été obtenu ?* La seconde passe quand le mécanisme est cohérent et faux.
 
+## Trois périodes confondues en une, et le R par an récompensait l'extinction
+
+**STATUT · CAUSE ÉTABLIE — symptôme RAPPORTÉ sur trois lignes, cause et magnitude
+MESURÉES DANS LE DÉPÔT.** Trois lignes affichaient une durée courte, pour trois raisons
+sans rapport :
+
+| ligne | bougies | durée affichée | cause réelle |
+|---|---|---|---|
+| Cuivre | 4,5 a | 3,9 ans | les bougies manquent — réexport MT5 |
+| USDJPY | 7,7 a | 3,6 ans | plus aucun trade depuis 2023 |
+| Bitcoin | 7,7 a | 4,5 ans | plus aucun trade depuis 2024 |
+
+**Une barre courte se lit « pas assez de données »** alors qu'elle peut dire « la
+configuration a cessé de produire des signaux ». Trois causes, un seul trait — c'est la
+famille du tiret qui en couvrait trois, sur une grandeur au lieu d'une absence.
+
+### Et le dénominateur du R par an prenait la mauvaise
+
+La durée est le dénominateur du R par an, et c'était la période **ACTIVE** — première
+entrée → dernière sortie. Mesuré sur une série de banc qui devient plate à mi-parcours :
+
+| | durée | R par an |
+|---|---|---|
+| période MESURÉE (la fenêtre balayée) | 5,85 ans | **−4,45** |
+| période active (ce qui s'est produit) | 1,68 an | **−15,46** ← ce qui était affiché |
+
+**Un facteur 3,48.** Et le sens du biais est ce qui le rend grave : le chiffre le plus
+visible d'une ligne était gonflé **exactement pour les configurations qui ont cessé de
+fonctionner**.
+
+> **Une année sans trade est une année de rendement nul, pas une année qui n'existe
+> pas.** C'est le pire endroit possible pour un biais : il récompense l'extinction.
+
+### Trois périodes, trois noms, et aucune ne se déduit d'une autre
+
+| | ce que c'est | qui la connaît |
+|---|---|---|
+| **couverte** | ce dont on dispose en bougies | la série |
+| **MESURÉE** | la fenêtre où la configuration pouvait OUVRIR — bornes et fenêtre choisie | `backtester`, et lui seul |
+| **active** | du premier trade au dernier | la liste de trades |
+
+**La mesurée est stampée par qui la décide**, parce que personne ne peut la redériver :
+`decouper` garde 400 jours d'amorce AVANT la borne, donc `df.t[0]` n'est pas le début de
+la mesure ; et une liste de trades ne connaît que ce qui s'est produit. C'est la figure
+de `deposes` — la porte unique — appliquée à une grandeur au lieu d'une écriture, et
+elle va jusqu'au bout : `pfTrades` la porte avec la liste, sinon la projection en
+`{e, s, r}` la perdait et tout l'aval retombait sur l'active **sans le dire**.
+
+**Le repli n'est pas muet.** Une liste tranchée (`trades.slice`) perd le stamp — c'est
+le cas du walk-forward, où chaque moitié est légitimement jugée sur son propre étalement.
+`anneesSource` dit laquelle a servi, plutôt que de laisser un lecteur croire à la
+mesurée quand il lit l'active.
+
+**Et la fenêtre commune d'un portefeuille prend les mesurées.** Une ligne éteinte en 2023
+mais balayée jusqu'en 2026 a bien tourné avec les autres jusqu'en 2026, en ne rapportant
+rien : la prendre à son dernier trade raccourcissait la fenêtre commune de **toutes** les
+autres.
+
+### La frise montre les deux, et l'écart est le message
+
+La barre porte la période **mesurée** ; une marque se pose au **dernier trade**. Une
+configuration dont le dernier trade date de trois ans se voit alors d'un coup d'œil, par
+l'écart entre les deux — et une barre courte cesse de vouloir dire trois choses.
+
+**Le libellé qui manquait** vit sur la ligne et dans le Backtest : *« dernier trade en
+09/2023 — rien depuis 3,0 ans »*, en encre d'alerte au-delà du seuil. Date **absolue**
+(règle 12) : sur une fenêtre figée, « il y a trois ans » vieillirait sans se démentir.
+
+**`SEUIL_MORT` vaut un an, et c'est un ARBITRAGE écrit comme tel.** Une configuration peut
+légitimement se taire plusieurs mois — un régime range, un filtre sélectif — sans que ça
+dise quoi que ce soit ; une année entière de fenêtre balayée sans une entrée change la
+décision. Il ne pilote **que** la mention du silence et son encre : la date du dernier
+trade s'affiche toujours. Un seuil qui déciderait aussi de MONTRER la date reproduirait
+le défaut — l'information manquerait là où elle n'alerte pas encore.
+
+### Le banc ne pouvait pas faire mourir une famille d'exemple
+
+Les dix bougent sur toute leur fenêtre : leur période active vaut leur période mesurée,
+et l'état « éteinte » n'y existe pas. Mesuré au rendu avant d'écrire la garde : trois
+marques sur trois à `none`. C'est la règle 10, une fois de plus — **le cas qu'on sème
+spontanément est celui où le défaut ne peut pas se produire** — et la graine gelée
+interdit de le corriger dans les données.
+
+La garde fait donc tourner le VRAI producteur contre une source contrôlée : une fenêtre
+allongée de trois ans au-delà du dernier trade d'UNE ligne, et les deux états sont
+mesurés ensemble — la marque paraît sur celle-là et sur aucune autre.
+`scripts/app/rAn-divise-par-la-mesuree.test.mjs` porte les sept, éprouvées par trois
+mutations : diviser par l'active fait tomber en nommant **−15,46 contre −4,45 et le
+facteur 3,48** ; remettre la barre sur l'active tombe ; éteindre la marque tombe au rendu.
+
+**Son angle mort est en tête** : elle tient le dénominateur, pas que la fenêtre stampée
+soit la bonne. `backtester` la dérive de `cfg.debut`/`cfg.fin` ; si ces deux-là
+décrivaient mal ce qui a été balayé, la garde et le produit se tromperaient ensemble.
+
+### Ce que ça périme, et pourquoi `MOTEUR_V` NE tourne pas
+
+Les `rAn` déjà enregistrés sur les lignes validées ont été calculés sous l'ancienne
+règle : sur une configuration éteinte, ils sont gonflés. Le grand chiffre du
+portefeuille, lui, est REMESURÉ — il est donc juste dès cette version, et la réserve
+sous le bandeau dit déjà que les deux peuvent différer.
+
+**`MOTEUR_V` ne tourne pas, et c'est un choix qui se dit.** Les TRADES ne changent pas :
+mêmes entrées, mêmes sorties, même total en R. Seul un chiffre dérivé à l'affichage
+change de dénominateur. Tourner la clé périmerait les scans enregistrés de tout le monde
+pour une valeur que « Remesurer les lignes » recalcule en une passe — le coût serait
+sans rapport avec ce qui a bougé. **C'est un arbitrage, pas une évidence**, et il se
+relit : le jour où une règle de DÉCISION changera, la réponse sera l'inverse.
+
 ## Un accord qui tient par ANNULATION D'ERREURS
 
 **C'est la voisine de la règle 15, et elle est pire.** Là, une sonde muette rend le défaut

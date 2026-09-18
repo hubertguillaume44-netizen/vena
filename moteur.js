@@ -1875,6 +1875,27 @@ export function backtester(df, cfg) {
     }
     tr.R_net = tr.R - comm - swap;
   }
+  // ————— LA FENÊTRE MESURÉE EST STAMPÉE PAR QUI LA DÉCIDE —————
+  //
+  // Personne d'autre ne la connaît. `decouper` sait où il a coupé, mais il garde 400
+  // jours d'amorce AVANT la borne : `df.t[0]` n'est pas le début de la mesure. Le
+  // consommateur, lui, ne voit qu'une liste de trades — et la première entrée n'est
+  // pas le début de la fenêtre, c'est le début de ce qui s'y est produit.
+  //
+  // CE QUE ÇA RÉPARE : `resume` divisait le total par (dernière sortie − première
+  // entrée) — la période ACTIVE. Une configuration qui a cessé de produire des signaux
+  // voyait donc son R par an GONFLÉ par son extinction même. Mesuré sur une série de
+  // banc qui devient plate à mi-parcours : 5,85 ans mesurés, 1,68 an actif, R/an
+  // −15,46 affiché pour −4,45 réels — **un facteur 3,48**. Le chiffre le plus visible
+  // d'une ligne récompensait l'extinction.
+  //
+  // Les bornes sont celles des ENTRÉES, et c'est la bonne définition : une année où la
+  // configuration ne pouvait plus ouvrir n'est pas une année d'occasion manquée. Une
+  // position ouverte avant `fin` est suivie au-delà ; ça ne rallonge pas la fenêtre.
+  trades.fenetreMesuree = df.n
+    ? { t0: df.t[Math.min(depart, df.n - 1)],
+        t1: Math.min(finEntrees, df.t[df.n - 1]) }
+    : null;
   trades.compteEntrees = { candidates: nEntCand, filtrees: nEntFiltrees };
   // Ce que la règle de séance a retiré : des bougies où le stop ou l'objectif était
   // franchi, et qui n'ont pas été relevées parce qu'elles sont hors séance ou
@@ -2269,7 +2290,7 @@ export function stabilitePeriode(trades, quoi = 'jour') {
 }
 
 export function resume(trades) {
-  if (!trades.length) return { n: 0, total: 0, winRate: 0, nGains: 0, nPertes: 0, neutres: 0, ambigus: 0, exposes: 0, pf: 0, pfMesurable: false, dd: 0, moyenne: 0, rAn: 0, annees: 0 };
+  if (!trades.length) return { n: 0, total: 0, winRate: 0, nGains: 0, nPertes: 0, neutres: 0, ambigus: 0, exposes: 0, pf: 0, pfMesurable: false, dd: 0, moyenne: 0, rAn: 0, annees: 0, anneesActives: 0, anneesMesurees: null, anneesSource: 'aucune', dernierTrade: null };
   const col = (t) => (t.R_net !== undefined ? t.R_net : t.R);
   const n = trades.length;
   // Un palier « point mort » sort à ≈ 0 R : légèrement négatif frais compris,
@@ -2285,7 +2306,36 @@ export function resume(trades) {
   const total = trades.reduce((a, t) => a + col(t), 0);
   let eq = 0, pic = 0, dd = 0;
   for (const t of trades) { eq += col(t); if (eq > pic) pic = eq; if (eq - pic < dd) dd = eq - pic; }
-  const annees = (trades[n - 1].sortie_t - trades[0].entree_t) / (365.25 * 86400000);
+  // ————— TROIS PÉRIODES, ET LE R PAR AN N'EN PREND QU'UNE —————
+  //
+  // Elles étaient confondues en une, et le dénominateur du R par an prenait la
+  // mauvaise :
+  //
+  //   couverte  — ce dont on dispose en bougies. Ce n'est pas ici : c'est la série.
+  //   MESURÉE   — la fenêtre où la configuration pouvait OUVRIR (bornes + fenêtre
+  //               choisie), stampée par `backtester`, qui est le seul à la connaître.
+  //   active    — de la première entrée à la dernière sortie. Ce qui s'est PRODUIT.
+  //
+  // > **Une année sans trade est une année de rendement nul, pas une année qui
+  // > n'existe pas.**
+  //
+  // Diviser par l'active gonflait le chiffre le plus visible d'une ligne exactement
+  // pour les configurations qui ont CESSÉ de fonctionner — mesuré sur une série de
+  // banc : 5,85 ans mesurés contre 1,68 actif, −15,46 R/an affiché pour −4,45 réels,
+  // un facteur 3,48. C'est le pire endroit possible pour un biais : il récompense
+  // l'extinction.
+  //
+  // LE REPLI N'EST PAS MUET. Une liste tranchée (`trades.slice`) perd le stamp — c'est
+  // le cas du walk-forward, où chaque moitié est légitimement jugée sur son propre
+  // étalement. `anneesSource` dit laquelle a servi, plutôt que de laisser un lecteur
+  // croire à la mesurée quand il lit l'active.
+  const AN = 365.25 * 86400000;
+  const anneesActives = (trades[n - 1].sortie_t - trades[0].entree_t) / AN;
+  const fen = trades.fenetreMesuree;
+  const anneesMesurees = (fen && Number.isFinite(fen.t0) && Number.isFinite(fen.t1) && fen.t1 > fen.t0)
+    ? (fen.t1 - fen.t0) / AN : null;
+  const annees = anneesMesurees !== null ? anneesMesurees : anneesActives;
+  const anneesSource = anneesMesurees !== null ? 'mesuree' : 'active';
   return {
     n, total,
     // dénominateur = trades réellement tranchés, sorties à l'équilibre exclues
@@ -2312,7 +2362,13 @@ export function resume(trades) {
     // PF sans aucune perte n'est pas une mesure : on garde le fait à part pour
     // pouvoir le classer honnêtement au lieu de l'envoyer en tête à l'infini
     pfMesurable: sp !== 0,
-    dd, moyenne: total / n, annees, rAn: annees > 0 ? total / annees : total,
+    dd, moyenne: total / n, annees, anneesActives, anneesMesurees, anneesSource,
+    // Le DERNIER TRADE, en clair : une barre courte se lit « pas assez de données »
+    // alors qu'elle peut dire « la configuration a cessé de produire des signaux ».
+    // C'est la seule des trois périodes qui décide si on met de l'argent dessus, et
+    // elle n'était nulle part.
+    dernierTrade: trades[n - 1].sortie_t, premierTrade: trades[0].entree_t,
+    rAn: annees > 0 ? total / annees : total,
     tp: trades.filter((t) => t.motif === 'tp').length,
     sl: trades.filter((t) => t.motif === 'sl').length,
     be: trades.filter((t) => t.motif === 'be' || t.motif === 'be2').length,
@@ -2567,22 +2623,39 @@ export function marquerEvenements(trades, evenements) {
  */
 export function fenetreCommune(lignes) {
   const bornes = [];
+  let nMes = 0;
   for (const l of (lignes || [])) {
     const tr = (l && l.trades) || [];
     if (!tr.length) continue;
+    // ————— LA FENÊTRE D'UNE LIGNE EST CELLE QU'ELLE A MESURÉE —————
+    // Pas celle où elle a produit des trades. Une ligne éteinte depuis 2023 mais
+    // mesurée jusqu'en 2026 a bien tourné avec les autres jusqu'en 2026 — en ne
+    // rapportant rien, ce qui est un résultat et non une absence. La prendre à son
+    // dernier trade raccourcissait la fenêtre commune de toutes les autres, et
+    // retirait de l'agrégat les années où elle pèse zéro.
+    const f = l && l.fen;
+    if (f && Number.isFinite(f.t0) && Number.isFinite(f.t1) && f.t1 > f.t0) {
+      bornes.push({ t0: f.t0, t1: f.t1 }); nMes++;
+      continue;
+    }
     let a = Infinity, b = -Infinity;
     for (const t of tr) { if (t.e < a) a = t.e; if (t.s > b) b = t.s; }
     bornes.push({ t0: a, t1: b });
   }
   const n = (lignes || []).length;
   if (!bornes.length) {
-    return { t0: null, t1: null, vide: true, mesurables: 0, lignes: n, unique: false, annees: 0 };
+    return { t0: null, t1: null, vide: true, mesurables: 0, lignes: n, unique: false,
+      annees: 0, source: 'aucune' };
   }
+  // ANGLE MORT DÉCLARÉ : le repli par ligne peut MIXER les deux définitions quand une
+  // liste arrive sans sa fenêtre. `source` le dit plutôt que de le taire — une fenêtre
+  // commune moitié mesurée moitié active n'est aucune des deux.
+  const source = nMes === bornes.length ? 'mesuree' : (nMes === 0 ? 'active' : 'mixte');
   const t0 = Math.max(...bornes.map((x) => x.t0));
   const t1 = Math.min(...bornes.map((x) => x.t1));
   const vide = !(t1 > t0);
   return { t0, t1, vide, mesurables: bornes.length, lignes: n,
-    unique: bornes.length === 1,
+    unique: bornes.length === 1, source,
     annees: vide ? 0 : (t1 - t0) / (365.25 * 86400000) };
 }
 
