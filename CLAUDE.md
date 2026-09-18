@@ -3100,15 +3100,24 @@ cohérent.
 | le résidu de **10 R** | le dépôt lu à 10 000 € au lieu de 20 000, ET le risque en % de l'équité COURANTE | un « dépassement de stop de 11 % » — cohérent, chiffré, cohérent avec l'autre instrument, et entièrement fabriqué. Trois formes ont été bâties dessus |
 | la **courbe de capital** | le prix de base pris par série, ET les points antérieurs sautés | un tracé plus court et un total mélangé, chacun expliquant l'autre |
 
+**Et c'est le résidu de 10 R qui porte la leçon, pas la courbe** : la cohérence du symptôme
+n'a pas SURVÉCU à la coïncidence des deux défauts, elle en a été **produite**. Un seul des
+deux — le dépôt mal lu, ou le risque pris pour constant — aurait donné un chiffre
+visiblement faux ; ensemble, ils ont donné un dépassement de stop de 11 %, qui est
+exactement ce qu'un instrument à neuf cents bougies écartées devait produire. C'est ce qui
+rend la forme coûteuse : **la vraisemblance est l'effet du défaut, pas un indice contre
+lui.**
+
 **Et la section voisine en est l'INVERSE exact, ce qui achève de la nommer.** Là — l'accord
 qui tient par annulation d'erreurs — deux défauts composent un résultat JUSTE, et rien
 dans un maillon pris seul ne dit lequel des deux accords on a. Ici, deux défauts composent
 un symptôme **explicable**, et rien dans une lecture prise seule ne dit qu'il en reste une
 autre. Les deux disent la même chose depuis deux bouts :
 
-> **Sur un chemin qui porte deux défauts, aucun maillon lu seul ne tranche.** Le départage
-> se fait sur ce que les maillons produisent ENSEMBLE — une garde qui les lie, ou une
-> mesure qui les sépare —, jamais sur la vraisemblance de l'explication qu'on en tire.
+> **Sur un chemin qui porte deux défauts, aucun maillon lu seul ne tranche — et c'est vrai
+> que le résultat soit bon ou mauvais.** Le départage se fait sur ce que les maillons
+> produisent ENSEMBLE — une garde qui les lie, ou une mesure qui les sépare —, jamais sur
+> la vraisemblance de l'explication qu'on en tire.
 
 **La conséquence pratique est la moins intuitive** : quand une hypothèse explique bien le
 symptôme, ce n'est pas une raison de s'arrêter. C'est le moment de demander ce qui
