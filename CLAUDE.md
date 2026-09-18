@@ -3460,6 +3460,14 @@ ce qui le sauve n'est pas son innocuité, c'est qu'il **SE MONTRE**. Le bandeau 
 permanence les lignes écartées et offre de les reprendre. *Le réglage dangereux n'était
 pas le réglage restauré, c'était le silence.*
 
+Et le critère se dit alors plus étroitement que « ce réglage influe-t-il ? », qui est
+encore une intention : **« son influence est-elle visible depuis l'écran qui la
+subit ? »** La précision porte tout — visible quelque part ne suffit pas, il faut
+qu'elle le soit sur l'écran dont le chiffre change. `familleFiltre` échouait à ça : il
+pouvait vider une liste depuis un réglage qu'on ne voit pas en la regardant. `pfEcart`
+y répond : le bandeau qui porte le grand chiffre nomme, juste en dessous, les lignes
+qu'il exclut.
+
 ### Une fenêtre CHOISIE est un réglage, pas un fait de marché
 
 AUDUSD était mesuré jusqu'en 10/2023 alors que ses bougies vont jusqu'en 09/2026. Ce
