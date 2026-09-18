@@ -1136,6 +1136,30 @@ désigné ce qui lui manquait.
 Le test se fait à voix haute : un nom de propriété permet de dire « ceci en est un / ceci
 n'en est pas un » sans regarder où la chose se trouve. Un nom de lieu ne le permet jamais.
 
+#### Et un SECOND test, celui-là rétrospectif : une classe bien nommée ABSORBE
+
+Le test à voix haute se fait avant d'écrire ; il dit si le nom désigne une propriété, pas
+si c'est la BONNE. Une propriété peut être vraie et trop étroite — et elle a alors
+exactement l'air d'une classe, puisqu'elle en a la forme.
+
+Le second signal arrive après, et il ne coûte rien : **une classe correctement nommée
+attire à elle une règle qui traînait à côté sans qu'on ait cherché à l'y mettre.** Le cas
+mesuré est le renommage de la règle des nombres en apposition. Trois renommages successifs
+— ordinal, puis nombre en apposition, puis nombre OU QUANTIFICATEUR en apposition — et
+seul le troisième a rencontré un voisin : « un “seul” se périme sans bruit : compter, pas
+jurer », écrite le 13 septembre (relu dans l'historique, `f359b42`) après un « le seul
+date-contre-aujourd'hui du fichier » qui en cachait deux. C'est **un quantificateur en
+apposition**, cinq jours avant l'ordinal, trouvé par un autre chemin.
+
+> **Si un nom neuf n'absorbe rien, c'est probablement encore un lieu.** Un lieu plus
+> large reste un lieu : il couvre plus de cas sans en expliquer aucun, donc il ne
+> reconnaît pas ses parents. Une propriété, elle, les reconnaît — et ce qu'elle ramasse
+> est la preuve qu'on a nommé le mécanisme et non son décor.
+
+La conséquence pratique est un geste de fin de renommage, pas un de plus au début :
+*après avoir renommé, chercher ce que le nouveau nom ramasse.* S'il ne ramasse rien, la
+question « qu'est-ce que ces choses ont en commun ? » n'a pas encore reçu sa réponse.
+
 #### Et la règle 8 s'applique aux GARDES : une classe fermée, une garde de classe
 
 Deux fois dans la même journée, un correctif a fermé une **classe** et sa garde a été
@@ -1878,6 +1902,15 @@ des nombres tirés du souvenir ; le quatrième est un nombre tiré des cas SOUS 
 
 Le geste ne change pas — il s'applique à un mot de plus. *Avant d'écrire « les trois »,
 reprendre les trois.*
+
+**Et ce nom-là a ABSORBÉ une règle du dépôt, ce que les précédents n'avaient pas fait.**
+« Un “seul” se périme sans bruit : compter, pas jurer » vivait depuis le 13 septembre dans
+« Aucun mot relatif sur une fenêtre figée », née d'un « le seul date-contre-aujourd'hui du
+fichier » qui en cachait deux. C'est la même règle, cinq jours plus tôt, par un autre
+chemin : « le seul » est un quantificateur en apposition. Les deux restent écrites là où
+elles sont nées — elles n'ont pas le même exemple —, mais elles ont cessé d'être deux
+règles. **C'est ce qui a servi de preuve que le nom était enfin le bon**, et le critère
+est écrit dans la règle 8, « une classe bien nommée ABSORBE ».
 
 **Mais elles n'en portent pas le MOT** : le verdict est « fenêtre fixe » — voir « Quand
 l'explication doit contredire l'étiquette » plus haut. Ce paragraphe a d'abord dit
