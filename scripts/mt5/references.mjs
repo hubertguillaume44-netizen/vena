@@ -222,12 +222,40 @@ export const REFERENCES = [
   },
 ];
 
-/** Toutes tournent en achat, décision D1, 20 000 € à 1 % de risque — soit 200 € par R. */
+/**
+ * Toutes tournent en achat, décision D1, 20 000 € de dépôt à 1 % de risque.
+ *
+ * ————— ET « SOIT 200 € PAR R » ÉTAIT FAUX, MESURÉ —————
+ *
+ * Ce cadre portait `eurParR: 200`, dérivé de `capital × risquePct`. Aucune ligne de code
+ * ne le lisait — `euroParR` estime le facteur sur les stops RÉELLEMENT encaissés — mais
+ * il a été lu par un humain, et il a produit deux erreurs qui se sont composées :
+ *
+ *   · le rapport #HongKong50 du 7 septembre 2026 part d'un dépôt de 20 000 €, et son
+ *     net de +3 422,35 € a été converti en R au taux de l'ÉCRAN Véna (100 €/R) : +4,00 R
+ *     annoncé pour +14,8 R réels, un facteur presque quatre ;
+ *   · `InpRisquePct` est un pourcentage de l'ÉQUITÉ COURANTE, pas du dépôt. La perte
+ *     moyenne du rapport vaut −231,22 € — l'équité monte de 20 000 à 23 422, sa moyenne
+ *     sur la course vaut ≈ 23 100, dont 1 % fait 231 €. À l'euro près.
+ *
+ * Pris pour un dépassement de stop de 11 %, ce second point a fait naître une hypothèse
+ * de GAP qui n'existait pas : normalisée sur la perte moyenne réalisée, la perte moyenne
+ * MT5 rend exactement −1,000 R, par construction.
+ *
+ * > UN RISQUE EN POURCENTAGE DE L'ÉQUITÉ COURANTE N'A PAS DE R CONSTANT SUR LA COURSE.
+ * > Le prendre pour constant fabrique un dépassement de stop qui n'est que de la
+ * > capitalisation.
+ *
+ * LA RÈGLE QUI EN SORT, et c'est la règle 8 : `capital × risquePct` est un nom de LIEU
+ * — « ce que les réglages annonçaient au départ ». La perte moyenne encaissée est la
+ * PROPRIÉTÉ — « ce qu'un R a réellement coûté ». `euroParR` préfère déjà la seconde et
+ * ne retombe sur la première qu'en DERNIER recours ; `conversion-en-r.test.mjs` tient cet
+ * ordre, et tient qu'aucun €/R constant ne revienne ici.
+ */
 export const CADRE = {
   sens: "achat",
   ut: "D1",
   capital: 20000,
   risquePct: 1,
-  eurParR: 200,
   debut: Date.UTC(2020, 0, 1),
 };

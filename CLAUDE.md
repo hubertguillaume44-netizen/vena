@@ -821,6 +821,40 @@ reconnaître une chaîne ne demande de comprendre aucun langage.
 > **Quand une garde demande un correctif de plus, changer de forme — pas ajouter un
 > motif.** Le deuxième rustine est le signal ; le troisième est déjà trop tard.
 
+#### Deuxième compteur de délimiteurs écrit à la main, deuxième échec
+
+L'analyseur JSX avait déjà montré la limite : il fallait lui apprendre qu'un `a < b`
+n'est pas une balise, puis qu'un `=>` dans un attribut n'est pas une fin de balise.
+`bornes-de-tranche` a refait la même chose avec les parenthèses — et cette fois le coût
+n'était pas un motif de plus, c'était un **faux refus sur le cas normal**.
+
+Son repérage comptait les `(` et les `)` pour délimiter les arguments d'un `slice(`.
+Il comptait aussi ceux qui vivent **dans une chaîne**. La borne
+`borne(COMPARER, "export function euroParR(")` — parfaitement correcte, et la forme même
+que la garde recommande — porte une parenthèse ouvrante non refermée dans un littéral :
+le compteur partait en vrille, avalait les lignes suivantes, y trouvait un `indexOf` sans
+rapport, et **accusait la convention qu'il existe pour imposer**.
+
+> **Un compteur de délimiteurs écrit à la main ne sait pas ce qu'est une chaîne, et la
+> prochaine chaîne portera le délimiteur.** C'est la règle 3 retournée : la garde
+> échouait là où la prose ne l'avait pas trompée — c'est du CODE qui l'a trompée, parce
+> qu'elle n'en comprenait pas assez.
+
+La sortie est celle qui est écrite depuis le début — **changer de forme, pas ajouter un
+motif** —, et le seuil de la règle 16 la rendait non négociable : une garde qui refuse la
+forme qu'elle prescrit se fait désactiver. La prise est désormais l'**AST** (espree),
+celle de `portee-script` et de `refus-export-parle` : un appel `.slice(…)` dont un
+argument contient un appel `.indexOf(…)`. Une parenthèse dans une chaîne n'existe plus
+pour elle, et il n'y a plus de grammaire à réapprendre au coup par coup — l'analyseur la
+connaît déjà. Vérifié par mutation : une borne remise en `indexOf` en ligne la fait
+tomber, en nommant le fichier et la ligne.
+
+**Et elle ne saute pas quand elle ne sait pas lire.** Un fichier qu'espree refuse lève,
+avec la raison — le taire la rendrait aveugle sur ce fichier sans rougir, ce qui est
+exactement le mode de panne que ce fichier existe pour interdire. Un shebang devient un
+commentaire de **même longueur**, pour que les numéros de ligne rapportés restent ceux du
+fichier.
+
 #### Cinq morsures plus tard : le point commun n'est pas le motif, c'est la PREMIÈRE OCCURRENCE
 
 Le seuil disait « le deuxième rustine est le signal » — on en est à la cinquième morsure,
@@ -2141,6 +2175,13 @@ seul signe.**
 
 ### IBEX et HongKong50 ne sont pas la même panne — l'arithmétique les sépare
 
+**⚠ CE QUI SUIT A ÉTÉ CALCULÉ SUR UN R FAUX, et le résidu de 10 R n'existe pas.** Le net
+MT5 de HongKong50 a été converti au taux de l'écran Véna (100 €/R) sur un test à dépôt de
+20 000 € : +4,00 R annoncé pour +14,8 R réels. La décomposition ci-dessous est gardée
+parce que sa MÉTHODE tient et qu'elle a donné le bon résultat sur IBEX — le résidu nul
+y est vrai —, mais la ligne HongKong50 est morte. Voir « Les trois formes ont été
+RÉFUTÉES » plus bas, qui porte les chiffres justes et le mécanisme qui reste.
+
 **PROVENANCE · DÉRIVÉE DES CHIFFRES RAPPORTÉS, calcul fait DANS LE DÉPÔT.** Rien de
 mesuré ici : les cinq nombres par instrument viennent des rapports de l'utilisateur.
 **Hypothèses écrites** : réussite = part de gagnants sur le total, aucun neutre, R/R
@@ -2179,38 +2220,107 @@ pas constant sur la ligne. **Tant que ces deux-là ne sont pas lus, chercher une
 troisième cause de fond serait chercher au-delà de ce qui est déjà mesurable** — la
 règle du refus : la donnée manque-t-elle, ou personne n'est-il allé la chercher ?
 
-#### Les trois formes du terme de 10 R, chiffrées AVANT d'ouvrir la liste
+#### Les trois formes ont été RÉFUTÉES — et le terme de 10 R n'existait pas
 
-Écrites ici pour être relues telles quelles : une prédiction posée après la mesure ne
-vaut rien. Elles se départagent sur la liste des trades de HongKong50, sans rejeu.
+**PROVENANCE · RAPPORT MT5 COMPLET, RAPPORTÉ — lu par l'utilisateur, non entré dans
+`scripts/mt5/`.** Les trois prédictions avaient été chiffrées d'avance pour être relues
+telles quelles. Elles tombent toutes les trois, et le paragraphe est gardé entier parce
+que c'est ce que cet exercice vaut.
 
-**Et la première meurt par le SIGNE, avant d'être regardée.** Des trades neutres côté
-MT5 — 0,00 R rangés au dénominateur de la réussite — **remontent** le R prévu de +1 R
-chacun : ils éloignent de +4,00 R au lieu d'en rapprocher. C'est le critère du signe
-appliqué une troisième fois dans ce dossier, et il coûte zéro mesure.
-
-| | ce qu'il faudrait | comment la liste tranche |
+| la prédiction | ce que le rapport porte | verdict |
 |---|---|---|
-| **A · neutres côté Véna** | **11,6** trades à 0,00 R chez Véna, et ~0 chez MT5 | compter les 0,00 R de chaque côté |
-| **B · gain moyen plus petit** | gain moyen MT5 **1,293 R** contre **1,431 R** chez Véna, soit **−9,7 %** | moyenne des R positifs, des deux côtés |
-| **C · perte au-delà du stop** | perte moyenne MT5 **−1,112 R** au lieu de −1,000, soit **11,2 % de dépassement** | moyenne des R négatifs côté MT5 |
+| **A** 11,6 neutres côté Véna | 72 + 89 = 161, **aucun neutre** | mort |
+| **B** gain moyen MT5 1,293 R | 333,35 / 231,22 = **1,442 R** — MT5 fait *mieux* | mort |
+| **C** perte moyenne −1,112 R | **−1,000 R** après normalisation | mort |
 
-**A est ASYMÉTRIQUE ou rien** : des neutres en nombre égal des deux côtés ne déplacent
-presque pas le résidu — il en faudrait **69** sur 162 trades pour fermer 10 R. Si la
-liste montre des 0,00 R des deux côtés en nombre comparable, A est mort aussi.
+**Et C meurt par le chiffre écrit d'avance** — « elle est fausse dès que la perte moyenne
+MT5 rend −1,00 ». Elle rend −1,00. C'est la seule chose que la prédiction a bien faite.
 
-**C est le suspect que le dossier n'avait pas nommé, et c'est le plus cohérent avec
-l'instrument** : un stop dépassé de 11 % en moyenne est la signature d'un **gap**, et
-HongKong50 porte ~900 bougies écartées, c'est-à-dire des frontières de séance. Véna,
-qui ne voit pas ces bougies, sort exactement au stop ; un testeur, lui, sort au premier
-prix disponible de l'autre côté du trou.
+##### Le terme de 10 R était une erreur de DÉNOMINATEUR, en deux couches
 
-> **Si C tient, IBEX et HongKong50 redeviennent une seule famille — mais par leurs
-> DEUX faces.** Les mêmes bougies manquantes y cacheraient un franchissement (IBEX :
-> un perdant devenu gagnant) et y creuseraient une sortie (HongKong50 : un perdant
-> payé plus cher que son stop). Ce serait la seule hypothèse à expliquer les deux
-> instruments sans terme libre — et elle est fausse dès que la perte moyenne MT5 rend
-> −1,00.
+Il n'y avait rien à expliquer, et c'est pire qu'une hypothèse fausse : une grandeur
+fabriquée par la conversion, autour de laquelle trois formes ont été construites.
+
+1. **Le dépôt du test est 20 000 €, pas 10 000.** Le net de +3 422,35 € a été converti au
+   taux de l'écran Véna — 100 €/R. **+4,00 R annoncé pour +14,8 R réels.**
+2. **`InpRisquePct` porte sur l'ÉQUITÉ COURANTE.** La perte moyenne vaut −231,22 € et non
+   −200 : l'équité monte de 20 000 à 23 422, sa moyenne sur la course vaut ≈ 23 100, dont
+   1 % fait 231 €. **À l'euro près.**
+
+Lu contre 200, ce −231 se présente comme un **dépassement de stop de 11 %** — la signature
+d'un gap —, et l'instrument avait neuf cents bougies écartées pour l'expliquer.
+L'hypothèse était cohérente, chiffrée, cohérente avec l'autre instrument, et **entièrement
+produite par un dénominateur faux.**
+
+> **Un risque en pourcentage de l'équité courante n'a pas de R constant sur la course.**
+> Le prendre pour constant fabrique un dépassement de stop qui n'est que de la
+> capitalisation.
+
+**La conversion en R se dérive du RAPPORT, jamais de l'écran de l'application.** Le rapport
+porte le dépôt, le pourcentage de risque, et surtout la **perte moyenne réalisée**, qui est
+la mesure directe d'un R quand le risque suit l'équité. Lire le R sur l'écran, c'est encore
+la règle 8 : `capital × risquePct` est un **lieu** — ce que les réglages annonçaient au
+départ ; la perte moyenne encaissée est la **propriété** — ce qu'un R a réellement coûté.
+
+`euroParR` préférait déjà la médiane des stops réels et ne retombait sur le nominal qu'en
+dernier recours — le code avait raison, c'est un humain qui a divisé de tête. Ce qui a été
+retiré est le `eurParR: 200` de `CADRE`, que **plus aucune ligne ne lisait** et qu'un
+lecteur a cru. `scripts/mt5/conversion-en-r.test.mjs` tient les trois : plus de €/R
+constant dans le jeu de référence, le nominal en dernier recours, et une course qui
+capitalise doit rendre 231 et non 200. Son angle mort est écrit : **elle ne peut rien
+contre quelqu'un qui lit un chiffre sur un écran et le divise de tête**, ce qui est
+exactement ce qui s'est produit.
+
+##### Ce qui reste après la correction : UN mécanisme, entièrement chiffré
+
+| | réussite | gain moyen | perte moyenne | net |
+|---|---|---|---|---|
+| Véna | 51,9 % (84/162) | 1,431 R | −1,000 R | +42,2 R |
+| MT5 | 44,72 % (72/161) | **1,442 R** | **−1,000 R** | +14,8 R |
+
+**Les trois multiples concordent.** Gain moyen, perte moyenne, compte de trades : tout
+s'aligne. Seule la réussite diffère, de sept points — **douze trades**.
+12 × (1,431 + 1,000) = 29,2 R pour un écart observé de 27,4 R : **94 % expliqué par douze
+trades qui basculent, et par rien d'autre.** Même forme sur IBEX, dix trades.
+
+C'est le nombre ABSOLU que la prédiction de `bougies-cachees` annonçait — dix et douze —
+et que le compteur n'a pas rendu (5 et 28, direction inversée). La cible est retrouvée ;
+le compteur ne la touche toujours pas.
+
+##### Le candidat qui coûtait une lecture de source, et la réponse est NON
+
+`InpPasDebutSemaine = true` sur ce rapport : le robot refuse le dimanche et le lundi avant
+02:00. Véna applique-t-il la même règle ? **Oui, et sur la même horloge** — relu dans les
+quatre fichiers :
+
+| | ce qui est lu |
+|---|---|
+| `robot-mt5.js` | `TimeToStruct(TimeCurrent(), …)` → heure **serveur** du courtier |
+| `Export_H1_Vena.mq5` | `TimeToString(r[i].time, …)` → la même, en horloge murale |
+| `moteur.js` · `lireCsv` | `Date.UTC(an, mois-1, jour, h, m)` → cette horloge murale, **rangée en UTC** |
+| `moteur.js` · `executable` | `getUTCDay()` / `getUTCHours()` → **ressort l'heure serveur** |
+
+**L'accord ne tient pas parce que les deux seraient en UTC — aucun des deux ne l'est.** Il
+tient parce que `lireCsv` range l'heure du serveur dans un champ UTC et que `executable`
+l'en ressort telle quelle : **deux erreurs qui s'annulent exactement**. C'est ce qui rend
+la garde nécessaire — corriger l'une des deux « pour bien faire » romprait l'accord sans
+qu'aucun test ne rougisse. `scripts/mt5/meme-horloge.test.mjs` lie les quatre maillons,
+comme `manifeste-version` liait trois chemins : le défaut ne serait dans aucun d'eux pris
+isolément, il serait dans leur **désaccord**.
+
+##### Et le rapport porte un chiffre que les quatre robots concordants n'avaient pas
+
+**Qualité historique : 96 %**, contre les **99 %** des quatre rejeux qui donnaient
+« quasiment le même nombre de trades que Véna ». Sur 29 988 barres, quatre points de
+qualité font de l'ordre de **1 200 barres modélisées** — et une barre modélisée porte un
+haut et un bas SYNTHÉTIQUES, c'est-à-dire exactement ce qui décide qu'un stop ou un
+objectif est touché. Douze trades sur 161 font 7,5 % ; la modélisation en touche 4 %.
+
+**Ce n'est pas une mesure, c'est un ordre de grandeur compatible**, et il est écrit ici
+comme tel — la règle 9 vaut pour les candidats autant que pour les gardes. Il se tranche
+sans rejeu de six ans : **le même robot relancé en qualité 99 %**, sur le même instrument,
+rendrait la réussite sous les deux modélisations. Si elle ne bouge pas, ce candidat meurt
+comme les trois autres ; si elle remonte vers 51 %, l'écart n'était jamais dans le moteur.
 
 ### Le candidat précédent est mort par son propre dénominateur
 

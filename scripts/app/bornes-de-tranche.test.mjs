@@ -25,8 +25,28 @@
 // forme en ligne était la seule invérifiable par construction ; la forme nommée
 // laisse au moins une variable à affirmer, et l'aide `borne()` rend l'affirmation
 // gratuite : c'est elle, la convention.
+// ————— ET SA PRISE A ÉTÉ UN COMPTEUR DE PARENTHÈSES, QUI NE SAIT PAS CE QU'EST UNE CHAÎNE —————
+//
+// Premier jet : le repérage des arguments de `slice(` comptait les `(` et les `)` à la
+// main. Il comptait aussi ceux qui vivent DANS une chaîne. Une borne parfaitement
+// correcte — `borne(COMPARER, "export function euroParR(")` — porte une parenthèse
+// ouvrante non refermée à l'intérieur d'un littéral : le compteur partait en vrille et
+// avalait les lignes suivantes, où un `indexOf` sans rapport se trouvait. La garde
+// ACCUSAIT donc la forme qu'elle recommande.
+//
+// C'est le deuxième compteur de délimiteurs écrit à la main que ce dépôt voit échouer,
+// après l'analyseur qui suivait les balises JSX et à qui il fallait apprendre qu'un
+// `a < b` n'est pas une balise. La conclusion est écrite d'avance : **changer de forme,
+// pas ajouter un motif** — et un faux refus sur le cas NORMAL est ce qui fait désactiver
+// une garde (règle 16), donc ce n'était pas négociable.
+//
+// La forme retenue est l'AST (espree), déjà la prise de `portee-script` et de
+// `refus-export-parle` : un appel `.slice(…)` dont un argument contient un appel
+// `.indexOf(…)`. Une parenthèse dans une chaîne n'existe plus pour elle, et il n'y a plus
+// de grammaire à réapprendre à chaque cas — l'analyseur la connaît déjà.
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import * as espree from "espree";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 
@@ -47,23 +67,55 @@ function fichiersTests(dossier) {
   return out;
 }
 
+// tous les nœuds, sans connaître la grammaire : on descend ce qui est objet
+function* noeuds(n) {
+  if (!n || typeof n !== "object") return;
+  if (Array.isArray(n)) { for (const x of n) yield* noeuds(x); return; }
+  if (typeof n.type === "string") yield n;
+  for (const k of Object.keys(n)) {
+    if (k === "parent" || k === "loc" || k === "range") continue;
+    yield* noeuds(n[k]);
+  }
+}
+
+/** Le nom de méthode d'un appel `x.nom(…)`, ou null. */
+function methode(n) {
+  if (!n || n.type !== "CallExpression") return null;
+  const c = n.callee;
+  if (!c || c.type !== "MemberExpression" || c.computed) return null;
+  return (c.property && c.property.name) || null;
+}
+
 function bornesEnLigne(txt) {
+  let ast;
+  try {
+    // un shebang n'est pas du JS pour espree : il devient un commentaire de MÊME
+    // longueur, pour que les numéros de ligne rapportés restent ceux du fichier.
+    ast = espree.parse(txt.startsWith("#!") ? "//" + txt.slice(2) : txt,
+      { ecmaVersion: 2022, sourceType: "module", loc: true });
+  } catch (e) {
+    // ————— UNE GARDE QUI NE SAIT PAS LIRE UN FICHIER LE DIT —————
+    // Le taire la rendrait aveugle sur ce fichier sans rougir, ce qui est exactement
+    // le mode de panne que ce fichier existe pour interdire.
+    throw new Error("bornes-de-tranche : analyse impossible (" + e.message + "). La "
+      + "garde ne saute pas en silence : ou le fichier n'est pas du JS de module, ou "
+      + "espree a besoin d'une version de langage plus récente.");
+  }
   const sites = [];
-  let pos = 0;
-  for (;;) {
-    const m = txt.indexOf(".slice(", pos);
-    if (m === -1) break;
-    let i = m + ".slice(".length, prof = 1;
-    while (i < txt.length && prof) {
-      if (txt[i] === "(") prof += 1;
-      else if (txt[i] === ")") prof -= 1;
-      i += 1;
+  for (const n of noeuds(ast)) {
+    if (methode(n) !== "slice") continue;
+    for (const arg of n.arguments || []) {
+      let trouve = null;
+      for (const y of noeuds(arg)) {
+        const m = methode(y);
+        if (m === "indexOf" || m === "lastIndexOf") { trouve = y; break; }
+      }
+      if (trouve) {
+        sites.push({ ligne: trouve.loc.start.line,
+          extrait: txt.split("\n")[trouve.loc.start.line - 1].trim().slice(0, 70) });
+        break;
+      }
     }
-    const args = txt.slice(m + ".slice(".length, i - 1);
-    if (args.includes(".indexOf(") || args.includes(".lastIndexOf(")) {
-      sites.push({ ligne: txt.slice(0, m).split("\n").length, extrait: args.slice(0, 70).replace(/\n/g, " ") });
-    }
-    pos = i;
   }
   return sites;
 }
