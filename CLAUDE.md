@@ -2669,6 +2669,152 @@ bout** pour la première fois : elle reste **utilisable comme signal et interdit
 explication**, et c'est ce que l'infobulle en dit — elle indique où regarder, elle
 n'atteste rien.
 
+## Additionner des périodes qui ne se recouvrent pas
+
+**STATUT · CAUSE ÉTABLIE — symptôme RAPPORTÉ, mécanisme et correctif MESURÉS DANS LE
+DÉPÔT.** Le chiffre fondateur vient de l'écran d'un utilisateur : `+ 9,6 + 6,5 + 8,7 +
+6,7 = 31,5 R/an` sur quatre lignes couvrant **3,4 / 4,1 / 4,9 / 6,5 ans**. L'addition est
+juste ; la phrase est fausse. Tout ce qui suit — la fenêtre commune, l'exposition
+simultanée, la redondance, les paris — se relit dans `moteur.js` et dans
+`scripts/app/portefeuille-quatre-calculs.test.mjs`.
+
+> **Une supposition écrite SOUS un chiffre qui la viole n'est pas un avertissement,
+> c'est un aveu.** Le pied de page disait déjà « suppose que les lignes tournent sur la
+> même période ». C'est la famille de la règle 9 poussée d'un cran : là, une réserve
+> placée sous une affirmation la suit au lieu de la tempérer ; ici, la réserve DÉCRIT
+> exactement ce qui rend le chiffre faux, et elle est imprimée trois fois plus petit.
+
+Le grand chiffre est donc **recalculé sur la fenêtre commune** — `[max(début),
+min(fin)]`, et seuls les trades entièrement dedans. Le brut garde sa place, **en note et
+avec sa raison dans la MÊME phrase** : « + 31,5 R/an si l'on additionne les quatre
+fenêtres — mais elles ne se recouvrent pas ». Séparer le chiffre de sa raison le rendrait
+lisible comme une variante au choix — c'est la leçon de `TARIF_GELE`, appliquée à un
+nombre au lieu d'une promesse.
+
+**Trois états, et le troisième n'est jamais « zéro ».** Fenêtre commune pleine : les deux
+chiffres. Fenêtre commune VIDE (deux lignes disjointes) : on le dit, et on n'affiche pas
+d'agrégat — deux lignes qui n'ont jamais tourné ensemble n'ont pas un résultat de zéro,
+elles n'en ont pas. Une seule ligne : sa fenêtre EST la fenêtre commune, et la note
+disparaît.
+
+### Trois autres calculs, et ils tenaient tous dans la même liste
+
+| Ce que l'écran disait | Ce qu'il ne disait pas |
+|---|---|
+| « capital immobilisé 29 % du temps » | une MOYENNE. Quatre lignes à 1 % qui ouvrent le même jour font **4 % de risque simultané**, et c'est le simultané qui fait sauter un compte |
+| « redondance non mesurée », derrière un bouton | la mesure est une agrégation de la liste de trades **déjà en main**. Un portefeuille de huit lignes dont six corrèlent est un portefeuille de deux |
+| le nombre de LIGNES | le nombre de **paris** — les lignes après regroupement des paires au-delà de 0,70 |
+
+**L'exposition simultanée rend le maximum ET le nombre de JOURS où il tient.** Un pire cas
+atteint une fois en six ans est un accident ; atteint onze jours, c'est la façon dont le
+portefeuille fonctionne. Le compte est ce qui les sépare, et sans lui le chiffre ne dit
+pas laquelle des deux choses on regarde.
+
+**La redondance corrèle les rendements MENSUELS des lignes, pas les prix.** L'ancienne
+mesure prenait les variations journalières des cours sur 250 séances : deux
+configurations OPPOSÉES sur le même instrument y étaient parfaitement corrélées. Et **un
+mois sans position vaut zéro, pas « pas de donnée »** — écarter ces mois ferait correler
+deux lignes sur les seuls mois où elles ont travaillé ensemble, ce qui est exactement la
+question qu'on ne pose pas.
+
+**Une variance nulle ne donne pas une corrélation de zéro : elle n'en donne aucune.**
+`pearson` rend `null`, la case rend « — » avec sa raison, et le nombre de paris rend
+« non mesurable ». Rendre 0 ferait lire « paris distincts » là où rien n'a été mesuré —
+c'est la règle du zéro qui prouve sa prise, appliquée au produit et non à une sonde.
+
+### Une porte unique, parce que quatre producteurs sont quatre occasions de diverger
+
+Les quatre calculs sont quatre agrégations d'**une** liste : `pfTrades` la produit, et
+elle seule. C'est la figure de `deposes` — une garde sur un chemin ferme un CAS, une
+porte unique ferme la CLASSE. Un second producteur qui relirait la série divergerait du
+premier, et **rien à l'écran ne le dirait**.
+
+La porte décide sur un RÉSULTAT, pas sur une intention : une série non chargée ou une
+configuration introuvable rendent `trades: null`, jamais une liste vide. « Aucun trade »
+et « rien n'a été mesuré » sont deux états, et les confondre ferait annoncer un zéro que
+personne n'a regardé.
+
+**Le grand chiffre est donc REMESURÉ, la colonne du tableau ne l'est pas.** `pfTrades`
+rejoue sous la règle actuelle du moteur ; la colonne « R / an » porte le chiffre
+enregistré à la validation. Les deux peuvent différer, et c'est ce que dit la réserve
+sous le bandeau — elle a changé de sujet en même temps que le chiffre.
+
+### La frise mentait sur son alignement — et c'était le défaut qu'elle rend visible
+
+Le calque de la maquette était posé sur le **conteneur** pleine largeur, avec un `left`
+écrit en pixels. Mesuré par son auteur : **76 px de décalage**, la largeur de la colonne
+des noms. La bande affirmait donc une fenêtre commune FAUSSE.
+
+> **Un alignement est un défaut d'AFFICHAGE : il n'existe que rendu.** Deux chaînes
+> `grid-template-columns` identiques dans le source ne prouvent pas que les deux boîtes
+> tombent au même pixel. C'est le même énoncé que le mot relatif, sur une autre grandeur.
+
+La bande est désormais une grille de **même gabarit** superposée à celle des barres : sa
+deuxième colonne EST la piste des barres, calculée par le navigateur sur la même largeur.
+`scripts/app/portefeuille-fenetre-commune.test.mjs` lit les rectangles dans un vrai
+navigateur et compare la bande à la position que **ses propres pour-cent** désignent sur
+la piste — pas à « quelque part dedans », qui est une garde vacue : une bande décalée mais
+étroite y survivrait. Éprouvé par mutation : deux gabarits divergents de 76 px la font
+tomber **en nommant l'écart mesuré** (75 px rendus).
+
+**Et le calque se peint DERRIÈRE les barres.** Un élément statique passe sous un absolu :
+la bande teintait les barres au lieu de teinter la piste, et 13 % d'accent sur du bleu
+foncé ne se voit pas. La fenêtre commune redevenait invisible dans la figure écrite pour
+la montrer.
+
+### Ce que la colonne « Part » ne disait pas, et ce que les deux dates disent
+
+`Part` décrivait sans conseiller — et elle décrivait une part d'un total qui, lui,
+additionnait des fenêtres qui ne se recouvrent pas. Ce que l'utilisateur reporte
+réellement dans le testeur, ce sont les **deux dates de la mesure** ; leur absence a coûté
+une demi-journée sur AUDUSD, où le robot a tourné sur toute la série quand la mesure n'en
+couvrait qu'un tiers. Comparer deux périodes différentes ne compare rien.
+
+**Et l'étiquette de rangée dit « vérifié contre le testeur » ou « non vérifié — mesure sur
+3,7 ans ».** Le mot « valide » y est interdit comme sur le bouton Exporter, et l'énoncé
+porte son échantillon : ce qui est vérifié, c'est CETTE ligne chez CE courtier.
+`exporter-dit-ce-quon-sait` tient les deux surfaces — l'infobulle et l'étiquette — sous le
+même interdit **absolu**, et son faux refus connu est écrit dans sa tête (règle 16) : il
+tombe aussi sur « validée » employé pour le geste de l'application, et c'est le TEXTE qui
+a cédé, jamais la garde.
+
+### Quatre pastilles identiques sur chaque ligne ne distinguent rien
+
+`P2 P3 P4 P1` était rendu sur CHAQUE rangée, dans le même gris : impossible de savoir où
+une ligne est rangée, puisque tout était marqué. Dans la table du portefeuille il ne
+reste que les portefeuilles qui **contiennent** la ligne — une marque, pas une commande.
+Le geste de placement vit dans « À ranger », où sa liste déroulante porte déjà son verbe,
+et « Ranger une ligne ici… » vit au pied du portefeuille ouvert, là où le geste a un
+sujet.
+
+**Et « Retirer » a disparu de l'onglet « Toutes les lignes » : il n'y a pas de sujet.**
+Laissé rendu, il ne faisait rien — un geste mort, que la tournée des gestes a attrapé à
+sa première exécution. Un onglet de lecture ne porte pas les gestes d'un portefeuille.
+
+**Un onglet vide reste VISIBLE, à demi-encre.** La version précédente masquait un
+portefeuille sans ligne : il devenait un portefeuille qu'on ne peut plus remplir, puisque
+le seul geste pour y ranger quelque chose vit à son pied. La note « N portefeuilles vides
+masqués » est partie avec le masquage — une consigne périmée a l'autorité des vraies.
+
+### Le banc devait pouvoir MESURER, et il ne le pouvait pas
+
+`decisions` sème des lignes validées, et la page les affiche — mais aucune n'est
+**rejouable** : `cfgDeLigne` cherche la configuration de la variante dans une table que
+seule la boucle d'un vrai scan remplit. Les quatre calculs seraient donc tombés tous les
+quatre dans leur état « non mesurable », et une garde de rendu posée là aurait mesuré le
+DÉCOR — la borne n'aurait rien coupé. Le semis `portefeuille` pose la table par la
+fonction du produit qui la construit, puis **relit par `pfTrades`** et jette si une ligne
+ne rend aucun trade. C'est la règle 10 dans l'outillage, une fois de plus : le cas qu'on
+sème spontanément est celui où le défaut ne peut pas se produire.
+
+**Et la garde prouve sa prise avant de conclure** : elle exige que le grand chiffre et le
+brut DIFFÈRENT sur le semis. S'ils sont égaux, la fenêtre commune n'a rien coupé et
+l'assertion passerait avec ou sans le calcul qu'elle vérifie.
+
+**Son premier faux refus a été attrapé à sa première exécution** : `/0 % au pire/` trouve
+« 3,0 % au pire ». Un zéro non ancré refuse le cas normal — c'est la règle 16 sur un
+motif de trois caractères, et c'est le genre de garde qu'on désactive le soir même.
+
 ## Un accord qui tient par ANNULATION D'ERREURS
 
 **C'est la voisine de la règle 15, et elle est pire.** Là, une sonde muette rend le défaut

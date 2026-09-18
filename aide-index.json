@@ -556,41 +556,6 @@
    ]
   },
   {
-   "terme": "Part du portefeuille",
-   "texte": "Le moteur a changé de règle depuis que ces chiffres ont été mesurés. Une ligne périmée se repère ; leur somme, non — et c'est elle qu'on lit pour décider.",
-   "vues": [
-    "Portefeuille"
-   ]
-  },
-  {
-   "terme": "Part du portefeuille",
-   "texte": "Les onze diagnostics — UT, trades, R net, PF, segments, durée moyenne, état, frais. Ils ont servi à VALIDER la ligne, pas à la piloter.",
-   "vues": [
-    "Portefeuille"
-   ]
-  },
-  {
-   "terme": "Part du portefeuille",
-   "texte": "La conversion des R en pourcentages suppose une taille de position recalculée à chaque trade. Le creux de la stratégie est celui de sa pire ligne, pas de leur somme, et les lignes sont supposées tourner sur la même période. La détention n'a ni stop ni objectif : elle subit le creux du marché en entier.",
-   "vues": [
-    "Portefeuille"
-   ]
-  },
-  {
-   "terme": "Part du portefeuille",
-   "texte": "Le même achat conservé chez votre courtier : spread, commission et portage de chaque nuit déduits.",
-   "vues": [
-    "Portefeuille"
-   ]
-  },
-  {
-   "terme": "Part du portefeuille",
-   "texte": "Rendement annuel divisé par le pire creux, en moyenne simple pour toutes les colonnes — c'est la ligne qui les compare entre elles, elle ne peut pas mélanger deux conventions. Au-dessus de 1, vous gagnez plus par an que ce que vous risquez de perdre en chemin.",
-   "vues": [
-    "Portefeuille"
-   ]
-  },
-  {
    "terme": "Patrimoine total",
    "texte": "Votre patrimoine total, pour situer le capital alloué au court terme. Il reste sur cet appareil, comme tout le reste.",
    "vues": [
@@ -599,7 +564,49 @@
   },
   {
    "terme": "Période mesurée",
+   "texte": "Le grand chiffre est REMESURÉ maintenant, sur les trades de ces lignes et sous la règle actuelle du moteur. La colonne « R / an » du tableau, elle, porte le chiffre enregistré à la validation. Les deux peuvent différer, et c'est ce que dit cette réserve.",
+   "vues": [
+    "Portefeuille"
+   ]
+  },
+  {
+   "terme": "Période mesurée",
+   "texte": "Les onze diagnostics — UT, trades, R net, PF, segments, durée moyenne, état, frais. Ils ont servi à VALIDER la ligne, pas à la piloter.",
+   "vues": [
+    "Portefeuille"
+   ]
+  },
+  {
+   "terme": "Période mesurée",
    "texte": "Chaque colonne est annualisée sur sa propre fenêtre : les trades ne couvrent pas toujours toute la série de cotations.",
+   "vues": [
+    "Portefeuille"
+   ]
+  },
+  {
+   "terme": "Périodes réellement mesurées",
+   "texte": "Place une configuration validée non rangée dans ce portefeuille.",
+   "vues": [
+    "Portefeuille"
+   ]
+  },
+  {
+   "terme": "Périodes réellement mesurées",
+   "texte": "La conversion des R en pourcentages suppose une taille de position recalculée à chaque trade. Le creux de la stratégie est celui de sa pire ligne, pas de leur somme, et les lignes sont supposées tourner sur la même période. La détention n'a ni stop ni objectif : elle subit le creux du marché en entier.",
+   "vues": [
+    "Portefeuille"
+   ]
+  },
+  {
+   "terme": "Périodes réellement mesurées",
+   "texte": "Le même achat conservé chez votre courtier : spread, commission et portage de chaque nuit déduits.",
+   "vues": [
+    "Portefeuille"
+   ]
+  },
+  {
+   "terme": "Périodes réellement mesurées",
+   "texte": "Rendement annuel divisé par le pire creux, en moyenne simple pour toutes les colonnes — c'est la ligne qui les compare entre elles, elle ne peut pas mélanger deux conventions. Au-dessus de 1, vous gagnez plus par an que ce que vous risquez de perdre en chemin.",
    "vues": [
     "Portefeuille"
    ]

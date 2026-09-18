@@ -128,3 +128,52 @@ test("« séance » ne revient pas sur les bougies retirées par la fenêtre", (
     + "elles sont RETIRÉES de la série, quand celles de la règle de séance y sont "
     + "présentes et seulement sautées à l'évaluation.");
 });
+
+// ————— LA MÊME RÈGLE, UN CRAN PLUS HAUT : L'ÉTIQUETTE DE LA RANGÉE —————
+//
+// L'infobulle du bouton Exporter n'est plus le seul endroit où la page dit ce qu'elle
+// sait d'une ligne : chaque rangée du portefeuille porte désormais son étiquette, lue
+// d'un coup d'œil, sans survol. C'est une SURFACE DE PLUS pour le même interdit, et
+// l'interdit ne se déplace pas avec le texte : « valide » y est refusé comme ailleurs.
+//
+// ANGLE MORT, en tête : cette garde tient les MOTS de l'étiquette, pas ce qu'ils
+// couvrent. Elle ne peut pas vérifier qu'un journal de trades remonté d'un terminal
+// prouve quoi que ce soit sur la ligne — seulement que l'écran n'en promet pas plus
+// que « des trades sont remontés ».
+//
+// ET SON FAUX REFUS EST CONNU, DONC ÉCRIT (règle 16). L'interdit est absolu, et il tombe
+// aussi sur « validée » employé pour le geste de l'application — « cette ligne a été
+// validée depuis l'Historique » est une phrase juste. Elle a été refusée à la première
+// exécution, et c'est le TEXTE qui a cédé : « mise de côté », le synonyme que le voisin
+// `etatAide` emploie déjà. Le coût de ce faux refus est nul tant qu'un synonyme existe ;
+// le jour où il n'en existera plus pour un cas légitime, c'est la PRISE qui devra
+// changer — le bloc lu se resserrerait sur ce que le client voit sans survoler — et
+// jamais une liste d'exceptions, qui rouvrirait l'interdit au premier oubli.
+test("l'étiquette de vérification d'une rangée dit « vérifié », jamais « valide »", () => {
+  const i = APP.indexOf("          ...(() => {\n            const jpt = (ms) => { const d = new Date(ms);");
+  assert.ok(i > 0, "le producteur de l'étiquette de vérification a changé de forme : "
+    + "la garde a perdu sa prise et passerait au vert sans rien lire.");
+  const bloc = APP.slice(i, borne(APP, "          // la configuration brute, pour l'export du robot", i));
+  assert.ok(!/valid[ée]/i.test(bloc),
+    "« valide » est revenu sur l'étiquette de rangée. Ce que la page sait, c'est que "
+    + "des trades de cette configuration sont remontés d'un terminal — pas que la "
+    + "ligne EST valide. Un adjectif d'état promet une loi là où il n'y a qu'un fait.");
+  assert.match(bloc, /verifTxt: verifie \? 'vérifié contre le testeur'/,
+    "la formule convenue a disparu de l'étiquette.");
+  assert.match(bloc, /'non vérifié'/,
+    "l'état « non vérifié » ne se dit plus : une rangée sans étiquette se lit comme "
+    + "une rangée sans réserve, ce qui est l'inverse de ce qu'elle porte.");
+  // et l'étiquette porte son ÉCHANTILLON : « vérifié » tout court se lit comme un
+  // verdict général, quand ce qui a été vérifié est CETTE ligne chez CE courtier
+  // ancrée SANS apostrophe : le source l'écrit ici en échappement à six caractères,
+  // et un motif portant le vrai signe ne le trouve jamais — les deux orthographes
+  // cohabitent dans ce dépôt, et c'est au motif de les éviter
+  assert.match(bloc, /est CETTE ligne chez CE courtier/,
+    "l'étiquette « vérifié » ne porte plus son échantillon. Sans lui, elle promet que "
+    + "la configuration tient partout, alors que ce qui a été mesuré est une ligne, "
+    + "chez un courtier, sur un compte.");
+  assert.match(bloc, /mesure sur ' \+ ans\.toFixed\(1\)/,
+    "« non vérifié » a perdu la durée de sa mesure. C'est elle qui dit sur quoi porte "
+    + "le chiffre affiché — et c'est le premier des trois faits qui ont prédit les "
+    + "divergences du testeur.");
+});

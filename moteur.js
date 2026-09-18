@@ -2542,3 +2542,188 @@ export function marquerEvenements(trades, evenements) {
   }
   return trades;
 }
+
+// ————— UN PORTEFEUILLE EST QUATRE AGRÉGATIONS D'UNE SEULE LISTE —————
+//
+// Les quatre questions qu'un portefeuille pose — que rapporte-t-il vraiment, combien
+// risque-t-il au pire, ses lignes sont-elles redondantes, combien de paris distincts
+// porte-t-il — se répondent toutes sur la MÊME liste de trades. Écrire quatre
+// producteurs qui reliraient chacun la série, c'est se donner quatre occasions de
+// diverger : les fonctions ci-dessous ne lisent aucune bougie, elles ne prennent que
+// `[{ nom, trades: [{ e, s, r }] }]` — entrée, sortie, R net.
+//
+// L'HORLOGE EST CELLE DU SERVEUR DU COURTIER, comme partout ailleurs dans ce fichier.
+// `cleMois` lit `getUTC*` sur des instants rangés en UTC par `lireCsv` alors qu'ils
+// portent l'heure murale du serveur : c'est la même annulation d'erreurs que le seau D1
+// de `resamplerBrut`, et le mois obtenu est le mois calendaire du courtier. Voir
+// `scripts/mt5/meme-horloge.test.mjs` — corriger l'un des deux maillons romprait
+// l'accord sans qu'aucun test ne rougisse.
+
+/**
+ * La fenêtre où TOUTES les lignes tournaient : [max(début), min(fin)].
+ * Trois états, et le troisième n'est pas « zéro » : une fenêtre pleine, une fenêtre
+ * VIDE (deux lignes disjointes — il n'y a pas d'agrégat à montrer), et le cas d'une
+ * seule ligne, où la fenêtre commune est sa propre fenêtre.
+ */
+export function fenetreCommune(lignes) {
+  const bornes = [];
+  for (const l of (lignes || [])) {
+    const tr = (l && l.trades) || [];
+    if (!tr.length) continue;
+    let a = Infinity, b = -Infinity;
+    for (const t of tr) { if (t.e < a) a = t.e; if (t.s > b) b = t.s; }
+    bornes.push({ t0: a, t1: b });
+  }
+  const n = (lignes || []).length;
+  if (!bornes.length) {
+    return { t0: null, t1: null, vide: true, mesurables: 0, lignes: n, unique: false, annees: 0 };
+  }
+  const t0 = Math.max(...bornes.map((x) => x.t0));
+  const t1 = Math.min(...bornes.map((x) => x.t1));
+  const vide = !(t1 > t0);
+  return { t0, t1, vide, mesurables: bornes.length, lignes: n,
+    unique: bornes.length === 1,
+    annees: vide ? 0 : (t1 - t0) / (365.25 * 86400000) };
+}
+
+/**
+ * L'agrégat RECALCULÉ sur une fenêtre : seuls les trades entièrement contenus dedans.
+ * Un trade entré avant la fenêtre ou clos après n'a pas été vécu par le portefeuille
+ * entier — le retenir remettrait dans le total ce que la fenêtre commune vient d'en
+ * retirer.
+ */
+export function agregerFenetre(lignes, t0, t1) {
+  const annees = (t1 - t0) / (365.25 * 86400000);
+  let total = 0, n = 0;
+  const parLigne = [];
+  for (const l of (lignes || [])) {
+    let somme = 0, nn = 0;
+    for (const t of ((l && l.trades) || [])) {
+      if (t.e >= t0 && t.s <= t1) { somme += t.r; nn++; }
+    }
+    total += somme; n += nn;
+    parLigne.push({ nom: l && l.nom, total: somme, n: nn,
+      rAn: annees > 0 ? somme / annees : 0 });
+  }
+  return { total, n, annees, rAn: annees > 0 ? total / annees : 0, parLigne };
+}
+
+/**
+ * L'EXPOSITION SIMULTANÉE MAXIMALE, et le nombre de JOURS où elle a été atteinte.
+ * Quatre lignes à 1 % chacune ne risquent 1 % que si elles n'ouvrent jamais ensemble.
+ * « Capital immobilisé 29 % du temps » est une moyenne, et une moyenne ne dit pas le
+ * pire — c'est le pire qui fait sauter un compte.
+ *
+ * Le compte de jours distingue un pire cas STRUCTUREL d'un accident : atteint une fois
+ * en six ans, c'est une coïncidence ; atteint onze jours, c'est la façon dont ce
+ * portefeuille fonctionne. À instant égal, une fermeture se traite avant une ouverture :
+ * une position qui passe le relais à une autre n'est pas un chevauchement.
+ */
+export function expositionMax(lignes) {
+  const evts = [];
+  const vivantes = [];
+  for (let i = 0; i < (lignes || []).length; i++) {
+    const tr = (lignes[i] && lignes[i].trades) || [];
+    if (tr.length) vivantes.push(i);
+    for (const t of tr) { evts.push({ ms: t.e, d: 1, i }); evts.push({ ms: t.s, d: -1, i }); }
+  }
+  if (!evts.length) {
+    return { mesurable: false, max: 0, jours: 0, lignes: (lignes || []).length, portantes: 0 };
+  }
+  evts.sort((a, b) => (a.ms - b.ms) || (a.d - b.d));
+  let c = 0, max = 0;
+  for (const e of evts) { c += e.d; if (c > max) max = c; }
+  // deuxième passe : les jours couverts par un intervalle tenu au maximum. Le maximum
+  // n'est connu qu'après le premier balayage — le chercher et le dater en un seul
+  // passage demanderait de retenir tous les intervalles.
+  const jours = new Set();
+  c = 0;
+  for (let k = 0; k < evts.length; k++) {
+    c += evts[k].d;
+    if (c !== max) continue;
+    const debut = evts[k].ms;
+    const fin = k + 1 < evts.length ? evts[k + 1].ms : debut;
+    for (let j = Math.floor(debut / 86400000); j <= Math.floor(fin / 86400000); j++) jours.add(j);
+  }
+  return { mesurable: true, max, jours: jours.size,
+    lignes: (lignes || []).length, portantes: vivantes.length };
+}
+
+// Pearson, et `null` quand il n'y a rien à corréler : une ligne sans aucun trade sur la
+// fenêtre a une variance nulle, et le rapport ne vaut pas zéro — il n'existe pas. Rendre
+// 0 ferait lire « paris distincts » là où rien n'a été mesuré.
+export function pearson(a, b) {
+  const n = Math.min(a.length, b.length);
+  if (n < 2) return null;
+  let sa = 0, sb = 0;
+  for (let i = 0; i < n; i++) { sa += a[i]; sb += b[i]; }
+  const ma = sa / n, mb = sb / n;
+  let num = 0, va = 0, vb = 0;
+  for (let i = 0; i < n; i++) {
+    const x = a[i] - ma, y = b[i] - mb;
+    num += x * y; va += x * x; vb += y * y;
+  }
+  if (va <= 0 || vb <= 0) return null;
+  return num / Math.sqrt(va * vb);
+}
+
+/**
+ * LA REDONDANCE : corrélation des rendements MENSUELS par paire, sur la fenêtre commune.
+ * Un mois sans position est un rendement de ZÉRO, pas une absence de donnée : écarter
+ * ces mois ferait correler deux lignes sur les seuls mois où elles ont travaillé
+ * ensemble, ce qui est exactement la question qu'on ne pose pas.
+ */
+export function correlMensuelle(lignes, t0, t1, opts = {}) {
+  const moisMin = Number.isFinite(opts.moisMin) ? opts.moisMin : 6;
+  const cleMois = (ms) => { const d = new Date(ms); return d.getUTCFullYear() * 12 + d.getUTCMonth(); };
+  const n = (lignes || []).length;
+  if (!(t1 > t0) || n < 2) {
+    return { assez: false, mois: 0, paires: [], raison: n < 2 ? 'une seule ligne' : 'fenêtre commune vide' };
+  }
+  const m0 = cleMois(t0), m1 = cleMois(t1);
+  const mois = [];
+  for (let k = m0; k <= m1; k++) mois.push(k);
+  if (mois.length < moisMin) {
+    return { assez: false, mois: mois.length, paires: [],
+      raison: mois.length + ' mois communs, ' + moisMin + ' au minimum' };
+  }
+  const series = (lignes || []).map((l) => {
+    const m = new Map();
+    for (const t of ((l && l.trades) || [])) {
+      if (t.s < t0 || t.s > t1) continue;
+      const k = cleMois(t.s);
+      m.set(k, (m.get(k) || 0) + t.r);
+    }
+    return mois.map((k) => m.get(k) || 0);
+  });
+  const paires = [];
+  for (let i = 1; i < n; i++) {
+    for (let j = 0; j < i; j++) {
+      paires.push({ ia: j, ib: i, a: lignes[j] && lignes[j].nom, b: lignes[i] && lignes[i].nom,
+        c: pearson(series[j], series[i]) });
+    }
+  }
+  return { assez: true, mois: mois.length, paires, raison: '' };
+}
+
+/**
+ * LE NOMBRE DE PARIS : les lignes après regroupement des paires au-delà du seuil.
+ * Un portefeuille de huit lignes dont six corrèlent est un portefeuille de deux, et
+ * c'est ce chiffre-là qui décrit le risque pris — pas le nombre de lignes.
+ */
+export function grouperParis(n, paires, seuil = 0.7) {
+  const p = Array.from({ length: n }, (_, i) => i);
+  const trouver = (x) => { let y = x; while (p[y] !== y) { p[y] = p[p[y]]; y = p[y]; } return y; };
+  for (const q of (paires || [])) {
+    if (q.c === null || !Number.isFinite(q.c) || q.c < seuil) continue;
+    const a = trouver(q.ia), b = trouver(q.ib);
+    if (a !== b) p[a] = b;
+  }
+  const groupes = new Map();
+  for (let i = 0; i < n; i++) {
+    const r = trouver(i);
+    if (!groupes.has(r)) groupes.set(r, []);
+    groupes.get(r).push(i);
+  }
+  return { paris: groupes.size, groupes: [...groupes.values()] };
+}

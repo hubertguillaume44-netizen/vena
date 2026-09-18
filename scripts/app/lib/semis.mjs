@@ -194,6 +194,55 @@ export const POSER_SEMIS = `(() => {
         + "contenu muet — c'est le mode de panne que ce module existe pour interdire.");
       return n;
     },
+    /** ————— UN PORTEFEUILLE DONT LES LIGNES SONT RÉELLEMENT MESURABLES —————
+     *
+     *  \`decisions\` sème des lignes validées, et la page les affiche — mais aucune
+     *  n'est REJOUABLE : \`cfgDeLigne\` cherche la configuration de la variante dans
+     *  \`_cfgVar\`, que seule la boucle d'un vrai scan remplit. Les quatre calculs du
+     *  portefeuille (fenêtre commune, exposition simultanée, redondance, paris)
+     *  tombaient donc tous les quatre dans leur état « non mesurable », et une garde
+     *  de rendu posée là aurait mesuré le DÉCOR — la borne n'aurait rien coupé.
+     *
+     *  Ce semis pose la table par la fonction du produit qui la construit, puis relit
+     *  par \`pfTrades\` — la porte unique par laquelle les quatre calculs reçoivent
+     *  leurs trades — et jette si elle ne rend pas des trades pour chaque ligne.
+     *
+     *  Les instruments par défaut sont trois séries d'EXEMPLE : elles sont engendrées
+     *  en mémoire à l'ouverture, donc présentes dans \`dfs\` sans rien déposer, et
+     *  leurs fenêtres diffèrent assez pour que la fenêtre commune coupe. */
+    portefeuille(n, syms) {
+      const S = (syms || ['VX-EUR', 'VX-500', 'VX-OR']).slice(0, n);
+      if (S.length !== n) throw new Error("semis « portefeuille » : " + n
+        + " demandée(s) pour " + S.length + " symbole(s) disponible(s)");
+      const valides = S.map((sym, i) => ({ ...ligneDe(sym, i), sens: 'achat', ut: 'H1' }));
+      // la table des configurations de variante, écrite par la fonction du produit qui
+      // la construit — pas par un objet deviné, qui sèmerait l'APPARENCE d'une
+      // configuration sans la configuration
+      const table = { ...(inst._cfgVar || {}) };
+      for (const v of valides) {
+        table[inst.cleCfgVar(v.filtre, v.sym, v.entree, v.ligne)] =
+          inst.cfgCourante(v.sym, v.periode, v.sl, v.rr, undefined,
+            { entree: v.entree, ligne: v.ligne, sens: 'achat' });
+      }
+      inst._cfgVar = table;
+      inst.setState({ valides, pfOnglet: 1,
+        pfs: [{ nom: 'Portefeuille principal', syms: S }] });
+      inst.forceUpdate();
+      const lues = inst.normValides(inst.state.valides);
+      exiger('portefeuille', n, lues.length);
+      // ————— LA SONDE PROUVE SA PRISE —————
+      // \`pfTrades\` rend \`trades: null\` quand la série n'est pas chargée ou la
+      // configuration introuvable : sans ce contrôle, la garde lirait « rien à
+      // agréger » et le prendrait pour une mesure.
+      const src = inst.pfTrades(lues);
+      const muettes = src.filter((x) => !(x.trades && x.trades.length));
+      if (muettes.length) throw new Error("semis « portefeuille » : " + muettes.length
+        + " ligne(s) sur " + n + " ne rendent aucun trade ("
+        + muettes.map((x) => x.sym + ' : ' + x.motif).join(' ; ')
+        + "). Les quatre calculs tomberaient tous dans leur état « non mesurable » et "
+        + "la garde mesurerait le décor.");
+      return n;
+    },
   };
   return true;
 })()`;

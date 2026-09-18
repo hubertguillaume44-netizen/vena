@@ -74,9 +74,9 @@ const CHROMIUMS = [process.env.VENA_CHROMIUM,
   "/opt/pw-browsers/chromium-1194/chrome-linux/chrome"].filter(Boolean);
 
 // ————— LE RELEVÉ DU GABARIT : la pile des `sc-for`, pas une liste de noms —————
-// `cb3.basculer` n'a de sens que dans sa chaîne — `pfSections` → `ps.lignes` →
-// `vl.cibles`. Sans la pile, un préfixe de boucle serait cherché à la racine et la
-// garde rendrait un faux positif par rangée.
+// Un geste de rangée n'a de sens que dans sa chaîne — `pfSections` → `ps.lignes` → la
+// liste de la boucle la plus interne. Sans la pile, un préfixe de boucle serait cherché
+// à la racine et la garde rendrait un faux positif par rangée.
 function relever(gabarit) {
   const re = /<sc-for\s+list="\{\{\s*([^}]+?)\s*\}\}"\s+as="(\w+)"|<\/sc-for>|\son([A-Z][A-Za-z]+)="\{\{\s*([^}]+?)\s*\}\}"/g;
   const pile = [], out = [];

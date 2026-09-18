@@ -81,33 +81,49 @@ test("le semis pose un portefeuille QUI PORTE des lignes — sinon la tournée n
     "le semis ne relit plus son portefeuille par le chemin du produit : il "
     + "rapporterait « 3 décisions » sur une vue dont la moitié des gestes n'est pas "
     + "rendue — le compte juste et le contenu muet, ce que ce module existe pour interdire");
-  // et le produit garde bien la sortie anticipée que le semis contournait : c'est ELLE
-  // qui faisait disparaître la section, et elle est légitime
-  assert.ok(APP.includes("            if (!lignes.length) return null;"),
-    "`pfSections` ne sort plus sur un portefeuille vide : un portefeuille sans ligne "
-    + "afficherait une section creuse avec ses boutons d'export sur rien");
+  // ————— L'INVARIANT SURVIT, SON ANCRE A BOUGÉ (règle 14, deuxième issue) —————
+  // La sortie anticipée rendait `null` : la section ENTIÈRE disparaissait, et avec elle
+  // la porte par laquelle on range la première ligne d'un portefeuille vide. Elle rend
+  // désormais une section marquée `aLignes: false`, et le gabarit tient les boutons
+  // d'export derrière ce drapeau. Ce que la garde protège n'a pas changé — aucun bouton
+  // d'export sur un portefeuille sans ligne —, seul le mécanisme a changé, et la garde
+  // le suit plutôt que de rester verte sur une ancre disparue.
+  assert.ok(APP.includes("                aLignes: false, aVide: true, nLignes: 0,"),
+    "un portefeuille sans ligne ne sort plus par sa branche à lui : il retomberait dans "
+    + "le corps de section, qui agrège, corrèle et compare sur une liste vide");
+  assert.ok(APP.includes('<sc-if value="{{ ps.aLignes }}" hint-placeholder-val="{{ true }}">'),
+    "le gabarit ne tient plus le corps de section derrière `aLignes` : un portefeuille "
+    + "vide afficherait une section creuse avec ses boutons d'export sur rien");
 });
 
-test("les pastilles de placement du portefeuille ont un texte ET un geste", () => {
-  // ————— DEUX TROUS SUR LA MÊME RANGÉE, ET UN SEUL A ROUGI —————
-  // Le gabarit lisait `cb3.ab` et `cb3.basculer` ; le producteur émettait `nom` et
-  // `placer`. La pastille se rendait VIDE et INERTE — depuis toujours, chez tout
-  // utilisateur ayant un portefeuille. Le runtime ne signale que le trou de TEXTE :
-  // un `onClick` qui ne résout pas ne se plaint pas, il ne branche rien.
+test("dans le portefeuille, une pastille est une MARQUE — et elle porte son texte", () => {
+  // ————— LA GARDE S'ANCRE SUR L'ABSENCE (règle 14, troisième issue) —————
   //
-  // Et il ne s'est montré qu'au premier portefeuille PEUPLÉ du banc : un tbody sans
-  // rangée n'a aucun trou à résoudre. C'est la règle 10 qui l'a rendu visible, et la
-  // garde de rendu qui l'a nommé.
-  assert.ok(APP.includes('onClick="{{ cb3.basculer }}">{{ cb3.nom }}</button>'),
-    "la pastille de placement relit un nom que le producteur n'émet pas : elle se "
-    + "rend vide, ou sans geste, et le défaut ne se voit QUE sur un portefeuille "
-    + "peuplé — c'est-à-dire chez l'utilisateur, jamais sur un banc à vide");
-  assert.ok(APP.includes("              basculer: (e) => {"),
-    "le geste de la pastille a repris un nom que le gabarit ne lit pas. Et `basculer` "
-    + "est le mot juste : le clic RETIRE aussi, ce que l'infobulle dit déjà — "
-    + "`placer` en décrivait la moitié");
-  assert.ok(!APP.includes("{{ cb3.ab }}"),
-    "`cb3.ab` est de retour dans le gabarit : aucun producteur ne l'émet");
+  // Son sujet a disparu, et son invariant reste. Elle tenait deux trous non résolus sur
+  // la même rangée : le gabarit lisait `cb3.ab` et `cb3.basculer`, le producteur émettait
+  // `nom` et `placer` — la pastille se rendait VIDE et INERTE chez tout utilisateur ayant
+  // un portefeuille. Le runtime ne signale que le trou de TEXTE : un attribut d'événement
+  // qui ne résout pas ne se plaint pas, il ne branche rien.
+  //
+  // Les pastilles de PLACEMENT sont parties de la table du portefeuille : elles y étaient
+  // rendues sur chaque ligne, toutes les quatre, dans le même gris — impossible de savoir
+  // où la ligne est rangée, puisque tout était marqué. Ce qui reste est une MARQUE : les
+  // portefeuilles qui contiennent la ligne, et rien d'autre. Le geste de placement vit
+  // dans « À ranger », où sa liste déroulante porte déjà son verbe.
+  //
+  // La garde attrape donc la RÉINTRODUCTION, qui est le risque réel : la doctrine du
+  // placement par pastille reste écrite au-dessus, pour le jour où quelqu'un la reprendra.
+  assert.ok(APP.includes('<span class="tag tag-accent" style="font-size:10px" title="{{ mq.aide }}">{{ mq.nom }}</span>'),
+    "la marque de portefeuille relit un nom que le producteur n'émet pas : elle se rend "
+    + "vide, et le défaut ne se voit QUE sur un portefeuille peuplé — c'est-à-dire chez "
+    + "l'utilisateur, jamais sur un banc à vide");
+  assert.match(APP, /marques: pfListe\.map\(\(p, k\) => \(\(p\.syms \|\| \[\]\)\.includes\(sym\)/,
+    "la marque ne filtre plus sur l'appartenance : elle remarquerait les quatre "
+    + "portefeuilles sur chaque ligne, ce qui ne distingue plus rien");
+  assert.ok(!APP.includes("{{ cb3."),
+    "les pastilles de placement sont de retour dans la table du portefeuille : elles y "
+    + "doublent la liste « Ranger dans… » de « À ranger », dans la seule vue où elles ne "
+    + "sont pas des commandes");
 });
 
 test("tout ce qui jette dans l'export du robot se dit, et se journalise", () => {

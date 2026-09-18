@@ -181,6 +181,16 @@
           background: none; padding: 12px 16px; display: flex; align-items: baseline;
           gap: 12px; flex-wrap: wrap; }
   .tete:hover { background: color-mix(in srgb, var(--color-accent) 6%, transparent); }
+  /* L'onglet d'un portefeuille : il porte son compte et son R par an, pour choisir
+     sans ouvrir. L'actif est souligné par un filet d'accent — pas par une couleur de
+     fond seule, qui ne se voit pas en niveaux de gris. */
+  .ong { cursor: pointer; font: inherit; text-align: left; border: none; background: none;
+         color: var(--color-text); padding: 11px 18px; display: flex; flex-direction: column;
+         gap: 2px; border-bottom: 2px solid transparent; }
+  .ong:hover { background: color-mix(in srgb, var(--color-accent) 6%, transparent); }
+  .ong.ongActif { border-bottom-color: var(--color-accent);
+                  background: color-mix(in srgb, var(--color-accent) 7%, transparent); }
+  .ong:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
   .champ:focus-visible, .tete:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
   .fl { cursor: pointer; font: inherit; text-align: left; display: flex; flex-direction: column;
         gap: 1px; padding: 4px 7px; background: none; border: 1px solid var(--color-divider);
@@ -2356,15 +2366,99 @@
           </div>
         </div>
       </section>
+        <!--
+          ————— LES ONGLETS, PUIS LA COMPARAISON —————
+          Deux défauts fermés ici. Les portefeuilles s'EMPILAIENT, dans l'ordre de
+          création : le 2 avant le 1, et comparer demandait de dérouler la page en
+          retenant six chiffres de tête. Et la vraie décision — lequel je fais tourner —
+          n'avait aucune surface : elle se reconstituait à la main, ou pas du tout.
+          L'ordre des onglets est FIXE (« Toutes les lignes », un filet, puis les
+          portefeuilles par leur rang), et un onglet vide reste visible à demi-encre :
+          masquer un portefeuille sans ligne en faisait un portefeuille qu'on ne peut
+          plus remplir, puisque le geste pour y ranger quelque chose vit à son pied.
+        -->
+        <section class="card blueprint" style="padding:0;gap:0">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <div style="display:flex;align-items:stretch;flex-wrap:wrap;border-bottom:1px solid var(--color-divider)">
+            <sc-for list="{{ pfOnglets }}" as="og" hint-placeholder-count="3">
+              <span style="display:flex;align-items:stretch">
+                <span style="display:{{ og.sep }};width:1px;background:var(--color-divider);margin:8px 0"></span>
+                <button type="button" class="{{ og.cls }}" style="opacity:{{ og.opacite }}" title="{{ og.aide }}" onClick="{{ og.choisir }}">
+                  <span style="font-family:var(--font-heading);font-size:15px">{{ og.nom }}</span>
+                  <span style="font-size:11px" class="text-muted">{{ og.sous }}</span>
+                </button>
+              </span>
+            </sc-for>
+          </div>
+          <sc-if value="{{ aPfCompare }}" hint-placeholder-val="{{ true }}">
+            <div style="padding:13px 20px 15px;display:flex;flex-direction:column;gap:9px">
+              <span style="font-size:10px;letter-spacing:.08em;text-transform:uppercase" class="text-muted">Les portefeuilles côte à côte</span>
+              <div style="overflow-x:auto">
+                <div style="min-width:640px;display:grid;grid-template-columns:minmax(120px,1.4fr) repeat(6,minmax(0,1fr));gap:3px 14px;align-items:center">
+                  <span></span>
+                  <span style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;text-align:right" class="text-muted">Lignes</span>
+                  <span style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;text-align:right" class="text-muted">R / an</span>
+                  <span style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;text-align:right" class="text-muted">Pire creux</span>
+                  <span style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;text-align:right" class="text-muted">R / creux</span>
+                  <span style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;text-align:right" class="text-muted">Paris</span>
+                  <span style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;text-align:right" class="text-muted">Non vérifiées</span>
+                  <sc-for list="{{ pfCompare }}" as="pc" hint-placeholder-count="3">
+                    <span style="display:contents">
+                      <button type="button" class="lien" style="font-family:var(--font-heading);font-size:14px;text-align:left;color:{{ pc.encre }}" onClick="{{ pc.choisir }}" title="Ouvrir ce portefeuille">{{ pc.nom }} <sc-if value="{{ pc.ouvert }}" hint-placeholder-val="{{ true }}"><span class="tag tag-accent" style="font-size:8.5px">ouvert</span></sc-if></button>
+                      <span style="text-align:right;font-size:12.5px;color:{{ pc.encre }}">{{ pc.nLignes }}</span>
+                      <span style="text-align:right;font-family:var(--font-heading);font-size:15px;color:{{ pc.encre }}">{{ pc.rAn }}</span>
+                      <span style="text-align:right;font-size:12.5px;color:{{ pc.encre }}">{{ pc.creux }}</span>
+                      <span style="text-align:right;font-family:var(--font-heading);font-size:15px;color:{{ pc.encre }}">{{ pc.ratio }}</span>
+                      <span style="text-align:right;font-size:12.5px;color:{{ pc.encre }}">{{ pc.paris }}</span>
+                      <span style="text-align:right;font-size:12.5px;color:{{ pc.encre }}">{{ pc.nonVerif }}</span>
+                    </span>
+                  </sc-for>
+                </div>
+              </div>
+              <span style="font-size:11.5px;line-height:1.45;max-width:96ch" class="text-muted">{{ pfCompareNote }}</span>
+            </div>
+          </sc-if>
+        </section>
         <sc-for list="{{ pfSections }}" as="ps" hint-placeholder-count="1">
           <section class="card blueprint" style="padding:20px 22px;gap:12px">
             <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
             <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">
               <span style="margin:0;font-family:var(--font-heading);font-size:26px;line-height:1.1;letter-spacing:-.005em">{{ ps.nom }}</span>
               <span style="font-size:12px" class="text-muted">{{ ps.resume }}</span>
-              <input class="input" type="text" style="min-height:1.9rem;height:1.9rem;font-size:12px;width:18ch;margin-inline-start:auto" value="{{ ps.nom }}" onChange="{{ ps.renommer }}" title="Renommer ce portefeuille">
-              <button type="button" class="lien" style="font-size:11px;color:var(--color-neutral-700)" onClick="{{ ps.supprimer }}" title="{{ ps.supprAide }}">{{ ps.supprTxt }}</button>
+              <sc-if value="{{ ps.aRenommer }}" hint-placeholder-val="{{ true }}">
+                <input class="input" type="text" style="min-height:1.9rem;height:1.9rem;font-size:12px;width:18ch;margin-inline-start:auto" value="{{ ps.nom }}" onChange="{{ ps.renommer }}" title="Renommer ce portefeuille">
+                <button type="button" class="lien" style="font-size:11px;color:var(--color-neutral-700)" onClick="{{ ps.supprimer }}" title="{{ ps.supprAide }}">{{ ps.supprTxt }}</button>
+              </sc-if>
             </div>
+            <sc-if value="{{ ps.aVide }}" hint-placeholder-val="{{ false }}">
+              <span style="font-size:12.5px;line-height:1.55;max-width:80ch" class="text-muted">{{ ps.videTxt }}</span>
+            </sc-if>
+            <sc-if value="{{ ps.aLignes }}" hint-placeholder-val="{{ true }}">
+            <!-- ————— LA COURBE, AVANT LE TABLEAU ————— -->
+            <sc-if value="{{ ps.aCourbe }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;flex-direction:column;gap:7px;padding-bottom:4px;border-bottom:1px solid var(--color-divider)">
+                <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">
+                  <span style="font-size:10px;letter-spacing:.08em;text-transform:uppercase" class="text-muted">Courbe de capital</span>
+                  <span style="display:inline-flex;align-items:center;gap:6px;font-size:11px" class="text-muted"><span style="width:16px;height:2px;background:var(--color-accent-700)"></span>{{ ps.courbeStratTxt }}</span>
+                  <span style="display:inline-flex;align-items:center;gap:6px;font-size:11px" class="text-muted"><span style="width:16px;height:0;border-top:1.5px dashed var(--color-neutral-500)"></span>{{ ps.courbeDetTxt }}</span>
+                  <span style="font-size:11px;margin-inline-start:auto" class="text-muted">{{ ps.courbeTxt }}</span>
+                </div>
+                <svg viewBox="0 0 1330 160" style="width:100%;height:160px;display:block" preserveAspectRatio="none">
+                  <polygon points="{{ ps.courbeAire }}" fill="var(--color-accent)" opacity="0.13"></polygon>
+                  <line x1="0" y1="{{ ps.courbeZero }}" x2="1330" y2="{{ ps.courbeZero }}" stroke="var(--color-divider)" stroke-width="1"></line>
+                  <sc-if value="{{ ps.aCourbeDet }}" hint-placeholder-val="{{ true }}">
+                    <polyline points="{{ ps.courbeDet }}" fill="none" stroke="var(--color-neutral-500)" stroke-width="1.5" stroke-dasharray="5 4" vector-effect="non-scaling-stroke"></polyline>
+                  </sc-if>
+                  <polyline points="{{ ps.courbePts }}" fill="none" stroke="var(--color-accent-700)" stroke-width="2" vector-effect="non-scaling-stroke"></polyline>
+                  <line x1="{{ ps.courbeCreuxX1 }}" y1="{{ ps.courbeCreuxY1 }}" x2="{{ ps.courbeCreuxX2 }}" y2="{{ ps.courbeCreuxY2 }}" stroke="var(--color-accent-900)" stroke-width="1.5" vector-effect="non-scaling-stroke"></line>
+                  <circle cx="{{ ps.courbeCreuxX1 }}" cy="{{ ps.courbeCreuxY1 }}" r="3.5" fill="var(--color-accent-900)"></circle>
+                  <circle cx="{{ ps.courbeCreuxX2 }}" cy="{{ ps.courbeCreuxY2 }}" r="3.5" fill="var(--color-accent-900)"></circle>
+                </svg>
+                <div style="display:flex;justify-content:space-between;font-size:10.5px" class="text-muted">
+                  <sc-for list="{{ ps.friseAnnees }}" as="ca" hint-placeholder-count="7"><span>{{ ca.an }}</span></sc-for>
+                </div>
+              </div>
+            </sc-if>
             <!--
               LE TABLEAU DES LIGNES. La rangée se déplie en place ; la colonne Robot vit
               HORS de la zone cliquable — exporter n'est pas déplier. La barre de part
@@ -2375,21 +2469,21 @@
             <div style="overflow-x:auto">
               <div style="min-width:960px;border:1px solid var(--color-divider)">
                 <div style="display:grid;grid-template-columns:minmax(0,1fr) 150px;background:var(--color-neutral-100);border-bottom:1px solid var(--color-divider)">
-                  <span style="display:grid;grid-template-columns:14px minmax(0,1fr) 80px 84px 88px 100px 96px;gap:12px;align-items:center;padding:7px 0 7px 12px">
+                  <span style="display:grid;grid-template-columns:14px minmax(0,1fr) 80px 84px 88px 100px 112px;gap:12px;align-items:center;padding:7px 0 7px 12px">
                     <span></span>
                     <span style="font-size:10px;letter-spacing:.05em;text-transform:uppercase" class="text-muted">Instrument &amp; réglages</span>
                     <span style="font-size:10px;letter-spacing:.05em;text-transform:uppercase;text-align:right" class="text-muted">R / an</span>
                     <span style="font-size:10px;letter-spacing:.05em;text-transform:uppercase;text-align:right" class="text-muted">Pire creux</span>
                     <span style="font-size:10px;letter-spacing:.05em;text-transform:uppercase;text-align:right" class="text-muted">Profit factor</span>
                     <span style="font-size:10px;letter-spacing:.05em;text-transform:uppercase" class="text-muted">Le hasard</span>
-                    <span style="font-size:10px;letter-spacing:.05em;text-transform:uppercase;text-align:center" class="text-muted">Part</span>
+                    <span style="font-size:10px;letter-spacing:.05em;text-transform:uppercase;text-align:right" class="text-muted">Période à tester</span>
                   </span>
                   <span style="font-size:10px;letter-spacing:.05em;text-transform:uppercase;padding:7px 14px;text-align:center" class="text-muted">Robot</span>
                 </div>
                 <sc-for list="{{ ps.lignes }}" as="vl" hint-placeholder-count="5">
                   <div style="border-bottom:1px solid var(--color-divider);background:{{ vl.fondSel }}" draggable="true" onDragStart="{{ vl.dragStart }}" onDragEnd="{{ vl.dragEnd }}">
                     <div style="display:grid;grid-template-columns:minmax(0,1fr) 150px;align-items:center">
-                      <div class="rang" style="grid-template-columns:14px minmax(0,1fr) 80px 84px 88px 100px 96px max-content;font-size:13px" onClick="{{ vl.deplier }}" title="{{ vl.deplierAide }}">
+                      <div class="rang" style="grid-template-columns:14px minmax(0,1fr) 80px 84px 88px 100px 112px max-content;font-size:13px" onClick="{{ vl.deplier }}" title="{{ vl.deplierAide }}">
                         <span style="font-size:9px" class="text-muted">{{ vl.chevDepli }}</span>
                         <span style="display:flex;flex-direction:column;gap:2px;min-width:0">
                           <strong>{{ vl.nom }}</strong>
@@ -2398,9 +2492,10 @@
                                qu'un chiffre taillé devient une décision -->
                           <span style="display:{{ vl.fenAff }};font-size:10px;line-height:1.45;color:{{ vl.fenHorsCouleur }}">{{ vl.fenNom }} — {{ vl.fenHors }}</span>
                           <span style="display:flex;gap:3px;flex-wrap:wrap;margin-top:3px">
-                            <sc-for list="{{ vl.cibles }}" as="cb3" hint-placeholder-count="2">
-                              <button type="button" class="{{ cb3.cls }}" style="cursor:pointer;border:none;font-family:var(--font-body);font-size:10px;padding:0 5px" title="{{ cb3.aide }}" onClick="{{ cb3.basculer }}">{{ cb3.nom }}</button>
+                            <sc-for list="{{ vl.marques }}" as="mq" hint-placeholder-count="1">
+                              <span class="tag tag-accent" style="font-size:10px" title="{{ mq.aide }}">{{ mq.nom }}</span>
                             </sc-for>
+                            <span class="{{ vl.verifCls }}" style="font-size:10px" title="{{ vl.verifAide }}">{{ vl.verifTxt }}</span>
                           </span>
                         </span>
                         <span style="text-align:right;white-space:nowrap"><strong>{{ vl.rAn }}</strong></span>
@@ -2414,14 +2509,21 @@
                             <span class="{{ vl.hasCls }}" style="font-size:10px;white-space:nowrap" title="{{ vl.hasAide }}">{{ vl.hasTxt }}</span>
                           </sc-if>
                         </span>
-                        <span style="display:flex;flex-direction:column;gap:3px;align-items:center" title="{{ vl.partAide }}">
-                          <span>{{ vl.partTxt }}</span>
-                          <span style="width:100%;height:3px;background:var(--color-neutral-300)"><span style="display:block;height:3px;width:{{ vl.partRemplie }};background:var(--color-accent)"></span></span>
+                        <!-- la période MESURÉE, au format que le testeur MT5 attend, en
+                             largeur fixe : c'est ce qu'on recopie, pas ce qu'on lit -->
+                        <span style="display:flex;flex-direction:column;gap:1px;align-items:flex-end;font-family:Consolas,ui-monospace,monospace;font-size:11px;line-height:1.35" title="{{ vl.periodeAide }}">
+                          <span>{{ vl.periodeT0 }}</span>
+                          <span>{{ vl.periodeT1 }}</span>
                         </span>
-                        <button type="button" class="lien" style="font-size:11px;justify-self:end;padding:3px 7px;white-space:nowrap;color:{{ vl.retirerPfCouleur }}" title="{{ vl.retirerPfAide }}" onClick="{{ vl.retirerPf }}">{{ vl.retirerPfTxt }}</button>
+                        <sc-if value="{{ vl.aRetirerPf }}" hint-placeholder-val="{{ true }}">
+                          <button type="button" class="lien" style="font-size:11px;justify-self:end;padding:3px 7px;white-space:nowrap;color:{{ vl.retirerPfCouleur }}" title="{{ vl.retirerPfAide }}" onClick="{{ vl.retirerPf }}">{{ vl.retirerPfTxt }}</button>
+                        </sc-if>
                       </div>
                       <span style="padding:9px 14px;display:flex;flex-direction:column;gap:3px;align-items:center">
-                        <button class="btn btn-primary" type="button" style="min-height:1.8rem;font-size:11px;padding-inline:10px;width:100%" onClick="{{ vl.exporterRobot }}" disabled="{{ vl.robBloque }}" title="{{ vl.robAide }}">Exporter</button>
+                        <button class="{{ vl.robCls }}" type="button" style="min-height:1.8rem;font-size:11px;padding-inline:10px;width:100%" onClick="{{ vl.exporterRobot }}" disabled="{{ vl.robBloque }}" title="{{ vl.robAide }}">Exporter</button>
+                        <sc-if value="{{ vl.aReserves }}" hint-placeholder-val="{{ true }}">
+                          <span style="font-size:10px;color:var(--color-accent-700)" title="{{ vl.robAide }}">{{ vl.reservesTxt }}</span>
+                        </sc-if>
                         <span class="{{ vl.deployCls }}" style="font-size:10px;white-space:nowrap" title="{{ vl.deployAide }}">{{ vl.deployTxt }}</span>
                         <span style="display:block;font-size:10px;line-height:1.4;text-align:center;color:{{ vl.deployCouleur }}">{{ vl.deployDetail }}</span>
                       </span>
@@ -2436,7 +2538,7 @@
                           <span style="display:flex;flex-direction:column;gap:1px"><span style="font-size:10px;letter-spacing:.05em;text-transform:uppercase" class="text-muted">Cumulé</span><span style="font-size:13px">{{ vl.total }}</span></span>
                           <span style="display:flex;flex-direction:column;gap:1px"><span style="font-size:10px;letter-spacing:.05em;text-transform:uppercase" class="text-muted">Par an</span><span style="font-size:13px"><strong>{{ vl.rAn }}</strong></span></span>
                           <span style="display:flex;flex-direction:column;gap:1px"><span style="font-size:10px;letter-spacing:.05em;text-transform:uppercase" class="text-muted">Dû au hasard</span><span style="font-size:13px">{{ vl.hasTxt }}</span></span>
-                          <span style="display:flex;flex-direction:column;gap:1px"><span style="font-size:10px;letter-spacing:.05em;text-transform:uppercase" class="text-muted">Part du portefeuille</span><span style="font-size:13px">{{ vl.partTxt }}</span></span>
+                          <span style="display:flex;flex-direction:column;gap:1px"><span style="font-size:10px;letter-spacing:.05em;text-transform:uppercase" class="text-muted">Période mesurée</span><span style="font-size:13px">{{ vl.periodeT0 }} → {{ vl.periodeT1 }}</span></span>
                         </div>
                         <!-- L'EXPORT N'EST PAS ICI, il est dans la colonne « Robot » de la
                              rangée, toujours visible. `pfLigneOuv` ne tient qu'une clé : une
@@ -2448,7 +2550,9 @@
                           <button class="btn btn-secondary" type="button" style="min-height:1.85rem;font-size:11px;padding-inline:11px" onClick="{{ vl.auBacktest }}">Rouvrir en Backtest</button>
                           <button class="btn btn-secondary" type="button" style="min-height:1.85rem;font-size:11px;padding-inline:11px" onClick="{{ basculerMesures }}">{{ mesuresTxt }}</button>
                           <button type="button" class="{{ vl.faireCls }}" style="cursor:pointer;border:none;font-family:var(--font-body);font-size:10px;padding:1px 6px;white-space:nowrap" title="{{ vl.faireAide }}" disabled="{{ vl.faireBloque }}" onClick="{{ vl.faire }}">{{ vl.faireTxt }}</button>
-                          <button type="button" class="lien" style="margin-inline-start:auto;font-size:11px;color:var(--color-neutral-700)" title="{{ vl.retirerPfAide }}" onClick="{{ vl.retirerPf }}">{{ vl.retirerPfLien }}</button>
+                          <sc-if value="{{ vl.aRetirerPf }}" hint-placeholder-val="{{ true }}">
+                            <button type="button" class="lien" style="margin-inline-start:auto;font-size:11px;color:var(--color-neutral-700)" title="{{ vl.retirerPfAide }}" onClick="{{ vl.retirerPf }}">{{ vl.retirerPfLien }}</button>
+                          </sc-if>
                         </div>
                       </div>
                     </sc-if>
@@ -2483,7 +2587,6 @@
                 </sc-raw-table>
               </div>
             </sc-if>
-            <span style="font-size:11px;line-height:1.5;max-width:96ch" class="text-muted">La part du portefeuille suppose que les lignes tournent sur la même période et que la taille de position est recalculée à chaque trade. Le creux du portefeuille est celui de sa pire ligne, pas la somme des creux : deux lignes ne traversent pas leur mauvaise passe le même mois.</span>
             <sc-if value="{{ ps.aOrphelins }}" hint-placeholder-val="{{ false }}">
               <div style="display:flex;gap:10px 14px;align-items:center;flex-wrap:wrap;padding-top:8px;border-top:1px solid var(--color-divider)">
                 <span style="font-size:12px;line-height:1.5;flex:1;min-width:30ch" class="text-muted">{{ ps.orphelinsTxt }}</span>
@@ -2498,12 +2601,37 @@
               pas en tant que fonctions.
             -->
             <div style="display:flex;align-items:center;gap:20px;padding:13px 16px;background:var(--color-accent-900);color:var(--color-bg);flex-wrap:wrap">
+              <!-- ————— LE GRAND CHIFFRE EST CELUI DE LA FENÊTRE COMMUNE —————
+                   Le bandeau annonçait la SOMME des R par an de ses lignes. Quatre lignes
+                   couvrant 3,4 / 4,1 / 4,9 / 6,5 ans : l'addition est juste et la phrase
+                   est fausse, et la note qui le disait vivait en petit sous le chiffre
+                   qu'elle contredit — ce n'est pas un avertissement, c'est un aveu.
+                   Le brut garde sa place, EN NOTE et avec sa raison dans la même phrase. -->
               <div style="display:flex;flex-direction:column;gap:2px">
-                <span style="font-family:var(--font-heading);font-size:38px;line-height:1">{{ ps.pfRAn }}</span>
+                <span style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">
+                  <span style="font-family:var(--font-heading);font-size:38px;line-height:1">{{ ps.pfRAn }}</span>
+                  <span style="font-size:11.5px;line-height:1.35;opacity:.85;max-width:26ch">{{ ps.pfRAnSous }}</span>
+                </span>
+                <sc-if value="{{ ps.aPfRAnNote }}" hint-placeholder-val="{{ true }}">
+                  <span style="font-size:11.5px;line-height:1.4;opacity:.85;max-width:74ch">{{ ps.pfRAnNote }}</span>
+                </sc-if>
                 <span style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;opacity:.75">{{ ps.pfRTotal }} · {{ ps.bhEurStrat }} sur la période</span>
                 <sc-if value="{{ ps.aPfRAnPerime }}" hint-placeholder-val="{{ false }}">
-                  <span style="font-size:11px;line-height:1.35;white-space:normal;max-width:46ch;border:1px solid currentColor;padding:3px 8px;margin-top:5px" title="Le moteur a changé de règle depuis que ces chiffres ont été mesurés. Une ligne périmée se repère ; leur somme, non — et c'est elle qu'on lit pour décider.">{{ ps.pfRAnPerimeTxt }}</span>
+                  <span style="font-size:11px;line-height:1.35;white-space:normal;max-width:52ch;border:1px solid currentColor;padding:3px 8px;margin-top:5px" title="Le grand chiffre est REMESURÉ maintenant, sur les trades de ces lignes et sous la règle actuelle du moteur. La colonne « R / an » du tableau, elle, porte le chiffre enregistré à la validation. Les deux peuvent différer, et c'est ce que dit cette réserve.">{{ ps.pfRAnPerimeTxt }}</span>
                 </sc-if>
+              </div>
+              <!-- ————— LE PIRE, PAS LA MOYENNE —————
+                   « Capital immobilisé 29 % du temps » est une moyenne : elle ne dit pas
+                   ce qui est ouvert EN MÊME TEMPS, et c'est le simultané qui fait sauter
+                   un compte. Le compte de jours distingue un pire cas structurel d'un
+                   accident. -->
+              <div style="display:flex;flex-direction:column;gap:2px;border-inline-start:1px solid color-mix(in srgb,var(--color-bg) 32%,transparent);padding-inline-start:20px">
+                <span style="font-family:var(--font-heading);font-size:24px;line-height:1">{{ ps.pfExpo }}</span>
+                <span style="font-size:10px;line-height:1.4;opacity:.75;max-width:28ch">{{ ps.pfExpoSous }}</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:2px;border-inline-start:1px solid color-mix(in srgb,var(--color-bg) 32%,transparent);padding-inline-start:20px">
+                <span style="font-family:var(--font-heading);font-size:24px;line-height:1">{{ ps.pfParis }}</span>
+                <span style="font-size:10px;line-height:1.4;opacity:.75;max-width:30ch">{{ ps.pfParisSous }}</span>
               </div>
               <div style="display:flex;flex-direction:column;gap:2px;border-inline-start:1px solid color-mix(in srgb,var(--color-bg) 32%,transparent);padding-inline-start:20px">
                 <span style="font-family:var(--font-heading);font-size:24px;line-height:1">{{ ps.pfCreux }}</span>
@@ -2536,6 +2664,68 @@
                    Deux états séparés auraient fini par diverger. -->
               <sc-if value="{{ aHasardMsg }}" hint-placeholder-val="{{ false }}">
                 <span style="flex-basis:100%;font-size:11.5px;line-height:1.5;color:var(--color-bg)">{{ hasardMsg }}</span>
+              </sc-if>
+            </div>
+            <!--
+              ————— LA FRISE : LA BANDE COMMUNE EST SUR LA MÊME GRILLE QUE LES BARRES —————
+              Le calque de la maquette était posé sur le CONTENEUR pleine largeur, avec
+              un `left` écrit en pixels : il se décalait de la largeur de la colonne des
+              noms — 76 px mesurés — et affirmait donc une fenêtre commune FAUSSE. Le
+              défaut exact que la frise existe pour rendre visible.
+              Le calque est ici une grille de même gabarit, superposée à la grille des
+              barres : sa deuxième colonne EST la piste des barres, calculée par le
+              navigateur sur la même largeur. Les deux chaînes `grid-template-columns`
+              doivent rester identiques — c'est ce que la garde mesure, en pixels, au
+              rendu, et non dans le source.
+            -->
+            <sc-if value="{{ ps.aFrise }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;flex-direction:column;gap:9px;padding-top:12px;border-top:1px solid var(--color-divider)">
+                <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">
+                  <span style="font-size:10px;letter-spacing:.08em;text-transform:uppercase" class="text-muted">Périodes réellement mesurées</span>
+                  <span style="font-size:11.5px;line-height:1.45;max-width:86ch;color:var(--color-accent-700)">{{ ps.friseTxt }}</span>
+                </div>
+                <div style="position:relative">
+                  <div style="position:absolute;inset:0;display:grid;grid-template-columns:210px minmax(0,1fr) 64px;gap:5px 12px;pointer-events:none">
+                    <span></span>
+                    <span style="position:relative"><span style="display:{{ ps.friseBandeAff }};position:absolute;top:0;bottom:0;left:{{ ps.friseBandeGauche }};width:{{ ps.friseBandeLargeur }};background:var(--color-accent);opacity:.13"></span></span>
+                    <span></span>
+                  </div>
+                  <!-- la grille des barres passe DEVANT le calque : sans `position`, un
+                       élément statique se peint sous un absolu, et la bande teintait les
+                       barres au lieu de teinter la piste — 13 % d'accent sur du bleu
+                       foncé ne se voit pas, et la fenêtre commune redevenait invisible -->
+                  <div style="position:relative;display:grid;grid-template-columns:210px minmax(0,1fr) 64px;gap:5px 12px;align-items:center">
+                    <sc-for list="{{ ps.friseLignes }}" as="fl2" hint-placeholder-count="4">
+                      <span style="display:contents">
+                        <span style="font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="{{ fl2.t0 }} → {{ fl2.t1 }}">{{ fl2.nom }}</span>
+                        <span style="height:11px;background:var(--color-neutral-200);position:relative"><span style="position:absolute;left:{{ fl2.gauche }};width:{{ fl2.largeur }};top:0;bottom:0;background:var(--color-accent-700)"></span></span>
+                        <span style="font-size:11px;text-align:right" class="text-muted">{{ fl2.duree }}</span>
+                      </span>
+                    </sc-for>
+                    <span></span>
+                    <span style="display:flex;justify-content:space-between;font-size:10.5px" class="text-muted">
+                      <sc-for list="{{ ps.friseAnnees }}" as="fa2" hint-placeholder-count="7"><span>{{ fa2.an }}</span></sc-for>
+                    </span>
+                    <span></span>
+                  </div>
+                </div>
+              </div>
+            </sc-if>
+            <!-- LA NOTE EST UN TEXTE NU SOUS UN FILET, jamais un bandeau teinté : le pied
+                 portait le même gris que l'en-tête de la section suivante, et deux bandes
+                 grises adjacentes ne se distinguent pas l'une de l'autre. -->
+            <div style="display:flex;gap:10px 16px;align-items:center;flex-wrap:wrap;padding-top:11px;border-top:1px solid var(--color-divider)">
+              <span style="font-size:11.5px;line-height:1.5;max-width:82ch;flex:1;min-width:34ch" class="text-muted">La période à tester est celle que Véna a mesurée : reportez-la telle quelle dans le testeur MT5, sinon les deux mesures ne portent pas sur les mêmes trades. Le creux du portefeuille est celui de sa pire ligne, pas la somme des creux : deux lignes ne traversent pas leur mauvaise passe le même mois.</span>
+              <sc-if value="{{ ps.aRangerIci }}" hint-placeholder-val="{{ false }}">
+                <span style="display:inline-flex;align-items:center;gap:8px;font-size:12px">
+                  <span class="text-muted">Ranger une ligne ici…</span>
+                  <sc-raw-select class="input" style="min-height:1.9rem;height:1.9rem;font-size:12px;width:26ch" value="" onChange="{{ ps.rangerIci }}" title="Place une configuration validée non rangée dans ce portefeuille.">
+                    <option value="">choisir…</option>
+                    <sc-for list="{{ ps.rangerChoix }}" as="rc" hint-placeholder-count="3">
+                      <option value="{{ rc.val }}">{{ rc.nom }}</option>
+                    </sc-for>
+                  </sc-raw-select>
+                </span>
               </sc-if>
             </div>
             <!--
@@ -2771,10 +2961,42 @@
                   </sc-raw-tbody>
                 </sc-raw-table>
               </div>
-            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding-top:8px;border-top:1px solid var(--color-divider)">
-              <span style="font-size:11px;letter-spacing:.06em;text-transform:uppercase" class="text-muted" title="{{ ps.correlAide }}">Redondance</span>
-              <span style="font-size:12px;line-height:1.45;flex:1;min-width:24ch">{{ ps.correlTxt }}</span>
-              <button class="btn btn-secondary" type="button" style="min-height:1.8rem;font-size:11px" onClick="{{ ps.calculerCorrel }}" disabled="{{ ps.correlInactif }}" title="{{ ps.correlAide }}">{{ ps.correlBouton }}</button>
+            <!-- ————— LA REDONDANCE SE MESURE, ELLE NE SE DEMANDE PLUS —————
+                 Elle s'annonçait « non mesurée » derrière un bouton, alors que la mesure
+                 est une agrégation de la liste de trades déjà calculée pour le reste de
+                 la page. Un portefeuille de huit lignes dont six corrèlent est un
+                 portefeuille de deux, et rien ne le disait. -->
+            <div style="display:flex;flex-direction:column;gap:10px;padding-top:10px;border-top:1px solid var(--color-divider)">
+              <div style="display:flex;gap:12px;align-items:baseline;flex-wrap:wrap">
+                <span style="font-size:11px;letter-spacing:.06em;text-transform:uppercase" class="text-muted">Redondance · corrélation des rendements mensuels</span>
+                <span style="font-size:11.5px;line-height:1.45;flex:1;min-width:24ch;color:var(--color-accent-700)">{{ ps.correlTxt }}</span>
+              </div>
+              <sc-if value="{{ ps.aCorrelMatrice }}" hint-placeholder-val="{{ true }}">
+                <div style="overflow-x:auto">
+                  <div style="min-width:560px;max-width:860px;display:flex;flex-direction:column;gap:2px">
+                    <div style="display:grid;grid-template-columns:210px repeat({{ ps.correlN }},minmax(0,1fr));gap:2px">
+                      <span></span>
+                      <sc-for list="{{ ps.correlNoms }}" as="cn" hint-placeholder-count="4">
+                        <span style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;text-align:center" class="text-muted">{{ cn.nom }}</span>
+                      </sc-for>
+                    </div>
+                    <sc-for list="{{ ps.correlLignes }}" as="cl" hint-placeholder-count="4">
+                      <div style="display:grid;grid-template-columns:210px repeat({{ ps.correlN }},minmax(0,1fr));gap:2px">
+                        <span style="font-size:11.5px;padding-inline-end:10px;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ cl.nom }}</span>
+                        <sc-for list="{{ cl.cases }}" as="cc" hint-placeholder-count="4">
+                          <span style="height:32px;display:flex;align-items:center;justify-content:center;font-family:var(--font-heading);font-size:13px;background:{{ cc.fond }};color:{{ cc.encre }}" title="{{ cc.aide }}">{{ cc.txt }}</span>
+                        </sc-for>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:16px;font-size:10.5px;flex-wrap:wrap" class="text-muted">
+                  <span style="display:flex;align-items:center;gap:6px"><span style="width:16px;height:10px;background:var(--color-neutral-100);border:1px solid var(--color-divider)"></span>sous 0,30 — paris distincts</span>
+                  <span style="display:flex;align-items:center;gap:6px"><span style="width:16px;height:10px;background:color-mix(in srgb,var(--color-accent) 42%,transparent)"></span>0,50 à 0,70 — à surveiller</span>
+                  <span style="display:flex;align-items:center;gap:6px"><span style="width:16px;height:10px;background:var(--color-accent-700)"></span>au-delà de 0,70 — comptent pour un</span>
+                  <span style="margin-inline-start:auto;max-width:60ch;text-align:right">{{ ps.correlLegende }}</span>
+                </div>
+              </sc-if>
             </div>
                 </div>
               </sc-if>
@@ -2814,6 +3036,7 @@
                 <span style="font-size:11px;line-height:1.5" class="text-muted">{{ newsVideTxt }}</span>
               </sc-if>
             </div>
+            </sc-if>
           </section>
         </sc-for>
 
@@ -2839,9 +3062,6 @@
       </sc-if>
       <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
         <button class="btn btn-secondary" type="button" style="min-height:2.2rem;font-size:12px" onClick="{{ nouveauPf }}" disabled="{{ pfPlein }}">+ Nouveau portefeuille&nbsp;{{ pfEtat }}</button>
-        <sc-if value="{{ aPfVides }}" hint-placeholder-val="{{ false }}">
-          <span style="font-size:11px" class="text-muted">{{ pfVidesTxt }}</span>
-        </sc-if>
         <sc-if value="{{ aLicPied }}" hint-placeholder-val="{{ false }}">
           <span style="font-size:11px;margin-inline-start:auto" class="text-muted">{{ licPiedTxt }}</span>
         </sc-if>
@@ -6840,7 +7060,7 @@ class Component extends DCLogic {
       compte5: { forex: 0, metal: 0, indice: 0, actionUS: 0, actionAutre: 0, crypto: 0, autre: 0 } },
     // Aucune devise présumée non plus : commDevise() retombe déjà sur 'EUR' quand la
     // clé manque, et le sélecteur de devise reste à la main du client.
-    commDev: {}, pfs: null, pfActif: 0, favoris: null, valides: [], dragSym: null, dragDepuis: null, dragPf: null, selSym: null, ajoutSym: '',
+    commDev: {}, pfs: null, pfActif: 0, pfOnglet: 0, favoris: null, valides: [], dragSym: null, dragDepuis: null, dragPf: null, selSym: null, ajoutSym: '',
     remMsg: null, remBilan: null,
     ddMax: 0, winMin: 0, oosMin: 0, detail: null, ficheMsg: null, modeTable: 'lecture', btPanneau: '', panScan: '', pfMesures: false, sonScan: false,
     robuste: null, ailleurs: null, correl: null, calculEnCours: null, recalcul: null,
@@ -9849,7 +10069,7 @@ GROUPES = {
     // résultats de backtest et de mesure
     res: null, seg: null, courbe: [], detail: null, signature: null, erreur: null,
     marche: null, regime: null, regimes: {}, regimeZone: null,
-    hasard: null, robuste: null, ailleurs: null, correl: null, correls: {}, rejeu: null,
+    hasard: null, robuste: null, ailleurs: null, correl: null, rejeu: null,
     recalcul: null, calculEnCours: null,
     // scan et son historique
     scanN: 0, archives: [], scanVu: null, scanTestes: 0, scanDuree: null,
@@ -10464,6 +10684,308 @@ GROUPES = {
       ddMed: q(creux, 0.5), ddHaut: q(creux, 0.95), ddPire: q(creux, 0.999),
       pSeuil: sousSeuil / S * 100, pRouge: rouge / S * 100 };
   }
+  // ————— UNE SEULE LISTE DE TRADES, QUATRE AGRÉGATIONS —————
+  //
+  // Les quatre calculs de cette page — R par an sur fenêtre commune, exposition
+  // simultanée maximale, redondance, nombre de paris — répondent à quatre questions
+  // différentes sur LA MÊME liste. Un second producteur qui relirait la série
+  // divergerait du premier, et rien à l'écran ne le dirait : c'est la figure de
+  // `deposes`, où une porte unique ferme la CLASSE là où un chemin ne ferme qu'un cas.
+  //
+  // Le cache est un WeakMap sur la série elle-même, comme celui de `detention` : il
+  // tombe de lui-même quand la série est remplacée. Une série non chargée rend `null`
+  // et non une liste vide — « aucun trade » et « rien n'a été mesuré » sont deux états,
+  // et les confondre ferait annoncer un zéro que personne n'a regardé.
+  pfTrades(lignes) {
+    return (lignes || []).map((x) => {
+      const v = x._v || x;
+      const sym = v.ticker || v.sym;
+      const nom = x.nom || this.nomComplet(sym);
+      const df = this.serieH1(sym);
+      if (!df || !df.n) return { nom, sym, trades: null, motif: 'bougies non chargées' };
+      const cfg = this.cfgDeLigne(v);
+      if (!cfg) return { nom, sym, trades: null, motif: 'configuration introuvable' };
+      const sig = JSON.stringify(cfg) + '|' + (v.ut || this.state.ut)
+        + '|' + this.facteurSpread() + '|' + this.stopMiniDe(sym);
+      this._pfTr = this._pfTr || new WeakMap();
+      let memo = this._pfTr.get(df);
+      if (!memo) { memo = new Map(); this._pfTr.set(df, memo); }
+      if (!memo.has(sig)) {
+        let out;
+        try {
+          const tr = this.mesurer(sym, cfg, v.ut || this.state.ut, df);
+          out = tr && tr.length
+            ? { trades: tr.map((t) => ({ e: t.entree_t, s: t.sortie_t,
+              r: (t.R_net !== undefined ? t.R_net : t.R) })), motif: '' }
+            : { trades: null, motif: 'aucun trade sous cette configuration' };
+        } catch (e) { out = { trades: null, motif: 'mesure impossible' }; }
+        if (memo.size > 24) memo.clear();
+        memo.set(sig, out);
+      }
+      return { nom, sym, ...memo.get(sig) };
+    });
+  }
+
+  // ————— LES QUATRE CALCULS, ET LEURS TROIS ÉTATS CHACUN —————
+  //
+  // Le troisième état n'est JAMAIS « zéro ». Une fenêtre commune vide, une corrélation
+  // non calculable, une exposition sur une seule ligne : chacun se dit en toutes
+  // lettres. Rendre 0 à leur place disculperait le portefeuille sans qu'aucune mesure
+  // ait eu lieu — c'est la règle du zéro qui prouve sa prise, appliquée au produit.
+  pfCalculs(lignes) {
+    const M = this.M;
+    const AN = 365.25 * 86400000;
+    const src = this.pfTrades(lignes);
+    const vivantes = src.filter((x) => x.trades && x.trades.length);
+    const muettes = src.filter((x) => !(x.trades && x.trades.length));
+    const f1 = (x, d = 1) => (Number.isFinite(x)
+      ? x.toFixed(d).replace('.', ',').replace('-', '−') : '—');
+    const sgn = (x, d = 1) => (Number.isFinite(x)
+      ? (x >= 0 ? '+ ' : '− ') + Math.abs(x).toFixed(d).replace('.', ',') : '—');
+    const euroR = (Number(this.state.capital) || 0) * (Number(this.state.risquePct) || 0) / 100;
+    const risque = Number(this.state.risquePct) || 0;
+    // LE BRUT — la somme des R par an, chaque ligne annualisée sur SA fenêtre. C'est le
+    // chiffre arithmétiquement juste et sémantiquement faux : il passe en note, avec sa
+    // raison écrite à côté de lui, jamais en grand.
+    let brutAn = 0, brutTotal = 0;
+    for (const x of vivantes) {
+      let tot = 0, a = Infinity, b = -Infinity;
+      for (const t of x.trades) { tot += t.r; if (t.e < a) a = t.e; if (t.s > b) b = t.s; }
+      brutTotal += tot;
+      const ans = (b - a) / AN;
+      if (ans > 0.05) brutAn += tot / ans;
+    }
+    const fen = M.fenetreCommune(vivantes);
+    const etat = !vivantes.length ? 'aucune'
+      : vivantes.length === 1 ? 'unique'
+        : fen.vide ? 'disjointes' : 'plein';
+    const ag = etat === 'plein' || etat === 'unique'
+      ? M.agregerFenetre(vivantes, fen.t0, fen.t1) : null;
+    const expo = M.expositionMax(vivantes);
+    const cor = etat === 'plein' ? M.correlMensuelle(vivantes, fen.t0, fen.t1) : null;
+    const grp = cor && cor.assez && cor.paires.some((q) => q.c !== null)
+      ? M.grouperParis(vivantes.length, cor.paires, 0.7) : null;
+    const nomsFortes = cor && cor.assez
+      ? cor.paires.filter((q) => q.c !== null && q.c >= 0.7) : [];
+    const nonMesurees = muettes.length
+      ? ' · ' + this.pl(muettes.length, 'ligne non mesurable ici', 'lignes non mesurables ici')
+        + ' (' + [...new Set(muettes.map((x) => x.motif))].join(', ') + ')'
+      : '';
+    // La frise : un axe commun à toutes les lignes, et la zone commune posée sur la
+    // MÊME grille — pas sur le conteneur. Une bande calée sur la carte se décale de la
+    // largeur de la colonne des noms et affirme alors une fenêtre commune fausse : le
+    // défaut exact qu'elle sert à rendre visible.
+    const axe = (() => {
+      if (!vivantes.length) return null;
+      let a = Infinity, b = -Infinity;
+      for (const x of vivantes) for (const t of x.trades) { if (t.e < a) a = t.e; if (t.s > b) b = t.s; }
+      return b > a ? { t0: a, t1: b, span: b - a } : null;
+    })();
+    const pct = (ms) => (axe ? Math.max(0, Math.min(100, (ms - axe.t0) / axe.span * 100)) : 0);
+    const jp = (ms) => { const d = new Date(ms);
+      return d.getUTCFullYear() + '.' + String(d.getUTCMonth() + 1).padStart(2, '0')
+        + '.' + String(d.getUTCDate()).padStart(2, '0'); };
+    return {
+      pfCalcSrc: src, pfCalcFen: fen, pfCalcEtat: etat, pfCalcAg: ag,
+      pfCalcExpo: expo, pfCalcCor: cor, pfCalcGrp: grp, pfCalcAxe: axe,
+      // ————— 1 · LE GRAND CHIFFRE EST CELUI DE LA FENÊTRE COMMUNE —————
+      pfRAn: etat === 'plein' || etat === 'unique' ? sgn(ag.rAn, 1) + ' R / an'
+        : etat === 'disjointes' ? 'aucune fenêtre commune'
+          : 'rien à agréger',
+      pfRAnSous: etat === 'plein'
+        ? 'sur les ' + f1(fen.annees, 1) + ' ans où les ' + vivantes.length
+          + ' lignes tournaient ensemble'
+        : etat === 'unique' ? 'une seule ligne : sa fenêtre EST la fenêtre commune'
+          : etat === 'disjointes'
+            ? 'ces lignes n’ont jamais tourné en même temps — il n’y a pas de '
+              + 'période où le portefeuille ait été mesuré en entier'
+            : 'aucune ligne de ce portefeuille n’est mesurable ici',
+      // La note porte le brut ET sa raison, dans la même phrase : un chiffre relégué
+      // sans sa raison se lit comme une variante au choix.
+      aPfRAnNote: etat === 'plein',
+      pfRAnNote: etat === 'plein'
+        ? sgn(brutAn, 1) + ' R/an si l’on additionne les ' + vivantes.length
+          + ' fenêtres — mais elles ne se recouvrent pas · ' + sgn(brutTotal, 1)
+          + ' R cumulés' + (euroR > 0 ? ' · ' + (brutTotal >= 0 ? '+ ' : '− ')
+            + EUR.format(Math.abs(brutTotal) * euroR) : '') + nonMesurees
+        : '',
+      // ————— 2 · LE PIRE, PAS LA MOYENNE —————
+      pfExpo: expo.mesurable && risque > 0
+        ? f1(expo.max * risque, expo.max * risque < 10 ? 1 : 0) + ' % au pire'
+        : expo.mesurable ? expo.max + ' en même temps' : 'non mesurée',
+      pfExpoSous: !expo.mesurable
+        ? 'aucune ligne mesurable : l’exposition simultanée n’a pas été regardée'
+        : expo.portantes < 2
+          ? 'une seule ligne mesurable — il n’y a rien à superposer'
+          : (expo.max >= expo.portantes
+            ? 'les ' + expo.portantes + ' lignes ouvertes le même jour'
+            : expo.max + ' des ' + expo.portantes + ' lignes ouvertes le même jour')
+            + ' · ' + this.pl(expo.jours, 'jour dans ce cas', 'jours dans ce cas'),
+      // ————— 4 · LE NOMBRE DE PARIS, PAS LE NOMBRE DE LIGNES —————
+      pfParis: grp ? this.pl(grp.paris, 'pari', 'paris')
+        : etat === 'unique' ? '1 pari' : 'non mesurable',
+      pfParisSous: grp
+        ? (nomsFortes.length
+          ? nomsFortes.slice(0, 2).map((q) => q.a + ' et ' + q.b + ' comptent pour un').join(' · ')
+            + (nomsFortes.length > 2 ? ' · et ' + (nomsFortes.length - 2) + ' de plus' : '')
+          : 'aucune paire au-delà de 0,70 : autant de paris que de lignes')
+        : etat === 'unique' ? 'une seule ligne'
+          : 'la redondance n’est pas calculable' + (cor && cor.raison ? ' — ' + cor.raison : ''),
+      // ————— 3 · LA MATRICE, ET CE QU'ELLE A MESURÉ —————
+      aCorrelMatrice: !!(cor && cor.assez && cor.paires.some((q) => q.c !== null)),
+      correlN: String(vivantes.length),
+      correlNoms: vivantes.map((x) => ({ nom: x.sym })),
+      // Triangle INFÉRIEUR seulement : la moitié haute répète la basse, et une matrice
+      // pleine se lit deux fois pour n'apprendre qu'une. La diagonale ne porte pas 1,00 —
+      // une ligne corrélée à elle-même n'est pas une information.
+      correlLignes: vivantes.map((x, i) => ({
+        nom: x.nom,
+        cases: vivantes.map((y, j) => {
+          if (j > i) return { txt: '', fond: 'transparent', encre: 'inherit', aide: '' };
+          if (j === i) return { txt: '', fond: 'var(--color-neutral-200)', encre: 'inherit', aide: x.nom };
+          const q = cor && cor.assez
+            ? cor.paires.find((z) => (z.ia === j && z.ib === i) || (z.ia === i && z.ib === j)) : null;
+          // NON CALCULABLE N'EST PAS ZÉRO. Une ligne sans aucun trade sur la fenêtre
+          // commune a une variance mensuelle nulle : le rapport n'existe pas. Rendre 0
+          // ferait lire « paris distincts » là où rien n'a été mesuré.
+          if (!q || q.c === null) {
+            return { txt: '\u2014', fond: 'transparent', encre: 'var(--color-neutral-500)',
+              aide: x.nom + ' / ' + y.nom + ' : non calculable \u2014 au moins une des deux '
+                + 'n\u2019a aucun trade sur la fen\u00eatre commune, sa variance mensuelle '
+                + 'est nulle. Ce n\u2019est pas une corr\u00e9lation de z\u00e9ro.' };
+          }
+          const c = q.c;
+          return { txt: f1(c, 2),
+            fond: c >= 0.7 ? 'var(--color-accent-700)'
+              : c >= 0.5 ? 'color-mix(in srgb,var(--color-accent) 42%,transparent)'
+                : 'var(--color-neutral-100)',
+            encre: c >= 0.7 ? 'var(--color-bg)' : 'var(--color-neutral-700)',
+            aide: x.nom + ' / ' + y.nom + ' \u2014 ' + f1(c, 2) + ' sur ' + cor.mois
+              + ' mois communs. ' + (c >= 0.7
+                ? 'Au-del\u00e0 de 0,70 : ces deux lignes comptent pour un seul pari.'
+                : c >= 0.5
+                  ? 'Entre 0,50 et 0,70 : \u00e0 surveiller, elles ne se compensent qu\u2019\u00e0 moiti\u00e9.'
+                  : 'Sous 0,30 : paris distincts.') };
+        }),
+      })),
+      correlTxt: !cor ? 'La redondance se mesure sur la fenêtre commune, et il n’y en a pas.'
+        : !cor.assez ? 'Redondance non calculable : ' + cor.raison + '.'
+          : nomsFortes.length
+            ? this.pl(nomsFortes.length, 'paire dépasse 0,70', 'paires dépassent 0,70') + ' : '
+              + nomsFortes.slice(0, 3).map((q) => q.a + ' / ' + q.b + ' à ' + f1(q.c, 2)).join(', ')
+              + '. ' + this.pl(vivantes.length, 'ligne', 'lignes') + ', mais '
+              + (grp ? this.pl(grp.paris, 'pari', 'paris') : '—') + '.'
+            : 'Aucune paire au-delà de 0,70 : les ' + vivantes.length
+              + ' lignes sont autant de paris distincts.',
+      correlLegende: cor && cor.assez
+        ? 'Mesurée sur ' + f1(fen.annees, 1) + ' ans — la fenêtre commune aux '
+          + vivantes.length + ' lignes, ' + cor.mois + ' mois. Corrélation des rendements '
+          + 'MENSUELS : un mois sans position vaut zéro, pas « pas de donnée ».'
+        : '',
+      // ————— LA FRISE : LA BANDE COMMUNE EST UNE RANGÉE DE LA MÊME GRILLE —————
+      aFrise: !!axe,
+      friseLignes: vivantes.map((x) => {
+        let a = Infinity, b = -Infinity;
+        for (const t of x.trades) { if (t.e < a) a = t.e; if (t.s > b) b = t.s; }
+        return { nom: x.nom, gauche: pct(a) + '%', largeur: Math.max(0.5, pct(b) - pct(a)) + '%',
+          duree: f1((b - a) / AN, 1) + ' ans', t0: jp(a), t1: jp(b) };
+      }),
+      friseBandeGauche: axe && !fen.vide ? pct(fen.t0) + '%' : '0%',
+      friseBandeLargeur: axe && !fen.vide ? Math.max(0, pct(fen.t1) - pct(fen.t0)) + '%' : '0%',
+      friseBandeAff: axe && !fen.vide && vivantes.length > 1 ? 'block' : 'none',
+      friseAnnees: axe ? (() => {
+        const a0 = new Date(axe.t0).getUTCFullYear(), a1 = new Date(axe.t1).getUTCFullYear();
+        const out = [];
+        for (let a = a0; a <= a1; a++) out.push({ an: String(a) });
+        return out;
+      })() : [],
+      friseTxt: etat === 'plein'
+        ? 'Le total brut additionne des lignes qui ne couvrent pas la même fenêtre. Seules '
+          + f1(fen.annees, 1) + ' années sont communes aux ' + vivantes.length
+          + ' — c’est la seule période où le portefeuille est mesuré en entier.'
+        : etat === 'disjointes'
+          ? 'Ces lignes n’ont aucune période commune : il n’existe pas de fenêtre où '
+            + 'le portefeuille ait tourné en entier.'
+          : etat === 'unique'
+            ? 'Une seule ligne mesurable : sa fenêtre est celle du portefeuille.'
+            : 'Aucune ligne mesurable : déposez les bougies de ces instruments pour voir leurs fenêtres.',
+      // ————— LA COURBE : LA MÊME LISTE, CUMULÉE — ET LE PRIX À CÔTÉ —————
+      //
+      // Les deux traits sont en POUR-CENT DU CAPITAL, pas l'un en R et l'autre en prix :
+      // à mise fixe, 1 R vaut `risquePct` % du capital de départ, et la détention vaut sa
+      // variation de prix. Deux unités sur un même cadre auraient été deux axes déguisés.
+      // Le creux le plus profond est tracé entre son SOMMET et son FOND : un chiffre en
+      // légende ne dit pas combien de temps il a duré.
+      ...(() => {
+        if (!vivantes.length || !axe) {
+          return { aCourbe: false, courbePts: '', courbeAire: '', courbeDet: '',
+            aCourbeDet: false, courbeTxt: '', courbeStratTxt: '', courbeDetTxt: '',
+            courbeCreuxX1: '0', courbeCreuxY1: '0', courbeCreuxX2: '0', courbeCreuxY2: '0',
+            courbeZero: '0' };
+        }
+        const L = 1330, H = 160;
+        const tous = [];
+        for (const x of vivantes) for (const t of x.trades) tous.push(t);
+        tous.sort((a, b) => a.s - b.s);
+        let eq = 0, pic = 0, creux = 0, picT = tous[0].s, picEq = 0, creuxT = tous[0].s, creuxEq = 0;
+        const pts = [{ t: axe.t0, v: 0 }];
+        for (const t of tous) {
+          eq += t.r;
+          if (eq > pic) { pic = eq; picT = t.s; }
+          if (eq - pic < creux) { creux = eq - pic; creuxT = t.s; creuxEq = eq; picEq = pic; }
+          pts.push({ t: t.s, v: eq * risque });
+        }
+        // la détention des mêmes instruments, équipondérée, échantillonnée sur l'axe :
+        // relire chaque bougie de chaque série à chaque rendu figerait la page
+        const bases = [];
+        for (const x of vivantes) {
+          const df = this.serieH1(x.sym);
+          if (!df || !df.n) continue;
+          let i = 0;
+          while (i < df.n && df.t[i] < axe.t0) i++;
+          if (i >= df.n || !(df.o[i] > 0)) continue;
+          bases.push({ df, i0: i, p0: df.o[i] });
+        }
+        const det = [];
+        if (bases.length === vivantes.length && bases.length) {
+          for (let k = 0; k <= 60; k++) {
+            const t = axe.t0 + axe.span * k / 60;
+            let somme = 0, n = 0;
+            for (const b of bases) {
+              let i = b.i0;
+              while (i + 1 < b.df.n && b.df.t[i + 1] <= t) i++;
+              if (b.df.t[i] > t) continue;
+              somme += (b.df.c[i] / b.p0 - 1) * 100; n++;
+            }
+            if (n === bases.length) det.push({ t, v: somme / n });
+          }
+        }
+        const vals = [0, ...pts.map((x) => x.v), ...det.map((x) => x.v)];
+        const lo = Math.min(...vals), hi = Math.max(...vals);
+        const ech = hi > lo ? (H - 14) / (hi - lo) : 0;
+        const X = (t) => (pct(t) / 100 * L).toFixed(1);
+        const Y = (v) => (H - 7 - (v - lo) * ech).toFixed(1);
+        const corps = pts.map((x) => X(x.t) + ',' + Y(x.v)).join(' ');
+        return { aCourbe: true,
+          courbePts: corps,
+          courbeAire: corps + ' ' + X(pts[pts.length - 1].t) + ',' + Y(lo) + ' ' + X(pts[0].t) + ',' + Y(lo),
+          aCourbeDet: det.length > 1,
+          courbeDet: det.map((x) => X(x.t) + ',' + Y(x.v)).join(' '),
+          courbeZero: Y(0),
+          courbeCreuxX1: X(picT), courbeCreuxY1: Y(picEq * risque),
+          courbeCreuxX2: X(creuxT), courbeCreuxY2: Y(creuxEq * risque),
+          courbeStratTxt: 'votre stratégie \u00b7 ' + sgn(eq * risque, 1) + ' %',
+          courbeDetTxt: det.length > 1
+            ? 'acheter et garder \u00b7 ' + sgn(det[det.length - 1].v, 1) + ' %'
+            : 'acheter et garder : séries incomplètes, non tracé',
+          courbeTxt: 'cumul des ' + tous.length + ' trades des '
+            + this.pl(vivantes.length, 'ligne mesurable', 'lignes mesurables')
+            + ' \u00b7 creux le plus profond marqué \u2014 ' + sgn(creux * risque, 1) + ' %'
+            + (euroR > 0 ? ', soit \u2212 ' + EUR.format(Math.abs(creux) * euroR) : '') };
+      })(),
+    };
+  }
+
   // le portefeuille mis en face de la détention des mêmes instruments, même unité
   refDetention(p, lignes) {
     const f = Math.max(0.05, Number(this.state.risquePct) || 1) / 100;
@@ -12779,6 +13301,9 @@ GROUPES = {
       'coupureRegime', 'pleinRegime', 'gEntrees', 'gLignes', 'gFiltres', 'gSens', 'gLectures', 'gSecus', 'gTemps', 'gDurees', 'gTrailing', 'gEchelles', 'gPeriodeMa', 'gLigneMtf', 'gPeriodeMtf',
       'gLignePente', 'gPenteRecul', 'triCumul', 'tTradesMin', 'tSegMin', 'tDdMax', 'tWinMin', 'tOosMin', 'tWfMin', 'tDureeMax', 'sPrudent',
       'capital', 'pfActif', 'comm', 'commDev', 'nuitsSaisi', 'patrimoine',
+      // l'onglet de portefeuille ouvert : sans lui, revenir sur la page rouvre
+      // « Toutes les lignes » alors qu'on travaillait sur un portefeuille précis
+      'pfOnglet',
       // les contrôles du hasard déjà faits : sans persistance, chaque rechargement
       // relançait la série et la grille pour des lignes déjà jugées
       // le nombre de tirages : un réglage qu'on change en connaissance de cause, et qui
@@ -13862,13 +14387,6 @@ GROUPES = {
       ficheMsg: out.length ? null : 'Historique trop court sur les instruments comparés : rien à afficher.' });
   }
 
-  // redondance du portefeuille : corrélation des variations journalières sur 250 séances
-  // empreinte d'un portefeuille : le compte et ses symboles triés. Indexer par position
-  // faisait hériter la corrélation d'un autre portefeuille après un changement de compte
-  // ou une suppression, qui réindexe la liste.
-  cleCorrel(syms) {
-    return this.compteActif + '|' + [...(syms || [])].sort().join(',');
-  }
   CLE_NEWS = 'vena.news.cle';
   lireCleNews() {
     try { return localStorage.getItem(this.CLE_NEWS) || ''; } catch (e) { return ''; }
@@ -14384,54 +14902,6 @@ GROUPES = {
     }
     this.setState({ news: out, newsEnCours: false, newsMsg: erreur });
   }
-  calcCorrel(iPfDemande) {
-    const s = this.state;
-    const k = iPfDemande === undefined ? s.pfActif : iPfDemande;
-    const syms = ((s.pfs || [])[k] || { syms: [] }).syms;
-    const cc = this.cleCorrel(syms);
-    if (!this.M || syms.length < 2) {
-      this.setState((q) => ({ correls: { ...(q.correls || {}), [cc]: null } }));
-      return;
-    }
-    const series = {};
-    for (const sym of syms) {
-      const df = this.dfs && this.dfs[sym];
-      if (!df) continue;
-      const d1 = this.M.resampler(df, 'D1');
-      const m = new Map();
-      for (let i = 1; i < d1.n; i++) {
-        if (!d1.c[i - 1]) continue;
-        m.set(new Date(d1.t[i]).toISOString().slice(0, 10), d1.c[i] / d1.c[i - 1] - 1);
-      }
-      series[sym] = m;
-    }
-    const noms = Object.keys(series);
-    const co = (a, b) => {
-      const xs = [], ys = [];
-      for (const [k, v] of series[a]) {
-        const w = series[b].get(k);
-        if (w !== undefined) { xs.push(v); ys.push(w); }
-      }
-      const N = Math.min(xs.length, 250);
-      if (N < 30) return null;
-      const X = xs.slice(-N), Y = ys.slice(-N);
-      const mx = X.reduce((p, q) => p + q, 0) / N, my = Y.reduce((p, q) => p + q, 0) / N;
-      let num = 0, dx = 0, dy = 0;
-      for (let i = 0; i < N; i++) {
-        num += (X[i] - mx) * (Y[i] - my); dx += (X[i] - mx) ** 2; dy += (Y[i] - my) ** 2;
-      }
-      return dx && dy ? num / Math.sqrt(dx * dy) : null;
-    };
-    const paires = [];
-    for (let i = 0; i < noms.length; i++) for (let j = i + 1; j < noms.length; j++) {
-      const c = co(noms[i], noms[j]);
-      if (c !== null) paires.push({ a: noms[i], b: noms[j], c });
-    }
-    paires.sort((x, y) => y.c - x.c);
-    const moy = paires.length ? paires.reduce((a, p) => a + p.c, 0) / paires.length : null;
-    this.setState((q) => ({ correls: { ...(q.correls || {}), [cc]: { noms, paires, moy } } }));
-  }
-
   // fiche d'un symbole sans passer par le TOP : réglages actuels du backtest
   async ouvrirFiche(sym, cfg) {
     if (!this.M) return;
@@ -16460,7 +16930,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260918.5';
+  VERSION_APP = '260918.6';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -26353,6 +26823,58 @@ GROUPES = {
               liveMotifs: motifsTxt,
             };
           })(),
+          // ————— LA PÉRIODE À TESTER, ET CE QUE LA LIGNE A DÉJÀ PROUVÉ —————
+          //
+          // La colonne « Part » décrivait sans conseiller : elle disait quel poids une
+          // ligne pèse dans un total qui, lui, additionnait des fenêtres qui ne se
+          // recouvrent pas. Ce que l'utilisateur reporte réellement dans le testeur MT5,
+          // ce sont les deux DATES de la mesure — et leur absence a coûté une demi-journée
+          // sur AUDUSD, où le robot a tourné sur toute la série quand la mesure n'en
+          // couvrait qu'un tiers. Comparer deux périodes différentes ne compare rien.
+          //
+          // « vérifié » n'est pas « valide » : le mot est interdit ici comme sur le
+          // bouton Exporter. Ce qu'on sait, c'est que des trades de CETTE configuration
+          // sont remontés d'un terminal — pas qu'elle tiendra ailleurs.
+          ...(() => {
+            const jpt = (ms) => { const d = new Date(ms);
+              return d.getUTCFullYear() + '.' + String(d.getUTCMonth() + 1).padStart(2, '0')
+                + '.' + String(d.getUTCDate()).padStart(2, '0'); };
+            const j = this.journalDe(v);
+            const fermes = (j && j.trades) || [];
+            const verifie = fermes.length > 0;
+            const ans = (v.t0 && v.t1) ? (v.t1 - v.t0) / (365.25 * 86400000) : null;
+            const res = this.reservesExport(v);
+            return { verifie,
+              verifTxt: verifie ? 'vérifié contre le testeur'
+                : 'non vérifié' + (ans !== null
+                  ? ' \u2014 mesure sur ' + ans.toFixed(1).replace('.', ',') + ' ans' : ''),
+              verifCls: 'tag ' + (verifie ? 'tag-outline' : 'tag-neutral'),
+              verifAide: verifie
+                ? this.pl(fermes.length, 'trade de cette configuration est remonté',
+                  'trades de cette configuration sont remontés')
+                  + ' d\u2019un terminal : les deux mesures se comparent. Ce qui est '
+                  + 'vérifié, c\u2019est CETTE ligne chez CE courtier \u2014 rien de plus.'
+                : 'Aucun trade de cette configuration n\u2019est remonté de MT5 : rien ne '
+                  + 'compare encore ce que Véna a mesuré à ce qu\u2019un terminal exécute. '
+                  + 'La mesure reste une mesure de prix.',
+              aPeriode: !!(v.t0 && v.t1),
+              periodeT0: v.t0 ? jpt(v.t0) : '\u2014',
+              periodeT1: v.t1 ? jpt(v.t1) : '\u2014',
+              // « mise de côté », et non l'adjectif que cet écran s'interdit : l'interdit
+              // est SANS exception, et c'est la formulation qui s'adapte — jamais la
+              // garde. Le voisin `etatAide` emploie déjà ce synonyme pour le même geste.
+              // (Et ce commentaire ne l'épelle pas : une garde qui lit du source ne
+              // distingue pas un récit d'un texte rendu — elle vient de le montrer.)
+              periodeAide: v.t0 && v.t1
+                ? 'Du ' + jpt(v.t0) + ' au ' + jpt(v.t1) + ' \u2014 la période que Véna a '
+                  + 'mesurée. Reportez-la telle quelle dans le testeur MT5 : un robot lancé '
+                  + 'sur toute la série ne rejoue pas les mêmes trades.'
+                : 'Cette ligne a été mise de côté avant que la période mesurée soit '
+                  + 'mémorisée : rouvrez-la en Backtest pour la relire.',
+              robCls: verifie ? 'btn btn-primary' : 'btn btn-secondary',
+              aReserves: res.length > 0,
+              reservesTxt: res.length > 0 ? 'réserves à lire' : '' };
+          })(),
           // la configuration brute, pour l'export du robot
           _v: v,
           // valeurs non formatées, pour la comparaison à la détention
@@ -26516,29 +27038,18 @@ GROUPES = {
           },
           // la rangée entière porte la sélection : ouvrir la liste ne doit pas la cocher
           stopper: (e) => { if (e && e.stopPropagation) e.stopPropagation(); },
-          // placement sans glisser : avec beaucoup de validés, la carte du portefeuille
-          // est souvent hors de l'écran et le glisser-déposer devient impraticable
-          cibles: pfListe.map((p, k) => {
-            const dedans = (p.syms || []).includes(sym);
-            return { nom: abrevPf[k],
-              cls: 'tag ' + (dedans ? 'tag-accent' : 'tag-outline'),
-              aide: dedans ? sym + ' est déjà dans ' + (p.nom || 'ce portefeuille') + ' — cliquez pour le retirer'
-                : 'Placer ' + sym + ' dans ' + (p.nom || 'ce portefeuille'),
-              // ————— LE MOT DIT CE QUE LE BOUTON FAIT —————
-              // `placer` sous-décrivait : le geste RETIRE aussi, et l'infobulle le dit
-              // déjà (« cliquez pour le retirer »). Le gabarit, lui, lisait `basculer` —
-              // le mot juste — et `cb3.ab` pour un producteur qui émet `nom`. DEUX trous
-              // non résolus sur la même rangée : la pastille se rendait VIDE et INERTE.
-              // Seul le texte a rougi — un `onClick` qui ne résout pas ne se plaint pas,
-              // il ne branche rien. Le défaut vivait depuis toujours et ne s'est montré
-              // qu'au premier portefeuille PEUPLÉ du banc : un tbody sans rangée n'a
-              // aucun trou à résoudre (règle 10).
-              basculer: (e) => {
-                e.stopPropagation();
-                this.majPf(pfListe.map((q, j) => (j !== k ? q
-                  : { ...q, syms: dedans ? q.syms.filter((x) => x !== sym) : [...new Set([...q.syms, sym])] })));
-              } };
-          }),
+          // ————— DANS LE PORTEFEUILLE, UNE PASTILLE EST UNE MARQUE, PAS UNE COMMANDE —————
+          // Les quatre pastilles `P2 P3 P4 P1` étaient rendues sur CHAQUE ligne, dans le
+          // même gris : impossible de savoir où la ligne est rangée, puisque tout était
+          // marqué. Dans la table du portefeuille, on ne montre que les portefeuilles qui
+          // CONTIENNENT la ligne, et retirer porte son verbe ailleurs. La liste complète
+          // reste dans « À ranger », où le geste porte déjà son verbe : la liste
+          // déroulante « Ranger dans… » de la rangée. Les pastilles de placement sont
+          // donc parties avec leur producteur — elles doublaient cette liste dans la
+          // seule vue où elles n'étaient pas des commandes.
+          marques: pfListe.map((p, k) => ((p.syms || []).includes(sym)
+            ? { nom: abrevPf[k], aide: sym + ' est rangé dans ' + (p.nom || 'ce portefeuille') }
+            : null)).filter(Boolean),
         };
       }))(this.abrevPfs(pfListe));
         const dans = (sym) => pfListe.findIndex((p) => (p.syms || []).includes(sym));
@@ -26633,10 +27144,56 @@ GROUPES = {
             // rien à ranger n'est pas « tout est rangé » quand rien n'est validé : la
             // phrase d'état vide juste en dessous dit déjà quoi faire
             : (this.normValides(s.valides).length ? 'tout est rangé' : ''),
-          // un portefeuille vide n'a rien à montrer : il réapparaît dès qu'il porte une ligne
-          pfSections: pfListe.map((p, k) => {
+          // ————— LES ONGLETS REMPLACENT LA PILE —————
+          //
+          // Les portefeuilles s'empilaient dans l'ordre de CRÉATION — le 2 avant le 1 —
+          // et comparer demandait de dérouler la page en retenant des chiffres. L'ordre
+          // est désormais fixe : « Toutes les lignes », un filet, puis les portefeuilles
+          // par leur rang. Chaque onglet porte son compte et son R par an, pour choisir
+          // sans ouvrir ; un onglet vide reste VISIBLE, à demi-encre — masquer un
+          // portefeuille vide en faisait un portefeuille qu'on ne peut plus remplir.
+          ...(() => {
+          const symsTous = [...new Set(toutes.map((x) => x.ticker || x.sym).filter(Boolean))];
+          // « Toutes les lignes » est un portefeuille de LECTURE : il porte tous les
+          // validés, il ne se renomme pas, ne se supprime pas, et on n'y range rien.
+          const pfVue = [{ nom: 'Toutes les lignes', syms: symsTous, _tout: true }, ...pfListe];
+          const sections = pfVue.map((p, kv) => {
+            const k = kv - 1;
+            const tout = k < 0;
             const lignes = this.trierDec(toutes.filter((x) => (p.syms || []).includes(x.ticker || x.sym)));
-            if (!lignes.length) return null;
+            // UN ONGLET VIDE GARDE SA PORTE. La version précédente masquait le
+            // portefeuille sans ligne : il devenait un portefeuille qu'on ne peut plus
+            // remplir, puisque le seul geste pour y ranger quelque chose vit à son pied.
+            if (!lignes.length) {
+              return { cle: String(kv), nom: p.nom || 'Portefeuille ' + (k + 1), tout,
+                aLignes: false, aVide: true, nLignes: 0,
+                ongletRAn: '\u2014', ongletAide: 'aucune ligne',
+                pfCreux: '\u2014', bhStratRatio: '\u2014', pfParis: '\u2014',
+                nonVerifTxt: '\u2014',
+                resume: 'aucune ligne rangée ici',
+                videTxt: tout
+                  ? 'Aucune configuration validée : le portefeuille se remplit depuis l\u2019Historique.'
+                  : 'Ce portefeuille est vide. Rangez-y une ligne par le champ ci-dessous \u2014 '
+                    + 'ses chiffres apparaissent dès la première.',
+                lignes: [], aRangerIci: !tout && aRanger.length > 0,
+                rangerChoix: aRanger.map((x) => ({ val: x.ticker || x.sym, nom: x.nom })),
+                rangerIci: (e) => {
+                  const sym = e && e.target ? e.target.value : '';
+                  if (!sym || tout || !pfListe[k]) return;
+                  this.majPf(pfListe.map((q, j) => (j === k
+                    ? { ...q, syms: [...new Set([...(q.syms || []), sym])] } : q)));
+                },
+                renommer: (e) => { if (!tout) this.majPf(pfListe.map((q, j) => (j === k ? { ...q, nom: e.target.value } : q))); },
+                aRenommer: !tout,
+                supprTxt: s.pfSuppr === k ? 'Confirmer' : 'Supprimer',
+                supprAide: 'Supprime ce portefeuille vide.',
+                supprimer: () => {
+                  if (tout) return;
+                  if (s.pfSuppr !== k) { this.setState({ pfSuppr: k }); return; }
+                  this.setState({ pfSuppr: null });
+                  this.majPf(pfListe.filter((q, j) => j !== k));
+                } };
+            }
             // un instrument dont la configuration a été retirée reste rangé dans le
             // portefeuille : il ne pèse plus rien mais continuait à figurer dans les
             // coûts et la détention. Il est écarté de l'affichage, et se retire d'un clic.
@@ -26695,6 +27252,13 @@ GROUPES = {
                   const derniere = lignes.length === 1;
                   const arme = s.pfLigneSuppr === cleL;
                   return {
+                    // ————— « RETIRER » N'A PAS DE SUJET DANS « TOUTES LES LIGNES » —————
+                    // Cet onglet est une vue de LECTURE sur tous les validés : « retirer »
+                    // y retirerait de quoi ? Laissé rendu, le bouton ne faisait rien —
+                    // exactement le geste mort que le banc des gestes existe pour attraper,
+                    // et il l'a attrapé. Le retrait se fait depuis l'onglet du portefeuille
+                    // qui contient la ligne ; les marques de la rangée disent lesquels.
+                    aRetirerPf: !tout,
                     // ————— UN GESTE QUI AGIT MAIS NE SE LIT PAS EST UN GESTE PERDU —————
                     // Mesuré : la croix FONCTIONNE — `syms` passe de trois à deux, la
                     // rangée disparaît, la ligne ne se déplie pas (le `stopPropagation`
@@ -26754,7 +27318,27 @@ GROUPES = {
             // porte combien de ses parts sont mortes : effacer le chiffre le rendrait
             // illisible, le laisser nu le rendrait faux.
             const nPerimPf = lignesPart.filter((x) => x.aMvVieux).length;
-            return { cle: String(k), nom: p.nom || 'Portefeuille ' + (k + 1),
+            // ————— LES QUATRE CALCULS, UNE SEULE LISTE DE TRADES —————
+            const cal = this.pfCalculs(lignes);
+            const nonVerif = lignes.filter((x) => !x.verifie).length;
+            return { cle: String(kv), nom: p.nom || 'Portefeuille ' + (k + 1), tout,
+              aLignes: true, aVide: false, nLignes: lignes.length,
+              aRenommer: !tout,
+              // l'onglet porte le R par an de la FENÊTRE COMMUNE, comme le bilan : deux
+              // chiffres différents pour le même portefeuille, l'un sur l'onglet et
+              // l'autre dans la carte, se liraient comme une contradiction
+              ongletRAn: cal.pfRAn,
+              ongletAide: cal.pfRAnSous,
+              nonVerifTxt: nonVerif ? String(nonVerif) : 'aucune',
+              aRangerIci: !tout && aRanger.length > 0,
+              rangerChoix: aRanger.map((x) => ({ val: x.ticker || x.sym, nom: x.nom })),
+              rangerIci: (e) => {
+                const sym = e && e.target ? e.target.value : '';
+                if (!sym || tout || !pfListe[k]) return;
+                this.majPf(pfListe.map((q, j) => (j === k
+                  ? { ...q, syms: [...new Set([...(q.syms || []), sym])] } : q)));
+              },
+              ...cal,
               lignes: lignesPart,
               aPfRAnPerime: nPerimPf > 0,
               pfRAnPerimeTxt: nPerimPf
@@ -26763,7 +27347,13 @@ GROUPES = {
                   + (nPerimPf < lignesPart.length ? ' sur ' + lignesPart.length : '')
                   + ' — à remesurer avant de s\u2019y fier'
                 : '',
-              pfRAn: sg(sommeAn, 1) + ' R / an',
+              // ————— LE GRAND CHIFFRE N'EST PLUS LA SOMME DES FENÊTRES —————
+              // `sommeAn` additionne des lignes qui couvrent 3,4 / 4,1 / 4,9 / 6,5 ans :
+              // arithmétiquement juste, sémantiquement faux. Il vit désormais en NOTE,
+              // avec sa raison dans la même phrase (`pfRAnNote`), et le grand chiffre est
+              // celui que `pfCalculs` recalcule sur la fenêtre commune. Une note en petit
+              // sous un chiffre qui la viole n'est pas un avertissement, c'est un aveu.
+              pfRAnBrut: sg(sommeAn, 1) + ' R / an',
               pfRTotal: sg(somme, 1) + ' R cumulés',
               pfCreux: Math.round(pireCreux) + ' stops',
               pfCreuxEur: euroR2 > 0
@@ -26850,44 +27440,72 @@ GROUPES = {
                   newsItems: items,
                 };
               })(),
-              // redondance de CE portefeuille : deux lignes qui bougent ensemble ne sont
-              // qu'une seule position, prise deux fois
-              ...(() => {
-                const c = (s.correls || {})[this.cleCorrel(p.syms)];
-                const assez = (p.syms || []).length >= 2;
-                const fortes = c ? c.paires.filter((x) => x.c >= 0.8) : [];
-                return {
-                  correlTxt: !assez ? 'Au moins deux lignes pour mesurer une redondance.'
-                    : !c ? 'Redondance non mesurée.'
-                    : c.moy === null ? 'Pas assez de séances communes (30 minimum).'
-                    : 'Corrélation moyenne ' + fr(c.moy, 2)
-                      + (fortes.length ? ' · ' + this.pl(fortes.length, 'paire au-dessus de 0,8', 'paires au-dessus de 0,8')
-                        + ' : ' + fortes.slice(0, 3).map((x) => this.nomComplet(x.a) + ' / ' + this.nomComplet(x.b)).join(', ')
-                        : ' · aucune paire au-dessus de 0,8'),
-                  correlCls: c && c.moy !== null && c.moy >= 0.6 ? 'tag tag-accent' : 'tag tag-outline',
-                  correlBouton: c ? 'Recalculer' : 'Mesurer la redondance',
-                  correlInactif: assez ? undefined : true,
-                  correlAide: 'Corrélation des variations journalières sur les 250 dernières séances communes. '
-                    + 'Six titres corrélés à 0,9 ne sont qu\u2019une seule position, prise six fois.',
-                  calculerCorrel: () => this.calcCorrel(k),
-                };
-              })(),
+              // ————— L'ANCIENNE REDONDANCE EST PARTIE AVEC SON BOUTON —————
+              // Elle corrélait les VARIATIONS DE PRIX journalières sur 250 séances, et
+              // il fallait la demander. Deux défauts : elle mesurait le marché et non ce
+              // que les lignes en TIRENT — deux configurations opposées sur le même
+              // instrument y étaient parfaitement corrélées —, et tant qu'on n'avait pas
+              // cliqué elle annonçait « non mesurée » pour un calcul qui tient dans une
+              // agrégation de la liste de trades déjà en main. `correlTxt` garde son nom
+              // et vient désormais de `pfCalculs` ; `calcCorrel` et `cleCorrel` sont
+              // partis avec le geste, leur seul appelant.
               // deux clics pour supprimer : la section porte des lignes validées
               supprTxt: s.pfSuppr === k ? 'Confirmer' : 'Supprimer',
               supprAide: s.pfSuppr === k
                 ? 'Cliquez à nouveau : ce portefeuille et ses ' + lignes.length + ' lignes seront retirés.'
                 : 'Supprime ce portefeuille. Les configurations retournent dans « À ranger ». Deux clics.',
               supprimer: () => {
+                if (tout) return;
                 if (s.pfSuppr !== k) { this.setState({ pfSuppr: k }); return; }
                 this.setState({ pfSuppr: null });
                 this.majPf(pfListe.filter((q, j) => j !== k));
               } };
-          }).filter(Boolean),
-          // masqué = ne porte aucune ligne validée, la même règle que pfSections
-          aPfVides: pfListe.some((p) => !this.nLignesPf(p)),
-          pfVidesTxt: this.pl(pfListe.filter((p) => !this.nLignesPf(p)).length,
-            'portefeuille vide masqué', 'portefeuilles vides masqués')
-            + ' — ils réapparaissent dès qu\u2019ils portent une ligne.',
+          });
+          // L'onglet ouvert : « Toutes les lignes » par défaut. Une clé enregistrée peut
+          // désigner un portefeuille supprimé depuis — on retombe sur le premier onglet
+          // plutôt que de rendre une page vide sans un mot.
+          const ouvert = Math.max(0, Math.min(sections.length - 1, Number(s.pfOnglet) || 0));
+          return {
+            pfOnglets: sections.map((x, kv) => ({
+              cle: String(kv), nom: x.nom,
+              sous: x.aLignes
+                ? this.pl(x.nLignes, 'ligne', 'lignes') + ' \u00b7 ' + x.ongletRAn
+                : 'vide',
+              cls: kv === ouvert ? 'ong ongActif' : 'ong',
+              // un filet sépare « Toutes les lignes » des portefeuilles : le premier
+              // onglet n'est pas un portefeuille de plus, c'est une vue d'ensemble
+              sep: kv === 1 ? 'block' : 'none',
+              opacite: x.aLignes ? '1' : '.5',
+              aide: x.aLignes
+                ? x.nom + ' \u2014 ' + this.pl(x.nLignes, 'ligne', 'lignes') + ', ' + x.ongletAide
+                : x.nom + ' ne porte aucune ligne validée. Ouvrez-le pour y ranger une ligne.',
+              choisir: () => this.setState({ pfOnglet: kv }, () => this.ecrireSession()),
+            })),
+            // ————— LA COMPARAISON : LA VRAIE DÉCISION, ET ELLE DEMANDAIT DE RETENIR —————
+            // « Lequel je fais tourner » se décidait en ouvrant chaque portefeuille l'un
+            // après l'autre et en mémorisant six chiffres. Une rangée par portefeuille,
+            // les six colonnes côte à côte, et celui qui est ouvert porte sa pastille.
+            aPfCompare: sections.length > 2,
+            pfCompare: sections.slice(1).map((x, j) => ({
+              cle: String(j + 1), nom: x.nom,
+              ouvert: j + 1 === ouvert, nLignes: x.aLignes ? String(x.nLignes) : '\u2014',
+              rAn: x.ongletRAn, creux: x.pfCreux, ratio: x.bhStratRatio,
+              paris: x.aLignes ? x.pfParis : '\u2014',
+              nonVerif: x.nonVerifTxt,
+              encre: j + 1 === ouvert ? 'var(--color-text)' : 'var(--color-neutral-700)',
+              choisir: () => this.setState({ pfOnglet: j + 1 }, () => this.ecrireSession()),
+            })),
+            pfCompareNote: 'Le R par an de chaque portefeuille est celui de SA fen\u00eatre '
+              + 'commune. « Paris » compte les lignes apr\u00e8s regroupement des '
+              + 'corr\u00e9lations au-del\u00e0 de 0,70 : deux lignes qui bougent ensemble '
+              + 'ne sont qu\u2019une seule position, prise deux fois.',
+            pfSections: sections.filter((x, kv) => kv === ouvert),
+          };
+          })(),
+          // UN PORTEFEUILLE VIDE N'EST PLUS MASQUÉ : son onglet reste là, à demi-encre,
+          // et c'est par lui qu'on y range la première ligne. La note qui annonçait
+          // « N portefeuilles vides masqués » n'a plus d'objet — elle décrivait un
+          // masquage qui n'existe plus, et une consigne périmée a l'autorité des vraies.
         };
       })(),
       sansValide: (s.valides || []).length === 0 ? true : undefined,
