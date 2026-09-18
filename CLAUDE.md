@@ -3696,6 +3696,72 @@ hauteur en pixels — elle mesure la **structure qui la produit**, le nombre de 
 émis** avant d'être appliquée. Un port qui ne vérifie pas que la règle portée est encore
 celle qui tourne mesure une règle que personne n'exécute.
 
+## Un nom tronqué perd sa FIN — donc ce qui est au début est payé par ce qui suit
+
+**STATUT · CAUSE ÉTABLIE — troncature RAPPORTÉE (capture du Navigateur MT5 :
+« Vena_Compten1_USDJPY_Achat_ema_5_SL0… »), budget du préfixe MESURÉ DANS LE DÉPÔT, sur
+la composition réelle du nom.**
+
+L'étiquette de compte tenait jusqu'à **douze** caractères, et elle vit **avant**
+l'instrument. Or le compte ne distingue que cinq choses, l'instrument en distingue
+quinze dans une liste : le nom dépensait son budget visible sur le segment le moins
+distinctif, et coupait le plus distinctif.
+
+> **Un nom tronqué ne perd pas « un peu de tout » : il perd sa fin.** Tout ce qu'on place
+> au début est donc payé par ce qui suit, et l'ordre des segments décide de ce qui
+> survit à la coupe. La question n'est pas « ce nom est-il trop long ? » mais **« qu'est-ce
+> qui est payé par ce que j'écris là ? »**
+
+**L'étiquette DISTINGUE, elle ne décrit pas.** `abregerEtiquette` garde l'initiale de
+chaque mot et tous les chiffres — les cinq comptes rendent `C1`…`C5`, deux courtiers
+rendent leurs initiales, « Admiral Markets UK Ltd » rend `AMUL`. C'est une **propriété**,
+pas une liste de noms à tenir à jour (règle 8) : les mots d'une seule lettre sont écartés
+parce que le « n » de « nº » n'a jamais distingué deux comptes, et une initiale seule se
+complète par la suite du premier mot — « Pepperstone » rend `Pep`, pas `P`. Une étiquette
+qui ne distingue plus rien ne mérite plus les caractères qu'elle coûte : la garde exige
+**cinq étiquettes distinctes**, et une collision y est plus grave que la troncature.
+
+**Mesuré dans le dépôt, sur la composition réelle** : 14 caractères avant l'instrument
+avec l'ancienne règle, **8** avec la nouvelle, **10 au pire** (l'étiquette est plafonnée à
+quatre). Le rapport annonçait douze caractères gagnés ; c'en est **six** sur le cas
+mesuré et huit dans le pire cas — le geste tient, le chiffre était juré.
+
+### La borne porte sur ce qui PRÉCÈDE, pas sur la longueur totale
+
+Borner le nom entier aurait manqué le sujet : un nom long dont l'instrument paraît en
+huitième caractère est lisible, un nom court qui le repousse en vingtième ne l'est pas.
+La propriété est « l'instrument est visible », donc la borne est
+`indexOf(instrument) <= SEUIL_AVANT`, et `SEUIL_AVANT` est un **arbitrage écrit comme
+tel** — cinq caractères fixes, quatre d'étiquette, un séparateur. Aucune garde ne peut le
+valider ; ce qu'elle interdit, c'est qu'il redevienne implicite.
+
+**Son angle mort est en tête** : rien dans le dépôt ne mesure la largeur de la colonne du
+Navigateur, qui dépend de la fenêtre, du thème et de la police du poste. La garde ne
+prouve donc pas que l'instrument est visible — elle borne ce qui le précède.
+
+### Renommer un fichier n'est sans risque que si RIEN ne s'apparie dessus
+
+Un `.ex5` déjà compilé chez l'utilisateur garde son ancien nom. S'il servait quelque part
+à retrouver les positions du robot, le renommage serait une **rupture silencieuse** —
+personne ne relit un nom de fichier. Les trois chemins ont donc été relus plutôt que
+supposés, et chacun a son assertion :
+
+| ce qui pourrait s'apparier sur le nom | ce qui a été relu |
+|---|---|
+| le refus de symbole du robot | il compare le **noyau** de `_Symbol` au littéral émis ; le nom du fichier n'entre pas dans le `.mq5` |
+| le magique et la marque d'ordre | `magicDe` hache la configuration et la **clé** du compte, jamais son étiquette ; la marque dérive du build |
+| la trace du Journal (`fichier`) | elle est **affichée**, jamais comparée — l'appariement passe par `magicDe` |
+
+La troisième est la seule qui pouvait mordre, et c'est celle qu'une relecture rapide
+aurait sautée : la trace EXISTE, elle porte le nom, et il aurait suffi qu'une ligne le
+recalcule pour comparer. Elle est gardée **sur l'absence** (règle 14, troisième issue) :
+aucun `fichier` en position de comparaison.
+
+`scripts/app/nom-de-robot-montre-son-instrument.test.mjs` tient les cinq, éprouvées par
+quatre mutations — l'étiquette qui reprend le nom entier (elle tombe **en nommant les 14
+caractères**), l'abrègement qui perd les chiffres et fait collisionner les cinq comptes,
+le magique dérivé de l'étiquette, et le nom de fichier remis en comparaison.
+
 ## Une sonde dont l'échec est silencieux par conception se garde ailleurs
 
 Le témoin de version comparait ce que sert l'adresse publique à ce que la page est. Il a

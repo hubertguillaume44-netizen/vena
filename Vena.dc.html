@@ -17304,7 +17304,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260918.13';
+  VERSION_APP = '260918.14';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -18257,14 +18257,35 @@ GROUPES = {
   // L'ÉTIQUETTE DU COMPTE DANS LES NOMS DE FICHIERS. Deux terminaux MT5 déposent
   // dans le même dossier : sans elle, deux robots pour deux courtiers ne diffèrent
   // que par leur horodatage, et on ne sait plus lequel va où.
+  // ————— UNE ÉTIQUETTE DISTINGUE, ELLE NE DÉCRIT PAS —————
+  //
+  // Elle tenait jusqu'à douze caractères — « Compten1 » —, et ces caractères sont pris
+  // AVANT l'instrument, dans un Navigateur MT5 qui tronque. Or l'instrument est ce qui
+  // distingue quinze robots dans une liste : le nom dépensait son budget visible sur le
+  // segment qui ne distingue que les comptes, et le coupait sur celui qui distingue les
+  // robots.
+  //
+  // Ce qui distingue deux comptes tient en deux ou trois signes : l'initiale de chaque
+  // mot, et les chiffres. Les cinq comptes rendent C1 … C5 ; deux courtiers rendent
+  // leurs initiales. C'est une PROPRIÉTÉ — aucune liste de noms à tenir à jour.
+  abregerEtiquette(brut) {
+    const propre = String(brut || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const mots = propre.split(/[^A-Za-z0-9]+/).filter(Boolean);
+    // les mots d'UNE lettre ne sont pas des mots : le « n » de « nº » n'a jamais
+    // distingué deux comptes, et il coûtait un caractère sur le budget visible
+    const lettres = mots.filter((m) => /^[A-Za-z]/.test(m) && m.length > 1).map((m) => m[0]);
+    let s = lettres.join('') + propre.replace(/[^0-9]/g, '');
+    // une initiale seule ne distingue rien : on complète par la suite du premier mot,
+    // « Pepperstone » rend Pep et non P
+    if (s.length < 2 && mots.length) s = mots[0].slice(0, 3);
+    return s.slice(0, 4);
+  }
   etiquetteCompte() {
     const cle = this.compteDesFichiers();
-    // le nom donné au compte quand il est court et distinctif (« Pepperstone » →
-    // Pepperstone) ; sinon la clé du compte, qui est unique par construction —
-    // « Compte démo — données fictives » ne fait pas une étiquette de fichier
-    const nom = String(this.nomCourtier(cle) || '')
-      .normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Za-z0-9]/g, '');
-    return (nom && nom.length <= 12 ? nom : String(cle).toUpperCase()).slice(0, 12);
+    // le nom donné au compte, abrégé ; la clé quand le nom ne porte pas un seul
+    // caractère alphanumérique — elle est unique par construction
+    return this.abregerEtiquette(this.nomCourtier(cle))
+      || this.abregerEtiquette(cle) || 'X';
   }
   // ————— CE QUE COUVRENT VRAIMENT LES BOUGIES —————
   //
