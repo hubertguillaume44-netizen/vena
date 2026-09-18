@@ -1,4 +1,4 @@
-// STATUT · CAUSE ÉTABLIE, MESURÉE. Le champ « Depuis » du Backtest portait
+// STATUT · CAUSE ÉTABLIE, MESURÉE DANS LE DÉPÔT. Le champ « Depuis » du Backtest portait
 // `value="01/01/2020"` EN DUR, `disabled`, lié à aucune donnée. Il n'a jamais reflété
 // quoi que ce soit — et grisé, il se lisait comme un paramètre faisant autorité.
 //

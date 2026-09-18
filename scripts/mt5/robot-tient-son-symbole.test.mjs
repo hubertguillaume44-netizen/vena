@@ -1,4 +1,5 @@
-// STATUT · CAUSE ÉTABLIE, MESURÉE — la cause est un FAIT DE SOURCE, relu ici.
+// STATUT · CAUSE ÉTABLIE, MESURÉE DANS LE DÉPÔT — la cause est un FAIT DE SOURCE,
+// relu ici.
 //
 // `nomRobot` (robot-mt5.js) compose le nom du fichier avec `cfg.sym` : un fichier
 // nommé « Vena_<compte>_Spain35_… » ne peut avoir été émis que par un export de

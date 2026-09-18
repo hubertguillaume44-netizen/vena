@@ -1,4 +1,5 @@
-// STATUT · CAUSE ÉTABLIE, MESURÉE. Rapporté sur cinq lignes du portefeuille : rouvertes
+// STATUT · CAUSE ÉTABLIE — symptôme RAPPORTÉ, cause relue DANS LE DÉPÔT. Rapporté sur
+// cinq lignes du portefeuille : rouvertes
 // en Backtest, les cinq panneaux affichaient « filtres · aucun actif sur 10 » et
 // « Conditions : sans filtre » alors que les cinq lignes nomment chacune un filtre. Les
 // compteurs, eux, correspondaient — donc les chiffres venaient de la mesure enregistrée,

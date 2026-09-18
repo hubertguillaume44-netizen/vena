@@ -1,16 +1,37 @@
-// STATUT · CAUSE ÉTABLIE, MESURÉE — le compte vient de l'utilisateur, sur `260918` :
-// DOUZE lignes sur douze portaient un chiffre antérieur à la règle actuelle du moteur.
-// Ce n'est pas un cas limite, c'est l'état du portefeuille entier.
+// STATUT · INSTRUMENTATION, AUCUNE CAUSE PRÉTENDUE. Ce fichier a d'abord porté
+// « CAUSE ÉTABLIE, MESURÉE » sur un diagnostic qui a été RÉFUTÉ trois jours plus tard, et
+// c'est le seuil que `CLAUDE.md` avait écrit d'avance pour cette convention. Il est donc
+// corrigé ici plutôt que discrètement, parce qu'une ligne de statut fausse est pire que
+// pas de ligne du tout : elle a la forme d'une provenance vérifiée.
+//
+// ————— CE QUI A ÉTÉ RÉFUTÉ, ET PAR QUOI —————
+//
+// L'affirmation était : « douze lignes sur douze portaient un chiffre antérieur à la
+// règle actuelle du moteur ». Elle venait du COMPTE affiché, pas d'une remesure — et le
+// compte lisait l'ABSENCE d'estampille, pas un changement de règle. Le geste posé ici a
+// tranché la question qu'il était censé réparer :
+//
+//     « 12 lignes remesurées · aucun chiffre n'a changé. »
+//
+// Les douze lignes n'étaient pas périmées. Les chutes rapportées (+36,6 → +5,6 R sur
+// IBEX) venaient du panneau Backtest AVANT le correctif de `sigAMesurer` — des réglages
+// qui n'étaient pas ceux de la ligne, mesurés sous son intitulé. Un autre défaut, fermé
+// le lendemain, et dont le symptôme ressemblait à une péremption.
+//
+// CE QUI VALIDE LE GESTE N'EST DONC PAS CE QU'IL A RÉPARÉ, MAIS CE QU'IL A DISCULPÉ — et
+// il n'aurait rien pu dire sans le « aucun chiffre n'a changé » que le bilan rend
+// explicitement. Un zéro tu aurait laissé la question ouverte pour toujours : « rien
+// n'a bougé » et « rien n'a été vérifié » se seraient écrits pareil. C'est la prise du
+// zéro, appliquée au bilan d'un geste de fond.
 //
 // ————— TROIS AFFIRMATIONS DANS UN ÉCRAN, ET UN SEUL GESTE OFFERT —————
 //
-// L'en-tête disait « tout est à jour », le bloc « tout est rangé », et le compte à côté
-// « 12 lignes sur 12 périmées ». Le sélecteur, lui, proposait « Rien à ranger ». Le seul
-// geste réellement possible était d'ouvrir douze Backtests un par un.
-//
-// Et le total de la page — « + 31,5 R / an » — sommait douze chiffres morts. **Une somme
-// est plus trompeuse que chacune de ses parts** : une ligne périmée se repère en
-// l'ouvrant, personne ne rouvre douze lignes pour douter d'un total.
+// Ce qui reste vrai, et qui suffit à tenir ce fichier : l'en-tête disait « tout est à
+// jour », le bloc « tout est rangé », le compte à côté « 12 lignes sur 12 », et le
+// sélecteur « Rien à ranger ». Le seul geste réellement possible était d'ouvrir douze
+// Backtests un par un — et il fallait bien les ouvrir pour savoir si le compte disait
+// quelque chose. **Un compte qu'aucun geste ne peut trancher n'est pas une information,
+// c'est une inquiétude.**
 //
 // ————— CE QUI EST POSÉ, ET POURQUOI SOUS CETTE FORME —————
 //
@@ -94,8 +115,8 @@ test("la péremption est une TÂCHE de la barre, et elle passe devant", () => {
   const iPerim = chaine.indexOf("if (nPerim) {");
   const iAutre = chaine.indexOf("} else if (!((this.baremes || {})[this.compteActif])) {");
   assert.ok(iPerim >= 0,
-    "la barre d'état ne porte plus de tâche pour les lignes périmées : elle "
-    + "réafficherait « tout est à jour » à côté d'un compte de douze périmées.");
+    "la barre d'état ne porte plus de tâche pour les lignes sans estampille : elle "
+    + "réafficherait une phrase rassurante à côté d'un compte que rien ne tranche.");
   assert.ok(iAutre > iPerim,
     "la tâche de péremption n'est plus la PREMIÈRE. Une ligne périmée ne fausse pas "
     + "seulement sa propre valeur : elle fausse le total, la comparaison entre lignes et "
@@ -121,7 +142,7 @@ test("le total ne s'affiche pas comme un fait quand ses parts sont périmées", 
 
 // ————— ET LE GESTE EST À L'ÉCRAN — CE QUE LES CINQ GARDES CI-DESSUS NE PROUVAIENT PAS —————
 //
-// STATUT · CAUSE ÉTABLIE, MESURÉE AU RENDU. Livré le 18 septembre, le bouton
+// STATUT · CAUSE ÉTABLIE, MESURÉE AU RENDU, DANS LE DÉPÔT. Livré le 18 septembre, le bouton
 // « Remesurer les 12 lignes » n'est apparu chez personne. Les cinq gardes de source
 // étaient vertes et avaient raison : la boucle, le refus, l'écriture par ligne, la tâche
 // de la barre, la réserve du total — tout était écrit juste. Ce qu'aucune ne pouvait

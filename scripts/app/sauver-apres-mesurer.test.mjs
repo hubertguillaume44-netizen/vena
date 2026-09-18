@@ -1,4 +1,5 @@
-// STATUT · CAUSE ÉTABLIE, MESURÉE — la panne a été observée chez l'utilisateur sur
+// STATUT · CAUSE ÉTABLIE — panne RAPPORTÉE, cause relue DANS LE DÉPÔT. Observée chez
+// l'utilisateur sur
 // `260917.15` (ligne Dow Jones 30 rouverte, « Mesurer » cliqué, résultat affiché
 // +38,3 R · 142 trades) et sa cause est relue ici dans le source.
 //

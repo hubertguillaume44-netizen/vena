@@ -1222,15 +1222,41 @@ du tout** : elle a la forme d'une provenance vérifiée. La convention s'appliqu
 la distinction a été gagnée, et à toute garde neuve, dont la provenance est connue au
 moment où on l'écrit.
 
-**ET CELLE-CI NE TIENT QUE PAR DISCIPLINE — il faut le dire.** Aucune garde ne vérifie
-qu'un statut est présent ni qu'il est honnête : une ligne de statut est de la prose, et
-la règle 3 interdit d'ancrer une garde sur de la prose. On ne peut pas non plus la
-dériver — rien dans un fichier ne dit si sa cause a été mesurée. **Le seuil pour en
-construire une est écrit d'avance** : le jour où une garde livrée portera un statut
-« cause établie » sur un diagnostic qui se révèle faux, la discipline aura montré sa
-limite, et il faudra une prise qui ne soit pas la prose — la plus probable étant
-d'exiger, dans le statut « établie », la citation d'une trace mesurée qu'un test peut
-retrouver ailleurs dans le dépôt.
+**ELLE NE TENAIT QUE PAR DISCIPLINE, ET LE SEUIL ÉCRIT D'AVANCE A ÉTÉ FRANCHI.** Aucune
+garde ne vérifiait qu'un statut est présent ni qu'il est honnête : une ligne de statut est
+de la prose, et la règle 3 interdit d'ancrer une garde sur de la prose. Le seuil était
+posé : *le jour où une garde livrée portera un statut « cause établie » sur un diagnostic
+qui se révèle faux.* Ce jour est le 18 septembre 2026.
+
+`remesurer-les-lignes` a été livré portant « CAUSE ÉTABLIE, MESURÉE — le compte vient de
+l'utilisateur : douze lignes sur douze portaient un chiffre antérieur à la règle actuelle
+du moteur ». **Le geste posé dans le même commit a réfuté sa propre justification** :
+« 12 lignes remesurées · aucun chiffre n'a changé. » Les lignes n'étaient pas périmées ;
+le symptôme venait d'un autre défaut, fermé la veille.
+
+**Et la contradiction était DANS la ligne.** Elle dit « MESURÉE » et, dans la même phrase,
+« le compte vient de l'utilisateur ». Ce n'est pas un mensonge, c'est une **omission** : le
+mot a deux sens — mesurée *ici*, mesurée *quelque part* — et rien n'obligeait à choisir.
+
+La prise construite est donc celle-là, et rien de plus : **`MESURÉE` doit être qualifiée.**
+Le statut dit `DANS LE DÉPÔT` — et un test peut relire la trace — ou il dit `RAPPORTÉ` — et
+personne ne le prendra pour une mesure reproductible. Jamais `MESURÉE` nue. Les deux
+coexistent dans le cas courant : un symptôme rapporté dont la cause est relue dans le
+source. `scripts/statut-dit-sa-provenance.test.mjs` découvre tous les statuts du dépôt et
+échoue sur chaque « cause établie » sans provenance ; les douze qui existaient ont été
+qualifiés depuis leur propre prose, pas de mémoire.
+
+> **Elle rend l'OMISSION impossible et laisse le MENSONGE possible.** C'est écrit dans sa
+> tête, parce que c'est exactement ce qu'elle ne ferme pas — et une omission suffisait à
+> produire le cas fondateur. Son coût en faux refus est nul (règle 16) : la réponse
+> attendue est toujours l'un des deux mots, et le message dit lequel écrire.
+
+**Et elle s'est fait mordre par la règle 3 à sa PREMIÈRE EXÉCUTION.** Elle cherchait
+« CAUSE ÉTABLIE » dans tout le paragraphe et a accusé `remesurer-les-lignes`, dont le
+statut est désormais INSTRUMENTATION et dont la prose **raconte** le statut réfuté — c'est
+même le sujet du fichier. Septième morsure, et la sortie était déjà écrite : la ligne
+`// STATUT · …` est ce qui **agit**, le paragraphe qui la suit est du récit. La classe se
+lit donc sur la ligne, la provenance dans tout le paragraphe.
 
 ### Le cas VIDE est le plus faible des tests, et c'est celui qu'on écrit
 
@@ -2112,6 +2138,46 @@ n'entre ni dans `h`/`l` ni dans `eh`/`eb`, et `const exH = df.eh || df.h` est to
 le backtest regarde. Un stop touché pendant ces heures n'existe pas pour le moteur ; un
 testeur, sur son graphique H1 complet, le voit. **Un perdant devient gagnant — biais d'un
 seul signe.**
+
+### IBEX et HongKong50 ne sont pas la même panne — l'arithmétique les sépare
+
+**PROVENANCE · DÉRIVÉE DES CHIFFRES RAPPORTÉS, calcul fait DANS LE DÉPÔT.** Rien de
+mesuré ici : les cinq nombres par instrument viennent des rapports de l'utilisateur.
+**Hypothèses écrites** : réussite = part de gagnants sur le total, aucun neutre, R/R
+constant sur la ligne, aucune sécurisation (établi — les sept lignes portent « Aucune
+sécurisation »).
+
+On ajuste le R/R sur le côté Véna, puis on demande ce que la réussite MT5 **implique**
+comme résultat. Si l'écart de R n'est qu'une conséquence de l'écart de réussite, le
+résidu doit être nul :
+
+| | R/R ajusté | MT5 prévu | MT5 observé | résidu | écart total |
+|---|---|---|---|---|---|
+| IBEX 35 | 2,355 | +1,46 R | +1,60 R | **+0,14 R** | 35,0 R |
+| HongKong50 | 1,431 | +13,96 R | +4,00 R | **−9,96 R** | 38,4 R |
+
+**Balayé sur la boîte d'arrondi** (réussites au dixième de point, R au dixième de R) :
+IBEX reste dans [−0,21 ; +0,48] — *compatible avec zéro* ; HongKong50 dans
+[−10,41 ; −9,50] — *exclut zéro*, cinq fois la bande d'arrondi.
+
+> **Sur IBEX, la totalité de l'écart est « quels trades ont gagné ». Sur HongKong50,
+> les trois quarts le sont et un quart ne l'est pas.** Les deux instruments ont ~900
+> bougies écartées et ont été traités comme une seule panne ; ils portent deux termes.
+
+Ce que ça **élimine** sur IBEX, et c'est la moitié utile : aucun terme de coût. Un
+spread sous-estimé, une commission oubliée, un swap au mauvais sens changeraient la
+valeur de CHAQUE trade, donc laisseraient un résidu. Il n'y en a pas. La divergence
+d'IBEX est entièrement une divergence de **résolution** — un perdant devenu gagnant,
+ce qui est exactement la forme d'un stop touché hors de portée du moteur.
+
+Ce que ça **ouvre** sur HongKong50 : un second terme de 10 R qu'aucune des trois
+candidates ne nomme. Il vaut 26 % de l'écart et il est absent de l'autre instrument
+divergent. Les suspects se lisent dans les hypothèses ci-dessus, et ils sont
+**vérifiables à l'écran, sans rejeu** : des trades neutres du côté MT5 (le compte de
+réussite les mettrait au dénominateur sans qu'ils rapportent de R), ou un R/R qui n'est
+pas constant sur la ligne. **Tant que ces deux-là ne sont pas lus, chercher une
+troisième cause de fond serait chercher au-delà de ce qui est déjà mesurable** — la
+règle du refus : la donnée manque-t-elle, ou personne n'est-il allé la chercher ?
 
 ### Le candidat précédent est mort par son propre dénominateur
 

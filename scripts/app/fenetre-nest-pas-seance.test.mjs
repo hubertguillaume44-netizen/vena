@@ -1,5 +1,5 @@
-// STATUT · CAUSE ÉTABLIE, MESURÉE — la panne est un diagnostic faux, documenté dans
-// le brief du 17 septembre 2026, et sa cause est relue ici dans le source.
+// STATUT · CAUSE ÉTABLIE, MESURÉE DANS LE DÉPÔT — la panne est un diagnostic faux,
+// RAPPORTÉ dans le brief du 17 septembre 2026, et sa cause est relue ici dans le source.
 //
 // ————— DEUX GRANDEURS, UN SEUL MOT —————
 //

@@ -1,4 +1,4 @@
-// STATUT · CAUSE ÉTABLIE, MESURÉE. Rapporté : /version.json → 404. Mesuré en cherchant :
+// STATUT · CAUSE ÉTABLIE, MESURÉE DANS LE DÉPÔT. RAPPORTÉ : /version.json → 404. Mesuré ici :
 // TROIS manifestes sur trois étaient inatteignables, et pour DEUX raisons différentes.
 //
 // ————— TOUT CE QUE L'APPLICATION VA CHERCHER ÉTAIT MUET, EN SILENCE —————

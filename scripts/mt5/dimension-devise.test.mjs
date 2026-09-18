@@ -1,4 +1,5 @@
-// STATUT · CAUSE ÉTABLIE, MESURÉE — relevée au journal MT5 de l'utilisateur, robot
+// STATUT · CAUSE ÉTABLIE — RAPPORTÉE au journal MT5 de l'utilisateur, valeur recalculée
+// DANS LE DÉPÔT. Robot
 // 260917.13 sur #HongKong50 : « Entrée refusée : la valeur du tick (0.01000) est celle
 // de la devise de cotation HKD, n… », puis zéro trade et solde inchangé. La valeur
 // rendue vaut EXACTEMENT taille du contrat × pas de cotation : le terminal n'avait pas

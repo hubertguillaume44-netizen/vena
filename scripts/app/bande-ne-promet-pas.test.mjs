@@ -1,4 +1,4 @@
-// STATUT · CAUSE ÉTABLIE, MESURÉE. La bande des deux lectures est calculée juste ; c'est
+// STATUT · CAUSE ÉTABLIE, MESURÉE DANS LE DÉPÔT. La bande des deux lectures est calculée juste ; c'est
 // la PHRASE qui promettait plus que le calcul.
 //
 // ————— CE QUE LA BANDE MESURE, VÉRIFIÉ DANS LE CODE —————

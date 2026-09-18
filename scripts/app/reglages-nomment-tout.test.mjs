@@ -1,4 +1,4 @@
-// STATUT · CAUSE ÉTABLIE, MESURÉE. La chaîne de configuration d'une ligne de
+// STATUT · CAUSE ÉTABLIE, MESURÉE DANS LE DÉPÔT. La chaîne de configuration d'une ligne de
 // portefeuille taisait la sécurisation. Deux lignes dont l'une porte un point mort et
 // l'autre rien s'affichaient à l'identique — vérifié au rendu, c'est ce que cette garde
 // éprouve.

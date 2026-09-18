@@ -1,4 +1,5 @@
-// STATUT · CAUSE ÉTABLIE, MESURÉE. La panne a été OBSERVÉE dans le journal MT5 avant
+// STATUT · CAUSE ÉTABLIE — panne RAPPORTÉE au journal MT5, cause relue DANS LE DÉPÔT.
+// Elle a été OBSERVÉE dans ce journal avant
 // d'être corrigée : trente minutes par symbole, « 50 000 demandées, -1 reçues » répété
 // deux cents fois à l'identique. Ce correctif ferme ce qu'on a vu, pas ce qu'on a
 // supposé — et son invariant comme sa cause tiennent tous les deux.
