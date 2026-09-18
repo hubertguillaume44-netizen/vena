@@ -214,7 +214,15 @@ export const POSER_SEMIS = `(() => {
       const S = (syms || ['VX-EUR', 'VX-500', 'VX-OR']).slice(0, n);
       if (S.length !== n) throw new Error("semis « portefeuille » : " + n
         + " demandée(s) pour " + S.length + " symbole(s) disponible(s)");
-      const valides = S.map((sym, i) => ({ ...ligneDe(sym, i), sens: 'achat', ut: 'H1' }));
+      // ————— LA DERNIÈRE LIGNE PORTE UN RÉGLAGE DIFFÉRENT, ET C'EST VOULU —————
+      // Trois lignes de configuration IDENTIQUE ne font exister qu'un seul des deux états
+      // de la note de réglages communs : tout serait hissé en en-tête, et rien ne
+      // redescendrait sur une rangée. La garde mesurerait alors la moitié de ce qu'elle
+      // croit tenir. Une période différente sur la dernière suffit à faire exister les
+      // deux — c'est la règle 10 : le cas qu'on sème spontanément est celui où la moitié
+      // du mécanisme ne peut pas se produire.
+      const valides = S.map((sym, i) => ({ ...ligneDe(sym, i), sens: 'achat', ut: 'H1',
+        ...(i === S.length - 1 && S.length > 1 ? { periode: 20 } : {}) }));
       // la table des configurations de variante, écrite par la fonction du produit qui
       // la construit — pas par un objet deviné, qui sèmerait l'APPARENCE d'une
       // configuration sans la configuration

@@ -175,10 +175,10 @@
            padding: 6px 9px; display: flex; align-items: center; gap: 8px; min-height: 2.1rem; }
   .champ:hover { border-color: var(--color-accent);
                  background: color-mix(in srgb, var(--color-accent) 8%, var(--color-neutral-100)); }
-  .rang { cursor: pointer; padding: 10px 0 10px 12px; display: grid; align-items: center; gap: 12px; }
+  .rang { cursor: pointer; padding: 8px 0 8px 12px; display: grid; align-items: center; gap: 12px; }
   .rang:hover { background: color-mix(in srgb, var(--color-accent) 7%, transparent); }
   .tete { cursor: pointer; width: 100%; font: inherit; text-align: left; border: none;
-          background: none; padding: 12px 16px; display: flex; align-items: baseline;
+          background: none; padding: 9px 16px; display: flex; align-items: baseline;
           gap: 12px; flex-wrap: wrap; }
   .tete:hover { background: color-mix(in srgb, var(--color-accent) 6%, transparent); }
   /* L'onglet d'un portefeuille : il porte son compte et son R par an, pour choisir
@@ -2394,7 +2394,7 @@
             <div style="padding:13px 20px 15px;display:flex;flex-direction:column;gap:9px">
               <span style="font-size:10px;letter-spacing:.08em;text-transform:uppercase" class="text-muted">Les portefeuilles côte à côte</span>
               <div style="overflow-x:auto">
-                <div style="min-width:640px;display:grid;grid-template-columns:minmax(120px,1.4fr) repeat(6,minmax(0,1fr));gap:3px 14px;align-items:center">
+                <div style="min-width:640px;display:grid;grid-template-columns:minmax(120px,1.4fr) repeat(6,minmax(0,1fr));gap:1px 14px;align-items:center">
                   <span></span>
                   <span style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;text-align:right" class="text-muted">Lignes</span>
                   <span style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;text-align:right" class="text-muted">R / an</span>
@@ -2443,7 +2443,7 @@
                   <span style="display:inline-flex;align-items:center;gap:6px;font-size:11px" class="text-muted"><span style="width:16px;height:0;border-top:1.5px dashed var(--color-neutral-500)"></span>{{ ps.courbeDetTxt }}</span>
                   <span style="font-size:11px;margin-inline-start:auto" class="text-muted">{{ ps.courbeTxt }}</span>
                 </div>
-                <svg viewBox="0 0 1330 160" style="width:100%;height:160px;display:block" preserveAspectRatio="none">
+                <svg viewBox="0 0 1330 160" style="width:100%;height:112px;display:block" preserveAspectRatio="none">
                   <polygon points="{{ ps.courbeAire }}" fill="var(--color-accent)" opacity="0.13"></polygon>
                   <line x1="0" y1="{{ ps.courbeZero }}" x2="1330" y2="{{ ps.courbeZero }}" stroke="var(--color-divider)" stroke-width="1"></line>
                   <sc-if value="{{ ps.aCourbeDet }}" hint-placeholder-val="{{ true }}">
@@ -2471,7 +2471,18 @@
                 <div style="display:grid;grid-template-columns:minmax(0,1fr) 150px;background:var(--color-neutral-100);border-bottom:1px solid var(--color-divider)">
                   <span style="display:grid;grid-template-columns:14px minmax(0,1fr) 80px 84px 88px 100px 112px;gap:12px;align-items:center;padding:7px 0 7px 12px">
                     <span></span>
-                    <span style="font-size:10px;letter-spacing:.05em;text-transform:uppercase" class="text-muted">Instrument &amp; réglages</span>
+                    <!-- ce qui est COMMUN aux lignes vit ici, une fois, au lieu d'être
+                         répété sur chacune : la note est l'intersection des réglages
+                         affichés, pas une liste écrite -->
+                    <span style="display:flex;align-items:baseline;gap:9px;min-width:0">
+                      <span style="font-size:10px;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap" class="text-muted">Instrument &amp; réglages</span>
+                      <sc-if value="{{ ps.aReglagesCommuns }}" hint-placeholder-val="{{ true }}">
+                        <!-- elle S'ENROULE plutôt que de se tronquer : ce qu'elle porte ne figure plus
+                             sur les rangées, et une infobulle ne s'ouvre pas toute seule —
+                             tronquer ici retirerait de l'écran ce qu'on vient d'y hisser -->
+                        <span style="font-size:10.5px;line-height:1.35;text-transform:none;letter-spacing:0;min-width:0;white-space:normal" class="text-muted" title="{{ ps.reglagesCommunsAide }}">{{ ps.reglagesCommunsTxt }}</span>
+                      </sc-if>
+                    </span>
                     <span style="font-size:10px;letter-spacing:.05em;text-transform:uppercase;text-align:right" class="text-muted">R / an</span>
                     <span style="font-size:10px;letter-spacing:.05em;text-transform:uppercase;text-align:right" class="text-muted">Pire creux</span>
                     <span style="font-size:10px;letter-spacing:.05em;text-transform:uppercase;text-align:right" class="text-muted">Profit factor</span>
@@ -2487,7 +2498,7 @@
                         <span style="font-size:9px" class="text-muted">{{ vl.chevDepli }}</span>
                         <span style="display:flex;flex-direction:column;gap:2px;min-width:0">
                           <strong>{{ vl.nom }}</strong>
-                          <span style="font-size:11px;line-height:1.45" class="text-muted">{{ vl.reglages }} · {{ vl.filtres }} · {{ vl.ut }} · {{ vl.n }} trades</span>
+                          <span style="font-size:11px;line-height:1.45" class="text-muted">{{ vl.reglagesPropres }}</span>
                           <!-- la fenêtre suit la ligne jusque dans le portefeuille : c'est là
                                qu'un chiffre taillé devient une décision -->
                           <span style="display:{{ vl.fenAff }};font-size:10px;line-height:1.45;color:{{ vl.fenHorsCouleur }}">{{ vl.fenNom }} — {{ vl.fenHors }}</span>
@@ -2741,28 +2752,38 @@
               </button>
               <sc-if value="{{ oComparaison }}" hint-placeholder-val="{{ true }}">
                 <div style="border-top:1px solid var(--color-divider);padding:12px 16px;display:flex;flex-direction:column;gap:10px">
-              <div style="display:flex;gap:10px 14px;align-items:baseline;flex-wrap:wrap">
+              <!-- ————— UN RÉGLAGE SEUL SUR SA RANGÉE COÛTE 40 PX POUR UN CHAMP DE 50 —————
+                   La bande « N configurations contre la détention de M instruments » +
+                   « Part détenue » + « Sans risque » occupait une rangée entière pour deux
+                   champs et une phrase que « Tous (N) » dit mieux, à l'endroit où l'on
+                   choisit ce qu'on compare. Ce n'est pas du serrage : la rangée DISPARAÎT.
+                   Le point d'interrogation reste — il porte les hypothèses de conversion,
+                   et une réserve ne se supprime pas au nom de la place. -->
+              <div style="display:flex;gap:6px 10px;flex-wrap:wrap;align-items:center">
                 <span style="display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border:1px solid currentColor;font-size:9px;line-height:1;opacity:.55;cursor:help" title="La conversion des R en pourcentages suppose une taille de position recalculée à chaque trade. Le creux de la stratégie est celui de sa pire ligne, pas de leur somme, et les lignes sont supposées tourner sur la même période. La détention n'a ni stop ni objectif : elle subit le creux du marché en entier.">?</span>
-                <span style="font-size:12px" class="text-muted">{{ ps.bhResume }}</span>
-                <span style="display:inline-flex;gap:6px;align-items:center;font-size:12px;margin-inline-start:auto">
-                  <span class="text-muted" title="Part du capital simplement détenue dans la colonne « Les deux ». Le reste est travaillé par la stratégie.">Part détenue</span>
-                  <input class="input" type="number" step="5" min="0" max="100" style="min-height:1.9rem;height:1.9rem;font-size:12px;width:8ch" value="{{ partTete }}" onChange="{{ setPartTete }}">
-                  <span class="text-muted">%</span>
-                </span>
-                <span style="display:inline-flex;gap:6px;align-items:center;font-size:12px">
-                  <span class="text-muted" title="Le rendement d'un placement sans risque sur la même durée — le plancher que tout le reste doit battre.">Sans risque</span>
-                  <input class="input" type="number" step="0.5" min="0" max="20" style="min-height:1.9rem;height:1.9rem;font-size:12px;width:10ch" value="{{ ps.bhCashVal }}" onChange="{{ ps.setBhCash }}">
-                  <span class="text-muted">%</span>
-                </span>
-              </div>
-              <sc-if value="{{ ps.aBhChoix }}" hint-placeholder-val="{{ false }}">
-                <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+                <sc-if value="{{ ps.aBhChoix }}" hint-placeholder-val="{{ true }}">
                   <span style="font-size:11px" class="text-muted">Comparer</span>
                   <sc-for list="{{ ps.bhChoix }}" as="bc" hint-placeholder-count="3">
                     <button type="button" class="{{ bc.cls }}" style="cursor:pointer;border:none;font-family:var(--font-body);font-size:11px;padding:2px 8px" title="{{ bc.aide }}" onClick="{{ bc.choisir }}">{{ bc.nom }}</button>
                   </sc-for>
-                </div>
-              </sc-if>
+                </sc-if>
+                <!-- ce que la bande disait en plus, et qui est une RÉSERVE : des
+                     instruments du portefeuille sont hors comparaison faute de série.
+                     Il survit à la suppression de sa rangée. -->
+                <sc-if value="{{ ps.aBhHors }}" hint-placeholder-val="{{ false }}">
+                  <span style="font-size:11px;color:var(--color-accent-700)">{{ ps.bhHorsTxt }}</span>
+                </sc-if>
+                <span style="display:inline-flex;gap:6px;align-items:center;font-size:11.5px;margin-inline-start:auto;white-space:nowrap">
+                  <span class="text-muted" title="Part du capital simplement détenue dans la colonne « Les deux ». Le reste est travaillé par la stratégie.">Part détenue</span>
+                  <input class="input" type="number" step="5" min="0" max="100" style="min-height:1.7rem;height:1.7rem;font-size:12px;width:7ch;padding:0 6px" value="{{ partTete }}" onChange="{{ setPartTete }}">
+                  <span class="text-muted">%</span>
+                </span>
+                <span style="display:inline-flex;gap:6px;align-items:center;font-size:11.5px;white-space:nowrap">
+                  <span class="text-muted" title="Le rendement d'un placement sans risque sur la même durée — le plancher que tout le reste doit battre.">Sans risque</span>
+                  <input class="input" type="number" step="0.5" min="0" max="20" style="min-height:1.7rem;height:1.7rem;font-size:12px;width:7ch;padding:0 6px" value="{{ ps.bhCashVal }}" onChange="{{ ps.setBhCash }}">
+                  <span class="text-muted">%</span>
+                </span>
+              </div>
               <sc-if value="{{ ps.aBh }}" hint-placeholder-val="{{ true }}">
                 <div style="overflow-x:auto">
                   <sc-raw-table class="table" style="font-size:13px">
@@ -2777,11 +2798,11 @@
                     <sc-raw-tbody>
                       <sc-raw-tr>
                         <sc-raw-td title="Ce que le capital devient sur toute la période, gains réinvestis.">Ce que ça rend en tout</sc-raw-td>
-                        <sc-raw-td style="text-align:center;border-left:1px solid var(--color-divider)"><strong style="font-family:var(--font-heading);font-size:28px;line-height:1.05">{{ ps.bhStratPct }}</strong></sc-raw-td>
-                        <sc-raw-td style="text-align:center;border-left:1px solid var(--color-divider)"><strong style="font-family:var(--font-heading);font-size:28px;line-height:1.05">{{ ps.bhDetPct }}</strong></sc-raw-td>
-                        <sc-raw-td style="text-align:center;border-left:1px solid var(--color-divider)"><strong style="font-family:var(--font-heading);font-size:28px;line-height:1.05">{{ ps.bhCfdPct }}</strong></sc-raw-td>
-                        <sc-raw-td style="text-align:center;border-left:1px solid var(--color-divider)"><strong style="font-family:var(--font-heading);font-size:28px;line-height:1.05">{{ ps.bhCashPct }}</strong></sc-raw-td>
-                        <sc-raw-td style="text-align:center"><strong style="font-family:var(--font-heading);font-size:28px;line-height:1.05">{{ ps.bhMixPct }}</strong></sc-raw-td>
+                        <sc-raw-td style="text-align:center;border-left:1px solid var(--color-divider)"><strong style="font-family:var(--font-heading);font-size:20px;line-height:1.05">{{ ps.bhStratPct }}</strong></sc-raw-td>
+                        <sc-raw-td style="text-align:center;border-left:1px solid var(--color-divider)"><strong style="font-family:var(--font-heading);font-size:20px;line-height:1.05">{{ ps.bhDetPct }}</strong></sc-raw-td>
+                        <sc-raw-td style="text-align:center;border-left:1px solid var(--color-divider)"><strong style="font-family:var(--font-heading);font-size:20px;line-height:1.05">{{ ps.bhCfdPct }}</strong></sc-raw-td>
+                        <sc-raw-td style="text-align:center;border-left:1px solid var(--color-divider)"><strong style="font-family:var(--font-heading);font-size:20px;line-height:1.05">{{ ps.bhCashPct }}</strong></sc-raw-td>
+                        <sc-raw-td style="text-align:center"><strong style="font-family:var(--font-heading);font-size:20px;line-height:1.05">{{ ps.bhMixPct }}</strong></sc-raw-td>
                       </sc-raw-tr>
                       <sc-raw-tr>
                         <sc-raw-td title="Pour la stratégie et le mélange : moyenne simple, le total divisé par les années — à mise fixe il n'y a rien à composer. Pour la détention et le sans risque : taux composé, puisque c'est le même capital qui grossit.">Par an</sc-raw-td>
@@ -2840,11 +2861,18 @@
                     <button class="btn btn-secondary" type="button" style="min-height:1.8rem;font-size:11px" onClick="{{ ps.appliquerPartOpt }}">{{ ps.bhPartOptBouton }}</button>
                   </div>
                 </sc-if>
-                <p style="margin:0;font-size:13px;line-height:1.55;max-width:96ch" class="text-muted">{{ ps.bhVerdict }}</p>
-                <sc-if value="{{ ps.aBhRows }}" hint-placeholder-val="{{ false }}">
-                  <details>
-                    <summary style="cursor:pointer;font-size:12px" class="text-muted">Détail par instrument</summary>
-                    <div style="overflow-x:auto;padding-top:8px">
+                <!-- le renvoi entre dans la phrase du pied au lieu d'occuper une rangée :
+                     même mouvement que les deux bandes, en plus petit. `details` est
+                     redevenu un bouton et un `sc-if` — un `summary` ne peut pas vivre au
+                     bout d'un paragraphe. -->
+                <div style="display:flex;gap:8px 14px;align-items:baseline;flex-wrap:wrap">
+                  <p style="margin:0;font-size:12.5px;line-height:1.5;max-width:96ch;flex:1;min-width:34ch" class="text-muted">{{ ps.bhVerdict }}</p>
+                  <sc-if value="{{ ps.aBhRows }}" hint-placeholder-val="{{ false }}">
+                    <button type="button" class="lien" style="font-size:12px;white-space:nowrap" onClick="{{ basculerBhDetail }}">{{ bhDetailTxt }}</button>
+                  </sc-if>
+                </div>
+                <sc-if value="{{ oBhDetail }}" hint-placeholder-val="{{ false }}">
+                    <div style="overflow-x:auto">
                       <sc-raw-table class="table" style="font-size:13px">
                         <sc-raw-thead><sc-raw-tr>
                           <sc-raw-th>Instrument</sc-raw-th>
@@ -2868,7 +2896,6 @@
                         </sc-raw-tbody>
                       </sc-raw-table>
                     </div>
-                  </details>
                 </sc-if>
               </sc-if>
               <sc-if value="{{ ps.bhVide }}" hint-placeholder-val="{{ false }}">
@@ -2879,43 +2906,50 @@
             </div>
             <sc-if value="{{ ps.aBhHasard }}" hint-placeholder-val="{{ false }}">
             <div style="border:1px solid var(--color-divider)">
-              <button type="button" class="tete" onClick="{{ basculerTirages }}" title="{{ ps.bhHasardAide }}">
-                <span style="font-size:9px" class="text-muted">{{ chevTirages }}</span>
-                <span style="font-family:var(--font-heading);font-size:19px">Et si j'avais eu moins de chance ?</span>
-                <span style="font-size:12px;line-height:1.5;color:var(--color-accent-700);flex:1;min-width:24ch">{{ ps.bhHasardTxt }}</span>
-              </button>
+              <!-- ————— LE RÉGLAGE VA OÙ IL Y A LA PLACE, PAS SUR SA PROPRE RANGÉE —————
+                   « Creux redouté » occupait une rangée de 40 px pour un champ de 50 px de
+                   large. Il vit au bout de l'en-tête de sa section, où la place est déjà
+                   payée. Il reste HORS du bouton : un champ de saisie dans un bouton
+                   basculerait la section à chaque clic dans le champ. -->
+              <div style="display:flex;align-items:center">
+                <button type="button" class="tete" style="flex:1;min-width:0" onClick="{{ basculerTirages }}" title="{{ ps.bhHasardAide }}">
+                  <span style="font-size:9px" class="text-muted">{{ chevTirages }}</span>
+                  <span style="font-family:var(--font-heading);font-size:19px">Et si j'avais eu moins de chance ?</span>
+                  <span style="font-size:12px;line-height:1.5;color:var(--color-accent-700);flex:1;min-width:24ch">{{ ps.bhHasardTxt }}</span>
+                </button>
+                <sc-if value="{{ oTirages }}" hint-placeholder-val="{{ true }}">
+                  <span style="display:inline-flex;gap:6px;align-items:center;font-size:11.5px;padding-inline-end:16px;white-space:nowrap">
+                    <span class="text-muted" title="Creux à partir duquel vous considérez avoir perdu le contrôle. La dernière case donne la fréquence à laquelle un tirage le dépasse.">Creux redouté</span>
+                    <input class="input" type="number" step="5" min="5" max="90" style="min-height:1.7rem;height:1.7rem;font-size:12px;width:7ch;padding:0 6px" value="{{ ps.bhSeuilVal }}" onChange="{{ ps.setBhSeuil }}">
+                    <span class="text-muted">%</span>
+                  </span>
+                </sc-if>
+              </div>
               <sc-if value="{{ oTirages }}" hint-placeholder-val="{{ true }}">
                 <div style="border-top:1px solid var(--color-divider);padding:12px 16px;display:flex;flex-direction:column;gap:10px">
-                    <div style="display:flex;gap:10px 14px;align-items:baseline;flex-wrap:wrap">
-                      <span style="display:inline-flex;gap:6px;align-items:center;font-size:12px;margin-inline-start:auto">
-                        <span class="text-muted" title="Creux à partir duquel vous considérez avoir perdu le contrôle. La dernière case donne la fréquence à laquelle un tirage le dépasse.">Creux redouté</span>
-                        <input class="input" type="number" step="5" min="5" max="90" style="min-height:1.9rem;height:1.9rem;font-size:12px;width:8ch" value="{{ ps.bhSeuilVal }}" onChange="{{ ps.setBhSeuil }}">
-                        <span class="text-muted">%</span>
-                      </span>
-                    </div>
                     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px">
                       <div class="blueprint" style="padding:12px 14px;display:flex;flex-direction:column;gap:4px">
                         <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
                         <span style="font-size:11px;letter-spacing:.06em;text-transform:uppercase" class="text-muted">Creux habituel</span>
-                        <strong style="font-family:var(--font-heading);font-size:28px;line-height:1.05">{{ ps.bhHasardDD }}</strong>
+                        <strong style="font-family:var(--font-heading);font-size:25px;line-height:1.05">{{ ps.bhHasardDD }}</strong>
                         <span style="font-size:11px" class="text-muted">{{ ps.bhHasardDDEur }} · la moitié des tirages font pire</span>
                       </div>
                       <div class="blueprint" style="padding:12px 14px;display:flex;flex-direction:column;gap:4px">
                         <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
                         <span style="font-size:11px;letter-spacing:.06em;text-transform:uppercase" class="text-muted">Creux une fois sur vingt</span>
-                        <strong style="font-family:var(--font-heading);font-size:28px;line-height:1.05">{{ ps.bhHasardDDHaut }}</strong>
+                        <strong style="font-family:var(--font-heading);font-size:25px;line-height:1.05">{{ ps.bhHasardDDHaut }}</strong>
                         <span style="font-size:11px" class="text-muted">{{ ps.bhHasardDDHautEur }} · c'est ça qu'il faut pouvoir traverser</span>
                       </div>
                       <div class="blueprint" style="padding:12px 14px;display:flex;flex-direction:column;gap:4px">
                         <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
                         <span style="font-size:11px;letter-spacing:.06em;text-transform:uppercase" class="text-muted">Résultat médian</span>
-                        <strong style="font-family:var(--font-heading);font-size:28px;line-height:1.05">{{ ps.bhHasardFin }}</strong>
+                        <strong style="font-family:var(--font-heading);font-size:25px;line-height:1.05">{{ ps.bhHasardFin }}</strong>
                         <span style="font-size:11px" class="text-muted">un mauvais tirage sur vingt : {{ ps.bhHasardFinBas }}</span>
                       </div>
                       <div class="blueprint" style="padding:12px 14px;display:flex;flex-direction:column;gap:4px">
                         <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
                         <span style="font-size:11px;letter-spacing:.06em;text-transform:uppercase" class="text-muted">Risque de dérailler</span>
-                        <strong style="font-family:var(--font-heading);font-size:28px;line-height:1.05">{{ ps.bhHasardSeuil }}</strong>
+                        <strong style="font-family:var(--font-heading);font-size:25px;line-height:1.05">{{ ps.bhHasardSeuil }}</strong>
                         <span style="font-size:11px" class="text-muted">des tirages dépassent votre creux redouté · finir dans le rouge : {{ ps.bhHasardRouge }}</span>
                       </div>
                     </div>
@@ -10986,6 +11020,13 @@ GROUPES = {
     };
   }
 
+  // Combien d'instruments la comparaison à la détention porte RÉELLEMENT : ceux dont la
+  // série est chargée. C'est ce compte que « Tous (4) » annonce — pas le nombre de
+  // lignes, qui compterait des instruments absents de la mesure.
+  bhCompares(lignes) {
+    return [...new Set((lignes || []).map((x) => x.ticker || x.sym).filter(Boolean))]
+      .filter((sym) => this.detention(sym)).length;
+  }
   // le portefeuille mis en face de la détention des mêmes instruments, même unité
   refDetention(p, lignes) {
     const f = Math.max(0.05, Number(this.state.risquePct) || 1) / 100;
@@ -11183,12 +11224,14 @@ GROUPES = {
       aBh: dets.length > 0,
       bhVide: dets.length === 0,
       aBhRows: dets.length > 1,
-      bhResume: dets.length
-        ? this.pl(lignes.length, 'configuration', 'configurations') + ' contre la détention de '
-          + this.pl(dets.length, 'instrument', 'instruments')
-          + (dets.length < syms.length
-            ? ' · ' + (syms.length - dets.length) + ' sans série chargée, hors comparaison' : '')
-        : 'séries absentes de ce navigateur',
+      // ————— LA BANDE EST PARTIE, LA RÉSERVE RESTE —————
+      // `bhResume` disait « N configurations contre la détention de M instruments » :
+      // « Tous (M) » le dit mieux, et sans rangée. Ce qu'il portait en plus — des
+      // instruments du portefeuille sont HORS comparaison faute de série — est une
+      // réserve, pas une description : elle survit à la suppression de sa bande.
+      aBhHors: dets.length > 0 && dets.length < syms.length,
+      bhHorsTxt: dets.length && dets.length < syms.length
+        ? (syms.length - dets.length) + ' sans série chargée, hors comparaison' : '',
       bhEurStrat: eur(eS), bhEurDet: eur(eD), bhEurCfd: eur(eC),
       bhDDEurStrat: ddS === null ? '—' : nfE.format(ddS),
       bhDDEurDet: ddD === null ? '—' : nfE.format(ddD),
@@ -16930,7 +16973,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260918.6';
+  VERSION_APP = '260918.7';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -27232,13 +27275,46 @@ GROUPES = {
             const nAFaire = aFaire.aTester + aFaire.aControler + aFaire.ecart;
             // La PART DU PORTEFEUILLE que porte chaque ligne : une ligne à 55 % et une à
             // 12 % ne se surveillent pas pareil, et aucune des dix-sept colonnes ne le disait.
+            // ————— CE QUI EST COMMUN N'APPARTIENT PAS AUX LIGNES —————
+            //
+            // Cinq des huit réglages étaient identiques sur les quatre lignes —
+            // « Croisement et Rebond », « Aucune sécurisation », « Lecture basse »,
+            // « Frais courtier », « D1 ». Répétés quatre fois, ils n'aident pas à
+            // comparer : l'œil doit trier pour trouver les trois qui distinguent. Le gain
+            // n'est pas surtout la place, c'est que la COMPARAISON devient possible.
+            //
+            // LA NOTE SE DÉCOUVRE, ELLE NE S'ÉNUMÈRE PAS (règle 7). Elle est
+            // l'INTERSECTION des réglages des lignes affichées : un sixième réglage qui
+            // deviendrait commun y entre sans qu'on le nomme, et un réglage qui cesse de
+            // l'être redescend sur les lignes. Une liste écrite ici se périmerait au
+            // premier réglage ajouté, et rien ne rougirait — elle se lirait comme une
+            // note découverte.
+            //
+            // Un portefeuille d'UNE ligne ne factorise rien : il n'y a pas de second
+            // terme avec quoi intersecter, et hisser les réglages d'une ligne unique en
+            // en-tête de colonne dirait « ceci est commun » d'un cas qui n'a personne
+            // avec qui l'être.
+            const segmentsDe = (x) => [
+              ...String(x.reglages || '').split(' \u00b7 '),
+              ...String(x.filtres || '').split(' \u00b7 '),
+              String(x.ut || ''),
+            ].map((y) => y.trim()).filter(Boolean);
+            const segs = lignes.map(segmentsDe);
+            const communs = segs.length < 2 ? []
+              : segs[0].filter((y) => segs.every((l) => l.includes(y)));
+            const enLettres = (nn) => (['', 'une', 'deux', 'trois', 'quatre', 'cinq', 'six',
+              'sept', 'huit', 'neuf', 'dix'][nn] || String(nn));
             const maxAn = Math.max(1e-9, ...rAns.map((x) => Math.abs(x)));
             const lignesPart = lignes.map((x) => {
               const a = nombre(x.rAn);
               const part = sommeAn > 0 ? a / sommeAn * 100 : 0;
               const cleL = k + '|' + (x.ticker || x.sym);
               const depliee = (s.pfLigneOuv || '') === cleL;
+              // les réglages PROPRES à cette ligne : ce que la note d'en-tête n'a pas
+              // hissé. Le compte de trades reste sur la ligne — il ne peut pas être commun.
+              const propres = segmentsDe(x).filter((y) => !communs.includes(y));
               return { ...x,
+                reglagesPropres: propres.concat(x.n + ' trades').join(' \u00b7 '),
                 partTxt: sommeAn > 0 ? Math.round(part) + ' %' : '—',
                 // une longueur CSS toujours valide : une part à « — » dessine une barre VIDE
                 partRemplie: sommeAn > 0 ? Math.round(Math.max(0, Math.min(100, part))) + '%' : '0%',
@@ -27324,6 +27400,16 @@ GROUPES = {
             return { cle: String(kv), nom: p.nom || 'Portefeuille ' + (k + 1), tout,
               aLignes: true, aVide: false, nLignes: lignes.length,
               aRenommer: !tout,
+              aReglagesCommuns: communs.length > 0,
+              reglagesCommunsTxt: communs.length
+                ? 'les ' + enLettres(lignes.length) + ' : ' + communs.join(' \u00b7 ') : '',
+              reglagesCommunsAide: communs.length
+                ? 'Ces réglages sont identiques sur les ' + enLettres(lignes.length)
+                  + ' lignes de ce portefeuille. Les répéter à chaque rangée obligerait à '
+                  + 'trier pour trouver ce qui les distingue. La liste n\u2019est pas écrite '
+                  + 'dans le code : elle est l\u2019intersection de ce que les lignes '
+                  + 'affichées portent, donc elle suit toute seule.'
+                : '',
               // l'onglet porte le R par an de la FENÊTRE COMMUNE, comme le bilan : deux
               // chiffres différents pour le même portefeuille, l'un sur l'onglet et
               // l'autre dans la carte, se liraient comme une contradiction
@@ -27370,8 +27456,15 @@ GROUPES = {
               exporterRobots: () => this.exporterRobots(lignes.map((x) => x._v || x).filter(Boolean)),
               ...this.refDetention(p, lignesBh),
               aBhChoix: vivants.length > 1,
-              bhChoix: [{ sym: 'tous', nom: 'Tous', cls: 'tag ' + (selBh === 'tous' ? 'tag-accent' : 'tag-outline'),
-                aide: 'Moyenne équipondérée des instruments du portefeuille', choisir: choisirBh('tous') },
+              // « Tous (4) » remplace une rangée entière — « 4 configurations contre la
+              // détention de 4 instruments » — et il le dit à l'endroit où l'on choisit
+              // ce qu'on compare. Le compte est celui des instruments RÉELLEMENT
+              // comparés : ceux dont la série est chargée.
+              bhChoix: [{ sym: 'tous',
+                nom: 'Tous' + (this.bhCompares(lignes) > 1 ? ' (' + this.bhCompares(lignes) + ')' : ''),
+                cls: 'tag ' + (selBh === 'tous' ? 'tag-accent' : 'tag-outline'),
+                aide: 'Moyenne équipondérée des ' + this.bhCompares(lignes)
+                  + ' instruments dont la série est chargée', choisir: choisirBh('tous') },
                 ...vivants.map((sy) => ({ sym: sy, nom: this.nomComplet(sy),
                   cls: 'tag ' + (selBh === sy ? 'tag-accent' : 'tag-outline'),
                   aide: 'Comparer ' + this.nomComplet(sy) + ' seul', choisir: choisirBh(sy) }))],
@@ -27680,7 +27773,18 @@ GROUPES = {
             pfPlis: { ...(this.state.pfPlis || { comparaison: true, tirages: true, cout: false }),
               [cle]: !secs[cle] } }),
         });
-        return { ...un('comparaison', 'Comparaison'), ...un('tirages', 'Tirages'), ...un('cout', 'Cout') };
+        return { ...un('comparaison', 'Comparaison'), ...un('tirages', 'Tirages'), ...un('cout', 'Cout'),
+          // le détail par instrument : un pli de plus, par la MÊME fabrique. Un `details`
+          // natif occupait une rangée pour son `summary` ; le renvoi vit maintenant au
+          // bout de la phrase du pied, et il lui faut un état comme aux autres plis.
+          ...(() => {
+            const o = !!(s.pfPlis || {}).bhDetail;
+            return { oBhDetail: o,
+              bhDetailTxt: (o ? '\u25be ' : '\u25b8 ') + 'Détail par instrument',
+              basculerBhDetail: () => this.setState({
+                pfPlis: { ...(this.state.pfPlis || { comparaison: true, tirages: true, cout: false }),
+                  bhDetail: !o } }) };
+          })() };
       })(),
       partTete: s.bhPart === undefined ? 50 : s.bhPart,
       setPartTete: (e) => this.setState({ bhPart: Math.min(100, Math.max(0, Number(e.target.value))) }),

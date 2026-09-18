@@ -843,13 +843,6 @@
    ]
   },
   {
-   "terme": "Tous",
-   "texte": "Moyenne équipondérée des instruments du portefeuille",
-   "vues": [
-    "Toutes les pages"
-   ]
-  },
-  {
    "terme": "Tous les scans",
    "texte": "Affiche l’ensemble des scans en mémoire.",
    "vues": [

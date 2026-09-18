@@ -2815,6 +2815,96 @@ l'assertion passerait avec ou sans le calcul qu'elle vérifie.
 « 3,0 % au pire ». Un zéro non ancré refuse le cas normal — c'est la règle 16 sur un
 motif de trois caractères, et c'est le genre de garde qu'on désactive le soir même.
 
+## Un réglage seul sur sa rangée coûte 40 px pour un champ de 50
+
+**STATUT · CAUSE ÉTABLIE, MESURÉE DANS LE DÉPÔT** pour le gain : même semis, mêmes plis,
+la page passe de **3 057 à 2 865 px rendus** — 192 px, mesurés dans un navigateur sur le
+fichier livré. La maquette de l'utilisateur annonce ~390 px sur son cas (quatre lignes et
+trois portefeuilles à comparer, que le banc n'a pas) ; les deux chiffres décrivent deux
+écrans, et celui du dépôt est celui qu'un test peut relire.
+
+**Les deux plus gros gains n'étaient pas du serrage : deux bandes ont DISPARU.** « Creux
+redouté 20 % » occupait une rangée entière pour un champ de 50 px de large ; il vit au bout
+de l'en-tête de sa section, où la place est déjà payée. « N configurations contre la
+détention de M instruments » a été remplacée par un **`Tous (N)`** dans la ligne
+« Comparer », qui reçoit au passage « Part détenue » et « Sans risque », poussés à droite.
+
+> **Un réglage qui vit seul sur sa rangée paie une rangée entière pour lui.** Le remède
+> n'est pas de rétrécir la rangée, c'est de trouver la ligne où la place est déjà payée.
+
+Même mouvement en plus petit : le renvoi « ▸ Détail par instrument » entre au bout de la
+phrase du pied au lieu d'occuper une rangée — ce qui a demandé de remplacer un `details`
+natif par un pli de la même fabrique que les trois autres, un `summary` ne pouvant pas
+vivre à la fin d'un paragraphe.
+
+**Et une réserve ne se supprime pas au nom de la place.** La bande supprimée portait, en
+plus de sa description, un fait qui n'est pas décoratif : des instruments du portefeuille
+sont HORS comparaison faute de série chargée. Il survit à sa rangée, en une phrase courte
+dans la ligne « Comparer ». Le point d'interrogation qui porte les hypothèses de
+conversion reste lui aussi.
+
+### Ce qui est COMMUN n'appartient pas aux lignes
+
+Cinq des huit réglages étaient identiques sur les quatre lignes — « Croisement et
+Rebond », « Aucune sécurisation », « Lecture basse », « Frais courtier », « D1 ». Répétés
+quatre fois, ils n'aident pas à comparer : l'œil doit trier pour trouver les trois qui
+distinguent.
+
+> **Le gain n'est pas surtout la place, c'est que la comparaison devient possible.**
+
+Ils sont hissés en note de l'en-tête de colonne, et chaque ligne ne garde que sa
+différence. **La note se DÉCOUVRE : elle est l'intersection des réglages des lignes
+affichées** (règle 7). Écrite à la main, elle porterait une hypothèse que personne ne
+réviserait — le jour où un sixième réglage deviendrait commun, ou où l'un des cinq
+cesserait de l'être, elle resterait verte en décrivant un état qui n'existe plus, et elle
+se lirait comme une note dérivée.
+
+`scripts/app/reglages-communs-decouverts.test.mjs` mesure **les deux sens** au rendu : ce
+qui est commun aux trois lignes est dans la note et sur AUCUNE rangée ; ce qui distingue
+est sur sa rangée et PAS dans la note. Éprouvé par deux mutations — une note écrite en dur
+tombe, et une note à laquelle on ajoute un réglage non commun tombe aussi.
+
+**Le banc a dû apprendre à porter les deux états.** Trois lignes de configuration
+identique ne font exister que la moitié du mécanisme : tout serait hissé, rien ne
+redescendrait. Le semis donne donc à la dernière ligne une période différente — c'est la
+règle 10 dans l'outillage, encore : le cas qu'on sème spontanément est celui où la moitié
+du défaut ne peut pas se produire.
+
+**La note s'enroule, elle ne se tronque pas.** Ce qu'elle porte ne figure plus sur les
+rangées : une ellipse sur un écran étroit retirerait de l'écran ce qu'on vient d'y hisser,
+et une infobulle ne s'ouvre pas toute seule.
+
+### Le serrage, lui, est mesuré et sans conséquence
+
+| | avant | après |
+|---|---|---|
+| courbe de capital | 160 px | 112 px |
+| rangées de la comparaison des portefeuilles | 3 px | 1 px de gouttière |
+| rangées d'instruments | 10 px | 8 px |
+| en-têtes de section pliables | 12 px | 9 px |
+| chiffres de la section hasard | 28 px | 25 px |
+| totaux de la comparaison | 28 px | 20 px |
+
+La courbe est le plus gros gain unitaire : **un creux se voit autant sur 112 px que sur
+168**, et c'est vérifiable — le creux le plus profond y est tracé entre son sommet et son
+fond, pas seulement chiffré en légende.
+
+### Changer le conteneur ne déplace pas ce qui est imbriqué dedans
+
+Le rapport porte un incident d'implémentation qui vaut d'être écrit : un premier correctif
+avait remis le conteneur en colonne mais laissé les réglages À L'INTÉRIEUR de la rangée du
+nom. **Rien ne bougeait à l'écran, et le correctif a été annoncé fait.** C'est l'utilisateur
+qui a dit non.
+
+> **C'est la règle 11 sur un correctif de MISE EN PAGE : seul le rendu prouve qu'un
+> élément a bougé.** Une déclaration CSS juste sur un conteneur ne dit rien de ce que ses
+> enfants font, et une garde de source lirait la déclaration.
+
+C'est pourquoi la garde de la note de réglages lit l'écran — le texte rendu de la note et
+celui de chaque rangée — et non le gabarit. Sa première assertion est une PRISE : si
+aucune note n'est rendue, elle tombe en nommant ce piège, plutôt que de vérifier des
+absences sur un écran vide.
+
 ## Un accord qui tient par ANNULATION D'ERREURS
 
 **C'est la voisine de la règle 15, et elle est pire.** Là, une sonde muette rend le défaut
