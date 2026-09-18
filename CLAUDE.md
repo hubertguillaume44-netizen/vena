@@ -1797,10 +1797,32 @@ rien changé à l'argument, parce que ce n'était pas le bon chiffre.
 > compatible avec un fichier que personne n'a rouvert. Le nombre de commits qui ont
 > traversé le fichier, lui, le dit — **trente et un** sur ces quatre jours.
 
-Les deux fois, la commande existait et tenait dans une ligne ; les deux fois, le nombre
+**Troisième fois dans la même semaine, et sur un troisième TYPE de nombre** : « douze
+caractères gagnés par nom », dans un rapport. Compté sur la composition réelle, c'en est
+**six** sur le cas mesuré et huit dans le pire cas. Le geste restait juste ; le chiffre
+était juré.
+
+| ce qui était écrit | ce que la commande rendait | le type de nombre |
+|---|---|---|
+| « la troisième instance de cette forme » | la cinquième | un **rang** |
+| « des mois sous les yeux de tout le monde » | quatre jours, trente et un commits | une **durée** |
+| « douze caractères gagnés par nom » | six, huit au pire | une **quantité** |
+
+Les trois fois, la commande existait et tenait dans une ligne ; les trois fois, le nombre
 était dans une apposition. **Un nombre placé dans le PRÉDICAT se fait vérifier ; dans une
-apposition, non** — et « depuis des mois » est une apposition, exactement comme « la
-troisième instance de ».
+apposition, non** — et « depuis des mois » comme « douze caractères gagnés » en sont,
+exactement comme « la troisième instance de ».
+
+> **La règle n'est donc pas « un ordinal se compte » : c'est « une apposition chiffrée se
+> compte ».** L'ordinal était le premier cas, pas la classe — et la formuler sur lui
+> aurait laissé passer les deux suivants, qui ne sont pas des rangs. C'est la règle 8
+> appliquée à une règle : `ordinal` est un LIEU, `nombre en apposition` est une PROPRIÉTÉ.
+
+**Et les trois fois, c'est l'interlocuteur qui a compté, jamais l'auteur.** Ce n'est pas
+une remarque de politesse : une apposition ne se relit pas par celui qui l'a écrite,
+puisqu'il la lit comme un décor de sa phrase principale — laquelle est juste. Tant que le
+seul mécanisme est la relecture par l'autre, la classe reste ouverte ; elle se ferme en
+**posant la commande avant le chiffre**, pas après.
 
 **Mais elles n'en portent pas le MOT** : le verdict est « fenêtre fixe » — voir « Quand
 l'explication doit contredire l'étiquette » plus haut. Ce paragraphe a d'abord dit
@@ -3701,6 +3723,13 @@ celle qui tourne mesure une règle que personne n'exécute.
 **STATUT · CAUSE ÉTABLIE — troncature RAPPORTÉE (capture du Navigateur MT5 :
 « Vena_Compten1_USDJPY_Achat_ema_5_SL0… »), budget du préfixe MESURÉ DANS LE DÉPÔT, sur
 la composition réelle du nom.**
+
+**Le rapport désignait `nomRobot`, et le geste vivait ailleurs** : `nomRobot` rend
+`Vena_<instrument>_…`, et c'est l'application qui insère le compte après `Vena_`, dans
+`etiquetteCompte()`. Le geste était juste, la carte non — et les deux se vérifient
+séparément. *Porter le geste là où le rapport pointe* aurait fait entrer l'étiquette de
+compte dans le générateur de robots, qui ne connaît pas les comptes : un défaut neuf, posé
+au nom d'une consigne exacte sur ce qu'il fallait faire.
 
 L'étiquette de compte tenait jusqu'à **douze** caractères, et elle vit **avant**
 l'instrument. Or le compte ne distingue que cinq choses, l'instrument en distingue
