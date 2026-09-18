@@ -24,11 +24,30 @@
 // > ISOLÉMENT — il serait dans leur DÉSACCORD. C'est la forme de `manifeste-version`,
 // > qui liait le chemin déposé, le chemin servi et le chemin demandé.
 //
-// ANGLE MORT DÉCLARÉ (règle 9), en tête : elle tient que les quatre maillons LISENT la
-// même horloge et que les deux seuils sont écrits pareil. Elle ne tient PAS l'instant où
-// chacun applique la règle — Véna la pose sur l'ouverture de la bougie, le robot sur le
-// tick de sa tentative. À l'heure près les deux coïncident ; une règle future qui
-// descendrait sous l'heure sortirait de sa prise sans qu'elle le dise.
+// ————— ET L'ANNULATION N'EST PAS LOCALE : ELLE PORTE LE SEAU D1 —————
+//
+// Mesuré en cherchant les autres consommateurs de cette horloge : `moteur.js` porte
+// VINGT-TROIS lectures `getUTC*`, et la plus lourde n'est pas la règle de début de
+// semaine — c'est `resamplerBrut`, qui construit le seau D1 sur
+// `Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate())`. Appliqué à une
+// horloge murale de serveur, ce seau est le **jour calendaire du COURTIER** — c'est-à-dire
+// exactement la frontière sur laquelle MT5 bâtit ses barres D1.
+//
+// Toute décision en `ut: 'D1'` — la plus courante du produit — repose donc sur la même
+// annulation. Ce n'est pas un accident tolérable dans un coin : **c'est ce qui aligne le
+// moteur sur le testeur**, et ça n'était écrit nulle part.
+//
+// ANGLE MORT DÉCLARÉ (règle 9), en tête : elle tient que les maillons LISENT la même
+// horloge, que les deux seuils de début de semaine sont écrits pareil, et que le seau D1
+// se construit sur cette même horloge. Elle ne couvre que DEUX des vingt-trois lectures —
+// les deux dont on a mesuré qu'elles portent l'accord avec MT5. Les autres suivent la
+// même convention sans qu'aucune garde ne le vérifie, et une conversion de fuseau posée
+// dans `lireCsv` les emporterait toutes ensemble.
+//
+// Elle ne tient pas non plus l'instant où chacun applique la règle — Véna la pose sur
+// l'ouverture de la bougie, le robot sur le tick de sa tentative. À l'heure près les deux
+// coïncident ; une règle future qui descendrait sous l'heure sortirait de sa prise sans
+// qu'elle le dise.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -81,4 +100,29 @@ test("les quatre maillons lisent la même horloge, et c'est celle du SERVEUR", (
   assert.ok(!/getHours\(\)|getDay\(\)/.test(exe),
     "`executable` lit une heure LOCALE : le verdict dépendrait du fuseau de la machine "
     + "de l'utilisateur, donc deux personnes mesureraient deux choses sur la même série.");
+});
+
+// ————— ET LE SEAU D1 EST LE PLUS LOURD CONSOMMATEUR DE CETTE ANNULATION —————
+//
+// `resamplerBrut` découpe la journée sur `getUTCDate()` d'une horloge murale de serveur :
+// le seau D1 est donc le jour calendaire du COURTIER, la frontière même sur laquelle MT5
+// bâtit ses barres D1. Toute décision en `ut: 'D1'` — la plus courante du produit —
+// repose sur l'annulation décrite en tête. La garder ici, c'est garder l'alignement du
+// moteur sur le testeur, pas un détail de fuseau.
+test("le seau D1 se découpe sur la MÊME horloge que le reste", () => {
+  const seau = MOTEUR.slice(borne(MOTEUR, "  const bucket = (ms) => {"),
+    borne(MOTEUR, "  const t = [], o = [], h = [], l = [], c = [];"));
+  assert.match(seau,
+    /if \(ut === 'D1'\) return Date\.UTC\(d\.getUTCFullYear\(\), d\.getUTCMonth\(\), d\.getUTCDate\(\)\);/,
+    "le seau D1 ne se construit plus sur les composantes `getUTC*` de l'horodatage. "
+    + "Appliquées à l'horloge murale du serveur — ce que `lireCsv` range —, elles rendent "
+    + "le jour calendaire du COURTIER, qui est la frontière des barres D1 de MT5. Une "
+    + "conversion de fuseau posée ici décalerait toutes les décisions D1 d'une poignée "
+    + "d'heures par rapport au testeur, sans qu'aucun compte de trades ne paraisse faux.");
+  assert.match(seau, /const h = Math\.floor\(d\.getUTCHours\(\) \/ 4\) \* 4;/,
+    "le seau H4 ne se découpe plus sur la même horloge que le seau D1 : les deux unités "
+    + "se mettraient à désigner des barres différentes de celles du testeur.");
+  assert.ok(!/getHours\(\)|getDate\(\)[^U]/.test(seau),
+    "le seau lit une composante LOCALE : deux utilisateurs dans deux fuseaux "
+    + "agrégeraient la même série en deux jeux de barres différents.");
 });

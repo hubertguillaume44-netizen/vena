@@ -2451,6 +2451,60 @@ vérifiable, et suivie du geste qui la tranche : lire la première ligne du jour
 test, qui dit lequel des trois cas s'est produit — converti (avec le taux), refusé (avec
 la paire manquante), ou rien à convertir.
 
+## Un accord qui tient par ANNULATION D'ERREURS
+
+**C'est la voisine de la règle 15, et elle est pire.** Là, une sonde muette rend le défaut
+indistinguable du cas normal. Ici, c'est un **accord juste** qui est indistinguable d'un
+accord **fortuit** — et rien, dans aucun des deux maillons pris isolément, ne dit lequel
+des deux on a.
+
+Le cas mesuré : la règle de début de semaine du robot et celle du moteur s'accordent
+parfaitement. Pas parce que les deux lisent UTC — **aucun des deux ne le fait**.
+
+| | ce qui est lu |
+|---|---|
+| `robot-mt5.js` | `TimeToStruct(TimeCurrent(), …)` → heure **serveur** du courtier |
+| `Export_H1_Vena.mq5` | `TimeToString(r[i].time, …)` → la même, en horloge murale |
+| `moteur.js` · `lireCsv` | `Date.UTC(an, mois-1, jour, h, m)` → cette horloge murale **rangée en UTC** |
+| `moteur.js` · `executable` | `getUTCDay()` / `getUTCHours()` → **ressort l'heure serveur** |
+
+`lireCsv` range une heure de serveur dans un champ UTC ; `executable` l'en ressort telle
+quelle. **Deux erreurs qui s'annulent exactement**, et le résultat est juste.
+
+> **Un accord qui tient par annulation d'erreurs est indistinguable d'un accord par
+> justesse.** Seule une garde qui lie les MAILLONS les sépare — aucune garde posée sur un
+> maillon ne le peut, puisque chaque maillon, pris seul, a tort.
+
+**Et le danger n'est pas le maillon fautif : c'est le maillon CORRIGÉ.** Quelqu'un qui
+lirait `lireCsv` et déciderait, de bonne foi, d'y interpréter le fuseau « pour bien
+faire » romprait l'accord — et **aucun test ne rougirait**, parce que chaque moitié serait
+devenue *plus* correcte. C'est le seul cas du dépôt où réparer casse.
+
+### Et l'annulation est LOAD-BEARING bien au-delà de la règle qui l'a révélée
+
+Mesuré en cherchant les autres consommateurs : `moteur.js` porte **vingt-trois** lectures
+`getUTC*`, et la plus lourde n'est pas la règle de début de semaine. C'est
+`resamplerBrut`, qui construit le **seau D1** sur
+`Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate())` — appliqué à une horloge
+murale de serveur, ce seau est le **jour calendaire du courtier**, c'est-à-dire exactement
+la frontière sur laquelle MT5 bâtit ses barres D1.
+
+**Toute décision en `ut: 'D1'` — la plus courante du produit — repose donc sur cette
+annulation.** Ce n'est pas une bizarrerie tolérable dans un coin : c'est ce qui aligne le
+moteur sur le testeur, et ça n'était écrit nulle part.
+
+`scripts/mt5/meme-horloge.test.mjs` lie les maillons — la forme de `manifeste-version`,
+qui liait trois chemins : *le défaut ne serait dans aucun d'eux pris isolément, il serait
+dans leur désaccord.* **Son angle mort est chiffré** : elle couvre **deux** des
+vingt-trois lectures, les deux dont on a mesuré qu'elles portent l'accord avec MT5. Les
+vingt et une autres suivent la même convention sans garde, et une conversion de fuseau
+posée dans `lireCsv` les emporterait toutes ensemble.
+
+**Le signal, au moment d'écrire :** *ce maillon est-il juste TOUT SEUL, ou seulement en
+compagnie du suivant ?* Quand la réponse est « en compagnie », l'accord se documente à
+l'endroit où il se produit — dans une garde qui lit les deux — et jamais dans un
+commentaire posé sur l'un des deux, qui sera lu comme une excuse pour un défaut local.
+
 ## Une sonde dont l'échec est silencieux par conception se garde ailleurs
 
 Le témoin de version comparait ce que sert l'adresse publique à ce que la page est. Il a
