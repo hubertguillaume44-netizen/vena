@@ -1824,6 +1824,33 @@ puisqu'il la lit comme un décor de sa phrase principale — laquelle est juste.
 seul mécanisme est la relecture par l'autre, la classe reste ouverte ; elle se ferme en
 **posant la commande avant le chiffre**, pas après.
 
+### L'erreur a une DIRECTION — et elle en a deux, pas une
+
+Le signal proposé était : *l'apposition chiffrée est là pour amplifier, donc son erreur
+va toujours dans le sens qui renforce la phrase ; si le nombre rend la phrase plus forte,
+c'est lui qu'il faut compter.* **Vérifié sur les trois, et ça tient deux fois sur trois** —
+la troisième va dans l'autre sens, et c'est ce qui rend le signal utilisable au lieu de
+magique :
+
+| l'apposition | le sens de l'erreur | ce qui la produit |
+|---|---|---|
+| « des mois » pour quatre jours | **amplifie** | l'impression est formée par l'effort de la trouvaille, pas par le calendrier |
+| « douze caractères » pour six | **amplifie** | le gain se raconte depuis la gêne qu'il retire |
+| « la troisième instance » pour la cinquième | **affaiblit** | on ne se rappelle que les instances qu'on a vues soi-même |
+
+> **Un nombre de mémoire est biaisé vers ce que l'auteur avait en main.** Une grandeur
+> tirée d'une impression **surestime**, parce que l'impression s'est formée sur le coût
+> ressenti ; un compte d'instances tiré du souvenir **sous-estime**, parce qu'on ne compte
+> que ce qu'on a vu. Les deux vont dans le sens de la position de celui qui écrit — ce
+> n'est pas toujours « plus fort », c'est toujours « plus près de ce qu'il croyait ».
+
+**Le geste pratique tient quand même, et il ne coûte rien** : dans un message qui porte
+cinq nombres, celui qui rend la phrase plus forte est celui qui mérite la commande. Ça ne
+remplace pas la commande — **ça dit lequel des chiffres la mérite**, ce qui est le seul
+arbitrage qu'on fasse vraiment en écrivant. Et l'exception mesurée dit où il ne suffit
+pas : *un ordinal qui compte des instances se compte toujours, même quand il paraît
+modeste* — c'est précisément sa modestie qui l'a fait passer.
+
 **Mais elles n'en portent pas le MOT** : le verdict est « fenêtre fixe » — voir « Quand
 l'explication doit contredire l'étiquette » plus haut. Ce paragraphe a d'abord dit
 l'inverse (« c'est voulu, ce n'est pas un défaut à corriger ») et il avait tort : le seuil
