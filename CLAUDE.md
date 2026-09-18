@@ -2351,6 +2351,58 @@ sur 161 est exactement l'ordre de grandeur d'un effet de bord d'entrée.
 l'effet du prix d'entrée. Il ne mesure pas l'ordre des extrêmes, qui est déjà réfuté — donc
 **un résultat inchangé ne renvoie pas la piste à l'ordre**, il la ferme entière.
 
+##### LE COURTIER SE CONTREDIT LUI-MÊME — et ça retire au testeur son statut de référence
+
+**PROVENANCE · RAPPORTÉE, relevée au journal du testeur avant l'arrêt du rejeu.** Le rejeu
+en tiques réelles a été interrompu (voir ci-dessous), mais il avait déjà écrit ceci :
+
+```
+real ticks discarded for 51 minutes
+50 249 tick prices mismatch for 51 minute bars
+```
+
+**L'historique de TIQUES de FxPro contredit ses propres bougies M1.** Cinquante mille prix
+en désaccord, sur cinquante et une minutes, pour le même symbole chez le même courtier.
+
+> **Deux modélisations du même courtier sur le même symbole ne donnent pas le même prix.**
+> Le mode « tiques réelles » n'aurait donc pas été une référence *plus vraie* — seulement
+> **différemment fausse**. Et un arbitre qui se contredit lui-même ne peut pas trancher un
+> écart de douze trades.
+
+C'est la conclusion la plus large du chantier, et elle vaut d'être dite comme telle :
+**le testeur MT5 a servi d'arbitre à tout ce dossier, et il vient de montrer qu'il n'en
+est pas un au niveau de finesse qu'on lui demandait.** Un écart de douze trades sur 161
+est du même ordre que le bruit que le courtier porte entre ses propres jeux de données.
+
+**Ce que ça ne dit PAS**, et il faut le border : ça ne disculpe pas le moteur, ça retire un
+chemin de preuve. Les douze trades existent toujours ; ce qui disparaît, c'est l'idée
+qu'une modélisation plus fine les expliquerait.
+
+##### Le coût du rejeu est venu d'une ligne du robot, et il est dans le produit depuis
+
+**En mode tiques réelles, `TauxVersCompte` fait télécharger tout l'historique de tiques de
+la paire croisée** — une ligne `download` par mois, de 202306 à 202510 pour EURHKD. Mesuré
+chez l'utilisateur : **32 secondes devenues 27 h 57 estimées**. Le rejeu a été arrêté.
+
+**Le comportement est le bon et ne change pas.** Sans cette sélection, la conversion échoue
+et le robot retombe sur le refus — un instrument du portefeuille sans une seule position,
+ce que « Refuser est la moitié du travail » a précisément fermé. Et la note du dépôt disait
+« c'est peu » : **c'était vrai en mode OHLC, et cette phrase était une garantie vraie sur
+son domaine lue comme générale** — la famille de `netlify.toml`, une fois de plus.
+
+Ce qui manquait n'était pas un garde-fou, c'était de **pouvoir lire la cause** : mille
+lignes de téléchargement sans une ligne disant pourquoi. Le robot annonce donc la paire
+**avant** de la sélectionner, nomme le mode qui rend le coût explosif, et donne le remède —
+ajouter la paire à l'Observation du marché avant le test.
+
+> **Un coût qu'on ne peut pas anticiper se dit AVANT d'être engagé.** Après, ce n'est plus
+> une information, c'est une autopsie — et le remède n'est actionnable qu'avant.
+
+`dimension-devise.test.mjs` tient l'**ORDRE des deux gestes**, pas la présence du mot : un
+message posé après `SymbolSelect` satisferait une recherche de chaîne et ne servirait à
+rien. Éprouvé par mutation — déplacer le `PrintFormat` d'une ligne fait tomber la garde.
+Son angle mort est déclaré : elle ne peut pas vérifier que la ligne sera **lue**.
+
 ### Le candidat précédent est mort par son propre dénominateur
 
 Les bougies sautées par `releve(i)` allaient à l'**envers** du symptôme :

@@ -134,3 +134,62 @@ test("aucune liste d'instruments ni de devises n'est écrite dans le dimensionne
     + "ferme le cas mesuré et laisse le suivant ouvert — la propriété les couvre tous, "
     + "et c'est elle qui est déjà écrite juste au-dessus.");
 });
+
+// ————— ET LE COÛT DE LA CONVERSION SE DIT AVANT D'ÊTRE PAYÉ —————
+//
+// STATUT · CAUSE ÉTABLIE — coût RAPPORTÉ au testeur, ordre des deux gestes relu DANS
+// LE DÉPÔT.
+//
+// `TauxVersCompte` cherche la paire croisée d'abord dans l'Observation du marché, puis
+// hors d'elle. Le second passage appelle `SymbolSelect` — et en mode « chaque tique
+// basée sur les tiques réelles », cette sélection fait télécharger au testeur TOUT
+// l'historique de tiques de la paire. Mesuré chez l'utilisateur : un test de 32 secondes
+// est passé à **27 h 57 estimées**, une ligne `download` par mois de 202306 à 202510.
+//
+// LE COMPORTEMENT EST LE BON ET NE CHANGE PAS. Sans cette sélection, la conversion
+// échoue et le robot retombe sur le refus — c'est-à-dire un instrument du portefeuille
+// sans une seule position, ce que la section « Refuser est la moitié du travail » a
+// précisément fermé. Ce qui manquait n'était pas un garde-fou, c'était de POUVOIR LIRE
+// LA CAUSE : elle ne se déduisait que d'un millier de lignes de téléchargement.
+//
+// > **Un coût qu'on ne peut pas anticiper se dit AVANT d'être engagé.** Après, ce n'est
+// > plus une information, c'est une autopsie — et le remède (ajouter la paire à
+// > l'Observation du marché) n'est actionnable qu'AVANT le lancement du test.
+//
+// La garde tient donc l'ORDRE des deux gestes, pas la présence du mot : un
+// `PrintFormat` posé après `SymbolSelect` satisferait une recherche de chaîne et ne
+// servirait à rien. C'est le critère d'ancrage de la règle 3 — on lit ce qui AGIT, et
+// ici ce qui agit est la SÉQUENCE.
+//
+// ANGLE MORT DÉCLARÉ (règle 9), en tête : elle vérifie que le message précède l'appel et
+// qu'il nomme le remède. Elle ne peut pas vérifier qu'il est LU — un journal de testeur
+// se déroule vite, et personne ne garantit que la ligne sera vue avant les mille
+// suivantes.
+test("le coût du téléchargement se dit AVANT la sélection, avec son remède", () => {
+  const bloc = SRC.slice(borne(SRC, "double TauxVersCompte(string de, string vers)"),
+    borne(SRC, "double Volume(double prix, double stop)"));
+
+  const iDit = bloc.indexOf("n'est pas dans \"");
+  const iFait = bloc.indexOf("if(!SymbolSelect(nom, true)) continue;");
+  assert.ok(iDit >= 0, "`TauxVersCompte` n'annonce plus la paire qu'il va sélectionner. "
+    + "En mode tiques réelles cette sélection déclenche le téléchargement de tout "
+    + "l'historique de tiques de la paire — 32 secondes devenues 27 h 57 chez "
+    + "l'utilisateur — et sans cette ligne la cause ne se déduit que d'un millier de "
+    + "lignes « download ».");
+  assert.ok(iFait >= 0, "la sélection hors Observation du marché ne se fait plus sous "
+    + "cette forme : la garde a perdu sa prise sur la séquence qu'elle protège.");
+  assert.ok(iDit < iFait,
+    "le message vient APRÈS la sélection. Posé là il est une autopsie, pas une "
+    + "information : le remède — ajouter la paire à l'Observation du marché — n'est "
+    + "actionnable qu'avant le lancement du test. C'est l'ordre des deux gestes qui "
+    + "porte la valeur, pas la présence du mot.");
+
+  assert.match(bloc, /TIQUES REELLES/,
+    "le message ne nomme plus le mode qui rend le coût explosif. « Cela peut être "
+    + "long » ne permet pas de décider ; « en mode tiques réelles » dit à qui ça "
+    + "s'applique et à qui ça ne s'applique pas.");
+  assert.match(bloc, /Observation du\s*"?\s*\+?\s*"?\s*march[ée] avant de lancer le test/,
+    "le message ne dit plus QUOI FAIRE. Un avertissement sans remède fait subir le "
+    + "coût une seconde fois : c'est la règle du dépôt pour les gardes de convention — "
+    + "elles enseignent, elles ne signalent pas.");
+});

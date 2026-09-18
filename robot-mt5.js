@@ -343,7 +343,7 @@ input ulong  InpMagic           = ${nb(ctx.magic, 20260901)};
 // quelle build l'avait émis. Le stamp d'export ne répond pas à cette question : il dit
 // QUAND on a exporté, pas DE QUOI. La marque est écrite ici dans la forme exacte que
 // « npm run app:version » cherche, donc ce fichier est daté comme les deux autres.
-#define VENA_VERSION "260918.3"
+#define VENA_VERSION "260918.4"
 //--- Configuration mesurée (ne pas modifier : le backtest ne serait plus valable)
 #define STOP_PCT        ${sl}
 #define OBJECTIF_R      ${rr}
@@ -1418,7 +1418,32 @@ double TauxVersCompte(string de, string vers)
          bool direct  = (b == de   && p == vers);
          bool inverse = (b == vers && p == de);
          if(!direct && !inverse) continue;
-         if(!suivis && !SymbolSelect(nom, true)) continue;
+         // ————— LE COÛT SE DIT AVANT D'ÊTRE PAYÉ, PAS APRÈS —————
+         //
+         // Le premier passage lit l'Observation du marché : la paire y est déjà, rien
+         // ne se télécharge. Le second passage sélectionne une paire ABSENTE — et en
+         // mode « chaque tique basée sur les tiques réelles », cette sélection fait
+         // télécharger au testeur TOUT l'historique de ticks de la paire, un mois par
+         // ligne. Mesuré chez l'utilisateur : un test de 32 secondes est passé à
+         // 27 h 57 estimées, et la cause n'était lisible qu'en déduisant d'un millier
+         // de lignes « download » ce que le robot venait de demander.
+         //
+         // Le remède est d'ajouter la paire à l'Observation du marché AVANT le test.
+         // Il vivait dans une note ; il vit ici, dit par le robot, à l'instant où il
+         // est actionnable — une ligne avant le téléchargement plutôt qu'une
+         // inférence après. C'est la même exigence que pour les jalons
+         // d'initialisation : une instrumentation vaut par ce qu'elle rend DÉCIDABLE.
+         if(!suivis)
+         {
+            PrintFormat("Conversion %s vers %s : la paire %s n'est pas dans "
+                        + "l'Observation du marche, le robot va la selectionner. "
+                        + "EN MODE TIQUES REELLES, CETTE SELECTION DECLENCHE LE "
+                        + "TELECHARGEMENT DE TOUT SON HISTORIQUE DE TIQUES et peut "
+                        + "faire passer le test de quelques secondes a plusieurs "
+                        + "heures. Pour l'eviter : ajoutez %s a l'Observation du "
+                        + "marche avant de lancer le test.", de, vers, nom, nom);
+            if(!SymbolSelect(nom, true)) continue;
+         }
          double cours = SymbolInfoDouble(nom, SYMBOL_BID);
          if(cours <= 0.0) cours = iClose(nom, PERIOD_H1, 0);
          if(cours <= 0.0) continue;
