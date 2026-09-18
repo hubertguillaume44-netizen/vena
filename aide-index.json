@@ -169,34 +169,6 @@
    ]
   },
   {
-   "terme": "Chiffres périmés — relancez le test",
-   "texte": "Les chiffres affichés viennent de la mesure enregistrée. Les réglages du panneau, eux, ne sont pas ceux qui les ont produits : cliquer « Mesurer » mesurerait une autre stratégie sous le même nom.",
-   "vues": [
-    "Backtest"
-   ]
-  },
-  {
-   "terme": "Chiffres périmés — relancez le test",
-   "texte": "La fenêtre horaire homogène ne garde que les heures cotées TOUTES les années : les autres sont retirées de la série avant toute mesure. Leur extrême manque donc au moteur, alors qu'un testeur MT5 le voit sur son graphique complet. Un stop touché là n'est pas vu, et un perdant devient gagnant.",
-   "vues": [
-    "Backtest"
-   ]
-  },
-  {
-   "terme": "Chiffres périmés — relancez le test",
-   "texte": "Le moteur ne teste ni le stop ni l'objectif sur une bougie hors séance ou reconstituée — seul le palier y bouge. Le stop d'un robot, lui, reste dans le carnet du courtier.",
-   "vues": [
-    "Backtest"
-   ]
-  },
-  {
-   "terme": "Chiffres périmés — relancez le test",
-   "texte": "La configuration mesurée de cette ligne n'est plus en mémoire : ni dans les scans ouverts, ni dans l'historique. Rien ne permet de vérifier que le panneau la reproduit.",
-   "vues": [
-    "Backtest"
-   ]
-  },
-  {
    "terme": "Choisir un fichier de sauvegarde",
    "texte": "Choisit un fichier sur votre disque. Véna y réécrit tout, chaque minute. Aucun vidage de navigateur ne l’atteint.",
    "vues": [
@@ -483,6 +455,34 @@
    "texte": "Une configuration validée rejoint votre portefeuille.",
    "vues": [
     "Toutes les pages"
+   ]
+  },
+  {
+   "terme": "Mesure en cours…",
+   "texte": "Le panneau mesure toujours les réglages qu'il affiche. Ce qui manque ici, c'est la configuration de la ligne : elle n'a pas été retrouvée en entier, donc ces chiffres décrivent une stratégie voisine, pas celle qui a produit ceux de la ligne. La ligne, elle, garde son chiffre validé.",
+   "vues": [
+    "Backtest"
+   ]
+  },
+  {
+   "terme": "Mesure en cours…",
+   "texte": "La fenêtre horaire homogène ne garde que les heures cotées TOUTES les années : les autres sont retirées de la série avant toute mesure. Leur extrême manque donc au moteur, alors qu'un testeur MT5 le voit sur son graphique complet. Un stop touché là n'est pas vu, et un perdant devient gagnant.",
+   "vues": [
+    "Backtest"
+   ]
+  },
+  {
+   "terme": "Mesure en cours…",
+   "texte": "Le moteur ne teste ni le stop ni l'objectif sur une bougie hors séance ou reconstituée — seul le palier y bouge. Le stop d'un robot, lui, reste dans le carnet du courtier.",
+   "vues": [
+    "Backtest"
+   ]
+  },
+  {
+   "terme": "Mesure en cours…",
+   "texte": "La configuration mesurée de cette ligne n'est plus en mémoire : ni dans les scans ouverts, ni dans l'historique. Rien ne permet de vérifier que le panneau la reproduit.",
+   "vues": [
+    "Backtest"
    ]
   },
   {

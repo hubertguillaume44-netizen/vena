@@ -98,34 +98,44 @@ test("« Exporter (CSV) » ne s'offre pas sur un TOP vide, et le dit", () => {
 // dangereux qu'un registre trop long : il fait chercher une réparation là où il n'y
 // a qu'un ordre de clics.
 
-test("« Mesurer » et « Sauvegarder » sont complémentaires, sur une seule mesure", () => {
-  // `perime()` — « pas de résultat, ou il ne correspond plus aux réglages » — dit les
-  // deux : sauvegarder est refusé quand il est vrai, mesurer ne peut rien quand il est
-  // faux. Deux conditions recopiées auraient divergé au premier réglage ajouté.
-  assert.ok(APP.includes("btMesurerNon: !this.perime() && !this.recadrageBtSym(),"),
-    "« Mesurer » ne se grise plus sur `perime()` : il repart alors sur le `return` nu "
-    + "de `testerUneFois`, qui sort sans un mot quand la signature n'a pas bougé — le "
-    + "geste s'offre et ne peut rien faire");
-  assert.ok(APP.includes('onClick="{{ lancerTest }}" disabled="{{ btMesurerNon }}" title="{{ btMesurerAide }}"'),
-    "le bouton « Mesurer » ne porte plus son inhibition ou son infobulle : une "
-    + "condition qui ne rejoint pas le rendu ne grise personne");
-  // l'apostrophe est TYPOGRAPHIQUE dans l'application (U+2019) : une garde qui épelle
-  // la droite (U+0027) rapporte une absence qui n'existe pas — le piège est déjà
-  // documenté dans la tournée des gestes, et il a mordu ici en l'écrivant.
-  assert.ok(APP.includes("'Ces chiffres sont déjà ceux de vos réglages actuels : il n’y a rien à remesurer. '"),
-    "le bouton grisé ne dit plus POURQUOI il l'est, ni ce qui le rallume. Griser sans "
-    + "expliquer remplace un geste muet par un bouton muet.");
-  // ————— ET LE RECADRAGE SE DEMANDE À UN PRÉDICAT PUR —————
-  // C'est l'autre chose qu'un clic sur « Mesurer » peut faire. Sans prédicat, le
-  // bouton aurait dû la deviner (règle 1) ou recopier la condition ; et griser sur le
-  // seul `perime()` aurait fermé le seul geste capable de remettre la page d'aplomb
-  // après un changement de compte.
+// ————— « MESURER » EST PARTI, ET SES DEUX ASSERTIONS ONT DEUX FINS —————
+//
+// Le troisième muet du registre ci-dessus n'a pas été guéri, il a été SUPPRIMÉ. Le
+// constat qui l'a emporté : le calcul se refait seul à chaque réglage touché, donc le
+// « return nu » que ce test décrit était le cas NORMAL et non un cas limite. Mesuré au
+// rendu avant le retrait : grisé au repos dans tous les états éprouvés, allumé pendant
+// les 260 ms où le calcul qu'il proposait tournait déjà.
+//
+// Ses assertions sur le grisage PARTENT AVEC LE GESTE : leur seul sujet était ce
+// bouton, et une garde qui survit à son sujet reste verte en ne gardant plus rien.
+// L'invariant « un geste ne s'offre pas quand il ne peut rien faire » est tenu
+// autrement depuis, et plus fort : `panneau-mesure-ce-quil-affiche` vérifie que le
+// bouton n'est pas revenu, au source ET au rendu.
+//
+// SES ASSERTIONS SUR LE RECADRAGE SE RÉANCRENT (règle 14, deuxième issue). Le prédicat
+// pur avait été séparé du geste pour armer le bouton ; le bouton est parti et la
+// séparation vaut par elle-même — deux vérités pour une question, c'est la copie qui
+// se périme. Ce qui a REMPLACÉ le bouton entre ici : la seule chose réelle qu'il
+// savait faire était ce recadrage, et elle vit désormais là où sa condition naît.
+test("le recadrage de l'instrument se demande à un prédicat pur, et se déclenche seul", () => {
   assert.ok(APP.includes("  recadrageBtSym() {"),
-    "le prédicat pur du recadrage a disparu : la condition de grisage doit alors "
-    + "recopier celle de `recadrerBtSym`, et les deux divergeront");
+    "le prédicat pur du recadrage a disparu. Il répond « quel instrument poser » sans "
+    + "rien déplacer : le supprimer obligerait chaque lecteur à recopier la condition "
+    + "de `recadrerBtSym`, et les copies divergent.");
   assert.ok(APP.includes("    const neuf = this.recadrageBtSym();\n    if (!neuf) return false;"),
     "`recadrerBtSym` ne lit plus le prédicat : c'est de nouveau deux vérités pour une "
     + "seule question, et c'est la copie qui se périme");
+  // ————— ET IL FAUT QU'UNE MESURE PARTE POUR QU'IL TOURNE —————
+  // `recadrerBtSym` vit en tête de `testerUneFois` : sans relance, il ne tourne jamais.
+  // Supprimer la série que le Backtest mesure retire son instrument du catalogue et ne
+  // relançait rien — le panneau restait sur un instrument que le sélecteur ne propose
+  // plus, et le bouton « Mesurer » était la seule sortie. C'est ce qu'il a légué.
+  assert.ok(APP.includes("      seriesRev: (p.seriesRev || 0) + 1 }),\n"
+    + "      () => { if (this.state.vue === 'backtest') this.lancerTest(); });"),
+    "la suppression d'une série ne relance plus le backtest. Le catalogue a rétréci et "
+    + "le panneau reste sur un instrument qui n'y est plus : `recadrerBtSym` ne tourne "
+    + "qu'en tête d'une mesure, et plus rien n'en déclenche. C'est la seule chose "
+    + "réelle que le bouton « Mesurer » savait faire — elle ne part pas avec lui.");
 });
 
 test("« Sauvegarder ce résultat » confirme son dépôt, et la confirmation tient à la mesure affichée", () => {

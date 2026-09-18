@@ -1,39 +1,40 @@
 // STATUT · CAUSE ÉTABLIE — panne RAPPORTÉE, cause relue DANS LE DÉPÔT. Observée chez
-// l'utilisateur sur
-// `260917.15` (ligne Dow Jones 30 rouverte, « Mesurer » cliqué, résultat affiché
-// +38,3 R · 142 trades) et sa cause est relue ici dans le source.
+// l'utilisateur sur `260917.15` (ligne Dow Jones 30 rouverte, résultat affiché
+// +38,3 R · 142 trades, « Sauvegarder ce résultat » grisé quand même).
+//
+// ————— ANGLE MORT, EN TÊTE (règle 9) —————
+// Cette garde lit le SOURCE. Elle prouve qu'il n'existe qu'une signature et que tous
+// ses lecteurs la lisent ; elle ne prouve pas que le bouton s'active dans un
+// navigateur. C'est exactement pourquoi la panne a vécu : tous les tests passaient. Ce
+// qui la complète est `panneau-mesure-ce-quil-affiche`, qui recompte au rendu.
 //
 // ————— TROIS AFFIRMATIONS QUI NE POUVAIENT PAS ÊTRE VRAIES ENSEMBLE —————
 //
 // Sur le même écran, après une mesure RÉUSSIE : « Sauvegarder ce résultat » grisé, le
-// bandeau « réglages modifiés — mesurez avant de sauvegarder », et l'en-tête « tout est
-// à jour ». Trois lecteurs, deux valeurs, aucun accord possible.
+// bandeau qui demandait de mesurer avant de sauvegarder, et l'en-tête qui affirmait que
+// tout était à jour. Trois lecteurs, deux valeurs, aucun accord possible.
 //
 // La cause n'était pas « une comparaison dont un seul côté avance » — c'était pire :
-// les deux côtés lisaient DEUX CONFIGURATIONS DIFFÉRENTES.
+// les deux côtés lisaient DEUX CONFIGURATIONS DIFFÉRENTES. La mesure enregistrait la
+// signature de la configuration de la LIGNE rouverte ; le prédicat comparait à celle du
+// PANNEAU. Sur une ligne dont les filtres ne se reconstituent pas — la « Reprise
+// INCOMPLÈTE » que le bandeau annonce déjà — le bouton restait grisé pour toujours,
+// quel que soit le nombre de mesures. Trois semaines de comparaisons MT5 bloquées là.
 //
-//   lancerTest   enregistrait  signature(cfgLigne || cfg)   ← la ligne rouverte
-//   perime()     comparait à   sigCourante()                ← le panneau, seulement
+// ————— ET LA PREMIÈRE CORRECTION A FERMÉ LE DÉSACCORD SANS FERMER LE DÉFAUT —————
 //
-// Et le cas n'est pas rare : une ligne dont les filtres ne se reconstituent pas depuis
-// le panneau CONSERVE `cfgLigne` — c'est la « Reprise INCOMPLÈTE » que le bandeau
-// annonce déjà. Sur ces lignes, le bouton restait grisé pour toujours, quel que soit le
-// nombre de mesures. Trois semaines de comparaisons MT5 bloquées là : les valeurs
-// remesurées ne pouvaient pas être enregistrées.
+// Elle a fait converger les quatre lecteurs sur UNE signature intermédiaire. Le bouton
+// s'est rallumé, et le panneau continuait d'afficher les chiffres d'une configuration
+// qu'il ne montrait pas : cette valeur unique était celle de la LIGNE.
 //
-// ————— LA FORME : UNE VALEUR, PAS DEUX DÉRIVÉES —————
+// > Faire converger deux dérivées sur une valeur ferme un désaccord. Ça ne dit rien
+// > sur le fait que la valeur soit la BONNE.
 //
-// `sigAMesurer()` est la signature de ce que le prochain « Mesurer » calculera. QUATRE
-// lecteurs la lisent, et c'est le nombre qui compte : le raccourci de `lancerTest`,
-// l'enregistrement du résultat, `perime()`, et la relance différée. Le quatrième avait
-// été oublié d'un premier jet — il lisait encore `sigCourante()`, ce qui relançait le
-// calcul en boucle sur une ligne incomplète.
-//
-// ANGLE MORT DÉCLARÉ (règle 9) : cette garde lit le SOURCE, pas l'écran. Elle prouve que
-// les quatre lecteurs lisent la même expression ; elle ne prouve pas que le bouton
-// s'active dans un navigateur. Le banc de rendu part d'un navigateur neuf, sans ligne de
-// portefeuille rouverte, donc il n'exerce pas ce chemin — c'est exactement pourquoi la
-// panne a vécu : tous les tests passaient.
+// La sortie n'était pas d'aligner les lecteurs, c'était qu'il n'y ait plus deux
+// configurations à départager : le panneau mesure ses réglages, toujours, donc il n'y a
+// plus qu'une signature et c'est celle du panneau. Cette garde a donc CHANGÉ D'ANCRE —
+// son invariant (une valeur, tous les lecteurs) n'a pas bougé, sa prise est désormais
+// `sigCourante`, et le compte des lecteurs reste ce qui la tient.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -41,18 +42,18 @@ import { borne } from "../lib/tranche.mjs";
 
 const APP = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
 
-test("le prédicat du bouton lit la signature de ce qui sera MESURÉ", () => {
-  assert.match(APP, /perime\(\) \{ return !this\.state\.res \|\| this\.state\.signature !== this\.sigAMesurer\(\); \}/,
-    "`perime()` ne lit plus `sigAMesurer()`. S'il retombe sur `sigCourante()`, il "
-    + "compare le panneau à un résultat mesuré sur la configuration d'une ligne "
-    + "rouverte : les deux ne peuvent plus jamais coïncider, et « Sauvegarder ce "
-    + "résultat » reste grisé après une mesure réussie.");
+test("le prédicat de « Sauvegarder » lit la signature des RÉGLAGES AFFICHÉS", () => {
+  assert.match(APP, /perime\(\) \{ return !this\.state\.res \|\| this\.state\.signature !== this\.sigCourante\(\); \}/,
+    "`perime()` ne lit plus la signature du panneau. Toute autre valeur rouvre le "
+    + "défaut : un résultat enregistré sous une configuration et comparé à une autre ne "
+    + "peuvent jamais coïncider, et « Sauvegarder ce résultat » reste grisé après une "
+    + "mesure réussie.");
 });
 
 test("la mesure ENREGISTRE la même valeur que celle qu'on lui comparera", () => {
-  assert.match(APP, /const sig = this\.sigAMesurer\(\);/,
-    "la mesure n'enregistre plus `sigAMesurer()`. Enregistrer une expression et en "
-    + "comparer une autre est le défaut même : deux dérivées d'une seule question.");
+  assert.match(APP, /const sig = this\.sigCourante\(\);/,
+    "la mesure n'enregistre plus la signature du panneau. Enregistrer une expression et "
+    + "en comparer une autre est le défaut même : deux dérivées d'une seule question.");
 });
 
 test("les QUATRE lecteurs lisent la même valeur — aucun n'est oublié", () => {
@@ -60,44 +61,39 @@ test("les QUATRE lecteurs lisent la même valeur — aucun n'est oublié", () =>
   // Trois lecteurs alignés sur quatre laissent la panne entière, sous une autre forme :
   // le quatrième relançait le calcul en boucle. On compte donc, plutôt que de vérifier
   // les trois qu'on a en tête.
-  const lecteurs = (APP.match(/this\.sigAMesurer\(\)/g) || []).length;
+  const lecteurs = (APP.match(/this\.sigCourante\(\)/g) || []).length;
   assert.equal(lecteurs, 4,
-    `${lecteurs} lecteurs de \`sigAMesurer()\` au lieu de 4. Les quatre sont : le `
+    `${lecteurs} lecteurs de la signature du panneau au lieu de 4. Les quatre sont : le `
     + "raccourci de `lancerTest` (« rien n'a changé, ne recalcule pas »), "
     + "l'enregistrement du résultat, `perime()`, et la relance différée après un rendu "
-    + "survenu pendant le calcul. Un lecteur de plus qui ne lit pas cette valeur rouvre "
-    + "le désaccord ; un lecteur de moins veut dire qu'on en a retiré un sans le dire.");
-
-  // et plus personne ne compare directement `sigCourante()` à la signature enregistrée
-  const bloc = APP.slice(borne(APP, "  async lancerTest("), borne(APP, "  sigCourante() {"));
-  assert.ok(!/sigCourante\(\) !== this\.state\.signature|this\.state\.signature === this\.sigCourante\(\)/.test(bloc),
-    "une comparaison directe entre `sigCourante()` et la signature enregistrée est "
-    + "revenue. C'est la forme exacte du défaut : le panneau d'un côté, la ligne "
-    + "rouverte de l'autre.");
+    + "survenu pendant le calcul. Un lecteur de plus qui lirait autre chose rouvre le "
+    + "désaccord ; un lecteur de moins veut dire qu'on en a retiré un sans le dire.");
 });
 
-test("sigAMesurer rend la configuration de la LIGNE quand il y en a une", () => {
-  const bloc = APP.slice(borne(APP, "  sigAMesurer() {"), borne(APP, "  perime() {"));
-  assert.match(bloc, /const c = this\.state\.cfgLigne;/,
-    "`sigAMesurer()` ne consulte plus `cfgLigne` : il redeviendrait `sigCourante()`, et "
-    + "le résultat d'une ligne rouverte porterait une signature que personne ne "
-    + "recalcule pareil.");
-  assert.match(bloc, /if \(!c\) return this\.sigCourante\(\);/,
-    "sans ligne rouverte, la signature doit rester celle du panneau — sinon toucher un "
-    + "réglage ne relancerait plus rien.");
-  // mémoïsée sur l'IDENTITÉ de l'objet : sérialiser à chaque rendu était le coût que la
-  // mémo de `sigCourante` avait été écrite pour éviter
-  assert.match(bloc, /if \(this\._sigL && this\._sigL\.cfg === c\) return this\._sigL\.val;/,
-    "la mémoïsation par identité d'objet a disparu : `perime()` est lu à CHAQUE rendu, "
-    + "et il sérialiserait la configuration entière à chaque fois.");
+test("aucune seconde signature ne renaît d'une configuration de ligne", () => {
+  // ————— L'ANCRAGE SUR L'ABSENCE (règle 14, troisième issue) —————
+  // La forme intermédiaire dérivait la signature de `cfgLigne` quand il y en avait une.
+  // Elle est partie avec le panneau qui mesurait la ligne ; c'est sa RÉINTRODUCTION qui
+  // est le risque, puisque la doctrine reste écrite au-dessus.
+  assert.ok(!/signature\(\s*(this\.state\.)?cfgLigne/.test(APP),
+    "une signature se dérive de nouveau de `cfgLigne`. C'est la forme intermédiaire : "
+    + "elle ferme le désaccord entre lecteurs et laisse le panneau afficher les "
+    + "chiffres d'une configuration qu'il ne montre pas.");
+  const bloc = APP.slice(borne(APP, "  async testerUneFois() {"), borne(APP, "    const res = this.M.resume(trades);"));
+  assert.match(bloc, /const trades = this\.mesurer\(this\.state\.btSym, cfg, this\.state\.ut, df\);/,
+    "la mesure ne porte plus sur `cfg` — la configuration COURANTE du panneau. Si elle "
+    + "retombe sur `cfgLigne`, l'écran affiche un chiffre que ses réglages ne "
+    + "produisent pas : mesuré à 42 trades / +15,7 R affichés contre 37 / −11,5 R "
+    + "produits par le panneau, le signe opposé.");
 });
 
-test("toucher un réglage sort du mode ligne — sinon le panneau serait décoratif", () => {
-  // Sans ce nettoyage, `sigAMesurer()` rendrait toujours la signature de la ligne, et
-  // modifier un réglage ne changerait plus rien : le pire des deux mondes, un panneau
-  // qui ne pilote plus la mesure qu'il affiche.
+test("toucher un réglage sort du mode ligne — sinon la reprise mentirait", () => {
+  // `cfgLigne` ne pilote plus la mesure ; il reste le JUGE de la fidélité de la reprise
+  // (`repriseEcart`, `ecartLigne`). Le garder après un réglage touché ferait comparer le
+  // panneau à une ligne qu'il ne prétend plus rejouer, et le bandeau crierait à tort —
+  // une garde qui crie à tort n'est plus lue quand elle a raison (règle 16).
   const bloc = APP.slice(borne(APP, "  maj(patch) {"), borne(APP, "  sigCourante() {"));
   assert.match(bloc, /cfgLigne: null, ligneAttendue: null/,
-    "`maj()` ne remet plus `cfgLigne` à null : la signature resterait celle de la ligne "
-    + "rouverte quoi qu'on règle, et le résultat cesserait de décrire l'écran.");
+    "`maj()` ne remet plus `cfgLigne` à null : le panneau continuerait de se comparer à "
+    + "une ligne dont il ne porte plus les réglages.");
 });

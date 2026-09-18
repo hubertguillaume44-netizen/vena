@@ -3123,6 +3123,90 @@ autre. Les deux disent la même chose depuis deux bouts :
 symptôme, ce n'est pas une raison de s'arrêter. C'est le moment de demander ce qui
 l'expliquerait AUSSI bien — et de le chercher dans le même code, pas ailleurs.
 
+## Un geste grisé est un signal, et il peut être faux dans les deux sens
+
+**STATUT · CAUSE ÉTABLIE — symptôme RAPPORTÉ sur `260918.9`, cause et correctif MESURÉS
+DANS LE DÉPÔT.** Le constat de l'utilisateur tenait en une phrase : *le calcul se refait
+tout seul dès qu'un paramètre change, donc le bouton « Mesurer » ne déclenche rien.*
+Mesuré au rendu, dans un navigateur, sur le fichier livré :
+
+| l'état du panneau | le bouton |
+|---|---|
+| au repos, dans tous les états éprouvés | **grisé** |
+| 80 ms après un réglage touché | allumé — pendant que la relance différée de `maj` avait **déjà** lancé le calcul qu'il proposait de lancer |
+| 5 s après | grisé de nouveau |
+
+**Un geste sans effet dans 100 % des cas où il était offert.** Et le cas où il aurait servi
+était le seul où il restait grisé — mesuré sur une reprise dont seul le sens de la ligne
+ne se reconstitue pas :
+
+| | trades | résultat |
+|---|---|---|
+| ce que le panneau AFFICHAIT | 42 | **+15,7 R** |
+| ce que ses réglages produisent | 37 | **−11,5 R** |
+
+Le signe est opposé. Les chiffres étaient justes — ils mesuraient la configuration de la
+ligne — et ils étaient posés sous des réglages qui ne les produisent pas : **une mesure
+fausse qui a l'air d'une mesure**, le pire mode de panne du dépôt. Le prédicat du bouton,
+lui, ne mentait pas : le résultat ÉTAIT à jour. Pour l'autre configuration.
+
+> **Un bouton grisé affirme « il n'y a rien à faire ici », et c'est une affirmation qui
+> peut être fausse des deux côtés à la fois** — offerte là où elle ne peut rien, refusée
+> là où elle pourrait tout. Un bouton absent ne se plaint pas ; un bouton grisé non plus,
+> et en plus il rassure.
+
+C'est la parente de « le geste de RÉPARATION gaté sur l'intention », plus haut : là, le
+prédicat de péremption éteignait le geste pour ceux qu'il ne savait pas détecter. Ici, il
+l'éteint pour ceux qui en ont besoin **parce qu'il répond juste à une autre question**.
+
+### Le correctif n'est pas d'allumer le bouton, c'est qu'il n'y ait plus deux faits
+
+La première correction, une semaine plus tôt, avait fait converger les quatre lecteurs de
+la signature sur UNE valeur. Le désaccord était fermé — le bouton se rallumait — et le
+défaut de fond restait entier : cette valeur unique était celle de la configuration
+MESURÉE, que le panneau n'affichait pas.
+
+> **Faire converger deux dérivées sur une valeur ferme un désaccord. Ça ne dit rien sur
+> le fait que la valeur soit la BONNE.**
+
+Le panneau mesure donc `cfgCourante()`, toujours. Il n'y a plus qu'une configuration, donc
+plus qu'une signature, et le bouton part **avec la condition qui le justifiait**. Ce qui
+reste suffit : « Sauvegarder ce résultat » est le seul geste réel de cet écran, et la
+ligne du portefeuille garde son chiffre validé — **deux surfaces, deux faits, plus de
+péremption à arbitrer**.
+
+`cfgLigne` ne disparaît pas : il cesse d'être ce qu'on MESURE pour devenir ce à quoi la
+mesure se COMPARE (`repriseEcart`, `ecartLigne`). Le bandeau change de sujet avec lui — il
+ne dit plus « les chiffres viennent de la mesure enregistrée », il dit « ces chiffres sont
+la mesure des réglages affichés, pas celle de la ligne », avec ce qui manque nommé.
+
+**Et la seule chose réelle que le bouton savait faire ne part pas avec lui** : le recadrage
+de l'instrument quand le compte ouvert ne porte plus celui du backtest. Il se réancre sur
+la condition qui le produit (règle 14) — la suppression d'une série relance le test, comme
+le changement de compte le faisait déjà.
+
+### La garde a été ÉCRITE FAUSSE une fois, et c'est la règle 1 à l'intérieur d'elle
+
+Première forme : elle comparait `state.signature` à la signature du panneau. **Elle est
+restée VERTE sous la mutation qui remet la configuration de la ligne dans la mesure** —
+parce que la signature enregistrée est celle du panneau quoi qu'on ait mesuré.
+
+Elle demandait « la comptabilité des signatures est-elle cohérente ? » (une intention) pour
+prédire « le chiffre affiché est-il celui des réglages ? » (le résultat). **La règle 1, à
+l'intérieur d'une garde écrite contre elle** — et seule la mutation l'a dit, ce qui est
+exactement pourquoi la règle 2 existe.
+
+La forme retenue **remesure** les réglages affichés et compare les nombres. Sous la même
+mutation elle tombe alors en nommant les deux comptes : *« le panneau affiche 42 trades,
+ses réglages en produisent 37 »*. C'est l'énoncé déjà écrit plus haut — *vérifier qu'une
+mesure BOUGE n'est pas vérifier qu'elle compte JUSTE* — appliqué cette fois à la
+comptabilité qui entoure la mesure plutôt qu'à la mesure elle-même.
+
+`scripts/app/panneau-mesure-ce-quil-affiche.test.mjs` tient les deux états de reprise au
+rendu, et s'ancre sur l'ABSENCE du bouton pour attraper sa réintroduction. Son angle mort
+est en tête : elle recompte avec `cfgCourante` et `mesurer`, donc une erreur de définition
+PARTAGÉE — les deux se trompant ensemble — la laisserait verte.
+
 ## Un accord qui tient par ANNULATION D'ERREURS
 
 **C'est la voisine de la règle 15, et elle est pire.** Là, une sonde muette rend le défaut

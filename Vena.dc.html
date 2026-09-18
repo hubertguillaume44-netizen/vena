@@ -4955,19 +4955,19 @@
         <span style="font-size:12px;opacity:.8">{{ btN }} trades · {{ btAnnees }} · {{ btSymNom }}</span>
         <span style="border:1px solid currentColor;padding:2px 7px;font-size:9px;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap" title="{{ btMotifs }}">{{ btVerdict }}</span>
         <sc-if value="{{ perime }}" hint-placeholder-val="{{ false }}">
-          <span style="border:1px solid currentColor;padding:2px 7px;font-size:9px;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap">Chiffres périmés — relancez le test</span>
+          <span style="border:1px solid currentColor;padding:2px 7px;font-size:9px;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap">Mesure en cours…</span>
         </sc-if>
         <sc-if value="{{ aErreur }}" hint-placeholder-val="{{ false }}">
           <span style="border:1px solid currentColor;padding:3px 9px;font-size:11px">{{ erreur }}</span>
         </sc-if>
         <!-- ————— CE QUI MANQUE SE NOMME, « RÉGLAGES MODIFIÉS » NE SE DÉCODE PAS —————
              Cinq lignes rouvertes affichaient « sans filtre » en portant chacune un
-             filtre, sous deux étiquettes — « CHIFFRES PÉRIMÉS » et « réglages
-             modifiés » — qu'aucun lecteur ne lit comme « ces réglages ne sont pas ceux
-             qui ont produit ce chiffre ». Le bandeau dit maintenant QUOI diffère, et
-             que les chiffres affichés viennent de la mesure enregistrée. -->
+             filtre, sous deux étiquettes de péremption qu'aucun lecteur ne lit comme
+             « ces réglages ne sont pas ceux qui ont produit ce chiffre ». Le bandeau
+             dit maintenant QUOI diffère — et, depuis que le panneau mesure toujours
+             ses propres réglages, que ces chiffres décrivent l'écran et non la ligne. -->
         <sc-if value="{{ aRepriseManques }}" hint-placeholder-val="{{ false }}">
-          <span style="border:1px solid currentColor;padding:3px 9px;font-size:11px;white-space:normal;text-align:left;max-width:80ch" title="Les chiffres affichés viennent de la mesure enregistrée. Les réglages du panneau, eux, ne sont pas ceux qui les ont produits : cliquer « Mesurer » mesurerait une autre stratégie sous le même nom.">{{ repriseManquesTxt }}</span>
+          <span style="border:1px solid currentColor;padding:3px 9px;font-size:11px;white-space:normal;text-align:left;max-width:80ch" title="Le panneau mesure toujours les réglages qu'il affiche. Ce qui manque ici, c'est la configuration de la ligne : elle n'a pas été retrouvée en entier, donc ces chiffres décrivent une stratégie voisine, pas celle qui a produit ceux de la ligne. La ligne, elle, garde son chiffre validé.">{{ repriseManquesTxt }}</span>
         </sc-if>
         <sc-if value="{{ aBtCaches }}" hint-placeholder-val="{{ false }}">
           <span style="border:1px solid currentColor;padding:3px 9px;font-size:11px;white-space:normal;text-align:left;max-width:80ch" title="La fenêtre horaire homogène ne garde que les heures cotées TOUTES les années : les autres sont retirées de la série avant toute mesure. Leur extrême manque donc au moteur, alors qu'un testeur MT5 le voit sur son graphique complet. Un stop touché là n'est pas vu, et un perdant devient gagnant.">{{ btCachesTxt }}</span>
@@ -5145,7 +5145,7 @@
             <button type="button" style="cursor:pointer;border:none;background:none;padding:0;font:inherit;font-size:11px;color:var(--color-accent-700);text-decoration:underline;text-underline-offset:2px" onClick="{{ retourHisto }}" title="{{ retourHistoTxt }}">↩ retour à l'historique du scan</button>
           </sc-if>
           <sc-if value="{{ perime }}" hint-placeholder-val="{{ false }}">
-            <span style="font-size:11px;color:var(--color-accent-700)">réglages modifiés — mesurez avant de sauvegarder</span>
+            <span style="font-size:11px;color:var(--color-accent-700)">réglages modifiés — les chiffres se remettent à jour</span>
           </sc-if>
           <sc-if value="{{ aBtSauve }}" hint-placeholder-val="{{ false }}">
             <span style="font-size:11px;color:var(--color-accent-700)">rangé dans le journal des tests — page Journal</span>
@@ -5153,12 +5153,11 @@
           <div style="display:flex;gap:6px;margin-inline-start:auto">
             <button type="button" class="btn btn-ghost" style="min-height:1.7rem;font-size:11px;padding-inline:9px" onClick="{{ ouvrirSecu }}" title="{{ btSecuTxt }} {{ fraisInfo }}">Sécurisation &amp; frais…</button>
             <button type="button" class="btn btn-secondary" style="min-height:1.7rem;font-size:11px;padding-inline:9px" onClick="{{ sauverBacktest }}" disabled="{{ perime }}" title="{{ sauverBtAide }}">Sauvegarder ce résultat</button>
-            <button type="button" class="btn btn-primary" style="min-height:1.7rem;font-size:11px;padding-inline:11px" onClick="{{ lancerTest }}" disabled="{{ btMesurerNon }}" title="{{ btMesurerAide }}">Mesurer</button>
           </div>
         </div>
 
-        <!-- La signature complète de ce qui part au moteur : on la relit avant de
-             cliquer « Mesurer », et c'est elle qu'on retrouvera dans le journal — les
+        <!-- La signature complète de ce qui part au moteur : elle décrit la mesure
+             affichée au-dessus, et c'est elle qu'on retrouvera dans le journal — les
              valeurs des filtres en font partie, sinon deux mesures différentes
              deviendraient indistinguables. -->
         <div style="display:flex;flex-direction:column;gap:3px;padding:7px 15px 9px;border-top:1px solid var(--color-divider)">
@@ -13246,7 +13245,7 @@ GROUPES = {
         // MÊME valeur que les trois autres lecteurs : lire `sigCourante()` ici pendant
         // que le résultat porte la signature de la ligne rouverte rendait « ça a changé »
         // toujours vrai, donc relançait le calcul en boucle sur une ligne incomplète.
-        try { change = this.sigAMesurer() !== this.state.signature; } catch (e) {}
+        try { change = this.sigCourante() !== this.state.signature; } catch (e) {}
         if (change) setTimeout(() => this.lancerTest(), 0);
       }
     }
@@ -13266,10 +13265,9 @@ GROUPES = {
   // compte de découverte est lancé sans être attendu, et le catalogue est encore celui
   // d'avant. Il est donc appelé aux trois moments où il peut enfin trancher — après
   // l'ouverture du compte, à la fin du semis, et avant toute mesure.
-  // LA QUESTION SE POSE SANS QUE RIEN NE BOUGE. « Mesurer » se grise quand un clic
-  // ne peut RIEN changer, et le recadrage est l'autre chose qu'un clic peut faire :
-  // sans prédicat pur, le bouton aurait dû deviner (règle 1) ou recopier la
-  // condition — deux vérités qui divergent au premier catalogue qui change.
+  // IL EST PUR, ET ÇA LUI SURVIT À SON PREMIER LECTEUR. Il avait été séparé du geste
+  // pour armer un bouton ; ce bouton est parti, et la séparation reste utile — une
+  // question qu'on peut poser sans rien déplacer se pose depuis n'importe où.
   // Il rend l'instrument à poser, ou `null` s'il n'y a rien à recadrer.
   recadrageBtSym() {
     const cat = this.SYMBOLES;
@@ -13308,7 +13306,7 @@ GROUPES = {
     if (this.recadrerBtSym()) return;
     // rien n'a changé depuis le dernier calcul : ne pas recharger les séries,
     // ne pas recalculer, ne pas réécrire la session.
-    if (this.state.res && this.state.signature === this.sigAMesurer()) return;
+    if (this.state.res && this.state.signature === this.sigCourante()) return;
     this.chargerBaremes();
     this.reprendreFichierAuto();
     await this.charger(this.state.btSym);
@@ -13321,20 +13319,33 @@ GROUPES = {
     }
     if (this.state.erreur) this.setState({ erreur: null });
     const cfg = this.cfgCourante();
-    // La signature doit porter la configuration RÉELLEMENT mesurée, sinon ouvrir une
-    // ligne dont les réglages de panneau coïncident avec le test précédent sauterait le
-    // recalcul et laisserait les anciens chiffres sous le nouvel intitulé.
-    const sig = this.sigAMesurer();
+    // La signature porte la configuration réellement mesurée, qui est celle du panneau
+    // — une seule valeur, donc plus de désaccord possible entre ce qu'on enregistre et
+    // ce à quoi on le comparera.
+    const sig = this.sigCourante();
     if (sig === this.state.signature && this.state.res) return;
     // le backtest est un calcul synchrone long : on rend la main une fois avant,
     // sinon le clic d'onglet est perdu et l'interface gèle sans rien annoncer.
     await new Promise((z) => setTimeout(z, 0));
-    // Ouvert DEPUIS une ligne : on rejoue la configuration qu'elle a fait mesurer, au
-    // lieu de la reconstruire depuis le panneau. C'est la seule façon que les deux
-    // chiffres coïncident — reconstruire, c'est réunir douze réglages et espérer.
-    const cfgL = this.state.cfgLigne;
-    const cfgUtile = cfgL || cfg;
-    const trades = this.mesurer(this.state.btSym, cfgUtile, this.state.ut, df);
+    // ————— LE PANNEAU MESURE CE QU'IL AFFICHE, ET RIEN D'AUTRE —————
+    //
+    // Il mesurait `cfgLigne || cfg` : sur une ligne rouverte dont la reprise est
+    // INCOMPLÈTE, il rendait les chiffres de la configuration MESURÉE pendant que les
+    // réglages affichés en produisaient d'autres. Mesuré au rendu, sur une ligne dont
+    // seul le sens ne se reconstitue pas : **42 trades et +15,7 R affichés, 37 trades et
+    // −11,5 R produits par les réglages montrés à côté** — le signe est opposé.
+    //
+    // C'était un chiffre juste sous des réglages qui ne le produisent pas, c'est-à-dire
+    // le pire mode de panne du dépôt : une mesure fausse qui a l'air d'une mesure. Et le
+    // seul geste offert pour en sortir — « Mesurer » — était grisé là et nulle part
+    // ailleurs, parce que son prédicat trouvait le résultat à jour : il l'était, pour
+    // l'autre configuration.
+    //
+    // `cfgLigne` reste, et change de rôle : il n'est plus ce qu'on MESURE, il est ce à
+    // quoi la mesure se COMPARE (`repriseEcart`, `ecartLigne`). Un seul fait à l'écran,
+    // et la fidélité de la reprise devient une question qu'on pose au résultat au lieu
+    // d'une configuration qu'on lui substitue.
+    const trades = this.mesurer(this.state.btSym, cfg, this.state.ut, df);
     const res = this.M.resume(trades);
     const seg = this.M.segments(trades, 5);
     const courbe = this.M.courbe(trades);
@@ -13344,7 +13355,7 @@ GROUPES = {
     // chiffre : sur GOLD à paliers la bande vaut 80 R pour un total de 37, et le testeur
     // tombe à 34,5. Sans palier elle vaut 0,0 et le testeur rend le chiffre exact.
     const jumelle = this.mesurer(this.state.btSym,
-      { ...cfgUtile, sortie: { ...cfgUtile.sortie, prudent: !cfgUtile.sortie.prudent } },
+      { ...cfg, sortie: { ...cfg.sortie, prudent: !cfg.sortie.prudent } },
       this.state.ut, df);
     const totNet = (a) => a.reduce((x, t) => x + (t.R_net !== undefined ? t.R_net : t.R), 0);
     const a = totNet(trades), b = totNet(jumelle);
@@ -16281,8 +16292,9 @@ GROUPES = {
   // aucun actif sur 10 » et « Conditions : sans filtre » — alors que les cinq lignes du
   // portefeuille nomment chacune un filtre. Les compteurs, eux, correspondaient aux
   // lignes : les chiffres venaient du résultat enregistré, pas des réglages montrés à
-  // côté. Quiconque clique « Mesurer » depuis cet écran mesure une autre stratégie sous
-  // le même nom.
+  // côté. Le panneau mesure ses propres réglages depuis, ce qui retire le piège — et
+  // laisse entière la question que cette fonction tranche : la reprise a-t-elle
+  // restitué la ligne, ou une stratégie voisine ?
   //
   // LE DRAPEAU EXISTANT NE POUVAIT PAS L'ATTRAPER, et c'est encore la règle 1.
   // `varianteRatee` demandait « une source a-t-elle été trouvée ? » — `!patchV &&
@@ -17084,7 +17096,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260918.9';
+  VERSION_APP = '260918.10';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -17115,38 +17127,31 @@ GROUPES = {
     this._sigC = { cle, val };
     return val;
   }
-  // ————— LA SIGNATURE DE CE QUI SERA MESURÉ : UNE VALEUR, TROIS LECTEURS —————
+  // ————— UNE SEULE SIGNATURE, PARCE QU'IL N'Y A PLUS QU'UN FAIT À L'ÉCRAN —————
   //
-  // Le défaut : `lancerTest` ENREGISTRAIT `signature(cfgLigne || cfg)` — la
-  // configuration de la ligne rouverte — pendant que `perime()` comparait à
-  // `sigCourante()`, qui ne lit QUE le panneau. Deux configurations, jamais la même
-  // valeur, donc jamais d'accord.
+  // Trois formes successives, et la dernière est la seule qui ne demande à personne de
+  // tenir deux choses d'accord :
   //
-  // Et ce n'est pas un cas rare : une ligne dont les filtres ne se reconstituent pas
-  // depuis le panneau garde `cfgLigne` — c'est exactement la « Reprise INCOMPLÈTE » que
-  // le bandeau annonce. Sur ces lignes-là, « Sauvegarder ce résultat » restait grisé
-  // POUR TOUJOURS, après une mesure réussie, avec le message qui demandait de mesurer et
-  // l'en-tête qui affirmait que tout était à jour. Trois affirmations dont deux
-  // dérivées, et aucune ne pouvait converger.
+  //   1. la mesure enregistrait la signature de la configuration de la LIGNE pendant
+  //      que le prédicat du bouton comparait à celle du PANNEAU. Deux configurations,
+  //      jamais la même valeur — « Sauvegarder » restait grisé POUR TOUJOURS sur une
+  //      reprise incomplète, après une mesure réussie.
+  //   2. une signature intermédiaire a fait converger les quatre lecteurs sur UNE
+  //      valeur. Le désaccord était fermé, et le défaut de fond restait entier : cette
+  //      valeur était celle de la configuration MESURÉE, que le panneau n'affichait pas.
+  //   3. le panneau mesure ce qu'il affiche. Il n'y a plus qu'une configuration, donc
+  //      plus qu'une signature, et celle du panneau la porte.
   //
-  // La sortie n'est pas d'ajuster un des deux côtés : c'est qu'il n'y ait plus deux
-  // côtés. `sigAMesurer()` est LA valeur — ce que le prochain « Mesurer » calculera — et
-  // les trois lecteurs la lisent : le raccourci de `lancerTest`, l'enregistrement du
-  // résultat, et `perime()`.
+  // LA LEÇON EST DANS LE PASSAGE DE 2 À 3, pas dans celui de 1 à 2. Faire converger
+  // deux dérivées sur une valeur ferme un désaccord ; ça ne dit rien sur le fait que
+  // la valeur soit la BONNE. La sortie n'était pas d'aligner les lecteurs — c'était
+  // qu'il n'y ait plus deux configurations à départager.
   //
-  // La mémoïsation suit la même règle : `sigCourante` est mémoïsée sur les réglages,
-  // celle de la ligne sur l'IDENTITÉ de l'objet — `cfgLigne` ne change que lorsqu'on
-  // rouvre une ligne ou qu'on touche un réglage, et `maj()` le met à null dans ce cas.
-  // Sérialiser à chaque rendu était le coût que la mémo avait été écrite pour éviter.
-  sigAMesurer() {
-    const c = this.state.cfgLigne;
-    if (!c) return this.sigCourante();
-    if (this._sigL && this._sigL.cfg === c) return this._sigL.val;
-    const val = this.signature(c);
-    this._sigL = { cfg: c, val };
-    return val;
-  }
-  perime() { return !this.state.res || this.state.signature !== this.sigAMesurer(); }
+  // Le prédicat reste, et son sens a rétréci à ce qu'il sait dire : « le résultat
+  // affiché n'est pas encore celui des réglages affichés ». C'est désormais un ÉTAT
+  // TRANSITOIRE — le temps du recalcul, que `maj` déclenche à chaque réglage touché —
+  // et non plus une condition dont l'utilisateur doit sortir par un geste.
+  perime() { return !this.state.res || this.state.signature !== this.sigCourante(); }
 
   sauverBacktest() {
     const s = this.state, r = s.res;
@@ -18653,8 +18658,16 @@ GROUPES = {
     let touche = false;
     for (const nn of noms) if (mc[nn]) { delete mc[nn]; touche = true; }
     if (touche) this.ecrireCouv(mc);
+    // ————— LE CATALOGUE A RÉTRÉCI : LE PANNEAU DOIT REDÉCIDER —————
+    // Supprimer la série que le Backtest mesure retire son instrument du catalogue du
+    // compte. `recadrerBtSym` sait en choisir un autre — mais il ne tourne qu'en tête
+    // d'une mesure, et rien ici n'en déclenchait une : le panneau restait sur un
+    // instrument que le sélecteur ne propose plus. C'était la seule chose réelle que le
+    // bouton « Mesurer » savait faire, et elle se réancre ici, sur la condition qui la
+    // produit, plutôt que sur un geste que l'utilisateur devait deviner.
     this.setState((p) => ({ deposes: this.deposesApres(p.deposes, (d) => d.filter((x) => !noms.has(x))),
-      seriesRev: (p.seriesRev || 0) + 1 }));
+      seriesRev: (p.seriesRev || 0) + 1 }),
+      () => { if (this.state.vue === 'backtest') this.lancerTest(); });
     if (this.state.inventaire) await this.inventaireStockage();
     await this.mesurerPlace();
   }
@@ -24992,7 +25005,6 @@ GROUPES = {
             + (ramenes.length ? ' Ramené : ' + ramenes.join(', ')
               + ' — un palier reste sous son propre seuil (un stop posé dessus encaisserait un simple passage du cours) et ne dépasse pas le palier suivant.' : '');
         })(),
-      lancerTest: () => this.lancerTest(),
       lancerScan: () => this.lancerScan(),
       ...(() => {
         const c = s.confirmScan;
@@ -25040,7 +25052,6 @@ GROUPES = {
       arretBouton: s.scanArret ? 'Arrêt en cours…' : 'Arrêter le scan',
       aRes: !!res, erreur: s.erreur, aErreur: !!s.erreur,
       perime: !!res && this.perime(),
-      aJour: !!res && !this.perime(),
       btTotal: res ? sg(res.total, 1) + ' R' : '—',
       btN: res ? res.n : '—',
       // La durée mesurée s'écrit PARTOUT avec la même règle : « 1,3 an », « 8 mois »,
@@ -25276,9 +25287,14 @@ GROUPES = {
       btVarianteRatee: !!s.varianteRatee,
       aRepriseManques: !!(s.repriseManques && s.repriseManques.length),
       btRepriseIncertaine: !!s.repriseIncertaine,
+      // ————— LE BANDEAU A CHANGÉ DE SUJET EN MÊME TEMPS QUE LE PANNEAU —————
+      // Il disait « les chiffres viennent de la mesure enregistrée » — c'était vrai, et
+      // c'était le défaut. Le panneau mesure désormais ses réglages, toujours : ce qui
+      // reste à dire n'est plus d'où viennent les chiffres, c'est qu'ils ne décrivent
+      // PAS la ligne — et quoi, exactement, n'a pas été retrouvé.
       repriseManquesTxt: (s.repriseManques && s.repriseManques.length)
         ? 'Reprise INCOMPLÈTE — ' + s.repriseManques.join(' ; ')
-          + '. Les chiffres ci-dessus viennent de la mesure enregistrée ; les réglages du panneau ne sont pas ceux qui les ont produits.'
+          + '. Les chiffres ci-dessus sont la mesure des réglages affichés, pas celle de la ligne : la configuration de la ligne n’a pas été retrouvée en entier.'
         : '',
       aEcartLigne: !!s.ecartLigne,
       ecartLigneTxt: s.ecartLigne || '',
@@ -25357,25 +25373,23 @@ GROUPES = {
       // un bouton qui se grise doit dire pourquoi : « périmé » signifie que les réglages
       // ont changé depuis la mesure affichée
       sauverBtAide: (!!res && this.perime())
-        ? 'Les réglages ont changé depuis cette mesure : les chiffres affichés sont périmés. Relancez le test avant de sauvegarder.'
+        ? 'Les réglages viennent de changer : la mesure correspondante est en cours. Le bouton se rallume dès qu’elle tombe — il n’y a rien à relancer.'
         : 'Range ce résultat dans le journal des tests (page Journal), avec ses réglages.',
-      // ————— « MESURER » ET « SAUVEGARDER » SONT EXACTEMENT COMPLÉMENTAIRES —————
-      // `perime()` vaut « il n'y a pas de résultat, ou il ne correspond plus aux
-      // réglages ». Sauvegarder est refusé quand il est VRAI ; mesurer ne peut rien
-      // faire quand il est FAUX — `testerUneFois` sort alors sans un mot, et le bouton
-      // s'offrait quand même. Un seul des deux est vivant à chaque instant, et c'est
-      // la même mesure qui le dit : deux conditions recopiées auraient divergé.
+      // ————— LE BOUTON « MESURER » EST PARTI, ET SON PRÉDICAT AVEC —————
       //
-      // L'AUTRE CHOSE QU'UN CLIC PEUT FAIRE est le recadrage de l'instrument, quand le
-      // compte ouvert ne porte plus celui du backtest. Elle se demande au prédicat PUR
-      // (`recadrageBtSym`), pas à une intention : griser sur le seul `perime()` aurait
-      // fermé le seul geste capable de remettre la page d'aplomb après un changement
-      // de compte.
-      btMesurerNon: !this.perime() && !this.recadrageBtSym(),
-      btMesurerAide: (!this.perime() && !this.recadrageBtSym())
-        ? 'Ces chiffres sont déjà ceux de vos réglages actuels : il n’y a rien à remesurer. '
-          + 'Changez un réglage, un filtre ou l’instrument, et le bouton se rallume.'
-        : 'Mesure ce jeu de réglages sur l’instrument choisi.',
+      // Il était grisé quand un clic ne pouvait RIEN changer. Mesuré au rendu : il
+      // l'était au repos dans tous les états éprouvés, et il ne s'allumait que pendant
+      // les 260 ms de la relance différée — c'est-à-dire pendant que le calcul qu'il
+      // proposait de lancer était DÉJÀ en route. Un geste sans effet dans 100 % des cas
+      // où il était offert, et refusé dans le seul où il aurait servi : la reprise
+      // incomplète, où son prédicat trouvait le résultat à jour — il l'était, pour une
+      // configuration que le panneau n'affichait pas.
+      //
+      // L'AUTRE CHOSE QU'UN CLIC POUVAIT FAIRE était le recadrage de l'instrument quand
+      // le compte ouvert ne porte plus celui du backtest. Elle ne part pas avec le
+      // bouton : elle se réancre sur la condition qui la produit (règle 14, deuxième
+      // issue) — le changement de compte et la suppression d'une série relancent le
+      // test, et `recadrerBtSym` tourne en tête de chaque mesure.
       // La confirmation du dépôt : elle tient à la signature du résultat AFFICHÉ, donc
       // elle tombe d'elle-même au premier réglage changé comme à la mesure suivante.
       aBtSauve: !!s.signature && s.btSauve === s.signature && !this.perime(),

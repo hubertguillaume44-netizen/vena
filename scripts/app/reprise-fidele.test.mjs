@@ -3,7 +3,10 @@
 // en Backtest, les cinq panneaux affichaient « filtres · aucun actif sur 10 » et
 // « Conditions : sans filtre » alors que les cinq lignes nomment chacune un filtre. Les
 // compteurs, eux, correspondaient — donc les chiffres venaient de la mesure enregistrée,
-// pas des réglages montrés à côté.
+// pas des réglages montrés à côté. (Le panneau mesure ses propres réglages depuis —
+// voir `panneau-mesure-ce-quil-affiche` —, ce qui rend le désaccord VISIBLE au lieu de
+// le cacher : les chiffres bougent quand la reprise n'a pas tout restitué. Raison de
+// plus pour que la reprise le DISE, ce que cette garde tient.)
 //
 // ————— LA FIDÉLITÉ D'UNE REPRISE SE JUGE SUR CE QU'ELLE A RESTITUÉ —————
 //
@@ -75,9 +78,8 @@ test("une reprise qui ne restitue pas la condition de la ligne le DIT",
     assert.ok(lu.manques || lu.incertaine || lu.ratee,
       "une ligne portant une condition que la reprise ne restitue PAS n'a produit aucun "
       + "signal : ni `repriseManques`, ni `repriseIncertaine`, ni `varianteRatee`. Le "
-      + "panneau affichera « sans filtre » en silence, et un clic sur « Mesurer » "
-      + "mesurera une autre stratégie sous le même nom — le défaut rapporté sur cinq "
-      + "lignes sur cinq.");
+      + "panneau affichera « sans filtre » en silence, et mesurera une stratégie voisine "
+      + "sous le nom de la ligne — le défaut rapporté sur cinq lignes sur cinq.");
 
     // ————— ET LE SIGNAL DOIT ÊTRE LISIBLE, PAS SEULEMENT PRÉSENT —————
     // Un drapeau posé dans l'état ne vaut rien s'il ne devient pas une phrase : c'est
