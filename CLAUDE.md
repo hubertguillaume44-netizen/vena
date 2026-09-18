@@ -1769,6 +1769,24 @@ faux dès le lendemain — puis aurait basculé en alerte sans action possible. 
 date absolue, « 2023 → 11/09/2026 · fenêtre fixe », encre neutre, décidée AVANT le seuil
 relatif. Un « seul » se périme sans bruit : compter, pas jurer.
 
+**Et ça vaut pour les ORDINAUX, ce que l'énoncé ne disait pas.** « La troisième instance
+de cette forme » a été écrite sans avoir été comptée ; comptée sur la table fondatrice,
+c'était la cinquième. Un ordinal est **pire qu'un cardinal**, et pour une raison de
+grammaire plutôt que d'arithmétique :
+
+> **Un nombre placé dans le PRÉDICAT se fait vérifier ; un nombre placé dans une
+> APPOSITION ne se fait pas vérifier.** « Il y a trois instances » est la phrase, donc
+> son sujet ; « la troisième instance de … » est un qualificatif, et c'est la
+> proposition principale qu'on relit.
+
+C'est la même figure que la réserve placée SOUS une affirmation (règle 9, plus bas) : ce
+qu'on lit d'un bloc de prose dépend d'où c'est écrit, pas de si c'est écrit. Ici la
+phrase principale était juste et le chiffre incident était faux de deux — personne
+n'audite un complément du nom.
+
+Le geste coûte une commande : un ordinal se compte avant de s'écrire, ou il se remplace
+par ce qu'on sait vraiment (« une de plus », « encore une fois ») qui ne promet rien.
+
 **Mais elles n'en portent pas le MOT** : le verdict est « fenêtre fixe » — voir « Quand
 l'explication doit contredire l'étiquette » plus haut. Ce paragraphe a d'abord dit
 l'inverse (« c'est voulu, ce n'est pas un défaut à corriger ») et il avait tort : le seuil
