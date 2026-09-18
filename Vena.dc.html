@@ -11390,6 +11390,68 @@ GROUPES = {
     return { mode: (x && x.m) || 'tout', debut, fin,
       complete: debut <= this.DEBUT && !fin };
   }
+  // ————— CE QU'ON SAIT DE CETTE LIGNE, ET RIEN DE PLUS —————
+  //
+  // La question du produit au moment d'exporter est « ce robot fera-t-il ce que cette
+  // ligne annonce ? ». Trois faits la prédisaient sur neuf instruments rejoués, et les
+  // trois vivaient déjà dans l'application, SÉPARÉMENT — donc lisibles par personne
+  // ensemble, au moment où la promesse se fait.
+  //
+  //   bougies retirées par la fenêtre horaire   0 sur les six concordants, ~900 sur les deux divergents
+  //   durée du résultat                          6,5–6,6 ans quand ils concordent
+  //   reprise fidèle                             INCOMPLÈTE sur les trois non comparables
+  //
+  // LE MOT « VALIDE » EST INTERDIT ICI, et c'est la règle du statut appliquée à un écran
+  // que voit un client. Ce qu'on a est une CORRÉLATION sur neuf instruments, un seul
+  // courtier, un seul compte, mesurée sur le poste de l'utilisateur — pas une loi. Une
+  // phrase qui dirait « valide » promettrait ce qu'aucune mesure ne soutient. L'énoncé
+  // porte donc son ÉCHANTILLON : sans lui il redevient un verdict.
+  //
+  // ET LE MOT « SÉANCE » N'APPARAÎT PAS SUR LES ÉCARTÉES. Le brief l'écrivait « bougies
+  // hors séance » ; c'est précisément la confusion que `fenetre-nest-pas-seance` interdit
+  // depuis qu'elle a disculpé à tort la règle de séance du moteur. Ces bougies sont
+  // RETIRÉES de la série par la fenêtre horaire homogène — une autre population, un autre
+  // mécanisme.
+  //
+  // TROIS ÉTATS ET NON DEUX : « rien à signaler » et « pas mesurable » ne s'écrivent pas
+  // pareil. Une série non chargée n'a pas de `diag`, et annoncer zéro y serait une
+  // disculpation qu'aucune mesure ne soutient — la leçon de `cachesDispo`, au même
+  // endroit du raisonnement.
+  reservesExport(v) {
+    const sym = v.ticker || v.sym;
+    const out = [];
+    const d = this.diag && this.diag[sym];
+    if (!d) {
+      out.push('Les bougies de cet instrument ne sont pas chargées : Véna ne peut pas '
+        + 'dire ici combien la fenêtre horaire en retire. Ouvrez la ligne en Backtest '
+        + 'pour le voir — annoncer zéro sans avoir regardé serait une disculpation.');
+    } else if (d.ecartees > 0) {
+      out.push('Cette série porte ' + d.ecartees.toLocaleString('fr-FR') + ' bougies '
+        + 'RETIRÉES par la fenêtre horaire homogène — elles n\u2019entrent dans aucune '
+        + 'mesure. Sur les deux instruments dans ce cas parmi neuf rejoués, le testeur '
+        + 'MT5 a rendu 7 à 11 points de réussite EN MOINS que Véna. C\u2019est une '
+        + 'corrélation sur neuf instruments chez un seul courtier, pas une règle.');
+    }
+    // la reprise : le critère est celui dont le Backtest tire déjà `varianteRatee`
+    if (!this.cfgDeLigne(v)) {
+      out.push('La configuration exacte de cette ligne ne se retrouve pas : le robot '
+        + 'serait bâti sur des réglages qui ne sont pas ceux mesurés. Cette ligne '
+        + 'n\u2019est pas reproductible en l\u2019état.');
+    }
+    // la durée : la mesure contre ce que la série porte
+    const cv = (this.lireCouv() || {})[sym];
+    const an = (ms) => ms / (365.25 * 86400000);
+    if (cv && cv.t0 && cv.t1 && v.t0 && v.t1) {
+      const mes = an(v.t1 - v.t0), serie = an(cv.t1 - cv.t0);
+      if (serie > 0.5 && mes < serie * 0.75) {
+        out.push('La mesure de cette ligne couvre ' + mes.toFixed(1).replace('.', ',')
+          + ' ans quand la série en porte ' + serie.toFixed(1).replace('.', ',')
+          + '. Un robot lancé sur toute la série ne rejoue pas la même période, et '
+          + 'comparer deux périodes différentes ne compare rien.');
+      }
+    }
+    return out;
+  }
   fenPlate(fen) { return { m: fen.mode, d: fen.debut, f: fen.fin }; }
   // La fenêtre d'une LIGNE. Les scans faits avant cette version n'en portent pas : ils
   // sont réputés « tout l'historique », et rien de ce qu'ils affichent ne change.
@@ -16398,7 +16460,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260918.4';
+  VERSION_APP = '260918.5';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -26330,7 +26392,17 @@ GROUPES = {
                   + 'le robot cherche le taux, l\u2019applique et l\u2019imprime au '
                   + 'journal ; s\u2019il ne trouve aucune paire, il refuse d\u2019entrer '
                   + 'plutôt que de risquer une fraction de ce que vous demandez. '
-                  + 'Lisez la première ligne du journal du test.' };
+                  + 'Lisez la première ligne du journal du test.'
+                  // ————— CE QU'ON SAIT DE CETTE LIGNE-CI, APRÈS CE QUI VAUT POUR TOUTES —————
+                  // Les réserves viennent en second parce qu'elles peuvent être VIDES :
+                  // une ligne sans rien à signaler ne doit pas ouvrir sur un blanc.
+                  + ((r) => (r.length
+                    ? '\n\nCE QU\u2019ON SAIT DE CETTE LIGNE — ' + r.join(' ')
+                      + '\n\nVÉRIFIÉ CONTRE LE TESTEUR ? Non pour cette ligne. Les '
+                      + 'repères ci-dessus viennent de neuf instruments rejoués chez UN '
+                      + 'courtier, sur UN compte, mesurés hors de Véna. Ils indiquent où '
+                      + 'regarder ; ils n\u2019attestent rien.'
+                    : ''))(this.reservesExport(v)) };
           })(),
           dragStart: (e) => {
             if (e.dataTransfer) e.dataTransfer.setData('text/plain', sym);

@@ -2588,6 +2588,87 @@ vérifiable, et suivie du geste qui la tranche : lire la première ligne du jour
 test, qui dit lequel des trois cas s'est produit — converti (avec le taux), refusé (avec
 la paire manquante), ou rien à convertir.
 
+## Le bouton Exporter porte ce qu'on sait de la ligne — et pas un verdict
+
+**STATUT · INSTRUMENTATION, AUCUNE CAUSE PRÉTENDUE.** Rien n'est réparé : trois faits que
+l'application possédait déjà **séparément** sont rendus lisibles **ensemble**, à l'endroit
+où la promesse se fait. La corrélation qu'ils portent est **RAPPORTÉE** — neuf instruments,
+un seul courtier, un seul compte, mesures hors du dépôt.
+
+La question du produit est *« ce robot fera-t-il ce que cette ligne annonce ? »*, et trois
+faits l'ont prédite sur neuf instruments rejoués :
+
+| le critère | les 6 concordants | les 2 divergents | les 3 non comparables |
+|---|---|---|---|
+| bougies retirées par la fenêtre horaire | 0 | ~900 | — |
+| durée du résultat | 6,5–6,6 ans | 6,6 ans | 3,4 à 4,9 ans |
+| reprise fidèle | fidèle | fidèle | **INCOMPLÈTE** |
+
+Chacun vivait sur un écran différent — donc lisible par personne ensemble, au moment qui
+compte. `reservesExport(v)` les réunit dans l'infobulle du bouton, et **rend vide quand il
+n'y a rien à dire** : une ligne sans réserve ne doit pas ouvrir sur une phrase qui rassure.
+
+### « Valide » est interdit, et l'énoncé porte son ÉCHANTILLON
+
+C'est la règle du statut appliquée à un écran que voit un **client**. Ce qu'on a est une
+corrélation sur neuf instruments chez un courtier ; « valide » promettrait une loi. La
+formule est **« vérifié contre le testeur » ou « non vérifié »**, suivie de son
+échantillon — *neuf instruments, un courtier, un compte* — sans quoi « le testeur rend 7 à
+11 points en moins » se lit comme une règle.
+
+> **Une ligne de statut fausse est pire que pas de ligne du tout**, et ça ne change pas
+> parce que le lecteur est un client plutôt qu'un développeur.
+
+**Et la phrase qui NIE le mot ne peut pas l'épeler.** Premier jet : « ils ne valident
+rien ». La garde l'a refusé et elle avait raison — son interdit est **absolu**, sans quoi
+il faudrait lui apprendre à distinguer l'affirmation de la négation, puis le cas suivant.
+C'est le motif de plus que la règle 3 refuse. **Le texte a changé de mot, pas la garde
+d'exception** : « ils n'attestent rien ».
+
+### Trois occasions de se tromper, et les trois étaient déjà écrites dans ce fichier
+
+Cet écran a fait mordre trois pièges que le dépôt avait documentés **avec leur sortie**, et
+les trois se sont réglés en appliquant ce qui était écrit plutôt qu'en inventant :
+
+| ce qui a mordu | ce que le dépôt disait déjà |
+|---|---|
+| le brief écrivait « bougies **hors séance** » | `fenetre-nest-pas-seance` : ce n'est PAS la séance — elles sont RETIRÉES de la série |
+| l'échantillon coupé par le formateur (`… chez UN ' + 'courtier …`) | **troisième** fragmentation en littéraux : le seuil écrit d'avance disait de **concaténer avant de lire**, et c'est fait |
+| l'apostrophe en échappement (`\u2019`) invisible à un motif portant le vrai caractère | `sorties-hors-seance` : s'ancrer sur un fragment **sans** apostrophe |
+
+**Le deuxième est le plus instructif** : le seuil disait *« si le cas revient une troisième
+fois, la conclusion n'est pas un troisième `prettier-ignore` — c'est de concaténer les
+littéraux adjacents avant de lire »*. Il est revenu, et la prise a changé de forme : elle
+cesse d'être « le texte tel qu'il est écrit » pour devenir **« le texte tel qu'il est
+rendu »**, et la façon dont il est coupé cesse d'exister pour la garde.
+
+`scripts/app/exporter-dit-ce-quon-sait.test.mjs` tient les mots et les trois états —
+éprouvé par mutation, réintroduire « validee » la fait tomber. **Son angle mort est en
+tête** : elle ne peut pas vérifier que la corrélation citée est encore vraie. Elle vient
+de neuf rejeux hors dépôt, et si un dixième instrument la cassait, rien ici ne rougirait.
+*C'est précisément pourquoi la phrase porte son échantillon plutôt qu'un verdict : le
+texte dit ce qu'il est, faute de pouvoir être gardé.*
+
+### Et le dossier MT5 se ferme ici, sans le rejeu court
+
+Six candidats sont morts, **chacun par une mesure** : les paliers (0 % d'ambigus sans
+sécurisation), le compteur de `releve` (mort par son propre dénominateur), les trois formes
+du terme de 10 R (qui n'existait pas), le début de semaine (même règle, même horloge), la
+qualité à 96 % (identique au centime), et l'ordre des extrêmes (la bande dépasse
+l'amplitude d'une H1).
+
+**Et l'arbitre s'est récusé lui-même** : `50 249 tick prices mismatch` entre l'historique de
+tiques de FxPro et ses propres bougies M1, sur le même symbole. Le testeur se contredit de
+plus que l'écart qu'on lui demandait de trancher.
+
+**`ecartees` reste le meilleur prédicteur du chantier — et n'a plus aucun mécanisme.**
+Zéro sur les six concordants, ~900 sur les deux divergents, sans exception ; et le
+mécanisme qu'il suggérait est mort par son propre compteur, vérifié juste. C'est la
+famille « une grandeur qui classe bien n'est pas celle du mécanisme », mesurée **jusqu'au
+bout** pour la première fois : elle reste **utilisable comme signal et interdite comme
+explication**, et c'est ce que l'infobulle en dit — elle indique où regarder, elle
+n'atteste rien.
+
 ## Un accord qui tient par ANNULATION D'ERREURS
 
 **C'est la voisine de la règle 15, et elle est pire.** Là, une sonde muette rend le défaut
