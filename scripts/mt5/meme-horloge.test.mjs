@@ -90,8 +90,21 @@ test("les quatre maillons lisent la même horloge, et c'est celle du SERVEUR", (
   // 3 · lireCsv range cette horloge murale dans un champ UTC — sans la convertir
   assert.match(MOTEUR, /const ms = Date\.UTC\(an, mois - 1, jour, \+\(hm\[0\] \|\| 0\), \+\(hm\[1\] \|\| 0\)\);/,
     "`lireCsv` ne range plus l'horodatage tel quel. S'il se mettait à interpréter un "
-    + "fuseau, l'heure du serveur cesserait de ressortir de `getUTCHours()` et les deux "
-    + "règles de début de semaine se désaccorderaient — sans qu'aucune des deux change.");
+    + "fuseau, l'heure du serveur cesserait de ressortir de `getUTCHours()`, les deux "
+    + "règles de début de semaine se désaccorderaient — sans qu'aucune des deux change — "
+    + "et le seau D1 cesserait d'être le jour calendaire du courtier.\n\n"
+    // ————— ET LE GESTE JUSTE N'EST PAS CELUI QUI VIENT À L'ESPRIT —————
+    // Une garde de convention doit ENSEIGNER la convention : quelqu'un arrive ici de
+    // bonne foi, voit un `Date.UTC` posé sur une heure qui n'est pas UTC, et le corrige.
+    // Le message doit donc dire ce qu'il faut faire À LA PLACE, et pas seulement ce qui
+    // est interdit — sinon il se lit comme un veto, et un veto se contourne.
+    + "LE GESTE N'EST PAS DE CORRIGER CETTE LIGNE. Si une vraie conversion de fuseau "
+    + "devient nécessaire un jour, la convention se rend d'abord EXPLICITE : on nomme "
+    + "l'horloge — « heure serveur du courtier » — partout où elle est lue, jusque dans "
+    + "les identifiants, pour que le lecteur suivant sache qu'il n'y a rien à convertir. "
+    + "Un commentaire ne suffira pas, un NOM si : c'est la leçon de `sessionInfo` devenu "
+    + "`fenetreHeuresInfo`. Convertir ici sans avoir renommé ailleurs casse un accord qui "
+    + "tient par annulation de deux erreurs, et rien d'autre ne rougira.");
   // 4 · et `executable` la ressort telle quelle
   const exe = MOTEUR.slice(borne(MOTEUR, "  const executable = (i) => {"),
     borne(MOTEUR, "  // Plafond de spread"));

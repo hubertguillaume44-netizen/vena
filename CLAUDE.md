@@ -2308,19 +2308,48 @@ qu'aucun test ne rougisse. `scripts/mt5/meme-horloge.test.mjs` lie les quatre ma
 comme `manifeste-version` liait trois chemins : le défaut ne serait dans aucun d'eux pris
 isolément, il serait dans leur **désaccord**.
 
-##### Et le rapport porte un chiffre que les quatre robots concordants n'avaient pas
+##### Le cinquième candidat — la qualité à 96 % — est RÉFUTÉ
 
-**Qualité historique : 96 %**, contre les **99 %** des quatre rejeux qui donnaient
-« quasiment le même nombre de trades que Véna ». Sur 29 988 barres, quatre points de
-qualité font de l'ordre de **1 200 barres modélisées** — et une barre modélisée porte un
-haut et un bas SYNTHÉTIQUES, c'est-à-dire exactement ce qui décide qu'un stop ou un
-objectif est touché. Douze trades sur 161 font 7,5 % ; la modélisation en touche 4 %.
+**PROVENANCE · RAPPORTÉE.** Il avait été posé comme « ordre de grandeur compatible, pas
+mesure » : 4 % de barres modélisées contre 7,5 % de trades à faire basculer, et une barre
+modélisée porte des extrêmes synthétiques. L'épreuve écrite d'avance était de relancer en
+qualité 99 %.
 
-**Ce n'est pas une mesure, c'est un ordre de grandeur compatible**, et il est écrit ici
-comme tel — la règle 9 vaut pour les candidats autant que pour les gardes. Il se tranche
-sans rejeu de six ans : **le même robot relancé en qualité 99 %**, sur le même instrument,
-rendrait la réussite sous les deux modélisations. Si elle ne bouge pas, ce candidat meurt
-comme les trois autres ; si elle remonte vers 51 %, l'écart n'était jamais dans le moteur.
+M1 téléchargé — **1 956 665 bougies depuis le 2 janvier 2019**, bien au-delà de la période
+testée, écrites par l'export du dépôt. Rejeu : **qualité 96 %, net +3 422,35, 29 988
+barres — identiques au centime**, barre de qualité verte sur toute la durée. Les trous
+sont diffus et ce sont ceux de l'historique réel du courtier. Le candidat meurt comme les
+quatre autres.
+
+##### La sixième piste — la MODÉLISATION du testeur — se coupe en deux, et une moitié est déjà morte
+
+Le rapport porte « Délais : pas de latence, exécution idéale » et **« Modélisation :
+1 minute OHLC »**. En ce mode, MT5 ne connaît pas le chemin du prix dans la minute : il le
+synthétise. L'idée est donc que **les deux côtés devinent**, chacun à sa granularité.
+
+**La moitié « ordre des extrêmes » est réfutée DANS LE DÉPÔT, sur cette configuration
+exacte.** `lecture-ambigue` mesure les quatre couples SL/RR des lignes rapportées — dont
+**0,7/1,5, celui du robot HongKong50** — sur les dix familles, sans palier : **zéro bougie
+ambiguë**, et la raison est une magnitude, pas un hasard de série. La bande stop→objectif
+vaut 1,75 % du cours et **dépasse l'amplitude d'une H1**.
+
+> **Si aucune H1 ne contient les deux niveaux, aucune M1 qu'elle contient ne les contient
+> non plus.** L'ordre à l'intérieur de la minute ne peut donc arbitrer entre stop et
+> objectif ni chez Véna, ni chez MT5. Et les extrêmes d'une M1 sont RÉELS dans les deux
+> modes — « chaque tique » n'ajoute aucun extrême, il n'ajoute qu'un chemin. *Le fait
+> qu'un niveau soit touché est identique ; seul l'ordre change, et l'ordre ne décide de
+> rien ici.*
+
+**La moitié qui reste vivante est le PRIX D'ENTRÉE, et c'est elle que le rejeu teste.** En
+« 1 minute OHLC », `OnTick` ne se déclenche qu'aux quelques tiques synthétisées de chaque
+minute ; le contrôle de spread (`InpSpreadMaxPct`) et le remplissage tombent donc à des
+instants et des prix différents. Stop et objectif étant des POURCENTAGES du prix d'entrée,
+une entrée décalée déplace les deux niveaux — et fait basculer les trades marginaux. Douze
+sur 161 est exactement l'ordre de grandeur d'un effet de bord d'entrée.
+
+**Ce que le rejeu « tiques réelles » tranchera, et ce qu'il ne tranchera pas :** il mesure
+l'effet du prix d'entrée. Il ne mesure pas l'ordre des extrêmes, qui est déjà réfuté — donc
+**un résultat inchangé ne renvoie pas la piste à l'ordre**, il la ferme entière.
 
 ### Le candidat précédent est mort par son propre dénominateur
 
@@ -2504,6 +2533,26 @@ posée dans `lireCsv` les emporterait toutes ensemble.
 compagnie du suivant ?* Quand la réponse est « en compagnie », l'accord se documente à
 l'endroit où il se produit — dans une garde qui lit les deux — et jamais dans un
 commentaire posé sur l'un des deux, qui sera lu comme une excuse pour un défaut local.
+
+### Et si une vraie conversion devient nécessaire : on NOMME avant de convertir
+
+C'est le geste à faire le jour où quelqu'un aura une raison d'interpréter un fuseau, et il
+n'est pas celui qui vient à l'esprit. **Le réflexe est de corriger `lireCsv` ; c'est
+exactement ce qui casse.**
+
+L'ordre est l'inverse : la convention se rend d'abord **explicite**, en nommant l'horloge —
+*heure serveur du courtier* — partout où elle est lue, **jusque dans les identifiants**. Le
+lecteur suivant sait alors qu'il n'y a rien à convertir, et la conversion, si elle reste
+nécessaire, se pose sur une chaîne dont chaque maillon dit ce qu'il porte.
+
+> **Un commentaire ne suffira pas ; un nom, si.** C'est la leçon de `sessionInfo` devenu
+> `fenetreHeuresInfo` : un champ qui nomme mal ce qu'il porte coûte plus cher qu'un champ
+> absent, et un commentaire qui explique une convention ne se lit qu'après qu'on l'a
+> enfreinte.
+
+La consigne vit aussi **dans le message de `meme-horloge`**, parce que c'est là qu'elle
+arrive au moment où elle sert — une garde de convention doit ENSEIGNER la convention, pas
+opposer un veto, et un veto se contourne.
 
 ## Une sonde dont l'échec est silencieux par conception se garde ailleurs
 
