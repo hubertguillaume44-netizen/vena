@@ -3207,6 +3207,42 @@ rendu, et s'ancre sur l'ABSENCE du bouton pour attraper sa réintroduction. Son 
 est en tête : elle recompte avec `cfgCourante` et `mesurer`, donc une erreur de définition
 PARTAGÉE — les deux se trompant ensemble — la laisserait verte.
 
+**Et c'est la bonne forme pour une raison qui se dit en une ligne** : *un recompte ne peut
+pas hériter de l'erreur qu'il vérifie.* Une garde qui relit la comptabilité autour d'une
+mesure partage le raisonnement qu'elle contrôle ; une garde qui refait la mesure ne
+partage que ses entrées. C'est ce qui délimite exactement son angle mort, et pourquoi
+celui-ci se réduit à l'erreur de définition PARTAGÉE — le seul reste possible.
+
+#### L'instrument commet la règle 1 plus souvent que le produit — compté, pas juré
+
+On a d'abord dit « troisième instance de la règle 1 dans une garde écrite contre elle ».
+Un « troisième » se périme sans bruit : compté sur la table fondatrice de la règle 1,
+plus haut, c'est le **cinquième**, et la répartition compte plus que le rang :
+
+| ce qui commettait la règle 1 | ce que c'est |
+|---|---|
+| la garde d'étanchéité (« le générateur écrit-il ? ») | outillage |
+| la sonde accrochée à la liste vide | outillage |
+| le semis de mesure | outillage |
+| la garde du tarif gelé | outillage |
+| `this.essai`, `aMoi` | produit |
+
+**Quatre des six instances fondatrices vivent dans l'outillage, deux dans le produit** —
+et la cinquième du côté outillage vient de s'ajouter. La frontière du compte est écrite,
+puisqu'elle décide : on y range ce qui MESURE (garde, sonde, semis), pas ce qui décide
+dans le produit.
+
+Ce n'est pas une ironie, c'est structurel, et ça se dit sans métaphore : **une garde est
+écrite APRÈS le code qu'elle surveille, donc en connaissant son mécanisme — et c'est
+précisément ce qui rend un proxy plausible disponible.** Le produit, lui, doit inventer sa
+question ; la garde en hérite une toute faite, celle du code qu'elle vient de lire. La
+comptabilité des signatures était sous les yeux, elle était vraie, et elle avait l'air de
+répondre.
+
+> **Le proxy le plus tentant, pour une garde, est le mécanisme de ce qu'elle garde.** La
+> question à se poser en l'écrivant : *est-ce que je vérifie le RÉSULTAT, ou la façon
+> dont il a été obtenu ?* La seconde passe quand le mécanisme est cohérent et faux.
+
 ## Un accord qui tient par ANNULATION D'ERREURS
 
 **C'est la voisine de la règle 15, et elle est pire.** Là, une sonde muette rend le défaut
