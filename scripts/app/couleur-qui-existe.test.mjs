@@ -26,6 +26,26 @@
 // ne mesure QUE les trois bandeaux d'en-tête du portefeuille : les treize autres fonds
 // posés en `--color-neutral-100` ailleurs dans l'application ne sont pas dans sa portée,
 // et plusieurs sont dans le même cas — c'est relevé, pas corrigé.
+//
+// ————— ET LE SEUIL EST ÉCRIT, PARCE QU'UN ANGLE MORT DÉCLARÉ A UNE DATE —————
+//
+// La portée de la seconde est un LIEU — « les trois bandeaux du portefeuille » —, et un
+// lieu ne se généralise pas, il se déplace (règle 8). La PROPRIÉTÉ qu'elle mesure, elle,
+// est déjà écrite dans son corps : *ce fond teinte-t-il ce qu'il recouvre ?* Elle vaut
+// pour tout fond posé sur une carte, pas seulement pour un en-tête de section pliable.
+//
+// Le jour où le sujet revient, il n'y a donc rien à inventer : la prise est la même —
+// la luminance contre celle de la première couleur DIFFÉRENTE au-dessus —, et ce qui
+// change est la découverte des éléments à mesurer, qui cesse d'être `button.tete.carte`
+// pour devenir « tout élément dont le fond calculé n'est pas transparent, à l'intérieur
+// d'une carte ». Son coût est un faux refus à prévoir (règle 16) : une pastille, une
+// case de matrice de corrélation ou un témoin de légende sont des fonds VOULUS proches
+// de leur voisin, et les prendre pour des bandeaux ratés désarmerait la garde le premier
+// jour. C'est ce tri-là qui reste à faire, pas la mesure.
+//
+// On ne le fait pas maintenant, et c'est une décision, pas un oubli : treize fonds
+// touchés d'un coup sur des écrans qui n'ont pas été mesurés, c'est la façon ordinaire
+// dont un correctif introduit un défaut.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync, readdirSync } from "node:fs";

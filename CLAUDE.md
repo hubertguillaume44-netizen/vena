@@ -2946,6 +2946,20 @@ posés en `--color-neutral-100` ; plusieurs sont dans le même cas et ne teinten
 garde ne couvre que les trois bandeaux d'en-tête du portefeuille — c'est écrit dans sa
 tête, et c'est une file, pas une panne.
 
+**Et le seuil de sa généralisation est écrit avec elle**, parce qu'un angle mort déclaré a
+une date de péremption et qu'il ne sert que si la note dit quoi remplacer. Sa portée est
+un LIEU — « les trois bandeaux du portefeuille » —, et un lieu ne se généralise pas, il se
+déplace (règle 8). La PROPRIÉTÉ, elle, est déjà dans son corps : *ce fond teinte-t-il ce
+qu'il recouvre ?* Le jour où le sujet revient, la prise ne change pas — seule la
+découverte des éléments cesse d'être `button.tete.carte` pour devenir « tout fond non
+transparent posé dans une carte ».
+
+**Son coût est un faux refus à prévoir** (règle 16), et c'est ce tri-là qui reste à faire,
+pas la mesure : une pastille, une case de matrice de corrélation, un témoin de légende
+sont des fonds VOULUS proches de leur voisin. Les prendre pour des bandeaux ratés
+désarmerait la garde le premier jour. Et toucher les treize d'un coup sur des écrans
+qu'on n'a pas mesurés est la façon ordinaire dont un correctif introduit un défaut.
+
 ## Une grille dont les colonnes portent du sens compte ses cellules
 
 **STATUT · CAUSE ÉTABLIE — symptôme RAPPORTÉ sur `260918.7`, cause relue DANS LE DÉPÔT.**
