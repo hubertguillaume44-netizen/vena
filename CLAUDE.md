@@ -3403,6 +3403,95 @@ pour une valeur que « Remesurer les lignes » recalcule en une passe — le co�
 sans rapport avec ce qui a bougé. **C'est un arbitrage, pas une évidence**, et il se
 relit : le jour où une règle de DÉCISION changera, la réponse sera l'inverse.
 
+## Une intersection est fixée par sa ligne la plus courte, et elle doit la NOMMER
+
+**STATUT · CAUSE ÉTABLIE — symptôme RAPPORTÉ, mécanisme et correctif MESURÉS DANS LE
+DÉPÔT.** Le bilan annonçait *« + 89,7 R / an · sur les 1,0 ans où les 14 lignes
+tournaient ensemble »*. Le correctif de la fenêtre commune était juste, et il venait de
+produire **un chiffre annualisé depuis douze mois d'observation sur quatorze
+stratégies**.
+
+> **Ce n'est pas plus fiable que la somme brute — c'est DIFFÉREMMENT peu fiable.** Et la
+> note ne portait que la seconde réserve.
+
+La cause est mécanique : la fenêtre commune est une **intersection**, donc la ligne la
+plus courte la fixe pour toutes les autres.
+
+| période mesurée | |
+|---|---|
+| Bitcoin / Dollar US | 03/2022 → 08/2026 |
+| Dollar australien / Dollar US | 01/2020 → 10/2023 |
+| les douze autres | 01/2020 → 09/2026 |
+
+Ces deux-là ne se recouvrent que sur ~1,6 an. **Douze lignes mesurées sur 6,7 ans
+voyaient leur agrégat réduit à la fenêtre où deux voisines coexistent.**
+
+### Trois manques, et aucun n'est un calcul
+
+**1 · Le NOM des lignes qui bornent.** `fenetreCommune` rend désormais `borneBas` (celle
+qui commence le plus tard) et `borneHaut` (celle qui s'arrête le plus tôt) — les deux
+seules dont l'écartement élargit la fenêtre. Elles peuvent être la **même** ligne, et le
+texte le dit alors au singulier : annoncer « les 2 lignes » décrirait un geste qui
+n'existe pas.
+
+> **Sans le nom, le chiffre est SUBI ; avec le nom, il devient une décision.**
+
+**2 · Le refus d'annualiser sous deux ans.** `SEUIL_ANNUALISER` : en dessous, le grand
+chiffre devient le **R cumulé** et la sous-ligne dit pourquoi. C'est un arbitrage écrit
+comme tel — deux ans est le minimum pour qu'une fenêtre porte deux saisons de la plupart
+des régimes. **Il ne cache rien** : le R cumulé et la fenêtre restent à l'écran, c'est
+leur RAPPORT qui est retenu. Et tout ratio qui divise par le temps en hérite — le
+rendement par unité de creux affichait « excellent » sur douze mois.
+
+**3 · Le geste, avec son effet annoncé AVANT le clic.** « écarter du bilan les 2 lignes
+qui bornent la fenêtre → 6,7 ans ». La fenêtre d'après est calculée pour être écrite sur
+le bouton : *un geste qui ne dit pas ce qu'il donne demande de parier sur son propre
+effet.* Il ne s'offre que s'il élargit réellement et s'il laisse deux lignes à croiser.
+
+**Écarter du BILAN n'est pas retirer du portefeuille.** La ligne garde sa rangée, son
+robot et son chiffre ; elle cesse seulement d'entrer dans les quatre calculs d'ensemble.
+Les confondre ferait **détruire une ligne pour lire un agrégat**. Le geste inverse prend
+le même chemin — une porte qui ne s'ouvre que dans un sens fait d'un réglage une
+suppression.
+
+**Et `pfEcart` EST restauré avec la session, sur le critère déjà écrit** pour
+`familleFiltre` : il change le grand chiffre, donc il pourrait être de la même famille —
+ce qui le sauve n'est pas son innocuité, c'est qu'il **SE MONTRE**. Le bandeau nomme en
+permanence les lignes écartées et offre de les reprendre. *Le réglage dangereux n'était
+pas le réglage restauré, c'était le silence.*
+
+### Une fenêtre CHOISIE est un réglage, pas un fait de marché
+
+AUDUSD était mesuré jusqu'en 10/2023 alors que ses bougies vont jusqu'en 09/2026. Ce
+n'est ni les données ni l'extinction : c'est la fenêtre portée par sa **configuration**.
+La ligne le dit désormais — « mesuré sur 2020–2023 · fenêtre choisie, pas toute la
+série » — et c'est un fait de nature différente de « dernier trade en 06/2023 », qui se
+lisait pareil.
+
+**ET LA PREMIÈRE VERSION LE DEVINAIT, ce qui était la règle 1.** Elle comparait la
+fenêtre mesurée à la couverture des bougies avec un seuil en jours : une intention
+(« ces dates ont-elles l'air rognées ? ») pour un résultat (« la ligne porte-t-elle une
+fenêtre de mesure ? »). Et l'amorce de 400 jours aurait faussé la borne basse. **Le
+réglage existe et se lit** : `fenetreDeLigne(v).complete` répond directement.
+
+### Trois comptes voisins sont trois sujets
+
+« 15 lignes · reste à faire — 14 à tester, 1 à contrôler », « les 14 lignes tournaient
+ensemble » et « Exporter les robots (14) » cohabitaient sans dire ce que chacun compte :
+on y lit une incohérence là où il y a trois questions. Le deuxième nomme désormais le
+sien — les lignes **MESURABLES**. Et « 12 paris · A et B comptent pour un · et 1 de
+plus » nomme le troisième comme les deux autres : la liste ne s'élide qu'au quatrième.
+
+`scripts/app/fenetre-commune-se-nomme.test.mjs` tient les cinq. **Sa prise est
+l'effondrement lui-même** : le semis doit rendre une fenêtre sous deux ans, sinon rien de
+ce qui suit ne mord. Éprouvée par deux mutations — inverser le sens de la borne haute
+fait tomber la prise en nommant la durée obtenue, éteindre le refus d'annualiser fait
+tomber le troisième.
+
+**Son angle mort est en tête** : elle tient QUI borne et CE QUE le geste promet, pas que
+deux ans soit le bon seuil. C'est un arbitrage, et aucune garde ne peut le valider — ce
+qu'elle interdit, c'est qu'il redevienne implicite.
+
 ## Un accord qui tient par ANNULATION D'ERREURS
 
 **C'est la voisine de la règle 15, et elle est pire.** Là, une sonde muette rend le défaut

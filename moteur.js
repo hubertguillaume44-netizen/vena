@@ -2627,6 +2627,7 @@ export function fenetreCommune(lignes) {
   for (const l of (lignes || [])) {
     const tr = (l && l.trades) || [];
     if (!tr.length) continue;
+    const nom = (l && l.nom) || (l && l.sym) || '';
     // ————— LA FENÊTRE D'UNE LIGNE EST CELLE QU'ELLE A MESURÉE —————
     // Pas celle où elle a produit des trades. Une ligne éteinte depuis 2023 mais
     // mesurée jusqu'en 2026 a bien tourné avec les autres jusqu'en 2026 — en ne
@@ -2635,27 +2636,47 @@ export function fenetreCommune(lignes) {
     // retirait de l'agrégat les années où elle pèse zéro.
     const f = l && l.fen;
     if (f && Number.isFinite(f.t0) && Number.isFinite(f.t1) && f.t1 > f.t0) {
-      bornes.push({ t0: f.t0, t1: f.t1 }); nMes++;
+      bornes.push({ t0: f.t0, t1: f.t1, nom }); nMes++;
       continue;
     }
     let a = Infinity, b = -Infinity;
     for (const t of tr) { if (t.e < a) a = t.e; if (t.s > b) b = t.s; }
-    bornes.push({ t0: a, t1: b });
+    bornes.push({ t0: a, t1: b, nom });
   }
   const n = (lignes || []).length;
   if (!bornes.length) {
     return { t0: null, t1: null, vide: true, mesurables: 0, lignes: n, unique: false,
-      annees: 0, source: 'aucune' };
+      annees: 0, source: 'aucune', borneBas: null, borneHaut: null };
   }
   // ANGLE MORT DÉCLARÉ : le repli par ligne peut MIXER les deux définitions quand une
   // liste arrive sans sa fenêtre. `source` le dit plutôt que de le taire — une fenêtre
   // commune moitié mesurée moitié active n'est aucune des deux.
   const source = nMes === bornes.length ? 'mesuree' : (nMes === 0 ? 'active' : 'mixte');
-  const t0 = Math.max(...bornes.map((x) => x.t0));
-  const t1 = Math.min(...bornes.map((x) => x.t1));
+  // ————— QUI BORNE, ET PAS SEULEMENT DE COMBIEN —————
+  //
+  // Une intersection est fixée par ses DEUX extrêmes, et une seule ligne suffit à
+  // effondrer la fenêtre de toutes les autres : mesuré chez un utilisateur, douze
+  // lignes à 6,7 ans réduites à 1,0 an par deux voisines qui ne se recouvrent qu'à
+  // peine. Rendre le chiffre sans le nom le rend SUBI ; avec le nom, il devient une
+  // décision — écarter la ligne, ou accepter la fenêtre.
+  //
+  // On les rend même quand la fenêtre est VIDE : c'est là qu'elles servent le plus,
+  // puisque le chiffre, lui, n'existe pas.
+  let bas = bornes[0], haut = bornes[0];
+  for (const x of bornes) {
+    if (x.t0 > bas.t0) bas = x;
+    if (x.t1 < haut.t1) haut = x;
+  }
+  const t0 = bas.t0;
+  const t1 = haut.t1;
   const vide = !(t1 > t0);
   return { t0, t1, vide, mesurables: bornes.length, lignes: n,
     unique: bornes.length === 1, source,
+    // `borneBas` commence le plus tard ; `borneHaut` finit le plus tôt. Ce sont les
+    // deux seules lignes dont le retrait élargit la fenêtre — et elles peuvent être
+    // la même.
+    borneBas: { nom: bas.nom, t: bas.t0 },
+    borneHaut: { nom: haut.nom, t: haut.t1 },
     annees: vide ? 0 : (t1 - t0) / (365.25 * 86400000) };
 }
 

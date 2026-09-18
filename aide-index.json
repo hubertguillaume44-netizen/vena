@@ -571,6 +571,13 @@
   },
   {
    "terme": "Période mesurée",
+   "texte": "Ce rapport divise un R par an par un creux : il hérite du même dénominateur que le grand chiffre, donc de la même réserve. Sur une fenêtre trop courte, il décrit une période, pas un régime.",
+   "vues": [
+    "Portefeuille"
+   ]
+  },
+  {
+   "terme": "Période mesurée",
    "texte": "Les onze diagnostics — UT, trades, R net, PF, segments, durée moyenne, état, frais. Ils ont servi à VALIDER la ligne, pas à la piloter.",
    "vues": [
     "Portefeuille"
@@ -672,6 +679,13 @@
    "texte": "Le tableau complet : unité de temps, période et seuil de chaque filtre.",
    "vues": [
     "Backtest"
+   ]
+  },
+  {
+   "terme": "remettre dans le bilan",
+   "texte": "Les remettre dans les quatre calculs d'ensemble. Elles n'ont jamais quitté le portefeuille.",
+   "vues": [
+    "Portefeuille"
    ]
   },
   {

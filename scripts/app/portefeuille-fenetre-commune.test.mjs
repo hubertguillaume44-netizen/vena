@@ -51,8 +51,23 @@ test("le grand chiffre du bilan vient de la fenêtre commune, et le brut n'est q
     + "fenêtre commune. Si elle porte `ps.pfRAnBrut`, c'est la somme des R par an de "
     + "lignes qui ne couvrent pas la même période : arithmétiquement juste, "
     + "sémantiquement faux, et c'est le défaut d'origine.");
-  assert.ok(APP.includes("      pfRAn: etat === 'plein' || etat === 'unique' ? sgn(ag.rAn, 1) + ' R / an'"),
-    "`pfRAn` ne vient plus de l'agrégat sur la fenêtre commune.");
+  // ————— RÉANCRÉE : LE GRAND CHIFFRE A GAGNÉ UN TROISIÈME ÉTAT —————
+  // Il vient toujours de l'agrégat sur la fenêtre commune — l'invariant n'a pas bougé.
+  // Mais sous deux ans de fenêtre, il ne DIVISE plus : annualiser douze mois
+  // d'observation extrapole, et c'était le défaut d'origine sous une autre forme. La
+  // garde lisait l'expression littérale ; elle lit désormais les deux branches, qui
+  // sortent l'une et l'autre de `ag`.
+  assert.ok(APP.includes("(courte ? sgn(ag.total, 1) + ' R cumul\u00e9s' : sgn(ag.rAn, 1) + ' R / an')")
+    || APP.includes("(courte ? sgn(ag.total, 1) + ' R cumulés' : sgn(ag.rAn, 1) + ' R / an')"),
+    "`pfRAn` ne vient plus de l'agrégat sur la fenêtre commune, ou il a perdu son "
+    + "troisième état. Les deux branches doivent sortir de `ag` : le R par an quand la "
+    + "fenêtre porte une division, le R CUMULÉ quand elle est trop courte pour ça.");
+  assert.match(APP, /SEUIL_ANNUALISER = 2;/,
+    "le seuil sous lequel on n'annualise plus n'est pas une constante nommée. Écrit en "
+    + "clair, il divergerait du texte qui l'explique.");
+  assert.match(APP, /const courte = etat === 'plein' && fen\.annees < this\.SEUIL_ANNUALISER;/,
+    "le refus d'annualiser ne se décide plus sur la durée de la fenêtre commune. "
+    + "« + 89,7 R / an sur 1,0 an » était arithmétiquement juste et ne décrivait rien.");
   // le brut EXISTE toujours, et il porte sa raison dans la même phrase
   assert.ok(APP.includes("              pfRAnBrut: sg(sommeAn, 1) + ' R / an',"),
     "la somme brute a disparu au lieu d'être reléguée. Elle reste lisible : c'est ce "

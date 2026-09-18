@@ -2554,6 +2554,9 @@
                           <sc-if value="{{ vl.aDernierTrade }}" hint-placeholder-val="{{ false }}">
                             <span style="font-size:10px;line-height:1.45;margin-top:2px;color:{{ vl.dernierTradeEncre }}" title="{{ vl.dernierTradeAide }}">{{ vl.dernierTradeTxt }}</span>
                           </sc-if>
+                          <sc-if value="{{ vl.aFenChoisie }}" hint-placeholder-val="{{ false }}">
+                            <span style="font-size:10px;line-height:1.45;color:var(--color-accent-900)" title="{{ vl.fenChoisieAide }}">{{ vl.fenChoisieTxt }}</span>
+                          </sc-if>
                         </span>
                         <span style="text-align:right;white-space:nowrap"><strong>{{ vl.rAn }}</strong></span>
                         <span style="text-align:right;white-space:nowrap">{{ vl.dd }}</span>
@@ -2671,6 +2674,18 @@
                   <span style="font-family:var(--font-heading);font-size:38px;line-height:1">{{ ps.pfRAn }}</span>
                   <span style="font-size:11.5px;line-height:1.35;opacity:.85;max-width:26ch">{{ ps.pfRAnSous }}</span>
                 </span>
+                <sc-if value="{{ ps.aPfBorne }}" hint-placeholder-val="{{ false }}">
+                  <span style="font-size:11.5px;line-height:1.4;opacity:.85;max-width:74ch" title="{{ ps.pfBorneAide }}">{{ ps.pfBorneTxt }}</span>
+                </sc-if>
+                <sc-if value="{{ ps.aPfEcarter }}" hint-placeholder-val="{{ false }}">
+                  <button type="button" style="cursor:pointer;border:1px solid currentColor;background:none;color:inherit;font-family:var(--font-body);font-size:11px;padding:3px 9px;align-self:flex-start;margin-top:2px" title="{{ ps.pfEcarterAide }}" onClick="{{ ps.pfEcarter }}">{{ ps.pfEcarterTxt }}</button>
+                </sc-if>
+                <sc-if value="{{ ps.aPfEcartees }}" hint-placeholder-val="{{ false }}">
+                  <span style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;font-size:11px;line-height:1.4;opacity:.85;max-width:74ch">
+                    <span>{{ ps.pfEcarteesTxt }}</span>
+                    <button type="button" style="cursor:pointer;border:none;background:none;padding:0;font:inherit;color:inherit;text-decoration:underline;text-underline-offset:2px" title="Les remettre dans les quatre calculs d'ensemble. Elles n'ont jamais quitté le portefeuille." onClick="{{ ps.pfReprendre }}">remettre dans le bilan</button>
+                  </span>
+                </sc-if>
                 <sc-if value="{{ ps.aPfRAnNote }}" hint-placeholder-val="{{ true }}">
                   <span style="font-size:11.5px;line-height:1.4;opacity:.85;max-width:74ch">{{ ps.pfRAnNote }}</span>
                 </sc-if>
@@ -2699,6 +2714,9 @@
               <div style="display:flex;flex-direction:column;gap:2px;border-inline-start:1px solid color-mix(in srgb,var(--color-bg) 32%,transparent);padding-inline-start:20px">
                 <span style="font-family:var(--font-heading);font-size:24px;line-height:1">{{ ps.bhStratRatio }}</span>
                 <span style="font-size:10px;line-height:1.4;opacity:.75;max-width:26ch">rendement par unité de creux · {{ ps.bhSignifTagTxt }}</span>
+                <sc-if value="{{ ps.pfCourte }}" hint-placeholder-val="{{ false }}">
+                  <span style="font-size:10px;line-height:1.4;max-width:26ch" title="Ce rapport divise un R par an par un creux : il hérite du même dénominateur que le grand chiffre, donc de la même réserve. Sur une fenêtre trop courte, il décrit une période, pas un régime.">{{ ps.pfCourteTxt }}</span>
+                </sc-if>
               </div>
               <div style="display:flex;flex-direction:column;gap:2px;border-inline-start:1px solid color-mix(in srgb,var(--color-bg) 32%,transparent);padding-inline-start:20px">
                 <span style="font-family:var(--font-heading);font-size:24px;line-height:1">{{ ps.pfReste }}</span>
@@ -7125,7 +7143,7 @@ class Component extends DCLogic {
     gSls: '0,5 0,6 0,7 0,8 0,9 1,0 1,1 1,2 1,3 1,4 1,5 2,0 2,5 3,0',
     gRrs: '1,5 2,0 2,5 3,0 3,5 4,0',
     gEntrees: ['croisement_ou_rebond'], gLignes: ['ema'], gFiltres: ['aucun'],
-    btSym: null, reglagesOuverts: false, venuDeHisto: null, univers: [],
+    btSym: null, reglagesOuverts: false, venuDeHisto: null, univers: [], pfEcart: [],
     res: null, seg: null, courbe: [], varianteRatee: false, repriseManques: null, repriseIncertaine: false, ligneAttendue: null, cfgLigne: null, ecartLigne: '', scanN: 0, scanRev: 0, archives: [], scanVu: null, scanEnCours: false, scanTestes: 0,
     tradesMin: 40, segMin: 3, marche: null, tri: 'total', erreur: null, recherche: '', parSymbole: 1,
     deposes: [], survol: false, messageDepot: null, spreadSaisi: null, swapSaisi: null,
@@ -10817,7 +10835,19 @@ GROUPES = {
               // La projection en `{e, s, r}` perdait le stamp du moteur, et tout ce qui
               // vient après retombait sur la période ACTIVE sans le dire. La fenêtre
               // voyage avec la liste : elle n'est redérivable par personne en aval.
-              fen: tr.fenetreMesuree || null, motif: '' }
+              fen: tr.fenetreMesuree || null,
+              // ————— « FENÊTRE CHOISIE » SE LIT, IL NE SE DEVINE PAS —————
+              // Une première version le déduisait de l'écart entre la fenêtre mesurée
+              // et la couverture des bougies, avec un seuil en jours. C'était la
+              // règle 1 : une intention (« ces dates ont-elles l'air rognées ? ») pour
+              // un résultat (« la ligne porte-t-elle une fenêtre de mesure ? ») — et
+              // l'amorce de 400 jours aurait faussé le seuil bas.
+              //
+              // Le RÉGLAGE existe et il est lisible : `fenetreDeLigne` rend le mode et
+              // `complete` dit si la fenêtre couvre tout. On lit donc le fait.
+              fenReglee: (() => { const f = this.fenetreDeLigne(v);
+                return f && !f.complete ? { mode: f.mode, debut: f.debut, fin: f.fin } : null; })(),
+              motif: '' }
             : { trades: null, motif: 'aucun trade sous cette configuration' };
         } catch (e) { out = { trades: null, motif: 'mesure impossible' }; }
         if (memo.size > 24) memo.clear();
@@ -10833,11 +10863,37 @@ GROUPES = {
   // non calculable, une exposition sur une seule ligne : chacun se dit en toutes
   // lettres. Rendre 0 à leur place disculperait le portefeuille sans qu'aucune mesure
   // ait eu lieu — c'est la règle du zéro qui prouve sa prise, appliquée au produit.
-  pfCalculs(lignes) {
+  // ————— ÉCARTER DU BILAN : UNE LISTE, ET RIEN D'AUTRE —————
+  //
+  // Elle vit dans la SESSION, comme le choix de masquer les séries d'exemple : rien
+  // n'est écrit dans les données de l'utilisateur, parce que rien n'est détruit. Le
+  // geste inverse existe et prend le même chemin — une porte qui ne s'ouvre que dans un
+  // sens fait d'un réglage une suppression.
+  //
+  // La clé est l'INSTRUMENT, pas la rangée : un portefeuille ne porte qu'une ligne par
+  // instrument, et l'écartement suit la ligne si elle est rangée ailleurs.
+  ecarterDuBilan(syms) {
+    const cur = new Set(this.state.pfEcart || []);
+    for (const x of (syms || [])) cur.add(x);
+    this.setState({ pfEcart: [...cur] });
+  }
+  reprendreAuBilan(syms) {
+    const ote = new Set(syms || []);
+    this.setState({ pfEcart: (this.state.pfEcart || []).filter((x) => !ote.has(x)) });
+  }
+  pfCalculs(lignes, ecartees) {
     const M = this.M;
     const AN = 365.25 * 86400000;
     const src = this.pfTrades(lignes);
-    const vivantes = src.filter((x) => x.trades && x.trades.length);
+    // ————— ÉCARTER DU BILAN N'EST PAS RETIRER DU PORTEFEUILLE —————
+    // Deux lignes peuvent coûter cinq ans de fenêtre commune aux douze autres. La
+    // décision naturelle est de les sortir du CALCUL sans les sortir du portefeuille —
+    // elles gardent leur rangée, leur robot et leur chiffre. Les confondre ferait
+    // détruire une ligne pour lire un agrégat.
+    const hors = new Set(ecartees || []);
+    const mesurables = src.filter((x) => x.trades && x.trades.length);
+    const vivantes = mesurables.filter((x) => !hors.has(x.sym));
+    const ecartLignes = mesurables.filter((x) => hors.has(x.sym));
     const muettes = src.filter((x) => !(x.trades && x.trades.length));
     const f1 = (x, d = 1) => (Number.isFinite(x)
       ? x.toFixed(d).replace('.', ',').replace('-', '−') : '—');
@@ -10871,6 +10927,37 @@ GROUPES = {
       ? M.grouperParis(vivantes.length, cor.paires, 0.7) : null;
     const nomsFortes = cor && cor.assez
       ? cor.paires.filter((q) => q.c !== null && q.c >= 0.7) : [];
+    // ————— LA FENÊTRE EST-ELLE ASSEZ LONGUE POUR PORTER UN R PAR AN —————
+    const courte = etat === 'plein' && fen.annees < this.SEUIL_ANNUALISER;
+    const mm = (ms) => { const d = new Date(ms);
+      return String(d.getUTCMonth() + 1).padStart(2, '0') + '/' + d.getUTCFullYear(); };
+    // ————— QUI BORNE, ET CE QUE COÛTERAIT DE L'ÉCARTER —————
+    // Les deux bornes peuvent être la MÊME ligne : une seule ligne courte borne alors
+    // les deux côtés, et l'écarter suffit. Les compter deux fois annoncerait un geste
+    // qui n'existe pas.
+    const bornes = (etat === 'plein' || etat === 'disjointes') && fen.borneBas && fen.borneHaut
+      ? (() => {
+        const b = fen.borneBas, h = fen.borneHaut;
+        const memes = b.nom === h.nom;
+        const noms = memes ? [b.nom] : [b.nom, h.nom];
+        const txt = memes
+          ? 'bornée par ' + b.nom + ' seule — elle commence en ' + mm(b.t)
+            + ' et s’arrête en ' + mm(h.t)
+          : 'bornée par ' + b.nom + ' (début ' + mm(b.t) + ') et '
+            + h.nom + ' (fin ' + mm(h.t) + ')';
+        // ce que la fenêtre deviendrait SANS elles — annoncé avant le clic, sinon le
+        // geste demande de parier sur son propre effet
+        const reste = vivantes.filter((x) => !noms.includes(x.nom));
+        const apres = reste.length > 1 ? M.fenetreCommune(reste) : null;
+        return { noms, txt, apres,
+          gain: apres && !apres.vide ? apres.annees : null,
+          syms: vivantes.filter((x) => noms.includes(x.nom)).map((x) => x.sym),
+          aide: 'La fenêtre commune est une INTERSECTION : la ligne qui commence le plus '
+            + 'tard et celle qui s’arrête le plus tôt la fixent pour toutes les autres. '
+            + 'Ce sont les deux seules dont l’écartement l’élargit — écarter une '
+            + 'troisième ne change rien.' };
+      })()
+      : null;
     const nonMesurees = muettes.length
       ? ' · ' + this.pl(muettes.length, 'ligne non mesurable ici', 'lignes non mesurables ici')
         + ' (' + [...new Set(muettes.map((x) => x.motif))].join(', ') + ')'
@@ -10888,11 +10975,11 @@ GROUPES = {
       const f = x.fen && x.fen.t1 > x.fen.t0 ? x.fen : null;
       return { actT0: a, actT1: b, mesT0: f ? f.t0 : a, mesT1: f ? f.t1 : b, mesuree: !!f };
     };
-    const bornes = vivantes.map(bornesDe);
+    const periodes = vivantes.map(bornesDe);
     const axe = (() => {
-      if (!bornes.length) return null;
+      if (!periodes.length) return null;
       let a = Infinity, b = -Infinity;
-      for (const x of bornes) { if (x.mesT0 < a) a = x.mesT0; if (x.mesT1 > b) b = x.mesT1; }
+      for (const x of periodes) { if (x.mesT0 < a) a = x.mesT0; if (x.mesT1 > b) b = x.mesT1; }
       return b > a ? { t0: a, t1: b, span: b - a } : null;
     })();
     const pct = (ms) => (axe ? Math.max(0, Math.min(100, (ms - axe.t0) / axe.span * 100)) : 0);
@@ -10903,17 +10990,61 @@ GROUPES = {
       pfCalcSrc: src, pfCalcFen: fen, pfCalcEtat: etat, pfCalcAg: ag,
       pfCalcExpo: expo, pfCalcCor: cor, pfCalcGrp: grp, pfCalcAxe: axe,
       // ————— 1 · LE GRAND CHIFFRE EST CELUI DE LA FENÊTRE COMMUNE —————
-      pfRAn: etat === 'plein' || etat === 'unique' ? sgn(ag.rAn, 1) + ' R / an'
+      // ————— 1 · ET SOUS DEUX ANS, ON N'ANNUALISE PAS —————
+      // Le grand chiffre devient le R CUMULÉ. Diviser par une fenêtre d'un an était
+      // arithmétiquement juste et ne décrivait rien : c'est le défaut de la somme brute
+      // sous une autre forme, et la note ne portait que la première réserve.
+      pfRAn: (etat === 'plein' || etat === 'unique')
+        ? (courte ? sgn(ag.total, 1) + ' R cumulés' : sgn(ag.rAn, 1) + ' R / an')
         : etat === 'disjointes' ? 'aucune fenêtre commune'
           : 'rien à agréger',
       pfRAnSous: etat === 'plein'
-        ? 'sur les ' + f1(fen.annees, 1) + ' ans où les ' + vivantes.length
-          + ' lignes tournaient ensemble'
+        ? (courte
+          ? 'sur ' + f1(fen.annees, 1) + ' an' + (fen.annees >= 2 ? 's' : '')
+            + ' de fenêtre commune — trop court pour annualiser : un R par an tiré de '
+            + 'là extrapolerait'
+          : 'sur les ' + f1(fen.annees, 1) + ' ans où les ' + vivantes.length
+            + ' lignes MESURABLES tournaient ensemble')
         : etat === 'unique' ? 'une seule ligne : sa fenêtre EST la fenêtre commune'
           : etat === 'disjointes'
             ? 'ces lignes n’ont jamais tourné en même temps — il n’y a pas de '
               + 'période où le portefeuille ait été mesuré en entier'
             : 'aucune ligne de ce portefeuille n’est mesurable ici',
+      // ————— QUI BORNE LA FENÊTRE —————
+      // Une intersection est fixée par deux lignes, et une seule suffit à l'effondrer.
+      // Sans leur nom le chiffre est SUBI ; avec, il devient une décision.
+      // La réserve de la fenêtre courte ne vaut pas que pour le grand chiffre : tout
+      // ratio qui divise par le temps en hérite, et le rendement par unité de creux
+      // est calculé sur la MÊME fenêtre.
+      pfCourte: courte,
+      pfCourteTxt: courte ? 'fenêtre de ' + f1(fen.annees, 1) + ' an'
+        + (fen.annees >= 2 ? 's' : '') + ' — trop courte pour annualiser' : '',
+      aPfBorne: !!bornes,
+      pfBorneTxt: bornes ? bornes.txt : '',
+      pfBorneAide: bornes ? bornes.aide : '',
+      // ————— 3 · ET LE GESTE, AVEC SON EFFET ANNONCÉ AVANT LE CLIC —————
+      // Un bouton qui dit « écarter » sans dire ce que ça donne demande de parier sur son
+      // propre effet. Il porte donc la fenêtre APRÈS, calculée ici, et il ne paraît que
+      // si elle est réellement plus large — un geste qui ne change rien ne s'offre pas.
+      aPfEcarter: !!(bornes && bornes.gain !== null && bornes.gain > fen.annees + 0.05
+        && bornes.syms.length && vivantes.length - bornes.syms.length >= 2),
+      pfEcarterTxt: bornes && bornes.gain !== null
+        ? 'écarter du bilan ' + this.pl(bornes.syms.length, 'la ligne qui borne',
+          'les ' + bornes.syms.length + ' lignes qui bornent') + ' la fenêtre → '
+          + f1(bornes.gain, 1) + ' ans'
+        : '',
+      pfEcarterAide: 'Écarter du BILAN, pas du portefeuille : la ligne garde sa rangée, '
+        + 'son robot et son chiffre — elle cesse seulement d’entrer dans les quatre '
+        + 'calculs d’ensemble. Réversible d’un clic.',
+      pfEcarter: bornes ? () => this.ecarterDuBilan(bornes.syms) : () => {},
+      // l'état inverse : ce qui a été écarté se voit et se reprend
+      aPfEcartees: ecartLignes.length > 0,
+      pfEcarteesTxt: ecartLignes.length
+        ? this.pl(ecartLignes.length, 'ligne écartée du bilan',
+          ecartLignes.length + ' lignes écartées du bilan') + ' : '
+          + ecartLignes.map((x) => x.nom).join(', ')
+        : '',
+      pfReprendre: () => this.reprendreAuBilan(ecartLignes.map((x) => x.sym)),
       // La note porte le brut ET sa raison, dans la même phrase : un chiffre relégué
       // sans sa raison se lit comme une variante au choix.
       aPfRAnNote: etat === 'plein',
@@ -10938,10 +11069,14 @@ GROUPES = {
       // ————— 4 · LE NOMBRE DE PARIS, PAS LE NOMBRE DE LIGNES —————
       pfParis: grp ? this.pl(grp.paris, 'pari', 'paris')
         : etat === 'unique' ? '1 pari' : 'non mesurable',
+      // ————— ON NOMME TROIS REGROUPEMENTS, PAS DEUX ET UN COMPTE —————
+      // « et 1 de plus » demandait d'aller chercher ailleurs ce qui tenait en quatre
+      // mots. La liste n'est élidée qu'à partir du QUATRIÈME : au-delà, la rangée
+      // deviendrait plus longue que ce qu'elle résume.
       pfParisSous: grp
         ? (nomsFortes.length
-          ? nomsFortes.slice(0, 2).map((q) => q.a + ' et ' + q.b + ' comptent pour un').join(' · ')
-            + (nomsFortes.length > 2 ? ' · et ' + (nomsFortes.length - 2) + ' de plus' : '')
+          ? nomsFortes.slice(0, 3).map((q) => q.a + ' et ' + q.b + ' comptent pour un').join(' · ')
+            + (nomsFortes.length > 3 ? ' · et ' + (nomsFortes.length - 3) + ' de plus' : '')
           : 'aucune paire au-delà de 0,70 : autant de paris que de lignes')
         : etat === 'unique' ? 'une seule ligne'
           : 'la redondance n’est pas calculable' + (cor && cor.raison ? ' — ' + cor.raison : ''),
@@ -11004,7 +11139,7 @@ GROUPES = {
       // trait. La barre dit désormais ce qui a ÉTÉ BALAYÉ, et la marque dit jusqu'où ça
       // a produit : une extinction se voit d'un coup d'œil, par l'écart entre les deux.
       friseLignes: vivantes.map((x, k) => {
-        const b = bornes[k];
+        const b = periodes[k];
         const mort = (b.mesT1 - b.actT1) / AN;
         return { nom: x.nom,
           gauche: pct(b.mesT0) + '%', largeur: Math.max(0.5, pct(b.mesT1) - pct(b.mesT0)) + '%',
@@ -13500,6 +13635,12 @@ GROUPES = {
       // Les deux segments restent donc restaurés. Ce qui les rendait dangereux n'était pas
       // la restauration mais le SILENCE de la liste vide, et c'est ça qui est corrigé —
       // voir `instrAucunTxt`, qui nomme les filtres actifs et offre de les effacer.
+      // ————— 'pfEcart' EST RESTAURÉ, ET LE CRITÈRE EST CELUI ÉCRIT AU-DESSUS —————
+      // Il change le grand chiffre du bilan, donc il pourrait être de la famille de
+      // 'familleFiltre'. Ce qui le sauve n'est pas son innocuité, c'est qu'il SE MONTRE :
+      // le bandeau nomme en permanence les lignes écartées et offre de les reprendre.
+      // Le réglage dangereux n'était pas le réglage restauré, c'était le silence.
+      'pfEcart',
       'vue', 'derniereVue', 'modeTable', 'sonScan', 'tri', 'ddMax', 'winMin', 'oosMin', 'zoneMarche',
       'fenMode', 'fenDu', 'fenAu', 'etapeScan',
       'coupureRegime', 'pleinRegime', 'gEntrees', 'gLignes', 'gFiltres', 'gSens', 'gLectures', 'gSecus', 'gTemps', 'gDurees', 'gTrailing', 'gEchelles', 'gPeriodeMa', 'gLigneMtf', 'gPeriodeMtf',
@@ -17144,10 +17285,26 @@ GROUPES = {
   // elle, s'affiche toujours. Un seuil qui déciderait aussi de MONTRER la date
   // reproduirait le défaut : l'information manquerait là où elle n'alerte pas encore.
   SEUIL_MORT = 1;
+  // ————— SOUS COMBIEN DE TEMPS UN R PAR AN N'EST PLUS UNE MESURE —————
+  //
+  // DEUX ANS de fenêtre commune. En dessous, le bandeau ne divise pas : il rend le R
+  // CUMULÉ sur la fenêtre et dit pourquoi.
+  //
+  // Le cas qui l'a fait écrire : « + 89,7 R / an · sur les 1,0 ans où les 14 lignes
+  // tournaient ensemble ». Le calcul était juste et le chiffre ne vaut rien — annualiser
+  // douze mois d'observation sur quatorze stratégies EXTRAPOLE, et c'est la famille
+  // qu'on passe la semaine à fermer. La somme brute était fausse d'une façon, celle-ci
+  // l'est d'une autre : différemment peu fiable, pas plus fiable.
+  //
+  // Deux ans est un arbitrage et il est écrit : c'est le minimum pour qu'une fenêtre
+  // contienne deux saisons complètes de la plupart des régimes, donc pour qu'une
+  // division par le temps décrive autre chose qu'une période. Il ne cache RIEN : le R
+  // cumulé et la fenêtre restent à l'écran, c'est le rapport des deux qui est retenu.
+  SEUIL_ANNUALISER = 2;
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260918.11';
+  VERSION_APP = '260918.12';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -27418,6 +27575,16 @@ GROUPES = {
                 ongletRAn: '\u2014', ongletAide: 'aucune ligne',
                 pfCreux: '\u2014', bhStratRatio: '\u2014', pfParis: '\u2014',
                 nonVerifTxt: '\u2014',
+                pfCourte: false, pfCourteTxt: '',
+                // Un portefeuille vide n'a ni fenêtre à borner ni ligne à écarter. Les
+                // deux `sc-if` sont donc faux — mais les gestionnaires doivent EXISTER :
+                // un trou d'attribut d'événement ne rougit pas comme un trou de texte,
+                // et il laisserait un bouton d'apparence cliquable sans rien derrière le
+                // jour où la condition changerait.
+                aPfBorne: false, pfBorneTxt: '', pfBorneAide: '',
+                aPfEcarter: false, pfEcarterTxt: '', pfEcarterAide: '',
+                aPfEcartees: false, pfEcarteesTxt: '',
+                pfEcarter: () => {}, pfReprendre: () => {},
                 videTxt: tout
                   ? 'Aucune configuration validée : le portefeuille se remplit depuis l\u2019Historique.'
                   : 'Ce portefeuille est vide. Rangez-y une ligne par le champ ci-dessous \u2014 '
@@ -27513,7 +27680,7 @@ GROUPES = {
             // aussi, et elle doit venir de la même source que la frise — sans quoi la
             // page affiche une durée d'un côté et deux tirets de l'autre, ce qui est
             // exactement ce qui a été rapporté.
-            const cal = this.pfCalculs(lignes);
+            const cal = this.pfCalculs(lignes, s.pfEcart);
             const maxAn = Math.max(1e-9, ...rAns.map((x) => Math.abs(x)));
             const lignesPart = lignes.map((x, iL) => {
               const a = nombre(x.rAn);
@@ -27561,6 +27728,14 @@ GROUPES = {
                   const f2 = trL.fen && trL.fen.t1 > trL.fen.t0 ? trL.fen : null;
                   const m0 = f2 ? f2.t0 : a2, m1 = f2 ? f2.t1 : b2;
                   const mort2 = (m1 - b2) / (365.25 * 86400000);
+                  // ————— TROIS FAITS, ET AUJOURD'HUI ILS SE LISAIENT PAREIL —————
+                  // « mesuré sur 2020–2023 » peut vouloir dire trois choses : les bougies
+                  // s'arrêtent là, la configuration s'est éteinte, ou la fenêtre a été
+                  // CHOISIE. La troisième est d'une autre nature — c'est un réglage, pas
+                  // un fait de marché — et elle rend la ligne incomparable aux autres
+                  // sans que rien ne le dise.
+                  const choisie = !!trL.fenReglee;
+                  const ansFen = (m1 - m0) / (365.25 * 86400000);
                   return { ...dates(m0, m1, 'la fenêtre que cette configuration a BALAYÉE, '
                     + 'remesurée à l’instant. Dernier trade le ' + jp2(b2)
                     + (mort2 >= this.SEUIL_MORT
@@ -27572,7 +27747,8 @@ GROUPES = {
                     // les trois périodes portent chacune son nom — aucune ne se déduit
                     // d'une autre, et la rangée ne peut pas afficher l'une en croyant
                     // montrer l'autre
-                    mesT0: m0, mesT1: m1, actT1: b2, morte: mort2 };
+                    mesT0: m0, mesT1: m1, actT1: b2, morte: mort2,
+                    fenChoisie: choisie, fenAns: ansFen };
                 }
                 const v2 = x._v || x;
                 if (v2.t0 && v2.t1) {
@@ -27625,7 +27801,24 @@ GROUPES = {
                 return String(d.getUTCMonth() + 1).padStart(2, '0') + '/' + d.getUTCFullYear(); };
               const finiL = Number.isFinite(per.actT1);
               const mortL = finiL && Number.isFinite(per.morte) ? per.morte : 0;
+              // ————— LA FENÊTRE CHOISIE EST UN FAIT D'UNE AUTRE NATURE —————
+              // « mesuré sur 2020–2023 » se lisait comme « dernier trade en 2023 » : l'un
+              // est un RÉGLAGE, l'autre un fait de marché. Une ligne mesurée sur un
+              // sous-ensemble délibéré est comparée aux autres comme si de rien n'était,
+              // et c'est elle qui peut borner la fenêtre commune de tout le
+              // portefeuille : le dire est ce qui rend l'écart décidable.
+              const anFr = (ms) => new Date(ms).getUTCFullYear();
               return { ...x, ...per,
+                aFenChoisie: !!per.fenChoisie,
+                fenChoisieTxt: per.fenChoisie && per.periodeDates
+                  ? 'mesuré sur ' + anFr(per.mesT0) + '–' + anFr(per.mesT1)
+                    + ' · fenêtre choisie, pas toute la série'
+                  : '',
+                fenChoisieAide: 'Cette ligne porte une fenêtre de mesure dans sa '
+                  + 'configuration : elle n’a pas été balayée sur tout son historique. Ce '
+                  + 'n’est ni un manque de bougies ni une extinction — c’est un réglage, '
+                  + 'et il rend cette ligne difficilement comparable aux autres. Elle peut '
+                  + 'à elle seule borner la fenêtre commune du portefeuille.',
                 aDernierTrade: finiL,
                 dernierTradeTxt: finiL
                   ? 'dernier trade en ' + mois(per.actT1)
