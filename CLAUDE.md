@@ -3574,6 +3574,74 @@ La consigne vit aussi **dans le message de `meme-horloge`**, parce que c'est là
 arrive au moment où elle sert — une garde de convention doit ENSEIGNER la convention, pas
 opposer un veto, et un veto se contourne.
 
+## Un panneau qui couvre ce qu'on surveille, et le pli qui montre MOINS de la même chose
+
+**STATUT · CAUSE ÉTABLIE — encombrement RAPPORTÉ (le panneau déplié fait ~590 x 230 px
+sur un graphique de 1 000 px et couvre l'action de prix récente, c'est-à-dire ce qu'on
+regarde quand une position est ouverte), structure du pli MESURÉE DANS LE DÉPÔT, sur le
+source émis.**
+
+Le pli est un `OBJ_BUTTON` de 16 px au coin haut droit du cadre, et **pas un
+`OBJ_LABEL`** : un label ne rend pas `CHARTEVENT_OBJECT_CLICK` de façon fiable. Le
+gestionnaire se filtre sur le **NOM de l'objet**, jamais sur une position d'écran — le
+panneau change de largeur à chaque rangée et à chaque taille de police, et une zone
+cliquable écrite en pixels serait fausse au premier redimensionnement. C'est la règle 12
+sur une autre grandeur : *une coordonnée n'est vraie que depuis un référentiel stable*, et
+un cadre qui se redimensionne n'en est pas un.
+
+**L'état survit au redémarrage**, dans une variable globale du terminal dont la clé porte
+le symbole ET le magique : un pli qu'il faut refaire à chaque lancement est un pli que
+personne ne fait, et deux robots sur deux graphiques du même symbole ne partagent pas le
+leur. Il se relit à `OnInit` **après** les deux lignes des entrées effectives — un panneau
+replié cache des chiffres, jamais ce avec quoi le robot a DÉMARRÉ.
+
+### Le pli montre MOINS de la même chose, jamais autre chose
+
+C'est la seule règle qui compte, et elle décide de tout le reste. La tentation, en
+écrivant une forme réduite, est de la **reformuler** — un mot d'un côté, la ligne complète
+de l'autre — et le panneau porte alors deux états à tenir d'accord, dont rien à l'écran ne
+dit lequel est le bon.
+
+> **Un pli n'est pas une seconde surface : c'est la même, tronquée.** L'état s'écrit donc
+> UNE fois, et seule sa COLONNE change ; la position se lit UNE fois, et le replié en
+> montre deux champs sur cinq.
+
+C'est la figure de `deposes`, appliquée à un affichage au lieu d'une écriture : une garde
+sur un chemin ferme un CAS, une source unique ferme la CLASSE.
+
+### Et l'arrêt est le cas où le panneau existe
+
+Un robot arrêté qui se replierait sur le seul mot de son état ferait perdre le geste qui
+débloque. Le **motif** voyage donc dans la rangée repliée — et l'écrire a fait tomber un
+défaut plus ancien, qui n'était visible que de là :
+
+| ce qui arrête le robot | ce que le panneau disait |
+|---|---|
+| `TERMINAL_TRADE_ALLOWED` — le bouton du terminal | « Activez le bouton Algo Trading » |
+| `MQL_TRADE_ALLOWED` — les propriétés de CET expert | « Activez le bouton Algo Trading » |
+| `ACCOUNT_TRADE_EXPERT` — le serveur du courtier | « Activez le bouton Algo Trading » |
+
+**Trois causes, un seul conseil, et il est faux pour deux d'entre elles.** C'est la famille
+du tiret qui couvrait trois causes, sur un geste au lieu d'une date : *il disculpe sans
+avoir regardé*. Les trois portent désormais leur motif et leur geste, décidés au même
+endroit — `EtatRobot`, lu par les deux formes.
+
+**Et les objets cachés sont DÉTRUITS, pas masqués.** `PAN_MAX` borne le nombre de rangées
+et son dépassement se journalise : des labels invisibles y compteraient, et le plafond se
+plaindrait à tort sur un panneau qui n'affiche qu'une rangée. Le mécanisme existait déjà —
+`PanneauDessiner` efface les cellules au-delà de la dernière écrite —, il fallait le
+vérifier plutôt que de le croire.
+
+`scripts/mt5/panneau-se-replie.test.mjs` tient les sept, éprouvées par cinq mutations —
+replier sans nommer l'état arrêté, une seconde formulation de l'état, une seconde rangée
+repliée, deux causes ramenées au même mot, et le pli relu avant les entrées effectives.
+
+**Son angle mort est en tête** : rien dans le dépôt n'exécute MQL5. Elle ne mesure pas une
+hauteur en pixels — elle mesure la **structure qui la produit**, le nombre de rangées que
+`Ligne()` ouvre sur le chemin replié, **sous la règle de `Ligne()` relue dans le source
+émis** avant d'être appliquée. Un port qui ne vérifie pas que la règle portée est encore
+celle qui tourne mesure une règle que personne n'exécute.
+
 ## Une sonde dont l'échec est silencieux par conception se garde ailleurs
 
 Le témoin de version comparait ce que sert l'adresse publique à ce que la page est. Il a

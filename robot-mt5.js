@@ -343,7 +343,7 @@ input ulong  InpMagic           = ${nb(ctx.magic, 20260901)};
 // quelle build l'avait émis. Le stamp d'export ne répond pas à cette question : il dit
 // QUAND on a exporté, pas DE QUOI. La marque est écrite ici dans la forme exacte que
 // « npm run app:version » cherche, donc ce fichier est daté comme les deux autres.
-#define VENA_VERSION "260918.12"
+#define VENA_VERSION "260918.13"
 //--- Configuration mesurée (ne pas modifier : le backtest ne serait plus valable)
 #define STOP_PCT        ${sl}
 #define OBJECTIF_R      ${rr}
@@ -408,6 +408,18 @@ datetime g_derniereH1  = 0;
 // le seul chiffre comparable au « creux une fois sur vingt » de la mesure
 double   g_pic = 0.0;
 datetime g_lancement = 0;
+
+// ————— LE PLI DU TABLEAU DE BORD —————
+// Déplié, le panneau fait ~590 x 230 px : sur un graphique de 1 000 px de large il
+// couvre l'action de prix récente — c'est-à-dire exactement ce qu'on regarde quand une
+// position est ouverte. Replié, il tient en UNE rangée.
+//
+// L'état vit dans une variable globale du TERMINAL, donc il survit au redémarrage : un
+// pli qu'il faut refaire à chaque lancement est un pli que personne ne fait. La clé
+// porte le symbole ET le magique — deux robots posés sur deux graphiques du même
+// symbole ne partagent pas leur pli.
+bool g_plie = false;
+string PliCle() { return "VNA_PLIE_" + _Symbol + "_" + IntegerToString(InpMagic); }
 
 //+------------------------------------------------------------------+
 //| AGRÉGATION DES BOUGIES DEPUIS LES H1, SUR L'HORLOGE DU SERVEUR    |
@@ -807,6 +819,10 @@ int OnInit()
                InpHeureEntreeDeb, InpHeureEntreeFin,
                InpPasDebutSemaine ? "interdit" : "autorisé",
                InpSlippagePoints, InpBougiesAgr);
+   // Le pli se relit APRÈS les deux lignes ci-dessus, et l'ordre est le sujet : un
+   // panneau replié cache des chiffres, jamais ce avec quoi le robot a DÉMARRÉ. Les
+   // entrées effectives sont au journal avant que le pli n'existe pour qui que ce soit.
+   g_plie = (GlobalVariableCheck(PliCle()) && GlobalVariableGet(PliCle()) != 0.0);
    Print("Moment d'exécution : ${momTxt}");
    Print("Licence : ${esc(licTxt)}");
    if(StringCompare(_Symbol, "${esc(cfg.sym)}", false) != 0)
@@ -1841,6 +1857,7 @@ void DessinerNiveaux()
 #define PAN_PREF "VNA_PAN_"
 #define PAN_MAX  16   // rangées
 #define PAN_OBJ  48   // cellules — une rangée en porte jusqu'à quatre
+#define PLI_TAILLE 16 // le bouton de pli, au coin haut droit du cadre
 // Chaque cellule porte sa taille, son gras et sa colonne : MQL5 les accepte par objet
 // (OBJPROP_FONTSIZE, OBJPROP_XDISTANCE, police « Consolas Bold ») — c'est Ligne() qui
 // imposait une taille et une couleur uniques. Les colonnes s'alignent par TextGetSize.
@@ -1955,6 +1972,34 @@ int PanneauLargeur(int i, int reduc, bool court)
    return (int)w;
 }
 
+// Le pli se commande par un OBJ_BUTTON et non par un OBJ_LABEL : un label ne rend pas
+// CHARTEVENT_OBJECT_CLICK de façon fiable, un bouton oui. Et il est FILTRÉ PAR SON NOM
+// dans OnChartEvent, jamais par une position d'écran — le panneau se redimensionne à
+// chaque rangée et à chaque changement de taille de police.
+void PanneauBouton(int x, int y)
+{
+   string nom = PAN_PREF + "PLI";
+   if(ObjectFind(0, nom) < 0)
+   {
+      ObjectCreate(0, nom, OBJ_BUTTON, 0, 0, 0);
+      ObjectSetInteger(0, nom, OBJPROP_CORNER, CORNER_LEFT_UPPER);
+      ObjectSetInteger(0, nom, OBJPROP_SELECTABLE, false);
+      ObjectSetInteger(0, nom, OBJPROP_HIDDEN, true);
+      ObjectSetInteger(0, nom, OBJPROP_XSIZE, PLI_TAILLE);
+      ObjectSetInteger(0, nom, OBJPROP_YSIZE, PLI_TAILLE);
+      ObjectSetInteger(0, nom, OBJPROP_BGCOLOR, C'18,20,24');
+      ObjectSetInteger(0, nom, OBJPROP_BORDER_COLOR, C'62,67,76');
+      ObjectSetInteger(0, nom, OBJPROP_COLOR, C'170,175,185');
+      ObjectSetInteger(0, nom, OBJPROP_FONTSIZE, 8);
+   }
+   ObjectSetInteger(0, nom, OBJPROP_XDISTANCE, x);
+   ObjectSetInteger(0, nom, OBJPROP_YDISTANCE, y);
+   ObjectSetString(0, nom, OBJPROP_TEXT, g_plie ? "▸" : "▾");
+   // MQL5 laisse un bouton ENFONCÉ après un clic : sans ça, le pli suivant se ferait
+   // sur un bouton qui a déjà l'air actionné.
+   ObjectSetInteger(0, nom, OBJPROP_STATE, false);
+}
+
 void PanneauDessiner()
 {
    int large = (int)ChartGetInteger(0, CHART_WIDTH_IN_PIXELS);
@@ -1999,7 +2044,11 @@ void PanneauDessiner()
       hauteur += hMax + 7;
       if(g_sep[r] == 1) hauteur += 9;
    }
-   PanneauFond(contenu + 2 * X0, hauteur + 8);
+   // La gouttière de droite paie le bouton : il vit DANS le cadre, au coin haut droit,
+   // et une cellule qui passerait dessous le rendrait incliquable.
+   int wFond = contenu + 2 * X0 + PLI_TAILLE + 4;
+   PanneauFond(wFond, hauteur + 8);
+   PanneauBouton(6 + wFond - PLI_TAILLE - 4, 10);
 
    int xFin3 = X0 + contenu;
    int xFin2 = xFin3 - wc[3] - GAP;
@@ -2081,28 +2130,111 @@ int NbTradesDepuis(datetime debut)
    return c;
 }
 
+// ————— UNE SEULE SOURCE D'ÉTAT, LUE PAR LES DEUX FORMES DU PANNEAU —————
+// Le pli montre MOINS de la même chose, jamais autre chose. Un état replié qui se
+// reformulerait de son côté ferait porter au panneau deux vérités, et rien à l'écran
+// ne dirait laquelle est la bonne.
+//
+// ET LE MOTIF NE SE RÉSUME PAS À UN MOT. Trois conditions distinctes arrêtent le
+// robot, et le panneau les couvrait toutes les trois du même conseil — « Activez le
+// bouton Algo Trading » —, qui est FAUX pour deux d'entre elles. Un motif qui couvre
+// trois causes n'en nomme aucune : il disculpe sans avoir regardé.
+bool EtatRobot(string &motif, string &geste)
+{
+   if(!(bool)TerminalInfoInteger(TERMINAL_TRADE_ALLOWED))
+   {
+      motif = "trading algo désactivé";
+      geste = "Activez le bouton Algo Trading du terminal pour le relancer";
+      return false;
+   }
+   if(!(bool)MQLInfoInteger(MQL_TRADE_ALLOWED))
+   {
+      motif = "trading interdit à cet expert";
+      geste = "Cochez « Autoriser le trading algorithmique » dans les propriétés de ce robot";
+      return false;
+   }
+   if(!(bool)AccountInfoInteger(ACCOUNT_TRADE_EXPERT))
+   {
+      motif = "trading auto refusé sur ce compte";
+      geste = "Le serveur du courtier refuse les experts sur ce compte — demandez-lui de l'ouvrir";
+      return false;
+   }
+   motif = "";
+   geste = "";
+   return true;
+}
+
+// La position du robot, lue UNE fois pour les deux formes. Replié, le panneau montre
+// son R et son euro ; déplié, il y ajoute l'heure et les niveaux. Deux lectures
+// séparées pourraient diverger d'un tick, et le pli aurait créé un second fait.
+struct PosVena { bool ouverte; double gain; double enR; datetime depuis; double sl; double tp; };
+
+PosVena LirePosition(double risque)
+{
+   PosVena p;
+   p.ouverte = false; p.gain = 0.0; p.enR = 0.0; p.depuis = 0; p.sl = 0.0; p.tp = 0.0;
+   for(int i = PositionsTotal() - 1; i >= 0; i--)
+   {
+      if(PositionGetTicket(i) <= 0) continue;
+      if(PositionGetString(POSITION_SYMBOL) != _Symbol) continue;
+      if(PositionGetInteger(POSITION_MAGIC) != (long)InpMagic) continue;
+      p.ouverte = true;
+      p.gain    = PositionGetDouble(POSITION_PROFIT);
+      p.enR     = (risque > 0.0) ? p.gain / risque : 0.0;
+      p.depuis  = (datetime)PositionGetInteger(POSITION_TIME);
+      p.sl      = PositionGetDouble(POSITION_SL);
+      p.tp      = PositionGetDouble(POSITION_TP);
+      break;
+   }
+   return p;
+}
+
 void Tableau()
 {
    color vert = C'110,200,130', rouge = C'225,110,110', gris = C'170,175,185', blanc = C'235,238,242';
    int corps = InpTaillePolice;
 
-   bool algo   = (bool)TerminalInfoInteger(TERMINAL_TRADE_ALLOWED);
-   bool permis = (bool)MQLInfoInteger(MQL_TRADE_ALLOWED);
-   bool prete  = (bool)AccountInfoInteger(ACCOUNT_TRADE_EXPERT);
-   bool marche = (algo && permis && prete);
+   string motif = "", geste = "";
+   bool marche = EtatRobot(motif, geste);
+   double solde  = AccountInfoDouble(ACCOUNT_BALANCE);
+   double risque = solde * InpRisquePct / 100.0;
+   PosVena pos   = LirePosition(risque);
 
    // ── Qui je suis, et si je tourne. L'état est LA SEULE couleur pleine du panneau :
-   // le vert qui décorait six lignes sur dix ne signalait plus rien.
+   // le vert qui décorait six lignes sur dix ne signalait plus rien. Il s'écrit UNE
+   // fois pour les deux formes ; seule sa colonne change, parce que la rangée repliée
+   // porte son détail à droite de lui.
    Ligne("${esc(cfg.sym)} ${vente ? 'VENTE' : 'ACHAT'}", blanc, "${esc(cfg.sym)}", corps + 6, true, 0);
-   Ligne(marche ? "● EN MARCHE" : "● ARRETE", marche ? vert : rouge, "", corps + 6, true, 3);
+   Ligne(marche ? "● EN MARCHE" : "● ARRÊTÉ", marche ? vert : rouge, "", corps + 6, true,
+         g_plie ? 2 : 3);
+
+   if(g_plie)
+   {
+      // UNE rangée, et elle porte ce qu'on ne peut pas se permettre de cacher : le
+      // résultat de la position en cours, ou le MOTIF de l'arrêt. Un robot arrêté qui
+      // se replierait sur le seul mot de son état ferait perdre le geste qui débloque —
+      // l'arrêt est précisément le cas où le panneau existe.
+      Ligne(marche ? (pos.ouverte ? StringFormat("%+.2f R · %+.2f EUR", pos.enR, pos.gain)
+                                  : "aucune position")
+                   : "— " + motif,
+            (marche && pos.ouverte) ? blanc : gris,
+            marche ? (pos.ouverte ? StringFormat("%+.2f R", pos.enR) : "aucune position")
+                   : motif,
+            corps + 6, false, 3);
+      // Les rangées cachées sont DÉTRUITES et non masquées : PanneauDessiner efface
+      // les cellules au-delà de g_nobj et les filets au-delà de g_nlig. Des labels
+      // invisibles compteraient dans PAN_MAX, et son plafond se journaliserait à tort.
+      PanneauDessiner();
+      return;
+   }
    Separateur();
 
    if(!marche)
    {
       // Arrêté, le panneau se réduit au geste qui le débloque : neuf lignes de
-      // chiffres inertes se liraient comme des chiffres qui bougent encore.
-      Ligne("Activez le bouton Algo Trading pour le relancer", blanc,
-            "Activez Algo Trading", corps, false, 0);
+      // chiffres inertes se liraient comme des chiffres qui bougent encore. Le motif
+      // est celui de la rangée repliée — une source, deux formes.
+      Ligne(motif + " — " + geste, blanc, motif, corps, false, 0);
       PanneauDessiner();
       return;
    }
@@ -2113,31 +2245,20 @@ void Tableau()
    MqlDateTime m = j; m.day = 1;
    datetime debutMois = StructToTime(m);
 
-   double solde   = AccountInfoDouble(ACCOUNT_BALANCE);
    double capital = AccountInfoDouble(ACCOUNT_EQUITY);
-   double risque  = solde * InpRisquePct / 100.0;
 
    // ── La position en cours : le R d'abord, en grand — c'est l'unité dans laquelle
    // la configuration a été mesurée — l'euro en second.
-   bool ouverte = false;
-   for(int i = PositionsTotal() - 1; i >= 0; i--)
+   if(pos.ouverte)
    {
-      if(PositionGetTicket(i) <= 0) continue;
-      if(PositionGetString(POSITION_SYMBOL) != _Symbol) continue;
-      if(PositionGetInteger(POSITION_MAGIC) != (long)InpMagic) continue;
-      double gain = PositionGetDouble(POSITION_PROFIT);
-      double enR = (risque > 0.0) ? gain / risque : 0.0;
-      Ligne(StringFormat("%+.2f R", enR), blanc, "", corps + 10, true, 0);
-      Ligne(StringFormat("%+.2f EUR", gain), gris, StringFormat("%+.0f EUR", gain), corps, false, 3);
+      Ligne(StringFormat("%+.2f R", pos.enR), blanc, "", corps + 10, true, 0);
+      Ligne(StringFormat("%+.2f EUR", pos.gain), gris,
+            StringFormat("%+.0f EUR", pos.gain), corps, false, 3);
       Ligne(StringFormat("depuis %s · stop %.2f · objectif %.2f",
-            TimeToString((datetime)PositionGetInteger(POSITION_TIME), TIME_DATE | TIME_MINUTES),
-            PositionGetDouble(POSITION_SL), PositionGetDouble(POSITION_TP)), gris,
-            StringFormat("stop %.2f · obj %.2f",
-            PositionGetDouble(POSITION_SL), PositionGetDouble(POSITION_TP)), corps, false, 0);
-      ouverte = true;
-      break;
+            TimeToString(pos.depuis, TIME_DATE | TIME_MINUTES), pos.sl, pos.tp), gris,
+            StringFormat("stop %.2f · obj %.2f", pos.sl, pos.tp), corps, false, 0);
    }
-   if(!ouverte) Ligne("Aucune position ouverte", gris, "Aucune position", corps, false, 0);
+   else Ligne("Aucune position ouverte", gris, "Aucune position", corps, false, 0);
 
    // ── Les résultats : les unités sont dites UNE fois, en tête de colonne. L'espace
    // seul ouvre la rangée des en-têtes — une cellule de colonne 1 posée après une
@@ -2296,6 +2417,21 @@ bool Entrer()
           g_livTicket, LivH(g_livT0), LivP(prix), LivP(stop), LivP(objectif)));
    }
    return true;
+}
+
+//+------------------------------------------------------------------+
+// Le clic sur le bouton de pli. FILTRÉ PAR LE NOM DE L'OBJET, jamais par une position
+// d'écran : le panneau change de largeur à chaque rangée et à chaque taille de police,
+// et une zone cliquable écrite en pixels serait fausse dès le premier redimensionnement.
+void OnChartEvent(const int id, const long &lparam, const double &dparam, const string &sparam)
+{
+   if(id != CHARTEVENT_OBJECT_CLICK) return;
+   if(sparam != PAN_PREF + "PLI") return;
+   g_plie = !g_plie;
+   GlobalVariableSet(PliCle(), g_plie ? 1.0 : 0.0);
+   // Redessiné TOUT DE SUITE, pas au prochain tick : sur un marché calme, un pli qui
+   // met deux minutes à se voir se lit comme un bouton qui ne marche pas.
+   if(!MQLInfoInteger(MQL_TESTER)) Tableau();
 }
 
 //+------------------------------------------------------------------+
