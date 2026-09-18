@@ -1817,6 +1817,8 @@ exactement comme « la troisième instance de ».
 > compte ».** L'ordinal était le premier cas, pas la classe — et la formuler sur lui
 > aurait laissé passer les deux suivants, qui ne sont pas des rangs. C'est la règle 8
 > appliquée à une règle : `ordinal` est un LIEU, `nombre en apposition` est une PROPRIÉTÉ.
+> (Et elle s'est élargie une fois de plus au paragraphe suivant : un QUANTIFICATEUR est un
+> compte déguisé, donc il entre dans la même classe.)
 
 **Et les trois fois, c'est l'interlocuteur qui a compté, jamais l'auteur.** Ce n'est pas
 une remarque de politesse : une apposition ne se relit pas par celui qui l'a écrite,
@@ -1850,6 +1852,32 @@ remplace pas la commande — **ça dit lequel des chiffres la mérite**, ce qui 
 arbitrage qu'on fasse vraiment en écrivant. Et l'exception mesurée dit où il ne suffit
 pas : *un ordinal qui compte des instances se compte toujours, même quand il paraît
 modeste* — c'est précisément sa modestie qui l'a fait passer.
+
+#### La quatrième instance était DANS l'énoncé de la règle — et ce n'était pas un nombre
+
+Il y en a **quatre**, et les voici, parce qu'un compte qui ne s'énumère pas est
+exactement ce que ce paragraphe interdit : « la troisième instance » pour la cinquième,
+« des mois » pour quatre jours, « douze caractères » pour six, et — dans le message qui
+posait le signal ci-dessus — **« les trois nombres étaient faux dans le sens qui
+renforçait »**, alors que deux le sont.
+
+C'est la figure que le dépôt connaît déjà sous une autre forme : *la règle 1, à
+l'intérieur d'une garde écrite contre elle.* Ici c'est une règle de prose, commise dans la
+phrase qui la formule — et la raison est la même qu'ailleurs : **l'énoncé hérite d'une
+question toute faite, celle des cas qu'on vient de regarder.**
+
+**Et son mécanisme n'est pas la mémoire, c'est la CLÔTURE.** Les trois premiers étaient
+des nombres tirés du souvenir ; le quatrième est un nombre tiré des cas SOUS LES YEUX,
+étendu à l'ensemble sans que chacun soit repris. Ce qui ouvre la classe :
+
+> **Un quantificateur est un compte déguisé, et il se vérifie pareil.** « Les trois »,
+> « toutes », « chacune », « aucune », « à chaque fois » ne disent rien d'autre qu'un
+> nombre, et ils se placent dans les mêmes appositions. La différence est qu'ils ne
+> ressemblent pas à un chiffre, donc ils échappent même à quelqu'un qui a décidé de
+> compter ses chiffres.
+
+Le geste ne change pas — il s'applique à un mot de plus. *Avant d'écrire « les trois »,
+reprendre les trois.*
 
 **Mais elles n'en portent pas le MOT** : le verdict est « fenêtre fixe » — voir « Quand
 l'explication doit contredire l'étiquette » plus haut. Ce paragraphe a d'abord dit
