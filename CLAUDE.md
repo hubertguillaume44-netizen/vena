@@ -3626,6 +3626,38 @@ du tiret qui couvrait trois causes, sur un geste au lieu d'une date : *il discul
 avoir regardé*. Les trois portent désormais leur motif et leur geste, décidés au même
 endroit — `EtatRobot`, lu par les deux formes.
 
+> **Un conseil unique posé sur des causes multiples est faux partout sauf sur une.** Le
+> tiret qui couvre trois causes n'en nomme aucune ; le conseil qui en couvre trois en
+> nomme une et se trompe sur les autres — ce qui est pire, parce qu'il a la forme d'une
+> réponse. Personne ne vérifie un conseil qu'il vient de recevoir.
+
+**ET C'EST LA CONTRAINTE DE PLACE QUI L'A TROUVÉ, PAS UNE RELECTURE.** Compté plutôt que
+juré : la phrase attrape-tout a été posée le 14 septembre et retirée le 18, et
+`robot-mt5.js` a été committé **trente et une fois** dans l'intervalle. Ce n'est donc pas
+la durée qui compte — quatre jours —, c'est qu'aucune de ces trente et une passes ne l'ait
+vue, dans un panneau où elle tenait confortablement sur sa rangée. Exiger le motif dans
+**une** rangée resserrée a forcé à répondre à « le motif de quoi ? », et il a fallu
+distinguer les trois conditions pour l'écrire.
+
+> **Une surface qui rétrécit n'autorise plus la phrase attrape-tout.** Ce n'est pas une
+> méthode qu'on peut appliquer à volonté, et il faut le dire : le pli a trouvé ce défaut
+> par accident. Mais le mécanisme est reproductible et il vaut d'être nommé — *réécrire
+> un affichage pour la moitié de sa place oblige à choisir ce qu'il dit*, et ce choix
+> découvre les phrases qui ne disaient rien de précis.
+
+### Et le geste répond dans le temps du CLIC, pas dans celui du système
+
+Le pli redessine depuis le gestionnaire, pas au prochain tick. Sur un marché calme, un
+tick peut être à des minutes : un pli qui l'attendrait serait, pour l'utilisateur, un
+bouton cassé — et le second clic, celui qui replie ce qu'on venait de déplier, arriverait
+avant le premier effet.
+
+C'est la famille d'un geste déjà posé dans le produit : la révocation de l'URL d'un objet
+téléchargé est **différée de deux secondes**, à ses dix appels, plutôt que faite au retour
+de la fonction. Le navigateur n'a pas fini de servir le fichier quand le code, lui, a fini
+de s'exécuter. Les deux disent la même chose depuis deux bouts : **le temps du système
+n'est pas celui du geste**, et c'est le geste qui fixe l'échéance.
+
 **Et les objets cachés sont DÉTRUITS, pas masqués.** `PAN_MAX` borne le nombre de rangées
 et son dépassement se journalise : des labels invisibles y compteraient, et le plafond se
 plaindrait à tort sur un panneau qui n'affiche qu'une rangée. Le mécanisme existait déjà —
