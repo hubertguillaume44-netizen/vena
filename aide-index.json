@@ -50,6 +50,13 @@
    ]
   },
   {
+   "terme": "Arrêter",
+   "texte": "Arrête après la ligne en cours. Ce qui a déjà été remesuré est enregistré.",
+   "vues": [
+    "Portefeuille"
+   ]
+  },
+  {
    "terme": "aucun",
    "texte": "La référence « sans filtre » a battu les conditions balayées sur cette ligne.",
    "vues": [
@@ -551,6 +558,13 @@
   {
    "terme": "Part détenue",
    "texte": "Part du capital simplement détenue dans la colonne « Les deux ». Le reste est travaillé par la stratégie.",
+   "vues": [
+    "Portefeuille"
+   ]
+  },
+  {
+   "terme": "Part du portefeuille",
+   "texte": "Le moteur a changé de règle depuis que ces chiffres ont été mesurés. Une ligne périmée se repère ; leur somme, non — et c'est elle qu'on lit pour décider.",
    "vues": [
     "Portefeuille"
    ]

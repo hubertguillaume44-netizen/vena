@@ -2182,6 +2182,15 @@
             <sc-if value="{{ aPfPerimees }}" hint-placeholder-val="{{ false }}">
               <span class="{{ pfPerimeesTag }}" style="font-size:11px;white-space:normal;text-align:left;max-width:70ch" title="Le moteur a changé de règle depuis que ces chiffres ont été mesurés : ils ne sont pas comparables à ce que le Backtest calcule aujourd'hui. Mesuré sur un banc : la même configuration rendait 4,00 R avant une correction et 14,93 R après, à nombre de trades identique.">{{ pfPerimeesTxt }}</span>
             </sc-if>
+            <sc-if value="{{ aRemesurer }}" hint-placeholder-val="{{ false }}">
+              <button class="btn btn-secondary" type="button" style="min-height:1.9rem;font-size:11px" onClick="{{ remesurer }}" title="{{ remesurerAide }}">{{ remesurerTxt }}</button>
+            </sc-if>
+            <sc-if value="{{ aRemEnCours }}" hint-placeholder-val="{{ false }}">
+              <span style="font-size:11px;color:var(--color-accent-700);display:inline-flex;gap:10px;align-items:baseline">{{ remMsgTxt }}<button type="button" class="tag tag-outline" style="cursor:pointer" onClick="{{ remArreter }}" title="Arrête après la ligne en cours. Ce qui a déjà été remesuré est enregistré.">Arrêter</button></span>
+            </sc-if>
+            <sc-if value="{{ aRemBilan }}" hint-placeholder-val="{{ false }}">
+              <span style="font-size:11px;white-space:normal;text-align:left;max-width:70ch" class="text-muted">{{ remBilanTxt }}</span>
+            </sc-if>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
             <!--
@@ -2492,6 +2501,9 @@
               <div style="display:flex;flex-direction:column;gap:2px">
                 <span style="font-family:var(--font-heading);font-size:38px;line-height:1">{{ ps.pfRAn }}</span>
                 <span style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;opacity:.75">{{ ps.pfRTotal }} · {{ ps.bhEurStrat }} sur la période</span>
+                <sc-if value="{{ ps.aPfRAnPerime }}" hint-placeholder-val="{{ false }}">
+                  <span style="font-size:11px;line-height:1.35;white-space:normal;max-width:46ch;border:1px solid currentColor;padding:3px 8px;margin-top:5px" title="Le moteur a changé de règle depuis que ces chiffres ont été mesurés. Une ligne périmée se repère ; leur somme, non — et c'est elle qu'on lit pour décider.">{{ ps.pfRAnPerimeTxt }}</span>
+                </sc-if>
               </div>
               <div style="display:flex;flex-direction:column;gap:2px;border-inline-start:1px solid color-mix(in srgb,var(--color-bg) 32%,transparent);padding-inline-start:20px">
                 <span style="font-family:var(--font-heading);font-size:24px;line-height:1">{{ ps.pfCreux }}</span>
@@ -6829,6 +6841,7 @@ class Component extends DCLogic {
     // Aucune devise présumée non plus : commDevise() retombe déjà sur 'EUR' quand la
     // clé manque, et le sélecteur de devise reste à la main du client.
     commDev: {}, pfs: null, pfActif: 0, favoris: null, valides: [], dragSym: null, dragDepuis: null, dragPf: null, selSym: null, ajoutSym: '',
+    remMsg: null, remBilan: null,
     ddMax: 0, winMin: 0, oosMin: 0, detail: null, ficheMsg: null, modeTable: 'lecture', btPanneau: '', panScan: '', pfMesures: false, sonScan: false,
     robuste: null, ailleurs: null, correl: null, calculEnCours: null, recalcul: null,
     tTradesMin: 0, tSegMin: 0, tDdMax: 0, tWinMin: 0, tOosMin: -20, tWfMin: -30, tDureeMax: 0,
@@ -16069,6 +16082,93 @@ GROUPES = {
       if (!this.state.scanEnCours) this.fermerWorkers();
     }
   }
+  // ————— REMESURER LES LIGNES DU PORTEFEUILLE SOUS LA RÈGLE ACTUELLE —————
+  //
+  // Douze lignes sur douze portaient un chiffre que le moteur ne calcule plus, et le
+  // seul geste possible était d'ouvrir douze Backtests un par un. Le total de la page
+  // sommait douze chiffres morts : plus trompeur qu'une ligne périmée isolée, parce que
+  // personne ne vérifie douze lignes pour douter d'un total.
+  //
+  // MÊME BOUCLE QUE `completerCor`, et c'est délibéré : pause sur `exportEnCours` au
+  // grain de l'instrument, arrêt demandable, bougies libérées par instrument. Deux
+  // boucles divergeraient — c'est la leçon des quatre producteurs qui recalculaient
+  // chacun leur copie.
+  //
+  // ————— ET ELLE REFUSE PLUTÔT QUE D'ÉCRIRE UN CHIFFRE PLAUSIBLE —————
+  //
+  // `cfgDeLigne` rend `null` quand la variante n'a pas été retrouvée — c'est déjà le
+  // critère dont le Backtest tire `varianteRatee`. Remesurer une telle ligne écrirait
+  // les chiffres d'une AUTRE configuration sous son intitulé : pire que périmé, parce
+  // qu'un chiffre périmé se détecte et celui-là non. Ces lignes sont laissées
+  // intactes et NOMMÉES à la fin.
+  //
+  // Les chiffres écrits sont ceux que `resume` et `segments` rendent — les mêmes
+  // fonctions que le Backtest appelle, pas une seconde dérivation.
+  //
+  // L'écriture se fait PAR LIGNE et non à la fin : un arrêt au milieu garde ce qui a
+  // été remesuré, comme la migration du stockage garde ce qu'elle a déjà recopié.
+  async remesurerLignes() {
+    if (this._remFond || this.state.scanEnCours) return;
+    const aFaire = this.normValides(this.state.valides)
+      .filter((v) => (v._mv || 'e1') !== this.MOTEUR_V);
+    if (!aFaire.length) return;
+    this._remFond = true;
+    this._remStop = false;
+    let faites = 0;
+    const refusees = [];
+    try {
+      for (let i = 0; i < aFaire.length; i++) {
+        // l'export a priorité : une sauvegarde qui échoue parce qu'un calcul de confort
+        // tournait est le pire compromis possible
+        while (this.state.exportEnCours && !this._remStop) {
+          await new Promise((z) => setTimeout(z, 400));
+        }
+        if (this._remStop || this.state.scanEnCours) break;
+        const v = aFaire[i];
+        const sym = v.ticker || v.sym;
+        this.setState({ remMsg: 'remesure : ' + this.nomComplet(sym)
+          + ' (' + (i + 1) + ' / ' + aFaire.length + ')' });
+        // rendre la main : le calcul est synchrone et long, l'interface doit répondre
+        await new Promise((z) => setTimeout(z, 0));
+        const cfg = this.cfgDeLigne(v);
+        if (!cfg) { refusees.push(this.nomComplet(sym)); continue; }
+        const dejaCharge = !!(this.dfs && this.dfs[sym] !== undefined);
+        try {
+          await this.charger(sym);
+          const df = this.base(sym);
+          if (!df || df.n < 300) { refusees.push(this.nomComplet(sym)); continue; }
+          const trades = this.mesurer(sym, cfg, v.ut || this.state.ut, df);
+          const r = this.M.resume(trades);
+          const seg = this.M.segments(trades, 5);
+          const cle = this.cleValide(v);
+          const suite = this.normValides(this.state.valides).map((x) => (this.cleValide(x) !== cle ? x
+            : { ...x, n: r.n, total: r.total, rAn: r.rAn, winRate: r.winRate, pf: r.pf, dd: r.dd,
+                positifs: seg ? seg.positifs : x.positifs, segTotal: seg ? seg.total : x.segTotal,
+                _mv: this.MOTEUR_V, _remesure: new Date().toISOString() }));
+          this.setState({ valides: suite },
+            () => this.ecrirePf(this.state.pfs, this.state.favoris, suite));
+          faites++;
+        } catch (e) {
+          refusees.push(this.nomComplet(sym));
+        }
+        if (!dejaCharge && this.dfs && !estExemple(sym)) delete this.dfs[sym];
+      }
+    } finally {
+      this._remFond = false;
+      // LE BILAN SE DIT, ET IL NOMME CE QUI N'A PAS ÉTÉ FAIT. Un geste de fond qui
+      // s'achève en silence est recommencé ; un geste qui n'annonce que ses réussites
+      // laisse croire qu'il a tout couvert.
+      this.setState({ remMsg: null,
+        remBilan: faites + (faites > 1 ? ' lignes remesurées' : ' ligne remesurée')
+          + (refusees.length
+            ? ' \u00b7 ' + refusees.length + ' laissée' + (refusees.length > 1 ? 's' : '')
+              + ' intacte' + (refusees.length > 1 ? 's' : '') + ' faute de retrouver leur '
+              + 'configuration exacte : ' + refusees.join(', ')
+              + '. Rouvrez-les en Backtest pour voir ce qui manque.'
+            : '.') });
+      if (!this.state.scanEnCours) this.fermerWorkers();
+    }
+  }
   // Pousser vaut pour TOUTE la page, jamais pour une carte : pousser les tirages du
   // seul instrument qui a failli passer rouvrirait exactement ce que le maximum
   // partagé vient de fermer. Et pousser AJOUTE — les 500 premiers tirages restent.
@@ -16263,7 +16363,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260918';
+  VERSION_APP = '260918.2';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -20565,7 +20665,26 @@ GROUPES = {
           }, 60);
         });
         let tache = null;
-        if (!((this.baremes || {})[this.compteActif])) {
+        // ————— LA PÉREMPTION PASSE DEVANT, PARCE QU'ELLE INVALIDE LE RESTE —————
+        //
+        // « tout est à jour » s'affichait à côté d'un compte de douze lignes périmées.
+        // Les deux ne pouvaient pas être vrais ensemble, et la sortie n'est pas d'ajouter
+        // un second drapeau : c'est que cette barre ait une TÂCHE. Elle dit « tout est à
+        // jour » quand il n'y en a pas — donc la rendre vraie, c'est en poser une.
+        //
+        // Et elle passe AVANT les autres : une ligne périmée ne rend pas seulement sa
+        // propre valeur fausse, elle fausse le total de la page, la comparaison entre
+        // lignes et celle avec un testeur. Proposer de scanner ou de comparer par-dessus
+        // reviendrait à bâtir sur des chiffres morts.
+        const nPerim = this.normValides(this.state.valides)
+          .filter((v) => (v._mv || 'e1') !== this.MOTEUR_V).length;
+        if (nPerim) {
+          tache = { txt: this.pl(nPerim, 'ligne porte un chiffre', 'lignes portent un chiffre')
+              + ' antérieur à la règle actuelle du moteur',
+            bouton: 'Remesurer',
+            go: () => { this.setState({ vue: 'portefeuille', remBilan: null },
+              () => this.remesurerLignes()); } };
+        } else if (!((this.baremes || {})[this.compteActif])) {
           tache = { txt: 'Aucun relevé de courtier — les frais ne sont pas comptés',
             bouton: 'Déposer le relevé', go: deposer('champReleve') };
         } else if (!nSeries) {
@@ -26311,7 +26430,26 @@ GROUPES = {
           // un zéro sans dénominateur voudrait aussi dire « aucune ligne ».
           ...(() => {
             const vieilles = toutes.filter((x) => x.aMvVieux).length;
+            const enCours = !!s.remMsg;
             return { aPfPerimees: toutes.length > 0,
+              // ————— UN COMPTE SANS GESTE EST UN CONSTAT —————
+              // Douze lignes périmées et « Rien à ranger » pour seule proposition : le
+              // seul geste possible était d'ouvrir douze Backtests un par un. Le travail
+              // se demande d'ici, se dit pendant qu'il tourne, et s'arrête.
+              aRemesurer: vieilles > 0 && !enCours,
+              remesurerTxt: 'Remesurer ' + (vieilles > 1 ? 'les ' + vieilles + ' lignes' : 'la ligne'),
+              remesurerAide: 'Rejoue chaque ligne périmée sous la règle actuelle du '
+                + 'moteur et écrit le résultat. L\u2019export garde la priorité : la '
+                + 'remesure se met en pause tant qu\u2019une sauvegarde tourne. Une ligne '
+                + 'dont la configuration exacte ne se retrouve pas est laissée INTACTE et '
+                + 'nommée à la fin — la remesurer écrirait les chiffres d\u2019une autre '
+                + 'configuration sous son intitulé.',
+              remesurer: () => { this.setState({ remBilan: null }); this.remesurerLignes(); },
+              aRemEnCours: enCours,
+              remMsgTxt: s.remMsg || '',
+              remArreter: () => { this._remStop = true; },
+              aRemBilan: !!s.remBilan && !enCours,
+              remBilanTxt: s.remBilan || '',
               pfPerimeesTxt: !vieilles
                 ? toutes.length + (toutes.length > 1 ? ' lignes mesurées' : ' ligne mesurée')
                   + ' sous la règle actuelle du moteur'
@@ -26449,8 +26587,23 @@ GROUPES = {
                   ? 'Cette ligne porte ' + Math.round(part) + ' % du R par an du portefeuille.'
                   : 'Part non calculable : le portefeuille ne rapporte rien par an.' };
             });
+            // ————— UN TOTAL DE CHIFFRES PÉRIMÉS NE S'AFFICHE PAS COMME UN FAIT —————
+            //
+            // Une ligne périmée se détecte et se lit ; leur SOMME ne se lit pas. Personne
+            // ne rouvre douze lignes pour douter d'un total — c'est ce qui la rend plus
+            // trompeuse que chacune de ses parts. Le total garde donc sa valeur, et il
+            // porte combien de ses parts sont mortes : effacer le chiffre le rendrait
+            // illisible, le laisser nu le rendrait faux.
+            const nPerimPf = lignesPart.filter((x) => x.aMvVieux).length;
             return { cle: String(k), nom: p.nom || 'Portefeuille ' + (k + 1),
               lignes: lignesPart,
+              aPfRAnPerime: nPerimPf > 0,
+              pfRAnPerimeTxt: nPerimPf
+                ? 'somme de ' + nPerimPf + ' chiffre' + (nPerimPf > 1 ? 's' : '')
+                  + ' antérieur' + (nPerimPf > 1 ? 's' : '') + ' à la règle actuelle'
+                  + (nPerimPf < lignesPart.length ? ' sur ' + lignesPart.length : '')
+                  + ' — à remesurer avant de s\u2019y fier'
+                : '',
               pfRAn: sg(sommeAn, 1) + ' R / an',
               pfRTotal: sg(somme, 1) + ' R cumulés',
               pfCreux: Math.round(pireCreux) + ' stops',
