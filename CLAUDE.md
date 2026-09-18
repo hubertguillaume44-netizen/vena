@@ -286,6 +286,18 @@ variable manque : une protection qui disparaît avec sa configuration ne protèg
 Elle couvre `/api/licence` : **le webhook Revolut recevra 401 tant qu'elle est en place**.
 À traiter le jour où le paiement s'ouvre, avec la liste `OUVERTS` de `protection.js`.
 
+## Une barre d'état ne promet que les tâches qu'elle sait poser
+
+Elle disait « tout est à jour ». Elle sait poser SES tâches — relevé manquant, bougies
+absentes, scan jamais lancé, estampille absente. Elle ne sait pas si les chiffres
+enregistrés sont ceux que le moteur calcule aujourd'hui, et l'estampille ne le sait pas
+non plus. La phrase a donc été lue comme une réponse à la question des chiffres périmés,
+à côté d'une pastille qui disait le contraire.
+
+C'est la famille de `netlify.toml` : **une règle dit où elle s'arrête, sinon elle se lit
+comme une garantie générale.** Elle dit maintenant « aucune tâche en attente », qui est
+vrai et qui ne promet que son domaine.
+
 ## La version affichée est une date, et elle part avec les rapports
 
 `VERSION_APP` n'est pas un ornement du pied de page. Elle voyage avec **chaque rapport
@@ -566,6 +578,49 @@ d'un document, ou de quelqu'un qui cite le document.
 
 **Quand le résultat est observable, observez-le.** Il l'est presque toujours : il suffit
 d'accepter de le faire plus tard dans le code.
+
+### Sa forme la plus coûteuse : le geste de RÉPARATION gaté sur l'intention
+
+Les six premières occurrences faussaient un CHIFFRE. La huitième a fermé le seul
+chemin de réparation qui existait, et personne ne l'a vue parce qu'elle ne produit
+aucun message : un bouton absent ne se plaint pas.
+
+« Remesurer les 12 lignes » a été livré gaté sur `(v._mv || 'e1') !== MOTEUR_V` —
+l'estampille du moteur portée par la ligne. Mesuré au rendu, dans un navigateur, sur
+le fichier livré :
+
+| l'état de la ligne | ce que l'écran porte |
+|---|---|
+| sans `_mv` | « Remesurer les 3 lignes » + la tâche de la barre |
+| `_mv = 'e4'` | **rien** |
+
+Or `MOTEUR_V` vaut `e4` depuis le premier jour du dépôt et n'a **jamais** été tournée,
+pendant que le moteur changeait de règle (4,00 R → 14,93 R sur la même configuration).
+Toute ligne validée depuis la passation porte donc `e4` : le bouton était
+**structurellement invisible sur le seul parc qui existe**, et les cinq gardes de
+source qui le tenaient étaient vertes — elles prouvaient que la boucle, le refus et
+l'écriture par ligne étaient justes, aucune ne pouvait voir la VALEUR du prédicat.
+
+> **Gater un geste de réparation sur un prédicat de péremption, c'est refuser la
+> réparation à ceux que le prédicat ne sait pas détecter.** Et c'est exactement eux
+> qui en ont besoin : si le prédicat les voyait, ils ne seraient pas le cas difficile.
+
+L'intention était « l'estampille est-elle vieille ? » — quelqu'un a-t-il pensé à
+tourner la clé. Le résultat est « le chiffre a-t-il bougé ? », et il est **observable
+par le geste lui-même** : il suffit de remesurer et de comparer. Le geste reprend
+donc TOUTES les lignes et **nomme celles qui ont changé** ; le bilan rend aussi
+« aucun chiffre n'a changé », parce qu'un zéro tu laisserait croire que rien n'a été
+vérifié.
+
+**Et le prédicat, lui, reste — pour ce qu'il sait dire.** Il compte les lignes SANS
+estampille, ce qui est une information vraie, et il garde sa tâche de barre d'état,
+qui peut se vider. Ce qu'on lui retire, c'est le droit d'éteindre le geste.
+
+**La leçon d'outillage est la même que celle de la règle 11, un cran plus loin.** Le
+banc de rendu partait d'un profil NEUF, sans ligne validée : il n'exerçait aucun des
+deux états, et il est resté vert pendant toute la livraison. C'est la règle 10 —
+le cas vide est celui où le défaut ne peut pas se produire — appliquée au banc qui
+existe pour fermer la règle 11.
 
 ### Sa forme dormante : une intention qui se TROUVAIT vraie
 
@@ -1980,6 +2035,30 @@ pauvre et honnête : le champ est **renommé jusque dans son identifiant** —
 `scripts/app/fenetre-nest-pas-seance.test.mjs` s'ancre sur **l'absence** (règle 14,
 troisième issue) pour attraper la réintroduction du mot sur cette grandeur-là. Une
 garde d'un cas, déclarée comme telle.
+
+### Et deux comptes DISJOINTS lus l'un sous l'autre se fondent en un
+
+Le cinquième cas n'est pas un libellé qui ment : ce sont deux libellés **justes** qui,
+voisins, décrivent la même chose pour le lecteur. Sur la reprise d'US30 : « 0 bougies
+hors de cette fenêtre » et, juste au-dessus, « 23 bougies hors séance sur 68 sautées ».
+Les deux nombres sont exacts, les deux populations sont disjointes, et rien à l'écran ne
+le disait.
+
+La cause tient au mot choisi : chacun ne nommait que l'**exclusion**, qui est le terme
+commun aux deux mécanismes — « écartées » d'un côté, « sautées » de l'autre, deux
+synonymes pour deux choses. Le fait qui les sépare n'était écrit nulle part : celles de
+la fenêtre sont **RETIRÉES de la série** — elles n'y entrent jamais, aucun de leurs
+extrêmes n'est mesurable —, celles de la règle de séance y sont **PRÉSENTES** et
+seulement sautées à l'évaluation.
+
+Les deux infobulles le disaient déjà, et l'une niait explicitement l'autre. **Ça n'a
+servi à rien : une infobulle ne s'ouvre pas toute seule, et c'est en lisant les deux
+lignes ensemble qu'on les confond.** Le mot vit donc dans le texte rendu.
+
+> **Deux grandeurs distinctes qui partagent un écran doivent se distinguer dans ce qui
+> est LU, pas dans ce qui est survolé.** Et l'angle mort est déclaré dans la garde :
+> elle tient les deux mots, pas la disposition — or c'est le voisinage qui produit la
+> confusion.
 
 **Le seuil pour construire une forme est posé d'avance**, comme celui des statuts : le
 jour où un libellé mentira sur une grandeur qu'un test peut RECALCULER — un total, un

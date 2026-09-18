@@ -118,3 +118,180 @@ test("le total ne s'affiche pas comme un fait quand ses parts sont périmées", 
     + "davantage qu'un chiffre faux — la réserve accompagne la valeur, elle ne la "
     + "remplace pas.");
 });
+
+// ————— ET LE GESTE EST À L'ÉCRAN — CE QUE LES CINQ GARDES CI-DESSUS NE PROUVAIENT PAS —————
+//
+// STATUT · CAUSE ÉTABLIE, MESURÉE AU RENDU. Livré le 18 septembre, le bouton
+// « Remesurer les 12 lignes » n'est apparu chez personne. Les cinq gardes de source
+// étaient vertes et avaient raison : la boucle, le refus, l'écriture par ligne, la tâche
+// de la barre, la réserve du total — tout était écrit juste. Ce qu'aucune ne pouvait
+// voir, c'est la VALEUR du prédicat qui allume le bouton.
+//
+// MESURÉ ICI, dans un navigateur, sur le fichier livré :
+//
+//   lignes semées SANS `_mv`         → « Remesurer les 3 lignes » + tâche « Remesurer »
+//   mêmes lignes avec `_mv = 'e4'`   → AUCUN bouton, aucune tâche
+//
+// Or `MOTEUR_V` vaut `e4` depuis le premier jour du dépôt et n'a jamais été tournée
+// (`moteur-v-suit-le-moteur`). Toute ligne validée depuis la passation porte donc `e4`,
+// et le bouton était structurellement invisible sur le seul parc qui existe. La garde
+// gatait le GESTE sur l'ESTAMPILLE — une intention (« quelqu'un a-t-il tourné la clé ? »)
+// pour un résultat (« ce chiffre est-il encore celui du moteur ? »), qui est observable :
+// il suffit de mesurer, et c'est précisément ce que le geste fait.
+//
+// LA GARDE SE MESURE DONC AU RENDU, ET DANS LES DEUX ÉTATS. Exiger seulement « le bouton
+// paraît sur des lignes sans estampille » laisserait revenir exactement le défaut
+// d'hier : c'est l'état ESTAMPILLÉ qui est le cas normal, et c'est là qu'il manquait.
+//
+// ANGLE MORT DÉCLARÉ (règle 9) : elle prouve que le geste est OFFERT, pas que la boucle
+// remesure douze lignes jusqu'au bout — ça, c'est la suite de gardes de source ci-dessus,
+// et les deux ensemble ne se recouvrent pas complètement. Ce qu'aucune des deux ne tient
+// est le contenu du bilan sur un vrai parc, qui demande douze backtests dans un banc.
+import { existsSync } from "node:fs";
+import { POSER_SEMIS, INSTANCE } from "./lib/semis.mjs";
+
+const SOLO = new URL("../../Vena.solo.html", import.meta.url).pathname;
+const CHROMIUMS = [
+  process.env.VENA_CHROMIUM,
+  "/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
+].filter(Boolean);
+
+// ce que l'écran porte, lu par le chemin du produit pour l'état et par le DOM pour le rendu
+const ETAT = "(() => { const l = " + INSTANCE + ";"
+  + " const lues = l.normValides(l.state.valides);"
+  + " const bouton = [...document.querySelectorAll('button')]"
+  + "   .filter((x) => x.offsetParent !== null && /^Remesurer/.test((x.textContent || '').trim()))"
+  + "   .map((x) => (x.textContent || '').trim());"
+  // la pastille PORTE la classe `tag` : sans ce filtre, le conteneur qui l'entoure
+  // remonte lui aussi (son textContent contient celui de son enfant), et la garde
+  // comparerait l'infobulle d'un parent qui n'en a pas.
+  + " const past = [...document.querySelectorAll('span.tag')]"
+  + "   .filter((x) => x.offsetParent !== null && /estampille du moteur|aucune estampille/.test(x.textContent || ''))"
+  + "   .map((x) => ({ txt: (x.textContent || '').trim(), aide: x.title || '' }));"
+  + " return { n: lues.length, mv: lues.map((v) => v._mv === undefined ? null : v._mv),"
+  + "   cle: l.MOTEUR_V, bouton, past }; })()";
+
+test("le geste « Remesurer » est à l'écran, estampille ou pas", { timeout: 180000 }, async () => {
+  let chromium;
+  try { ({ chromium } = await import("playwright")); }
+  catch {
+    assert.fail("garde de rendu : playwright est introuvable. Installez-le ou posez "
+      + "VENA_CHROMIUM. Elle ne saute pas en silence — c'est précisément une garde muette "
+      + "qui a laissé ce bouton invisible une livraison entière.");
+  }
+  const executablePath = CHROMIUMS.find((c) => existsSync(c));
+  const nav = await chromium.launch(executablePath ? { executablePath } : {})
+    .catch(() => assert.fail("Chromium introuvable : cette garde ne saute pas."));
+  try {
+    const p = await (await nav.newContext()).newPage();
+    const explosions = [];
+    p.on("pageerror", (e) => explosions.push(String(e && e.message)));
+    await p.goto("file://" + SOLO);
+    await p.waitForFunction(() => document.body && document.body.innerText.length > 400,
+      { timeout: 60000 });
+    const porte = await p.waitForSelector('button:has-text("J\'ai compris")', { timeout: 15000 })
+      .catch(() => null);
+    if (porte) {
+      await porte.click();
+      await p.waitForSelector(".dialog-backdrop", { state: "detached", timeout: 10000 }).catch(() => {});
+    }
+    await p.evaluate(POSER_SEMIS);
+    await p.evaluate("window.__semis.scan(9)");
+    await p.evaluate("window.__semis.decisions(3)");
+    const ouvrir = async () => {
+      await p.evaluate((k) => {
+        const b = [...document.querySelectorAll("button")].find((x) => x.offsetParent !== null
+          && !x.disabled && ((x.textContent || "").trim().replace(/\s+/g, " ").includes(k)));
+        if (b) b.click();
+      }, "Mes décisions");
+      await p.waitForTimeout(300);
+      await p.evaluate(() => {
+        const b = [...document.querySelectorAll("button")].find((x) => x.offsetParent !== null
+          && (x.textContent || "").trim() === "Portefeuille");
+        if (b) b.click();
+      });
+      await p.waitForTimeout(800);
+      return p.evaluate(ETAT);
+    };
+
+    // ————— LA SONDE PROUVE SA PRISE AVANT DE RAPPORTER —————
+    const sans = await ouvrir();
+    assert.equal(sans.n, 3, "le semis n'a pas posé trois lignes validées (" + sans.n
+      + ") : la garde mesurerait un portefeuille vide, c'est-à-dire l'état où le défaut "
+      + "ne peut pas se produire — et c'est exactement l'état d'où ce banc partait quand "
+      + "le bouton manquait.");
+    assert.deepEqual(sans.mv, [null, null, null],
+      "les lignes du semis portent déjà une estampille : le premier état n'est plus "
+      + "celui qu'il croit mesurer.");
+    assert.equal(sans.past.length, 1, sans.past.length + " pastille(s) d'estampille à "
+      + "l'écran, 1 attendue : la garde a perdu sa prise sur le bloc qu'elle mesure.");
+
+    assert.deepEqual(sans.bouton, ["Remesurer", "Remesurer les 3 lignes"],
+      "sur des lignes SANS estampille, l'écran porte « " + sans.bouton.join(" / ")
+      + " » au lieu de la tâche de la barre et du bouton du portefeuille.");
+    assert.match(sans.past[0].txt, /aucune estampille de moteur/,
+      "la pastille ne dit pas ce qui manque : elle dit « " + sans.past[0].txt + " ».");
+
+    // ————— ET L'ÉTAT ESTAMPILLÉ EST LE CAS NORMAL — C'EST LÀ QUE LE BOUTON MANQUAIT —————
+    await p.evaluate("(() => { const l = " + INSTANCE + ";"
+      + " l.setState({ valides: (l.state.valides || []).map((v) => ({ ...v, _mv: l.MOTEUR_V })) });"
+      + " l.forceUpdate(); })()");
+    await p.waitForTimeout(600);
+    const avec = await ouvrir();
+    assert.deepEqual(avec.mv, [avec.cle, avec.cle, avec.cle],
+      "l'estampillage n'a pas pris : le second état est le même que le premier, et la "
+      + "garde passerait deux fois sur le cas facile.");
+    assert.ok(avec.bouton.includes("Remesurer les 3 lignes"),
+      "AUCUN bouton « Remesurer les 3 lignes » sur des lignes ESTAMPILLÉES — l'écran "
+      + "porte « " + avec.bouton.join(" / ") + " ». C'est le défaut du 18 septembre, à "
+      + "l'identique : `MOTEUR_V` n'ayant jamais été tournée, toute ligne validée porte "
+      + "l'estampille courante, et gater le geste dessus le rend invisible chez tout le "
+      + "monde. L'estampille ne PEUT PAS dire si un chiffre est périmé — seule la "
+      + "remesure le dit, et c'est pour ça qu'elle est offerte.");
+
+    // ————— DEUX BRANCHES, DEUX INFOBULLES —————
+    // Une seule infobulle partagée annonçait un moteur changé au-dessus d'une étiquette
+    // qui rassurait. C'est l'infobulle que l'utilisateur a lue, et il a cherché le bouton
+    // qu'elle promettait. Règle 4 : quand l'explication contredit l'étiquette, c'est
+    // l'étiquette qui est le défaut — ici, c'était les deux à la fois.
+    assert.equal(avec.past.length, 1, "la pastille d'estampille n'est plus à l'écran dans "
+      + "l'état estampillé.");
+    assert.match(avec.past[0].txt, /portent l’estampille du moteur actuel/,
+      "la pastille estampillée dit « " + avec.past[0].txt + " ».");
+    assert.doesNotMatch(avec.past[0].txt, /mesurées sous la règle actuelle du moteur/,
+      "la pastille affirme de nouveau que ces chiffres sont ceux de la règle actuelle. "
+      + "L'estampille ne porte pas cela : elle dit sous quelle clé de cache la ligne a "
+      + "été mesurée, et cette clé n'a jamais bougé pendant que le moteur changeait. "
+      + "Un champ qui nomme mal ce qu'il porte coûte plus cher qu'un champ absent — "
+      + "personne ne vérifie une réponse qu'il a déjà.");
+    assert.notEqual(avec.past[0].aide, sans.past[0].aide,
+      "les deux branches de la pastille partagent la MÊME infobulle. L'une rassure, "
+      + "l'autre annonce un moteur changé : elles se contredisent, et c'est l'infobulle "
+      + "qu'on lit.");
+    assert.match(avec.past[0].aide, /seule la remesure le dit/,
+      "l'infobulle de l'état estampillé ne dit pas ce qui trancherait — elle dit : « "
+      + avec.past[0].aide + " ».");
+
+    assert.deepEqual(explosions, [], "exception(s) dans la page pendant la mesure : "
+      + explosions.join(" · "));
+  } finally {
+    await nav.close();
+  }
+});
+
+// ————— ET LA BOUCLE NE DEMANDE PLUS L'ESTAMPILLE —————
+test("la remesure reprend TOUTES les lignes et dit lesquelles ont changé", () => {
+  assert.doesNotMatch(BOUCLE, /\.filter\(\(v\) => \(v\._mv \|\| 'e1'\) !== this\.MOTEUR_V\)/,
+    "la remesure filtre de nouveau sur l'estampille. `MOTEUR_V` n'a jamais été tournée : "
+    + "ce filtre saute en silence exactement les lignes qui en ont besoin, et c'est la "
+    + "règle 1 dans le geste écrit pour la fermer.");
+  assert.match(BOUCLE, /const aFaire = this\.normValides\(this\.state\.valides\);/,
+    "la remesure ne reprend plus toutes les lignes validées.");
+  assert.match(BOUCLE, /bougees\.push\(/,
+    "la remesure ne relève plus ce qui a CHANGÉ. C'est le seul verdict disponible : "
+    + "l'estampille ne peut pas dire si une ligne était périmée, la comparaison "
+    + "avant/après le dit.");
+  assert.match(BOUCLE, /aucun chiffre n\\u2019a changé|aucun chiffre n’a changé/,
+    "le bilan ne rend plus le cas « rien n'a bougé ». Un zéro tu laisse croire que rien "
+    + "n'a été vérifié — c'est la prise du zéro, la même exigence que pour `sautesVues`.");
+});

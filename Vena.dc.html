@@ -2180,7 +2180,7 @@
             </sc-if>
             <span style="font-size:12px" class="text-muted">{{ aRangerCourt }}</span>
             <sc-if value="{{ aPfPerimees }}" hint-placeholder-val="{{ false }}">
-              <span class="{{ pfPerimeesTag }}" style="font-size:11px;white-space:normal;text-align:left;max-width:70ch" title="Le moteur a changé de règle depuis que ces chiffres ont été mesurés : ils ne sont pas comparables à ce que le Backtest calcule aujourd'hui. Mesuré sur un banc : la même configuration rendait 4,00 R avant une correction et 14,93 R après, à nombre de trades identique.">{{ pfPerimeesTxt }}</span>
+              <span class="{{ pfPerimeesTag }}" style="font-size:11px;white-space:normal;text-align:left;max-width:70ch" title="{{ pfPerimeesAide }}">{{ pfPerimeesTxt }}</span>
             </sc-if>
             <sc-if value="{{ aRemesurer }}" hint-placeholder-val="{{ false }}">
               <button class="btn btn-secondary" type="button" style="min-height:1.9rem;font-size:11px" onClick="{{ remesurer }}" title="{{ remesurerAide }}">{{ remesurerTxt }}</button>
@@ -16107,15 +16107,29 @@ GROUPES = {
   //
   // L'écriture se fait PAR LIGNE et non à la fin : un arrêt au milieu garde ce qui a
   // été remesuré, comme la migration du stockage garde ce qu'elle a déjà recopié.
+  //
+  // ————— ET ELLE NE DEMANDE PAS L'ESTAMPILLE : ELLE REMESURE TOUT —————
+  //
+  // Premier jet : elle ne reprenait que les lignes dont `_mv` diffère de `MOTEUR_V`.
+  // Mesuré depuis, et c'est la règle 1 dans le geste écrit pour la fermer : `MOTEUR_V`
+  // vaut `e4` depuis le premier jour de ce dépôt et n'a JAMAIS été tournée pendant que
+  // seize commits touchaient le moteur — dont un qui fait passer la même configuration
+  // de 4,00 R à 14,93 R. Une ligne estampillée `e4` peut donc porter des chiffres
+  // d'AVANT cette correction, et le filtre la sautait en silence.
+  //
+  // « L'estampille est-elle vieille ? » est une INTENTION — quelqu'un a-t-il pensé à
+  // tourner la clé. « Le chiffre a-t-il bougé ? » est le RÉSULTAT, et il est observable :
+  // il suffit de mesurer. Le geste mesure donc TOUT et dit ce qui a changé. Sans quoi le
+  // seul chemin de réparation restait fermé aux lignes qui en avaient besoin.
   async remesurerLignes() {
     if (this._remFond || this.state.scanEnCours) return;
-    const aFaire = this.normValides(this.state.valides)
-      .filter((v) => (v._mv || 'e1') !== this.MOTEUR_V);
+    const aFaire = this.normValides(this.state.valides);
     if (!aFaire.length) return;
     this._remFond = true;
     this._remStop = false;
     let faites = 0;
     const refusees = [];
+    const bougees = [];
     try {
       for (let i = 0; i < aFaire.length; i++) {
         // l'export a priorité : une sauvegarde qui échoue parce qu'un calcul de confort
@@ -16141,6 +16155,20 @@ GROUPES = {
           const r = this.M.resume(trades);
           const seg = this.M.segments(trades, 5);
           const cle = this.cleValide(v);
+          // ————— CE QUI A BOUGÉ EST LE SEUL VERDICT DISPONIBLE —————
+          // L'estampille ne peut pas dire si une ligne était périmée ; la comparaison
+          // avant/après le dit, et c'est pourquoi la remesure la relève. Un dixième de R
+          // est sous la précision affichée (un chiffre après la virgule) : en deçà, la
+          // ligne n'a pas changé pour son lecteur.
+          const avant = v.total;
+          // `sg` est local au producteur de rendu : le formatage se fait ici, dans sa
+          // propre portée. Une lecture hors portée ne jette que si sa branche s'exécute —
+          // et c'est ce qui a mis la page entière en blanc une fois.
+          const rr = (x) => (x >= 0 ? '+ ' : '\u2212 ') + Math.abs(x).toFixed(1).replace('.', ',');
+          if (avant !== undefined && r.total !== undefined
+            && Math.abs(r.total - avant) >= 0.1) {
+            bougees.push(this.nomComplet(sym) + ' ' + rr(avant) + ' \u2192 ' + rr(r.total) + ' R');
+          }
           const suite = this.normValides(this.state.valides).map((x) => (this.cleValide(x) !== cle ? x
             : { ...x, n: r.n, total: r.total, rAn: r.rAn, winRate: r.winRate, pf: r.pf, dd: r.dd,
                 positifs: seg ? seg.positifs : x.positifs, segTotal: seg ? seg.total : x.segTotal,
@@ -16160,6 +16188,13 @@ GROUPES = {
       // laisse croire qu'il a tout couvert.
       this.setState({ remMsg: null,
         remBilan: faites + (faites > 1 ? ' lignes remesurées' : ' ligne remesurée')
+          // LE BILAN RÉPOND À LA QUESTION QUE L'ESTAMPILLE NE SAVAIT PAS POSER : lesquelles
+          // portaient un chiffre mort. « 0 a changé » est une réponse, et c'est celle qui
+          // referme le doute — la taire laisserait croire que rien n'a été vérifié.
+          + ' \u00b7 ' + (bougees.length
+            ? bougees.length + (bougees.length > 1 ? ' ont changé de chiffre : ' : ' a changé de chiffre : ')
+              + bougees.join(', ')
+            : 'aucun chiffre n\u2019a changé')
           + (refusees.length
             ? ' \u00b7 ' + refusees.length + ' laissée' + (refusees.length > 1 ? 's' : '')
               + ' intacte' + (refusees.length > 1 ? 's' : '') + ' faute de retrouver leur '
@@ -16363,7 +16398,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260918.2';
+  VERSION_APP = '260918.3';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -20722,11 +20757,21 @@ GROUPES = {
         // l'Historique date chaque scan et le Journal en tient le registre —
         // la barre dit « tout est à jour » plutôt que de répéter l'information
         return {
-          // La phrase de gauche porte « tout est à jour » quand il n'y a pas de tâche :
-          // le filet et le bouton disparaissent, mais la barre ne se vide pas à moitié.
-          // Une barre dont le contenu change déjà selon la vue devient du bruit si elle
-          // laisse un blanc la moitié du temps.
-          barreEtat: nomCompte + ' · ' + compte + (tache ? '' : ' · tout est à jour'),
+          // La phrase de gauche remplit la barre quand il n'y a pas de tâche : le filet
+          // et le bouton disparaissent, mais la barre ne se vide pas à moitié. Une barre
+          // dont le contenu change déjà selon la vue devient du bruit si elle laisse un
+          // blanc la moitié du temps.
+          //
+          // ————— ELLE DISAIT « TOUT EST À JOUR », ET ELLE NE PEUT PAS LE SAVOIR —————
+          // Une règle dit où elle s'arrête, sinon elle se lit comme une garantie
+          // générale. Cette barre sait poser SES tâches — relevé manquant, bougies
+          // absentes, scan jamais lancé, estampille absente ; elle ne sait pas si les
+          // chiffres enregistrés sont ceux que le moteur calcule aujourd'hui, et mesuré
+          // dans ce dépôt l'estampille ne le sait pas non plus. « Tout est à jour » a
+          // donc été lu comme une réponse à la question des chiffres périmés, à côté
+          // d'une pastille qui disait le contraire. La phrase ne promet plus que ce
+          // qu'elle couvre.
+          barreEtat: nomCompte + ' · ' + compte + (tache ? '' : ' · aucune tâche en attente'),
           aBarreTache: !!tache,
           barreTacheTxt: tache ? tache.txt : '',
           barreTacheBouton: tache ? tache.bouton : '',
@@ -24119,8 +24164,18 @@ GROUPES = {
       // de séance ne pouvait pas être en cause — alors que le nombre lu ne l'avait jamais
       // mesurée. C'est la quatrième fois qu'un libellé de champ envoie chercher ailleurs.
       // Le compte des bougies réellement sautées par la règle est le bandeau `btSautesTxt`.
+      //
+      // ————— ET LES DEUX COMPTES SE LISENT ENSEMBLE, SUR LE MÊME ÉCRAN —————
+      // « 0 bougies hors de cette fenêtre » au-dessus de « 23 bougies hors séance sur 68
+      // sautées » : les deux nombres sont justes, les deux populations sont DISJOINTES, et
+      // rien ne le disait au lecteur. Le libellé ne nommait que l'exclusion, qui est le mot
+      // commun aux deux mécanismes. Il nomme maintenant le fait qui les sépare : celles-ci
+      // sont RETIRÉES de la série — elles n'y sont jamais entrées, aucun de leurs extrêmes
+      // n'est mesurable —, quand celles de l'autre bandeau y sont PRÉSENTES et seulement
+      // sautées à l'évaluation. La distinction vit dans le texte rendu, pas dans une
+      // infobulle : c'est en les lisant l'un sous l'autre qu'on les confond.
       fenetreHeuresInfo: this.diag && this.diag[s.btSym] && this.diag[s.btSym].session
-        ? ' (heures retenues ' + this.diag[s.btSym].session[0] + ' h – ' + this.diag[s.btSym].session[this.diag[s.btSym].session.length - 1] + ' h UTC · ' + this.diag[s.btSym].ecartees + ' bougies hors de cette fenêtre, écartées)'
+        ? ' (heures retenues ' + this.diag[s.btSym].session[0] + ' h – ' + this.diag[s.btSym].session[this.diag[s.btSym].session.length - 1] + ' h UTC · ' + this.diag[s.btSym].ecartees + ' bougies RETIRÉES de la série par cette fenêtre)'
         : '',
       fenetreHeuresAide: 'Les heures retenues sont celles présentes dans TOUTES les années de '
         + 'la série : une année où le courtier a coté une heure de plus la retirerait de '
@@ -24485,8 +24540,9 @@ GROUPES = {
             ? 'Règle de séance : aucune bougie sautée sur ces ' + nb(tot) + ' trades — '
               + 'elle n\u2019explique aucun écart avec un testeur sur cette configuration.'
             : n > 0
-              ? nb(n) + ' bougie' + (n > 1 ? 's' : '') + ' hors séance (ou reconstituée'
-                + (n > 1 ? 's' : '') + ') sur ' + nb(vues) + ' sautée' + (vues > 1 ? 's' : '')
+              ? 'Règle de séance : ' + nb(n) + ' bougie' + (n > 1 ? 's' : '')
+                + ' hors séance (ou reconstituée' + (n > 1 ? 's' : '')
+                + '), PRÉSENTES dans la série, sur ' + nb(vues) + ' sautée' + (vues > 1 ? 's' : '')
                 + ' franchissai' + (n > 1 ? 'ent' : 't') + ' le stop ou l\u2019objectif sans '
                 + 'être relevée' + (n > 1 ? 's' : '') + ' — sur ' + nb(tot) + ' trades. '
                 + 'Un robot posé chez le courtier, lui, y serait sorti : c\u2019est '
@@ -26436,8 +26492,15 @@ GROUPES = {
               // Douze lignes périmées et « Rien à ranger » pour seule proposition : le
               // seul geste possible était d'ouvrir douze Backtests un par un. Le travail
               // se demande d'ici, se dit pendant qu'il tourne, et s'arrête.
-              aRemesurer: vieilles > 0 && !enCours,
-              remesurerTxt: 'Remesurer ' + (vieilles > 1 ? 'les ' + vieilles + ' lignes' : 'la ligne'),
+              //
+              // ET LE GESTE NE DÉPEND PLUS DE L'ESTAMPILLE. Livré gaté sur `vieilles`, il
+              // n'apparaissait chez personne : mesuré au rendu, une ligne estampillée du
+              // moteur courant l'éteint, et `MOTEUR_V` n'ayant jamais été tournée, TOUTE
+              // ligne validée depuis la passation la porte. Le bouton était donc
+              // structurellement invisible sur le seul parc qui existe. Il est offert dès
+              // qu'il y a quelque chose à mesurer, et c'est la remesure qui répond.
+              aRemesurer: toutes.length > 0 && !enCours,
+              remesurerTxt: 'Remesurer ' + (toutes.length > 1 ? 'les ' + toutes.length + ' lignes' : 'la ligne'),
               remesurerAide: 'Rejoue chaque ligne périmée sous la règle actuelle du '
                 + 'moteur et écrit le résultat. L\u2019export garde la priorité : la '
                 + 'remesure se met en pause tant qu\u2019une sauvegarde tourne. Une ligne '
@@ -26450,13 +26513,37 @@ GROUPES = {
               remArreter: () => { this._remStop = true; },
               aRemBilan: !!s.remBilan && !enCours,
               remBilanTxt: s.remBilan || '',
+              // ————— LE MOT DIT CE QUE L'ESTAMPILLE PORTE, PAS CE QU'ON VOUDRAIT QU'ELLE PROUVE —————
+              // « mesurées sous la règle actuelle du moteur » était un champ qui nomme mal
+              // ce qu'il porte : l'estampille dit sous quelle CLÉ DE CACHE la ligne a été
+              // mesurée, et cette clé ne bouge que si quelqu'un la tourne à la main.
+              // Mesuré ici : elle ne l'a jamais été pendant que le moteur changeait de
+              // règle. La phrase répondait donc à la question que le lecteur se pose, et
+              // personne ne revérifie une réponse qu'il a déjà.
               pfPerimeesTxt: !vieilles
-                ? toutes.length + (toutes.length > 1 ? ' lignes mesurées' : ' ligne mesurée')
-                  + ' sous la règle actuelle du moteur'
+                ? toutes.length + (toutes.length > 1 ? ' lignes portent' : ' ligne porte')
+                  + ' l\u2019estampille du moteur actuel — seule une remesure dit si '
+                  + (toutes.length > 1 ? 'leurs chiffres sont' : 'son chiffre est')
+                  + ' encore ' + (toutes.length > 1 ? 'ceux' : 'celui') + ' qu\u2019il calcule'
                 : vieilles + ' ligne' + (vieilles > 1 ? 's' : '') + ' sur ' + toutes.length
-                  + ' porte' + (vieilles > 1 ? 'nt' : '') + ' un chiffre antérieur à la '
-                  + 'règle actuelle du moteur — rouvrez-les en Backtest et mesurez pour '
-                  + 'les remettre à jour.',
+                  + ' n\u2019' + (vieilles > 1 ? 'ont' : 'a') + ' aucune estampille de moteur : '
+                  + (vieilles > 1 ? 'leurs chiffres sont' : 'son chiffre est') + ' antérieur'
+                  + (vieilles > 1 ? 's' : '') + ' à la règle actuelle',
+              // Deux branches, deux infobulles : une seule les faisait se contredire —
+              // l'étiquette rassurait pendant que l'infobulle annonçait un moteur changé,
+              // et c'est l'infobulle que l'utilisateur a lue.
+              pfPerimeesAide: vieilles
+                ? 'Le moteur a changé de règle depuis que ces chiffres ont été mesurés : '
+                  + 'ils ne sont pas comparables à ce que le Backtest calcule aujourd\u2019hui. '
+                  + 'Mesuré sur un banc : la même configuration rendait 4,00 R avant une '
+                  + 'correction et 14,93 R après, à nombre de trades identique.'
+                : 'L\u2019estampille dit sous quelle clé de cache la ligne a été mesurée. '
+                  + 'Cette clé ne bouge que si on la tourne à la main, et mesuré dans ce '
+                  + 'dépôt, le moteur a changé de règle sans qu\u2019elle bouge — la même '
+                  + 'configuration rendait 4,00 R avant une correction et 14,93 R après, à '
+                  + 'nombre de trades identique. Elle ne prouve donc pas que ces chiffres '
+                  + 'sont ceux d\u2019aujourd\u2019hui : seule la remesure le dit, et elle '
+                  + 'nomme celles qui ont bougé.',
               pfPerimeesTag: vieilles ? 'tag tag-outline' : 'tag tag-neutral' };
           })(),
           ...(() => {
