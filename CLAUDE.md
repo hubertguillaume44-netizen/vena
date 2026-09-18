@@ -3013,6 +3013,66 @@ de tout bouton.
 portait le `title` de la rangée, qui est parti ; son invariant — la rangée se déplie au
 clic, donc la coupure de propagation du retrait a un objet — n'a pas bougé.
 
+## Une figure n'affirme pas une comparaison sur une fenêtre qu'elle ne couvre pas
+
+**STATUT · CAUSE ÉTABLIE — symptôme RAPPORTÉ sur `260918.8`, cause relue et correctif
+MESURÉS DANS LE DÉPÔT.** Le pointillé « acheter et garder » partait de 2022 quand le trait
+plein partait de 2020, et la légende annonçait quand même un total : `+ 156,1 %`.
+
+**C'est la troisième fois que la même classe se présente, par un troisième mécanisme.** La
+frise affirmait une fenêtre commune fausse par un calque mal calé ; le bilan additionnait
+des fenêtres qui ne se recouvrent pas ; ici, c'est une COURBE qui compare deux choses sur
+deux périodes. Les trois se ressemblent par ce qu'elles font au lecteur, pas par leur
+cause — et aucune des trois ne se voyait dans le source.
+
+**Les deux lectures possibles étaient toutes deux des défauts, et elles y étaient
+ENSEMBLE** — c'est ce qui les rendait invisibles, chacune expliquant l'autre :
+
+| Ce que le code faisait | Ce que ça produisait |
+|---|---|
+| le prix de base était pris **par série**, au premier point disponible de chacune | une série commençant en 2022 apportait son 2022→2026 pendant qu'une autre apportait son 2020→2026 : **le total de la légende mélangeait des fenêtres** — le défaut AUDUSD, dans une figure |
+| les points d'échantillon antérieurs à la série la plus courte étaient **sautés** (`continue`) | le tracé partait plus tard, sans un mot |
+
+La référence se calcule donc sur **UNE** fenêtre — celle où toutes les séries existent —
+avec le même prix de base pour toutes.
+
+> **« Le dire plutôt que tracer moins. »** Quand cette fenêtre ne couvre pas toute la
+> période du tracé, le pointillé n'est PAS tracé : la légende donne le chiffre avec sa
+> fenêtre et sa raison — « + 156,1 % sur 2022–2026, les seules années où les 15 séries
+> existent — non tracé, il couvrirait moins que la stratégie ». Un trait plus court que
+> son voisin est une comparaison que personne ne peut faire, et qui a l'air d'en être une.
+
+**Et le témoin de légende suit le trait.** Une pastille pointillée sans trait sur la figure
+annonce une courbe absente : elle ne paraît que si le trait existe.
+
+`scripts/app/portefeuille-fenetre-commune.test.mjs` mesure **les deux états au rendu** — la
+coordonnée x du premier point de chacun des deux traits, et le texte de la légende. Le
+second état est obtenu en tronquant une série par la fonction du produit qui découpe :
+sans lui, la garde ne verrait que le cas où le défaut ne peut pas se produire (règle 10).
+Deux mutations la font tomber : décaler le pointillé de 133 unités, et retirer la
+condition de couverture.
+
+**Son angle mort est en tête** : elle tient que les deux traits décrivent la même fenêtre,
+pas que chacun la décrive juste. Vérifier le pour-cent annoncé demanderait une seconde
+implémentation de la détention, écrite depuis l'énoncé — un recompte indépendant.
+
+### Deux surfaces pour le même fait
+
+Le titre de la carte disait « Portefeuille 1 · 15 lignes · + 701,8 R cumulés » pendant que
+l'onglet actif, juste au-dessus, disait « Portefeuille 1 · 15 lignes · + 117,4 R / an ».
+Le titre est tombé : le seul chiffre que l'onglet ne portait pas — le R cumulé — vit déjà
+dans le bandeau du bilan. Il ne reste dans cette rangée que ce qu'un onglet ne peut pas
+porter : renommer, supprimer.
+
+### Une réserve sans son motif ne dit pas quoi faire pour la lever
+
+Les lignes portaient `non vérifié` seul là où il faut lire `non vérifié — mesure sur
+3,4 ans`. **Même cause que les deux tirets de la période** : la durée venait des bornes
+enregistrées, que le repli de `normValides` ne recopiait pas. Elle vient désormais des
+trades mesurés, comme la période de la même rangée — **deux producteurs pour une même
+durée finiraient par se contredire sur la même ligne**, ce qui est précisément ce qui a
+été rapporté : une durée d'un côté, deux tirets de l'autre.
+
 ## Un accord qui tient par ANNULATION D'ERREURS
 
 **C'est la voisine de la règle 15, et elle est pire.** Là, une sonde muette rend le défaut

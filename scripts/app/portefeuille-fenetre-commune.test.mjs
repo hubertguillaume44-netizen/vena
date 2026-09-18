@@ -225,3 +225,116 @@ test("la bande de la fenêtre commune tombe au pixel sur la piste des barres", {
       + "qu'aucune position n'a jamais été ouverte, ce qui contredit les trades mesurés.");
   } finally { await nav.close(); }
 });
+
+// ————— UNE TROISIÈME FIGURE QUI AFFIRMAIT UNE FENÊTRE QU'ELLE NE COUVRAIT PAS —————
+//
+// STATUT · CAUSE ÉTABLIE — symptôme RAPPORTÉ sur `260918.8`, cause relue DANS LE DÉPÔT.
+// Le pointillé « acheter et garder » partait de 2022 quand le trait plein partait de
+// 2020, et la légende annonçait quand même un total. Les DEUX défauts y étaient à la
+// fois, et ils se cachaient l'un l'autre :
+//
+//   · le prix de base était pris PAR SÉRIE, au premier point disponible de chacune :
+//     une série commençant en 2022 apportait son 2022→2026 pendant qu'une autre
+//     apportait son 2020→2026. Le total de la légende MÉLANGEAIT des fenêtres ;
+//   · les points antérieurs à la série la plus courte étaient sautés, donc le tracé
+//     partait plus tard — sans un mot.
+//
+// C'est la même classe que la frise, par un troisième mécanisme : une figure qui affirme
+// une comparaison sur une fenêtre qu'elle ne couvre pas. Et comme la frise, ça ne se voit
+// pas dans le source — deux boucles justes, un `continue` qui saute en silence.
+//
+// ANGLE MORT DÉCLARÉ, en tête : la garde mesure la COORDONNÉE de départ des deux traits
+// et le texte de la légende. Elle ne vérifie pas que le pour-cent annoncé est le bon —
+// il faudrait une seconde implémentation de la détention, écrite depuis l'énoncé, et
+// c'est ce que le dépôt appelle un recompte indépendant. Elle tient que les deux traits
+// décrivent la même fenêtre, pas que chacun la décrive juste.
+test("les deux traits de la courbe partent du même instant, ou le second n'est pas tracé",
+  { timeout: 180000 }, async () => {
+    let chromium;
+    try { ({ chromium } = await import("playwright")); }
+    catch (e) {
+      assert.fail("Cette garde compare deux COORDONNÉES rendues — playwright est "
+        + "introuvable. Installez-le, ou posez VENA_CHROMIUM. Elle ne saute pas en "
+        + "silence : un trait plus court que son voisin est une comparaison que personne "
+        + "ne peut faire, et qui a l'air d'en être une.");
+    }
+    const executablePath = CHROMIUMS.find((c) => existsSync(c));
+    const nav = await chromium.launch(executablePath ? { executablePath } : {})
+      .catch(() => assert.fail("Chromium introuvable. Cette garde ne saute pas."));
+    try {
+      const p = await (await nav.newContext({ viewport: { width: 1440, height: 1000 } })).newPage();
+      const exceptions = [];
+      p.on("pageerror", (e) => exceptions.push(String((e && e.message) || e)));
+      await p.goto("file://" + SOLO);
+      await p.waitForFunction(() => document.body && document.body.innerText.length > 400, null, { timeout: 60000 });
+      await p.waitForFunction(`(() => { try { const i = ${INSTANCE};
+        return !!(i.dfs && i.dfs['VX-EUR'] && i.dfs['VX-EUR'].n > 1000); } catch (e) { return false; } })()`,
+      null, { timeout: 90000 });
+      await p.evaluate(POSER_SEMIS);
+      await p.evaluate("window.__semis.portefeuille(3)");
+      await p.evaluate(`(() => { const i = ${INSTANCE};
+        i.setState({ vue: 'portefeuille', pfOnglet: 1 }); i.forceUpdate(); })()`);
+      await p.waitForFunction(() => /COURBE DE CAPITAL/i.test(document.body.innerText),
+        null, { timeout: 60000 });
+
+      const lire = () => p.evaluate(() => {
+        const svg = document.querySelector("svg[viewBox='0 0 1330 160']");
+        const x0 = (el) => {
+          if (!el) return null;
+          const pts = (el.getAttribute("points") || "").trim().split(/\s+/);
+          return pts.length && pts[0] ? Number(pts[0].split(",")[0]) : null;
+        };
+        const lignes = [...(svg ? svg.querySelectorAll("polyline") : [])];
+        const det = lignes.find((l) => (l.getAttribute("stroke-dasharray") || "") !== "");
+        const strat = lignes.find((l) => l !== det);
+        const txt = document.body.innerText;
+        return { xStrat: x0(strat), xDet: x0(det), traces: lignes.length,
+          legende: (/acheter et garder[^\n]*/.exec(txt) || [""])[0] };
+      });
+
+      assert.deepEqual(exceptions, [], "la page a jeté : rien n'est mesurable après ça.");
+
+      // ————— ÉTAT 1 : la référence couvre tout, donc elle est tracée —————
+      const plein = await lire();
+      assert.equal(plein.traces, 2,
+        "la courbe ne porte pas ses DEUX traits sur un portefeuille dont les trois séries "
+        + "couvrent toute la période (" + plein.traces + " rendu(s)) : la garde mesurerait "
+        + "le décor, et le cas normal ne serait pas exercé.");
+      assert.ok(Number.isFinite(plein.xStrat) && Number.isFinite(plein.xDet),
+        "un des deux traits n'a pas de premier point lisible.");
+      assert.ok(Math.abs(plein.xDet - plein.xStrat) <= 1,
+        "le pointillé « acheter et garder » commence à x = " + plein.xDet + " quand la "
+        + "stratégie commence à x = " + plein.xStrat + " — " + Math.round(Math.abs(plein.xDet - plein.xStrat))
+        + " unités d'écart sur 1330. La figure affirme une comparaison sur une fenêtre "
+        + "qu'elle ne couvre pas, et la légende annonce quand même un total : les deux "
+        + "chiffres ne se comparent pas. La référence se calcule sur UNE fenêtre, avec le "
+        + "même prix de base pour toutes les séries.");
+      assert.ok(!/ sur \d{4}/.test(plein.legende),
+        "la légende nomme une fenêtre alors que le trait couvre toute la période : elle "
+        + "annoncerait une réserve qui n'a pas lieu d'être. Rendu : « " + plein.legende + " »");
+
+      // ————— ÉTAT 2 : une série trop courte — on le DIT, on ne trace pas moins —————
+      // La série d'une des trois lignes est tronquée par la fonction du produit qui
+      // découpe, `decouper`. Ses trades sont remesurés dessus, mais les deux autres
+      // lignes gardent leur axe : la référence ne peut plus couvrir le tracé.
+      await p.evaluate(`(() => { const i = ${INSTANCE};
+        i.dfs['VX-OR'] = i.M.decouper(i.dfs['VX-OR'], Date.UTC(2025, 5, 1));
+        i.forceUpdate(); })()`);
+      await new Promise((r) => setTimeout(r, 1200));
+      const court = await lire();
+      assert.equal(court.traces, 1,
+        "une série ne couvre plus la période du tracé, et le pointillé est tracé quand "
+        + "même (" + court.traces + " traits) : il serait plus court que celui de la "
+        + "stratégie. « Le dire plutôt que tracer moins » — c'est le chiffre qui est "
+        + "donné, avec sa fenêtre, pas la figure.");
+      assert.match(court.legende, /sur \d{4}–\d{4}/,
+        "la légende ne nomme pas la fenêtre sur laquelle la référence EST mesurable. "
+        + "Sans elle, le pour-cent annoncé se lit comme s'il couvrait toute la période — "
+        + "et c'est exactement le défaut qu'on vient de retirer du tracé. Rendu : « "
+        + court.legende + " »");
+      assert.match(court.legende, /les seules années/,
+        "la légende donne une fenêtre sans dire POURQUOI elle est plus courte. Une "
+        + "réserve sans son motif ne dit pas quoi faire pour la lever. Rendu : « "
+        + court.legende + " »");
+    } finally { await nav.close(); }
+  });

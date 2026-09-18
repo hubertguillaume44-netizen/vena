@@ -2440,8 +2440,13 @@
           <section class="card blueprint" style="padding:20px 22px;gap:12px">
             <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
             <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">
-              <span style="margin:0;font-family:var(--font-heading);font-size:26px;line-height:1.1;letter-spacing:-.005em">{{ ps.nom }}</span>
-              <span style="font-size:12px" class="text-muted">{{ ps.resume }}</span>
+              <!-- ————— LE TITRE EST TOMBÉ : L'ONGLET ACTIF LE PORTE DÉJÀ —————
+                   L'onglet dit « Portefeuille 1 · 15 lignes · + 117,4 R / an » et le titre,
+                   juste dessous, disait « Portefeuille 1 · 15 lignes · + 701,8 R cumulés » —
+                   deux surfaces pour le même fait, à un chiffre près. Le seul chiffre que
+                   l'onglet n'avait pas, le R cumulé, vit dans le bandeau du bilan
+                   (`pfRTotal`) : rien n'est perdu, une répétition est retirée.
+                   Il ne reste que ce que l'onglet ne peut pas porter : renommer, supprimer. -->
               <sc-if value="{{ ps.aRenommer }}" hint-placeholder-val="{{ true }}">
                 <input class="input" type="text" style="min-height:1.9rem;height:1.9rem;font-size:12px;width:18ch;margin-inline-start:auto" value="{{ ps.nom }}" onChange="{{ ps.renommer }}" title="Renommer ce portefeuille">
                 <button type="button" class="lien" style="font-size:11px;color:var(--color-neutral-700)" onClick="{{ ps.supprimer }}" title="{{ ps.supprAide }}">{{ ps.supprTxt }}</button>
@@ -2457,7 +2462,14 @@
                 <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">
                   <span style="font-size:10px;letter-spacing:.08em;text-transform:uppercase" class="text-muted">Courbe de capital</span>
                   <span style="display:inline-flex;align-items:center;gap:6px;font-size:11px" class="text-muted"><span style="width:16px;height:2px;background:var(--color-accent-700)"></span>{{ ps.courbeStratTxt }}</span>
-                  <span style="display:inline-flex;align-items:center;gap:6px;font-size:11px" class="text-muted"><span style="width:16px;height:0;border-top:1.5px dashed var(--color-neutral-500)"></span>{{ ps.courbeDetTxt }}</span>
+                  <!-- la pastille pointillée ne paraît QUE si le trait existe : un témoin
+                       de légende sans trait sur la figure annonce une courbe absente -->
+                  <span style="display:inline-flex;align-items:center;gap:6px;font-size:11px;cursor:help" class="text-muted" title="{{ ps.courbeDetAide }}">
+                    <sc-if value="{{ ps.aCourbeDet }}" hint-placeholder-val="{{ true }}">
+                      <span style="width:16px;height:0;border-top:1.5px dashed var(--color-neutral-500)"></span>
+                    </sc-if>
+                    {{ ps.courbeDetTxt }}
+                  </span>
                   <span style="font-size:11px;margin-inline-start:auto" class="text-muted">{{ ps.courbeTxt }}</span>
                 </div>
                 <svg viewBox="0 0 1330 160" style="width:100%;height:112px;display:block" preserveAspectRatio="none">
@@ -10999,6 +11011,7 @@ GROUPES = {
         if (!vivantes.length || !axe) {
           return { aCourbe: false, courbePts: '', courbeAire: '', courbeDet: '',
             aCourbeDet: false, courbeTxt: '', courbeStratTxt: '', courbeDetTxt: '',
+            courbeDetAide: '',
             courbeCreuxX1: '0', courbeCreuxY1: '0', courbeCreuxX2: '0', courbeCreuxY2: '0',
             courbeZero: '0' };
         }
@@ -11014,32 +11027,67 @@ GROUPES = {
           if (eq - pic < creux) { creux = eq - pic; creuxT = t.s; creuxEq = eq; picEq = pic; }
           pts.push({ t: t.s, v: eq * risque });
         }
-        // la détention des mêmes instruments, équipondérée, échantillonnée sur l'axe :
-        // relire chaque bougie de chaque série à chaque rendu figerait la page
-        const bases = [];
+        // ————— UNE FIGURE N'AFFIRME PAS UNE COMPARAISON SUR UNE FENÊTRE QU'ELLE NE COUVRE PAS —————
+        //
+        // Rapporté sur 260918.8 : le pointillé « acheter et garder » partait de 2022 quand
+        // le trait plein partait de 2020, et la légende annonçait quand même un total.
+        // Relu ici, les DEUX défauts y étaient à la fois :
+        //
+        //   · le prix de base était pris PAR SÉRIE, au premier point disponible de
+        //     chacune — une série commençant en 2022 apportait son 2022 au 2026 pendant
+        //     qu'une autre apportait son 2020 au 2026. Le total de la légende mélangeait
+        //     des fenêtres, et c'est le défaut AUDUSD dans une figure ;
+        //   · les points d'échantillon antérieurs à la série la plus courte étaient
+        //     SAUTÉS — le tracé partait plus tard, sans un mot.
+        //
+        // La référence se calcule donc sur UNE fenêtre, celle où toutes les séries
+        // existent, et le même prix de base pour tout le monde. Quand cette fenêtre ne
+        // couvre pas toute la période du tracé, on ne trace pas moins : ON LE DIT. Une
+        // courbe plus courte que sa voisine est une comparaison que personne ne peut
+        // faire, et qui a l'air d'en être une.
+        const series = [];
+        let refT0 = axe.t0, refT1 = axe.t1;
         for (const x of vivantes) {
           const df = this.serieH1(x.sym);
-          if (!df || !df.n) continue;
-          let i = 0;
-          while (i < df.n && df.t[i] < axe.t0) i++;
-          if (i >= df.n || !(df.o[i] > 0)) continue;
-          bases.push({ df, i0: i, p0: df.o[i] });
+          if (!df || !df.n) { series.length = 0; break; }
+          series.push(df);
+          if (df.t[0] > refT0) refT0 = df.t[0];
+          if (df.t[df.n - 1] < refT1) refT1 = df.t[df.n - 1];
         }
         const det = [];
-        if (bases.length === vivantes.length && bases.length) {
-          for (let k = 0; k <= 60; k++) {
-            const t = axe.t0 + axe.span * k / 60;
-            let somme = 0, n = 0;
-            for (const b of bases) {
-              let i = b.i0;
-              while (i + 1 < b.df.n && b.df.t[i + 1] <= t) i++;
-              if (b.df.t[i] > t) continue;
-              somme += (b.df.c[i] / b.p0 - 1) * 100; n++;
+        let refOk = series.length === vivantes.length && series.length > 0 && refT1 > refT0;
+        if (refOk) {
+          const ptr = [], p0 = [];
+          for (let j = 0; j < series.length; j++) {
+            const df = series[j];
+            let i = 0;
+            while (i < df.n && df.t[i] < refT0) i++;
+            if (i >= df.n || !(df.o[i] > 0)) { refOk = false; break; }
+            ptr[j] = i; p0[j] = df.o[i];
+          }
+          if (refOk) {
+            const spanR = refT1 - refT0;
+            for (let k = 0; k <= 60; k++) {
+              const t = refT0 + spanR * k / 60;
+              let somme = 0;
+              for (let j = 0; j < series.length; j++) {
+                const df = series[j];
+                while (ptr[j] + 1 < df.n && df.t[ptr[j] + 1] <= t) ptr[j]++;
+                somme += (df.c[ptr[j]] / p0[j] - 1) * 100;
+              }
+              det.push({ t, v: somme / series.length });
             }
-            if (n === bases.length) det.push({ t, v: somme / n });
           }
         }
-        const vals = [0, ...pts.map((x) => x.v), ...det.map((x) => x.v)];
+        // PLEINE : la référence couvre bien tout ce que la stratégie couvre. C'est la
+        // seule condition sous laquelle les deux traits partent du même instant, donc la
+        // seule sous laquelle le pointillé se trace. La tolérance est d'une heure — le
+        // pas de la série —, pas de zéro : une bougie H1 ne tombe pas sur l'instant d'un
+        // trade, et exiger l'égalité stricte refuserait toutes les figures.
+        const detPleine = refOk && det.length > 1
+          && refT0 <= axe.t0 + 36e5 && refT1 >= axe.t1 - 36e5;
+        const an = (ms) => String(new Date(ms).getUTCFullYear());
+        const vals = [0, ...pts.map((x) => x.v), ...(detPleine ? det.map((x) => x.v) : [])];
         const lo = Math.min(...vals), hi = Math.max(...vals);
         const ech = hi > lo ? (H - 14) / (hi - lo) : 0;
         const X = (t) => (pct(t) / 100 * L).toFixed(1);
@@ -11048,15 +11096,33 @@ GROUPES = {
         return { aCourbe: true,
           courbePts: corps,
           courbeAire: corps + ' ' + X(pts[pts.length - 1].t) + ',' + Y(lo) + ' ' + X(pts[0].t) + ',' + Y(lo),
-          aCourbeDet: det.length > 1,
-          courbeDet: det.map((x) => X(x.t) + ',' + Y(x.v)).join(' '),
+          aCourbeDet: detPleine,
+          courbeDet: detPleine ? det.map((x) => X(x.t) + ',' + Y(x.v)).join(' ') : '',
           courbeZero: Y(0),
           courbeCreuxX1: X(picT), courbeCreuxY1: Y(picEq * risque),
           courbeCreuxX2: X(creuxT), courbeCreuxY2: Y(creuxEq * risque),
           courbeStratTxt: 'votre stratégie \u00b7 ' + sgn(eq * risque, 1) + ' %',
-          courbeDetTxt: det.length > 1
+          // trois états, et aucun n'est un trait plus court que son voisin
+          courbeDetTxt: detPleine
             ? 'acheter et garder \u00b7 ' + sgn(det[det.length - 1].v, 1) + ' %'
-            : 'acheter et garder : séries incomplètes, non tracé',
+            : det.length > 1
+              ? 'acheter et garder \u00b7 ' + sgn(det[det.length - 1].v, 1) + ' % sur '
+                + an(refT0) + '\u2013' + an(refT1) + ', les seules années o\u00f9 les '
+                + series.length + ' séries existent \u2014 non tracé, il couvrirait moins '
+                + 'que la stratégie'
+              : 'acheter et garder : séries absentes de ce navigateur, rien à comparer',
+          courbeDetAide: detPleine
+            ? 'Les mêmes instruments simplement détenus, équipondérés, sur exactement la '
+              + 'période du trait plein \u2014 même premier instant, même dernier.'
+            : det.length > 1
+              ? 'La détention ne peut être mesurée que de ' + an(refT0) + ' \u00e0 ' + an(refT1)
+                + ' : au moins une des ' + series.length + ' séries ne remonte pas plus '
+                + 'loin. Tracer ce trait plus court que celui de la stratégie afficherait '
+                + 'une comparaison sur une fenêtre qu\u2019elle ne couvre pas \u2014 '
+                + 'c\u2019est le chiffre qui est donné, avec sa fenêtre, plutôt que la figure.'
+              : 'Aucune série n\u2019est chargée pour ces instruments : déposez-les pour '
+                + 'voir ce que la détention aurait fait.',
+
           courbeTxt: 'cumul des ' + tous.length + ' trades des '
             + this.pl(vivantes.length, 'ligne mesurable', 'lignes mesurables')
             + ' \u00b7 creux le plus profond marqué \u2014 ' + sgn(creux * risque, 1) + ' %'
@@ -17018,7 +17084,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260918.8';
+  VERSION_APP = '260918.9';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -27258,7 +27324,6 @@ GROUPES = {
                 ongletRAn: '\u2014', ongletAide: 'aucune ligne',
                 pfCreux: '\u2014', bhStratRatio: '\u2014', pfParis: '\u2014',
                 nonVerifTxt: '\u2014',
-                resume: 'aucune ligne rangée ici',
                 videTxt: tout
                   ? 'Aucune configuration validée : le portefeuille se remplit depuis l\u2019Historique.'
                   : 'Ce portefeuille est vide. Rangez-y une ligne par le champ ci-dessous \u2014 '
@@ -27422,7 +27487,22 @@ GROUPES = {
                         + 'soient enregistrées, et ses bougies ne sont pas chargées ici. '
                         + 'Rouvrez-la en Backtest : la période se relit à la remesure.' };
               })();
+              // ————— ET LA RÉSERVE REPREND SA RAISON, À LA MÊME SOURCE —————
+              // « non vérifié » seul ne dit pas quoi faire pour le lever : c'est la durée
+              // de la mesure qui dit sur quoi porte le chiffre affiché. Elle tombait avec
+              // les bornes enregistrées — même cause que les deux tirets — donc elle vient
+              // désormais des trades mesurés, comme la période juste à côté. Deux
+              // producteurs pour une même durée finiraient par se contredire sur la même
+              // rangée, ce qui est précisément ce qui a été rapporté.
+              const ansL = per.periodeDates
+                ? (Date.parse(per.periodeT1.replace(/\./g, '-') + 'T00:00:00Z')
+                  - Date.parse(per.periodeT0.replace(/\./g, '-') + 'T00:00:00Z')) / (365.25 * 86400000)
+                : null;
               return { ...x, ...per,
+                verifTxt: x.verifie ? 'vérifié contre le testeur'
+                  : 'non vérifié \u2014 ' + (ansL !== null
+                    ? 'mesure sur ' + ansL.toFixed(1).replace('.', ',') + ' ans'
+                    : 'période de mesure non lisible'),
                 reglagesPropres: propres.concat(x.n + ' trades').join(' \u00b7 '),
                 partTxt: sommeAn > 0 ? Math.round(part) + ' %' : '—',
                 // une longueur CSS toujours valide : une part à « — » dessine une barre VIDE
@@ -27555,7 +27635,6 @@ GROUPES = {
               pfReste: nAFaire ? this.pl(nAFaire, 'ligne', 'lignes') : 'rien',
               pfResteDetail: bouts.length ? bouts.join(', ') : 'tout est en place',
               pfResteCouleur: nAFaire ? 'var(--color-accent-700)' : 'var(--color-text)',
-              resume: this.pl(lignes.length, 'ligne', 'lignes') + ' · ' + sg(somme, 1) + ' R cumulés',
               renommer: (e) => this.majPf(pfListe.map((q, j) => (j === k ? { ...q, nom: e.target.value } : q))),
               // le mot est fixe, le compte le suit : « Exporter les robots (3) ». Un libellé
               // entièrement dynamique ne laissait aucun terme à l'index de l'aide.
