@@ -833,6 +833,35 @@ La séance en porte la preuve chiffrée : sans la mutation rouge rouverte, « au
 suivi d'un chiffre » partait en production, et l'écran aurait pu afficher
 **« il y a −582 min »** sous une garde verte.
 
+###### Et l'énoncé déborde les mutations : ce qui coûte, c'est ce qui ARRÊTE DE CHERCHER
+
+« Auto-limitante » contre « auto-dissimulante » explique l'asymétrie au lieu de la
+constater — et une explication, contrairement à un constat, se transporte. Relus
+ensemble, trois défauts que ce fichier tenait pour distincts disent une seule chose :
+
+| le défaut | ce qu'il a coûté | ce qu'il a ÉTEINT |
+|---|---|---|
+| **457 tests verts pendant la page blanche** (« Seul le rendu prouve… ») | des semaines | la suite CERTIFIAIT : il n'y avait pas de raison de regarder l'écran |
+| **« Activez le bouton Algo Trading »** sur trois causes (« le pli du panneau ») | l'utilisateur clique, revient, dit « le robot ne démarre pas » | le conseil a la forme d'une réponse : on ne cherche plus la cause |
+| **la mutation voisine** (ci-dessus) | une garde fausse livrée | la suite est rouge, donc la garde est éprouvée — le message n'est pas lu |
+
+> **Un mode de panne qui éteint l'enquête coûte toujours plus qu'un mode qui la
+> déclenche.** Ce qui coûte n'est pas l'erreur — c'est qu'elle ait la forme d'une
+> réponse. Un vert, un conseil, un rouge attendu : les trois rassurent, et c'est la
+> seule chose qu'ils ont en commun.
+
+**Et l'inverse est déjà écrit dans ce fichier, en trois endroits où ça a SERVI** : le
+runtime qui criait `never resolved` sept fois à chaque chargement, les six jalons
+d'initialisation dont le SILENCE a renvoyé la recherche hors du robot, et
+`vena:reprendreSeries 0 série` qui a dit que c'était la SONDE qui avait tort. Les trois
+ont déclenché une recherche au lieu de la clore.
+
+D'où un critère qui se pose **en concevant**, pas en autopsiant : *quand une chose peut
+être fausse, préférer la forme qui fait chercher à la forme qui fait s'arrêter.* C'est
+ce qui a décidé, dans la même séance, qu'un bloc sans poignée de dossier dise « je n'ai
+pas regardé » plutôt que « aucun trade réel » — le second est une réponse, et il est
+faux.
+
 **Le dépôt en portait déjà des instances sans les avoir reliées** — c'est en les relisant
 ensemble qu'on voit qu'elles disent une seule chose :
 
