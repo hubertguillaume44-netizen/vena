@@ -125,7 +125,24 @@ test("les étiquettes GELÉES du protocole MT5 restent SIV_ — les autres sont 
   assert.ok(robot.includes('PAN_PREF "VNA_PAN_"'),
     "le préfixe du panneau doit être VNA_PAN_");
   const page = readFileSync(path.join(RACINE, "Vena.dc.html"), "utf8");
-  assert.match(page, /\/\^SIV_trades_\/i/, "l’application doit continuer de reconnaître SIV_trades_");
+  // ————— RÉANCRÉE SUR LE RÉSULTAT, PAS SUR L'ORTHOGRAPHE DU MOTIF —————
+  // Elle lisait le littéral `/^SIV_trades_/i` dans la page. Les trois lieux qui
+  // reconnaissaient un journal sont passés par une porte unique, `estJournalLive`,
+  // qui accepte aussi le nom neuf : le littéral a disparu, l'invariant non. Demander
+  // « le motif est-il écrit ainsi ? » était une intention (règle 1) ; « ce nom
+  // est-il reconnu ? » est le résultat, et c'est ce qu'on mesure — en faisant
+  // tourner la fonction du produit, pas une copie.
+  const iP = borne(page, "  estJournalLive(nom) {");
+  const corps = page.slice(borne(page, "{", iP) + 1, borne(page, "}", iP));
+  const estJournalLive = new Function("nom", corps);
+  assert.ok(estJournalLive("SIV_trades_GOLD_20260901.csv"),
+    "l’application ne reconnaît plus le préfixe GELÉ SIV_trades_ : les robots déjà "
+    + "compilés chez l’utilisateur l’écrivent, et personne n’a à les recompiler.");
+  assert.ok(estJournalLive("VNA_trades_GOLD_20260901.csv"),
+    "le préfixe neuf doit être accepté d’avance — sinon le jour du dégel demande de "
+    + "corriger un lecteur sur un parc déjà en place.");
+  assert.ok(!estJournalLive("GOLD_H1.csv"),
+    "le motif accepte un export de bougies : il ne reconnaît plus rien.");
   // le NOM du fichier de robot, lui, est machine : sans accent, sinon nomRobot le mange
   assert.match(robot, /return \['Vena', cfg\.sym,/, "le nom du robot exporté doit être « Vena », sans accent");
   // et l'étiquette du compte ENTRE dans ce nom : la substitution vise le préfixe RÉEL

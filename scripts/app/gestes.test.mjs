@@ -147,6 +147,8 @@ const EXCLUS = new Map([
   ["Choisir le fichier de sauvegarde", "sélecteur NATIF (showSaveFilePicker) — angle mort déclaré"],
   ["Réautoriser la sauvegarde", "permission native — angle mort déclaré"],
   ["Réautoriser", "permission native — angle mort déclaré"],
+  ["Donner accès au dossier du terminal", "sélecteur NATIF (showDirectoryPicker) — même angle mort que le fichier de sauvegarde"],
+  ["Réautoriser la lecture du dossier", "permission native — angle mort déclaré"],
 ]);
 // Exclusions PAR PAGE : un bouton de navigation est sans effet sur sa propre
 // destination — c'est son état légitime, pas un défaut — et il reste MESURÉ

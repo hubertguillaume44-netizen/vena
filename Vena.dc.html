@@ -951,6 +951,13 @@
               </div>
               <div style="display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;padding:7px 0;border-bottom:1px solid var(--color-divider)">
                 <span style="display:flex;flex-direction:column;gap:1px;flex:1;min-width:16ch">
+                  <span style="font-size:12.5px;line-height:1.4">Dossier du terminal MT5</span>
+                  <span style="font-size:10.5px;line-height:1.4" class="text-muted">les journaux de trades de vos robots, LUS sur votre disque — rien n’en sort, et Véna ne peut rien y écrire</span>
+                </span>
+                <span style="font-size:11.5px;white-space:nowrap" class="text-muted">{{ etatPorteDossier }}</span>
+              </div>
+              <div style="display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;padding:7px 0;border-bottom:1px solid var(--color-divider)">
+                <span style="display:flex;flex-direction:column;gap:1px;flex:1;min-width:16ch">
                   <span style="font-size:12.5px;line-height:1.4">Diagnostic local</span>
                   <span style="font-size:10.5px;line-height:1.4" class="text-muted">un rapport écrit sur votre disque, jamais envoyé</span>
                 </span>
@@ -5698,6 +5705,21 @@
         <sc-if value="{{ aJvVide }}" hint-placeholder-val="{{ false }}">
           <p style="margin:0;font-size:12.5px;line-height:1.6;max-width:96ch" class="text-muted">{{ jvVideTxt }}</p>
         </sc-if>
+        <!-- LE GESTE, ET CE QU'IL FAIT À CÔTÉ DE LUI. Une poignée de dossier donnée
+             UNE fois remplace quinze glisser-déposer — et c'est pour ça qu'elle
+             existe : quinze gestes pour une consultation, on ne les fait pas. La
+             réserve tient en une ligne parce qu'elle est vraie : lecture seule, sur
+             le disque, rien vers le réseau. Le glisser-déposer reste sous elle, pour
+             un terminal qui vit sur une autre machine ou sur un VPS. -->
+        <sc-if value="{{ aJvDoss }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;gap:13px;align-items:center;flex-wrap:wrap">
+            <button type="button" style="cursor:pointer;border:none;background:var(--color-accent);color:var(--color-bg);font-family:var(--font-body);font-size:12.5px;padding:7px 15px;white-space:nowrap" onClick="{{ jvDossAgir }}">{{ jvDossTxt }}</button>
+            <span style="font-size:11.5px;line-height:1.45;flex:1 1 26ch;min-width:26ch" class="text-muted">Lecture seule, sur votre disque — rien ne part vers le réseau.</span>
+          </div>
+        </sc-if>
+        <sc-if value="{{ aJvDossMsg }}" hint-placeholder-val="{{ false }}">
+          <p style="margin:0;font-size:12px;line-height:1.5;max-width:90ch;color:var(--color-accent-900)">{{ jvDossMsg }}</p>
+        </sc-if>
       </section>
       </sc-if>
 
@@ -9217,7 +9239,7 @@ GROUPES = {
       // LE JOURNAL DES TRADES RÉELS passe ici, avant le chargeur de bougies : il porte un
       // nom réservé, et le confondre avec un historique produirait une série de seize
       // colonnes que le lecteur de bougies refuserait sans expliquer pourquoi.
-      if (/^SIV_trades_/i.test(f.name)) {
+      if (this.estJournalLive(f.name)) {
         try {
           const n = await this.lireJournalLive(await f.text(), f.name);
           ajoutes.push(f.name + ' — ' + this.pl(n, 'trade réel lu', 'trades réels lus'));
@@ -12940,6 +12962,10 @@ GROUPES = {
     // attendu : la purge des doublons a besoin du relevé pour savoir quel nom garder
     await this.chargerBaremes();
     await this.reprendreFichierAuto();
+    // LA LECTURE DU DOSSIER A LIEU ICI, UNE FOIS. C'est la seule occasion : pas
+    // d'intervalle, pas de bouton — et l'écran porte son instant de lecture, parce
+    // qu'un chiffre qui ne se rafraîchit pas est un chiffre dont on ignore l'âge.
+    await this.reprendreDossierTerminal();
     await this.reprendreSeries();
     // après reprendreSeries : la base est ouverte, et le scan courant est déjà chargé —
     // déplacer un miroir ne change donc rien à ce que l'écran affiche
@@ -17304,7 +17330,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260918.14';
+  VERSION_APP = '260919';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -17925,6 +17951,138 @@ GROUPES = {
     this.ecrireLive(m);
     this.setState({ liveRev: (this.state.liveRev || 0) + 1 });
     return fermes.length + m[magic].ouverts.length;
+  }
+
+  // ————— LE MOTIF SE DÉRIVE DU NOM QUE LE ROBOT ÉCRIT, IL NE S'ÉNUMÈRE PAS —————
+  //
+  // Le robot compose son journal ainsi : préfixe + symbole + '_' + magique + '.csv'.
+  // On reconnaît donc une FORME, jamais une liste : un seizième robot est lu sans
+  // être nommé nulle part, et c'est tout l'intérêt de la poignée de dossier.
+  //
+  // DEUX PRÉFIXES, et ce n'est pas une indécision. « SIV_trades_ » est GELÉ — les
+  // robots DÉJÀ COMPILÉS chez l'utilisateur l'écrivent, et personne n'a à les
+  // recompiler pour être lu. « VNA_ » est accepté d'avance, pour que le jour du
+  // dégel ne demande pas de toucher au lecteur : un lecteur qui refuse le nom neuf
+  // se corrige après coup, sur un parc déjà en place.
+  //
+  // Une seule porte : les trois lieux qui reconnaissent un journal la lisent — le
+  // dépôt global, le tri du glisser-déposer, et la lecture de dossier. Trois motifs
+  // écrits séparément divergeraient au premier changement (la figure de `deposes`).
+  estJournalLive(nom) { return /^(?:SIV|VNA)_trades_/i.test(String(nom || '')); }
+
+  // ————— LA POIGNÉE DE DOSSIER : LA CLASSE DE `handleAuto`, RÉUTILISÉE —————
+  //
+  // Quinze robots, c'est quinze glisser-déposer pour une consultation — donc on ne
+  // la fait pas, et le bloc reste sur « aucun trade » pendant que les robots tradent.
+  // La poignée se donne UNE fois et se relit au démarrage.
+  //
+  // Elle suit exactement la mécanique du fichier de sauvegarde : permission vérifiée
+  // AVANT toute lecture, état d'attente rendu, « Réautoriser », bascule vers
+  // « Choisir à nouveau » après un refus retenu, et les trois issues nommées. Un
+  // second mécanisme de permission divergerait du premier, et l'utilisateur ne
+  // saurait plus lequel a échoué.
+  //
+  // `mode: 'read'` PARTOUT. Véna ne doit jamais pouvoir écrire dans le dossier du
+  // terminal : c'est là que vit l'historique du courtier, et une application de
+  // mesure n'a aucune raison d'y toucher.
+  ATTENTE_DOSSIER = 'La lecture du dossier du terminal attend votre autorisation pour ce navigateur — elle retombe à chaque session.';
+
+  async choisirDossierTerminal() {
+    if (!window.showDirectoryPicker) {
+      this.setState({ dossMsg: 'Ce navigateur ne sait pas ouvrir un dossier (Chrome ou Edge le permettent). '
+        + 'Déposez les fichiers SIV_trades_… un par un — le glisser-déposer les reconnaît seul.' });
+      return;
+    }
+    try {
+      const h = await window.showDirectoryPicker({ id: 'vena-mt5-common', mode: 'read' });
+      await this.idbSet(h, 'dossier');
+      this.handleDossier = h;
+      this.setState({ dossNom: h.name, dossARechoisir: false, dossAttente: false, dossMsg: null });
+      await this.lireDossierTerminal();
+    } catch (e) {
+      const nom = (e && e.name) || '';
+      // AbortError = le sélecteur a été fermé, rien à dire. Les autres se disent :
+      // une porte qui ne s'ouvre pas sans un mot passe pour un bouton mort.
+      if (nom === 'AbortError') return;
+      this.setState({ dossMsg: 'Le dossier n\u2019a pas pu être ouvert (' + (nom || 'erreur inconnue')
+        + '). Le glisser-déposer d\u2019un fichier reste possible.' });
+    }
+  }
+
+  async reprendreDossierTerminal() {
+    const h = await this.idbGet('dossier');
+    if (!h) return;
+    // la poignée est rétablie AVANT la question de permission, comme pour le fichier
+    // de sauvegarde : si celle-ci jette, le dossier reste « choisi »
+    this.handleDossier = h;
+    try {
+      const p = await h.queryPermission({ mode: 'read' });
+      this.setState({ dossNom: h.name,
+        dossMsg: p === 'granted' ? null : this.ATTENTE_DOSSIER,
+        dossAttente: p !== 'granted' });
+      if (p === 'granted') await this.lireDossierTerminal();
+    } catch (e) {
+      this.setState({ dossNom: h.name, dossAttente: true, dossMsg: this.ATTENTE_DOSSIER });
+    }
+  }
+
+  async reautoriserDossier() {
+    if (!this.handleDossier) {
+      this.setState({ dossARechoisir: true, dossAttente: true,
+        dossMsg: 'Le dossier ne peut plus être retrouvé par ce navigateur. Choisissez-le à nouveau.' });
+      return;
+    }
+    try {
+      const p = await this.handleDossier.requestPermission({ mode: 'read' });
+      if (p === 'granted') {
+        this.setState({ dossAttente: false, dossARechoisir: false, dossMsg: null });
+        await this.lireDossierTerminal();
+        return;
+      }
+      this.setState({ dossARechoisir: true,
+        dossMsg: 'Le navigateur a refusé la lecture de ' + (this.handleDossier.name || 'ce dossier')
+          + '. Choisissez à nouveau le dossier du terminal.' });
+    } catch (e) {
+      this.setState({ dossARechoisir: true,
+        dossMsg: 'Réautorisation impossible (' + ((e && e.name) || 'erreur inconnue')
+          + '). Choisissez à nouveau le dossier du terminal.' });
+    }
+  }
+
+  // ————— LA LECTURE A LIEU À L'OUVERTURE, ET SEULEMENT LÀ —————
+  //
+  // Pas d'intervalle, pas de bouton : un dossier relu en boucle lirait quinze
+  // fichiers pour rien la plupart du temps. La conséquence est contre-intuitive et
+  // elle est ÉCRITE À L'ÉCRAN — un chiffre qui ne se rafraîchit pas pendant qu'on le
+  // regarde est un chiffre dont on ignore l'âge.
+  //
+  // Le compte des fichiers VUS est tenu à part de celui des fichiers LUS : sans lui,
+  // quinze journaux tous illisibles rendraient « dossier vide », c'est-à-dire un zéro
+  // qui n'a rien regardé.
+  async lireDossierTerminal() {
+    const h = this.handleDossier;
+    if (!h) return;
+    try {
+      const p = await h.queryPermission({ mode: 'read' });
+      if (p !== 'granted') { this.setState({ dossAttente: true, dossMsg: this.ATTENTE_DOSSIER }); return; }
+    } catch (e) { this.setState({ dossAttente: true, dossMsg: this.ATTENTE_DOSSIER }); return; }
+    let vus = 0, lus = 0, trades = 0;
+    try {
+      for await (const [nom, ent] of h.entries()) {
+        if (ent.kind !== 'file') continue;
+        if (!this.estJournalLive(nom) || !/\.csv$/i.test(nom)) continue;
+        vus++;
+        try {
+          trades += await this.lireJournalLive(await (await ent.getFile()).text(), nom);
+          lus++;
+        } catch (e) {}
+      }
+    } catch (e) {
+      this.setState({ dossAttente: true, dossMsg: 'La lecture du dossier s\u2019est arrêtée ('
+        + ((e && e.name) || 'erreur inconnue') + '). Réautorisez, ou choisissez le dossier à nouveau.' });
+      return;
+    }
+    this.setState({ liveLuA: Date.now(), liveLuVus: vus, liveLuFic: lus, liveLuN: trades });
   }
   // ————— CE QUE L'ÉCHANTILLON PERMET DE DIRE —————
   //
@@ -19235,7 +19393,7 @@ GROUPES = {
     }
     // journal de trades réels et mesure des moments : `accepterFichiers` les reconnaît
     // déjà, avant son chargeur de bougies. On les lui passe sans les mesurer.
-    if (/^SIV_trades_/i.test(f.name) || /moments/i.test(f.name)
+    if (this.estJournalLive(f.name) || /moments/i.test(f.name)
       || /^sym;moment;/i.test(tete.slice(0, 30))) return { ou: 'h1' };
     let df = null;
     try { df = this.M.texteVersDf(tete.split(/\r?\n/).slice(0, 400).join('\n')); } catch (e) { df = null; }
@@ -19562,21 +19720,24 @@ GROUPES = {
     try { localStorage.removeItem(this.cle(this.CLE_SERIES)); } catch (e) {}
     this.setState({ sauvMsg: idx.length + ' séries déposées effacées de ce navigateur. Les fichiers d\u2019origine sont intacts sur votre disque.' });
   }
-  async idbSet(v) {
+  // Deux poignées, deux clés, UN seul magasin : le fichier de sauvegarde (écriture)
+  // et le dossier du terminal (lecture seule). La clé par défaut reste 'fichier' —
+  // les appels d'origine ne changent pas de sens.
+  async idbSet(v, cle = 'fichier') {
     const db = await this.idb();
     return new Promise((ok) => {
       const tx = db.transaction('h', 'readwrite');
-      tx.objectStore('h').put(v, 'fichier');
+      tx.objectStore('h').put(v, cle);
       tx.oncomplete = () => ok(true);
       tx.onerror = () => ok(false);
     });
   }
-  async idbGet() {
+  async idbGet(cle = 'fichier') {
     try {
       const db = await this.idb();
       return await new Promise((ok) => {
         const tx = db.transaction('h', 'readonly');
-        const q = tx.objectStore('h').get('fichier');
+        const q = tx.objectStore('h').get(cle);
         q.onsuccess = () => ok(q.result || null);
         q.onerror = () => ok(null);
       });
@@ -22880,6 +23041,15 @@ GROUPES = {
               // ces deux états se lisent à droite de leur ligne, dans « Ce qui sort d'ici »
               etatPorteNews: cleN ? 'clé posée — appels possibles' : 'sans clé — aucun appel',
               etatPorteUsage: usage ? 'allumé' : 'éteint',
+              // LISTÉE, JAMAIS COMPTÉE — comme le manifeste de version. `nPortes` ne
+              // compte que ce qui peut faire SORTIR des données ; celle-ci n'en fait
+              // sortir aucune, elle en fait entrer. L'omettre de la liste serait pire :
+              // un accès au disque qu'on découvre ailleurs inquiète plus qu'un accès
+              // déclaré, et une liste qui alarme à tort cesse d'être lue.
+              etatPorteDossier: s.dossNom
+                ? (s.dossAttente || s.dossARechoisir
+                  ? 'accès en attente — lecture seule' : 'lecture seule — rien ne sort')
+                : 'aucun dossier donné',
             };
           })(),
           // ————— LE RISQUE EN TÊTE DU TIROIR —————
@@ -29373,6 +29543,28 @@ GROUPES = {
         // du reste de l'application — « + 21 672 € », pas « +21672 »
         const eur = (x) => (x >= 0 ? '+ ' : '− ') + EUR.format(Math.abs(Math.round(x)));
         const mince = n < SEUIL;
+        // ————— L'INSTANT DE LECTURE EST ABSOLU (règle 12) —————
+        // Le dossier est lu à l'ouverture et nulle part ailleurs : ces chiffres ne
+        // bougeront pas tant que la page reste ouverte. « il y a 3 min » se figerait
+        // sans se démentir — une heure d'horloge, elle, reste vraie. Et la phrase dit
+        // QUOI FAIRE, sinon elle ne fait qu'inquiéter.
+        const luA = Number(s.liveLuA);
+        const aLu = Number.isFinite(luA) && luA > 0;
+        const instant = aLu
+          ? 'relu à ' + new Date(luA).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+            + ' \u00b7 rechargez pour voir les trades passés depuis'
+          : '';
+        // la poignée est LISIBLE : elle existe et sa permission tient. « connue mais
+        // retombée » est un troisième état, et c'est le bouton qui le porte.
+        const dossLit = !!(s.dossNom && !s.dossAttente && !s.dossARechoisir);
+        const dossGeste = {
+          aJvDoss: !dossLit,
+          jvDossTxt: (s.dossNom && !s.dossARechoisir)
+            ? 'Réautoriser la lecture du dossier' : 'Donner accès au dossier du terminal',
+          jvDossAgir: (s.dossNom && !s.dossARechoisir)
+            ? () => this.reautoriserDossier() : () => this.choisirDossierTerminal(),
+          aJvDossMsg: !!s.dossMsg, jvDossMsg: s.dossMsg || '',
+        };
         // le nom du courtier porte déjà « nº 1 » quand il y en a plusieurs
         const base = {
           jvPers: PERS.map(([id, nom]) => ({ nom,
@@ -29381,20 +29573,53 @@ GROUPES = {
           jvSeuil: SEUIL,
         };
         if (!tous.length) {
-          // AUCUN TRADE RÉEL : pas de zéros, pas de tuiles vides — le geste qui comble.
-          return { ...base, aJvVue: true, aJvChiffres: false, aJvVide: true, jvTitre: 'Aucun trade réel encore',
-            jvPeriodeTxt: compte,
-            jvVideTxt: 'Ce bloc ne lit que les trades que votre robot a réellement '
-              + 'passés : il les prend dans les fichiers SIV_trades_<symbole>_<magique>.csv '
-              + 'que le robot écrit dans Common\\Files. Déposez-en un — le glisser-déposer '
-              + 'les reconnaît seul — et la vue d’ensemble apparaîtra. Rien n’est '
-              + 'simulé ici : tant qu’aucun trade n’est déposé, il n’y a rien à dire.',
+          // ————— TROIS ÉTATS, ET LE TROISIÈME N'EST JAMAIS UN ZÉRO —————
+          //
+          // « Aucun trade réel encore » était dit SANS AVOIR REGARDÉ : un fait
+          // qu'aucune mesure ne soutient, la forme de `cachesDispo`. Tant que le
+          // dossier n'a pas été lu, la seule chose vraie est qu'on n'a pas regardé.
+          const vus = Number(s.liveLuVus || 0), lus = Number(s.liveLuFic || 0);
+          const vide = { ...base, ...dossGeste, aJvVue: true, aJvChiffres: false, aJvVide: true,
             jvTuiles: [], jvRepart: [], jvDires: [], aJvManque: false, jvManque: [],
             jvMontrerCalc: false, jvTxtCalc: '', jvBasculerCalc: () => {} };
+          if (dossLit && aLu) {
+            // le dossier a été LU. Ce qu'on annonce est ce qu'on a vu — et le compte
+            // des journaux VUS est tenu à part de celui des journaux LUS, sans quoi
+            // quinze fichiers illisibles rendraient « dossier vide ».
+            const txt = vus === 0
+              ? 'Accès au dossier accordé — aucun robot n’y a encore écrit de trade. '
+                + 'Les journaux apparaissent dès la première position fermée.'
+              : lus < vus
+                ? this.pl(vus, 'journal dans le dossier', 'journaux dans le dossier')
+                  + ', ' + this.pl(lus, 'lisible', 'lisibles') + ' : '
+                  + this.pl(vus - lus, 'n’a pas pu être relu', 'n’ont pas pu être relus')
+                  + '. Un journal illisible se dépose à la main pour que la raison du '
+                  + 'refus s’affiche.'
+                : this.pl(vus, 'journal lu', 'journaux lus')
+                  + ' — aucune position fermée pour l’instant. Les positions encore '
+                  + 'ouvertes ne comptent pas ici : ce bloc mesure ce qui est SOLDÉ.';
+            return { ...vide,
+              jvTitre: vus === 0 ? 'Dossier lu, aucun trade écrit' : 'Dossier lu, aucun trade clos',
+              jvPeriodeTxt: instant + ' \u00b7 ' + compte,
+              jvVideTxt: txt };
+          }
+          // AUCUNE POIGNÉE — ou une poignée dont la permission est retombée. On ne
+          // sait rien des trades : on le dit, et on offre le geste qui le change.
+          return { ...vide,
+            jvTitre: 'Les trades de vos robots ne sont pas encore lus',
+            jvPeriodeTxt: compte,
+            jvVideTxt: 'Donnez-moi une fois le dossier Common\\Files du terminal, et je '
+              + 'lirai tous les journaux SIV_trades_<symbole>_<magique>.csv qui s’y '
+              + 'trouvent — un par robot, sans en nommer aucun. C’est une lecture de '
+              + 'disque, en lecture seule : rien ne sort de votre navigateur, et Véna '
+              + 'ne peut rien écrire dans ce dossier. Le glisser-déposer d’un fichier '
+              + 'reste possible — c’est la voie pour un terminal sur une autre machine.' };
         }
         if (!n) {
           return { ...base, aJvVue: true, aJvChiffres: false, aJvVide: true, jvTitre: 'Aucun trade clos sur cette période',
-            jvPeriodeTxt: this.pl(tous.length, 'trade clos au total', 'trades clos au total') + ' · ' + compte,
+            ...dossGeste,
+            jvPeriodeTxt: this.pl(tous.length, 'trade clos au total', 'trades clos au total')
+              + ' · ' + compte + (instant ? ' \u00b7 ' + instant : ''),
             jvVideTxt: 'Vos ' + tous.length + ' trades clos sont hors de la période choisie. '
               + '« Tout » les affiche.',
             jvTuiles: [], jvRepart: [], jvDires: [], aJvManque: false, jvManque: [],
@@ -29424,9 +29649,11 @@ GROUPES = {
           // 9 septembre » quand le premier trade est du 1er, « du 2 au 9 » quand il est
           // du 2. Annoncer les bornes du filtre ferait dire à la phrase plus que ce que
           // les données portent.
+          ...dossGeste,
           jvPeriodeTxt: (n > 1 && js[0].s !== js[n - 1].s
             ? 'du ' + jour(js[0].s) + ' au ' + jour(js[n - 1].s)
-            : 'le ' + jour(js[n - 1].s)) + ' · ' + compte,
+            : 'le ' + jour(js[n - 1].s)) + ' · ' + compte
+            + (instant ? ' \u00b7 ' + instant : ''),
           jvTuiles: [
             { nom: 'Résultat net', val: sg(somR, 1) + ' R', mince: false,
               coul: somR >= 0 ? 'var(--color-accent-900)' : 'var(--color-text)',

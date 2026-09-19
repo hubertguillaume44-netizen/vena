@@ -3905,6 +3905,113 @@ quatre mutations — l'étiquette qui reprend le nom entier (elle tombe **en nom
 caractères**), l'abrègement qui perd les chiffres et fait collisionner les cinq comptes,
 le magique dérivé de l'étiquette, et le nom de fichier remis en comparaison.
 
+## Quinze gestes pour une consultation, c'est zéro consultation
+
+**STATUT · CAUSE ÉTABLIE — geste RAPPORTÉ (quinze robots en réel, et le bloc du Journal
+restait sur « aucun trade » parce qu'il fallait quinze glisser-déposer pour le remplir),
+correctif MESURÉ DANS LE DÉPÔT, au rendu, sur le fichier livré.**
+
+Le robot écrivait déjà tout. La donnée était là, le lecteur était là — **c'est le GESTE
+qui manquait**, et un geste à répéter quinze fois pour une consultation n'est pas un
+geste coûteux, c'est un geste qui n'a pas lieu. Une poignée de dossier
+(`showDirectoryPicker`) se donne une fois, se range dans IndexedDB et se relit au
+démarrage.
+
+> **Un coût par unité se lit comme un petit coût ; multiplié par le parc, c'est un
+> refus.** La question n'est pas « ce geste est-il pénible ? » mais « combien de fois
+> faut-il le faire pour obtenir une réponse ? » — et au-delà de deux ou trois, la
+> réponse n'est jamais obtenue.
+
+**RIEN DE NEUF N'A ÉTÉ INVENTÉ, et c'est délibéré.** La mécanique de permission est
+celle du fichier de sauvegarde, réutilisée telle quelle : permission vérifiée AVANT
+toute lecture, état d'attente rendu, « Réautoriser », bascule vers « Choisir à
+nouveau » après un refus retenu, les trois issues nommées. Deux mécanismes de
+permission divergeraient, et l'utilisateur ne saurait plus lequel a échoué — c'est la
+figure de `deposes`, appliquée à une autorisation au lieu d'une écriture.
+
+### Trois points de doctrine, et le troisième est celui qui dure
+
+| | ce qui est tenu |
+|---|---|
+| **`mode: 'read'`, aux quatre appels** | Véna ne doit jamais pouvoir écrire dans le dossier du terminal — c'est là que vit l'historique du courtier. Garde ancrée sur l'APPEL ; mutation : un seul `readwrite` la fait tomber **en nommant sa ligne** |
+| **rien ne sort** | c'est une lecture de disque. La porte entre dans « Ce qui sort d'ici » **avec la mention qu'elle ne fait rien sortir**, et elle ne COMPTE pas dans les portes ouvertes — une liste qui alarme à tort cesse d'être lue, et un accès au disque qu'on découvre ailleurs inquiète plus qu'un accès déclaré |
+| **le motif se dérive, il ne s'énumère pas** | le robot compose *préfixe + symbole + magique + .csv* ; le lecteur reconnaît cette FORME. Aucune liste : **un seizième robot est lu sans être nommé nulle part** |
+
+Le préfixe `SIV_trades_` reste **gelé** — les robots déjà compilés l'écrivent, et
+personne n'a à les recompiler pour être lu. Le lecteur accepte les deux préfixes, pour
+que le jour du dégel ne demande pas de corriger un lecteur sur un parc déjà en place.
+
+### La lecture a lieu à l'ouverture, et la conséquence est ÉCRITE
+
+Pas d'intervalle, pas de bouton : un dossier relu en boucle lirait quinze fichiers pour
+rien la plupart du temps. Mais **un chiffre qui ne se rafraîchit pas pendant qu'on le
+regarde est un chiffre dont on ignore l'âge** — donc la vue porte son instant de lecture,
+en **absolu** : *relu à 19:42 · rechargez pour voir les trades passés depuis*. Une heure
+d'horloge reste vraie ; « il y a 3 min » se figerait sans se démentir et vieillirait
+d'autant que la page reste ouverte (règle 12). Et la phrase dit **quoi faire** — une
+réserve sans son geste n'est qu'une inquiétude.
+
+### Trois états, et le troisième n'est jamais un zéro
+
+| l'état | ce que le bloc porte |
+|---|---|
+| dossier lu, trades trouvés | la vue d'ensemble · l'instant · le geste de rechargement |
+| dossier lu, rien écrit | « accès accordé — aucun robot n'y a encore écrit de trade » |
+| **pas de poignée** | le geste — **jamais « aucun trade réel encore »** |
+
+Le troisième est le piège, et c'était le défaut livré : dire « aucun trade » sans avoir
+regardé, c'est affirmer un fait qu'aucune mesure ne soutient. C'est exactement
+`cachesDispo` — « mesuré à zéro » et « pas mesurable » écrits pareil.
+
+**Et un QUATRIÈME compte a été ajouté parce que le zéro devait prouver sa prise** : les
+journaux VUS sont comptés à part des journaux LUS. Sans lui, quinze fichiers tous
+illisibles auraient rendu « dossier vide » — un zéro qui n'a rien regardé, sur le chemin
+même qu'on instrumente pour ne plus en produire.
+
+### La garde qui cherchait un MOT est restée verte — deuxième fois, autre langage
+
+Le contrôle de l'instant absolu s'écrivait « aucun *il y a* suivi d'un chiffre ». Éprouvé
+par mutation, il est resté **VERT** sur `il y a −582 min` : **le signe moins n'est pas un
+chiffre.**
+
+> **Chercher un mot interdit, c'est la course aux motifs — et cette fois ce n'est pas la
+> prose qui a trompé la garde, c'est le CODE qu'elle surveillait.** Même famille que le
+> compteur de parenthèses qui ne savait pas ce qu'est une chaîne : la garde ne comprenait
+> pas assez de ce qu'elle lisait.
+
+La prise a donc changé de forme, comme la règle 3 le prescrit : elle ne cherche plus un
+mot, elle **mesure la phrase entière**. Entre « relu à » et son geste, l'écran ne doit
+porter qu'une heure d'horloge et un séparateur — rien ne peut s'y glisser sans rompre la
+forme, quel que soit le mot employé. Sous la même mutation, elle tombe en écrivant ce que
+l'écran porte : *« 17:42 (il y a −582 min) · »*.
+
+### Et une garde réancrée sur le RÉSULTAT au passage
+
+`nom-vena` vérifiait que la page contient le littéral `/^SIV_trades_/i`. Les trois lieux
+qui reconnaissaient un journal sont passés par une porte unique, qui accepte aussi le nom
+neuf : le littéral a disparu, l'invariant non. Elle demandait « le motif est-il écrit
+ainsi ? » — une intention — pour décider « ce nom est-il reconnu ? » — le résultat. Elle
+**fait tourner la fonction du produit** depuis, sur trois noms : le gelé, le neuf, et un
+export de bougies qui doit être refusé.
+
+`scripts/app/dossier-du-terminal.test.mjs` tient les quatre, éprouvées par six mutations.
+**Son angle mort est en tête** : aucun banc ne peut ACCORDER une poignée de dossier —
+Chromium n'ouvre pas de sélecteur natif sous automatisation. Les états « poignée
+accordée » sont donc atteints en POSANT l'état que la lecture produit ; ce que la garde
+ne prouve pas, c'est que la lecture remplit bien ces champs depuis un vrai dossier. Ce
+qu'elle prouve, c'est qu'une fois atteint, chacun des trois états est rendu et ne ment
+pas.
+
+**Ce qui n'est PAS livré, et c'est une décision** : l'instantané des positions ouvertes
+(TP, SL, R latent) demande que le robot écrive un second fichier, donc un réexport et une
+recompilation des quinze. Il attend la livraison qui portera aussi le pli du panneau — si
+l'utilisateur doit repasser sur quinze robots, autant que ce passage serve deux fois.
+
+**Et le glisser-déposer reste**, en filet : sa cause ne disparaît pas — un terminal sur
+une autre machine ou sur un VPS n'aura jamais de poignée. Ce qui change est le SUJET de
+la phrase : plus « déposez-en un », mais « donnez-moi le dossier une fois, je les lirai
+tous ».
+
 ## Une sonde dont l'échec est silencieux par conception se garde ailleurs
 
 Le témoin de version comparait ce que sert l'adresse publique à ce que la page est. Il a
