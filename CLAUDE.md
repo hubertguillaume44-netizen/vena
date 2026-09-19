@@ -2005,8 +2005,19 @@ n'aurait été contredit, parce que rien n'aurait été promis.
 C'est la figure de l'instrumentation posée dans le produit, appliquée à de la prose :
 *une mesure écrite attrape ce qui vient après elle, y compris ce que son auteur n'avait
 pas prévu.* Et c'est ce qui transforme le geste de compter, qui est une vigilance, en
-quelque chose qui travaille tout seul ensuite — et c'est là que le mot « mécanisme »
-redevient mérité.
+quelque chose de beaucoup moins cher — mais **pas en un mécanisme, et le test de la
+section précédente le refuse.** Retirez la personne : le chiffre posé ne contredit
+rien, puisque plus rien ne recompte. Il reste une vigilance.
+
+**Ce qu'il change est ailleurs, et c'est assez pour qu'on l'écrive** : il transforme la
+question que le lecteur suivant doit se poser. Sans chiffre, elle est ouverte — *y
+a-t-il quelque chose qui cloche ici ?* —, et ce fichier a mesuré quatre fois que cette
+question-là ne se pose pas. Avec le chiffre, elle est fermée : *ce nombre est-il encore
+juste ?*, à quoi une commande répond en une seconde.
+
+> **Un compte posé ne supprime pas la personne ; il ramène son travail à une commande.**
+> C'est la différence entre remarquer et vérifier — et c'est tout ce qu'on peut
+> honnêtement promettre à de la prose, que nulle garde ne lit.
 
 **Cette dernière phrase portait « le seul endroit de cette famille », et le mot est
 parti.** Un quantificateur en apposition, dans le chapitre qui l'interdit, écrit sans
