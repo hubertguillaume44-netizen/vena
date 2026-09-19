@@ -4335,6 +4335,44 @@ Aucune réutilisation ne pouvait les promouvoir : elles ont été **déplacées 
 et c'est pour ça que ce module existe. *Le mécanisme ramasse ce qui sert deux fois ; ce
 qui ne sert qu'une fois se déplace, ou reste invisible.*
 
+#### Et ce n'était pas un mécanisme : c'était une COMMANDE déguisée en propriété
+
+La correction ci-dessus vaut plus que son cas, et elle ne demande pas une règle de plus —
+**la distinction existe déjà dans ce fichier**, écrite au chapitre de la marque
+temporaire : *« là c'était de la vigilance — quelqu'un devait penser à relire —, ici
+c'est de la construction »*. Ce qui manquait n'est pas le vocabulaire, c'est le **test
+appliqué au moment où l'on écrit une phrase dans cette colonne-là**.
+
+> **Retirez la personne : est-ce que ça se produit encore ?** Si la réponse est non, ce
+> n'est pas une propriété du système, c'est un GESTE — et il s'écrit comme un geste, avec
+> sa commande, jamais comme un mécanisme qui « se déclenche ».
+
+**Et le coût de la confusion n'est pas l'imprécision, c'est l'inexécution.** Une propriété
+ne se fait pas : on la constate. Écrire une commande dans la forme d'une propriété, c'est
+donc garantir que personne ne l'exécutera — le lecteur croit être couvert par quelque
+chose qui tourne tout seul. C'est le pire mode de panne du dépôt, appliqué à une consigne
+au lieu d'une garde.
+
+**Le fichier employait la distinction JUSTE trois fois avant de se tromper une.** Relu
+plutôt que juré : la marque temporaire dit qu'elle passe de la vigilance à la
+construction ; la règle 13 déclare qu'elle *« ne se ferme que par vigilance »* et
+explique que c'est pour ça qu'elle est écrite ; l'apposition chiffrée dit que *« tant que
+le seul mécanisme est la relecture par l'autre, la classe reste ouverte »*. Les trois
+nomment honnêtement ce qui n'a pas de mécanisme.
+
+**La population du défaut est donc de UN, et c'est mesuré** : la tournure
+`sans que personne` n'apparaît que deux fois dans ce fichier **hors de la phrase que
+vous lisez, qui la cite pour la compter** — une pour raconter le module qui agissait à
+l'import, et une pour la clause corrigée ci-dessus. Le compte brut rend trois : c'est la
+règle 3 commise dans la phrase même qui mesure. Et les six `par construction` décrivent
+tous des faits structurels réels — un état vide, une série engendrée, la prose qui
+précède le code.
+
+*Une classe à un membre s'écrit quand même, mais elle s'écrit AVEC son compte* — sinon
+elle se lira comme un travers répandu, ce qu'elle n'est pas. C'est la même exigence que
+l'angle mort déclaré : ce qui manque à une affirmation, c'est presque toujours sa
+portée.
+
 Les quatre phrases du palier vivent donc dans `src/lib/palier-gratuit.ts`, lues par les
 deux routes. Le compte, lui, ne peut pas être importé — deux applications, deux paquets —
 et c'est la garde qui **lie les deux bouts** : passer à onze séries la fait tomber en
