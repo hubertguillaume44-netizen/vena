@@ -2096,6 +2096,34 @@ là, ensemble, et paraissent avoir été vues.
 Le geste, lui, ne change toujours pas ; c'est le déclencheur qui s'élargit. *Avant
 d'écrire « les trois », reprendre les trois — et surtout dans la phrase qui conclut.*
 
+##### Trois de plus en deux messages, et le compte est à HUIT — la densité est le fait
+
+La récapitulation ne produit pas une apposition fausse de temps en temps : **elle en
+produit en rafale, et dans la phrase même qui les dénonce.** Mesuré sur deux messages
+consécutifs, tous deux consacrés à cette règle :
+
+| l'apposition | ce qui était vrai | qui |
+|---|---|---|
+| « **Quatrième** instance » | la cinquième | l'auteur du rapport |
+| « la **première** que je commets en commentant la règle » | la seconde | le même, **dans la même phrase** |
+| « les cinq sont apparues dans des phrases de conclusion, et **jamais** dans le corps d'une mesure » | invérifié, et probablement faux — « douze caractères gagnés par nom » vivait dans un corps de rapport | celui qui rapportait les deux précédentes |
+
+**Deux dans une seule phrase, et la phrase était celle qui les nommait.** La troisième
+est venue du côté qui venait de corriger les deux autres — ce qui retire à l'affaire son
+caractère d'inattention personnelle : *c'est la position de récapitulation qui produit
+le défaut, pas celui qui l'occupe.*
+
+> **La récapitulation est le seul endroit où l'on écrit beaucoup de quantificateurs
+> d'affilée**, parce que c'est ce qu'elle est — une phrase sur un ensemble. Le taux ne
+> monte donc pas par relâchement : il monte parce que la densité d'occasions monte,
+> pendant que le temps disponible pour recompter, lui, ne bouge pas.
+
+Ce qui rend la conséquence pratique nette, et différente du geste précédent : dans une
+récapitulation, **on ne vérifie pas les quantificateurs un par un — on les remplace.**
+« Chacune » devient « une sur trois, et voici laquelle » ; « jamais » devient rien du
+tout. Reprendre trois ensembles au moment de conclure ne se fait pas ; écrire une phrase
+qui ne promet aucun ensemble, si.
+
 **Et ce nom-là a ABSORBÉ une règle du dépôt, ce que les précédents n'avaient pas fait.**
 « Un “seul” se périme sans bruit : compter, pas jurer » vivait depuis le 13 septembre dans
 « Aucun mot relatif sur une fenêtre figée », née d'un « le seul date-contre-aujourd'hui du
