@@ -4347,6 +4347,16 @@ appliqué au moment où l'on écrit une phrase dans cette colonne-là**.
 > n'est pas une propriété du système, c'est un GESTE — et il s'écrit comme un geste, avec
 > sa commande, jamais comme un mécanisme qui « se déclenche ».
 
+**Et ce qui le rend utilisable, c'est qu'il s'exécute à l'ÉCRITURE, pas à la relecture.**
+Ce fichier a mesuré quatre fois que la relecture n'arrive pas : trente et une passes sur
+`robot-mt5.js` sans voir le conseil attrape-tout, treize commits à travers `src/` sans
+voir la phrase en double, et trois appositions chiffrées que seul l'interlocuteur a
+comptées. Un test qui demande qu'on repasse est de la même famille que ce qu'il prétend
+corriger. Celui-ci tient dans la seconde où l'on écrit « elle devient », « ça se
+déclenche » ou la tournure comptée plus bas — et c'est la seule seconde dont on soit
+sûr. (Elle n'est pas épelée ici : le compte qui suit serait faux d'une unité, et la
+prose n'a pas à prendre la forme de ce qu'elle raconte.)
+
 **Et le coût de la confusion n'est pas l'imprécision, c'est l'inexécution.** Une propriété
 ne se fait pas : on la constate. Écrire une commande dans la forme d'une propriété, c'est
 donc garantir que personne ne l'exécutera — le lecteur croit être couvert par quelque
