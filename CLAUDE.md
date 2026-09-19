@@ -3954,6 +3954,21 @@ séparément. *Porter le geste là où le rapport pointe* aurait fait entrer l'�
 compte dans le générateur de robots, qui ne connaît pas les comptes : un défaut neuf, posé
 au nom d'une consigne exacte sur ce qu'il fallait faire.
 
+**DEUXIÈME INSTANCE LE LENDEMAIN, et elle donne la cause.** Un rapport sur la colonne
+gratuite désignait `/tarifs` ; la phrase muette vivait sur l'**accueil**, et `/tarifs`
+nommait déjà ce qu'on lui demandait d'ajouter. Deux fois de suite, même forme :
+
+> **Un rapport désigne l'endroit où le symptôme a été VU — c'est-à-dire un écran.** La
+> cause vit dans un fichier, et rien ne garantit que l'écran et le fichier se
+> correspondent : une page compose son texte depuis plusieurs sources, et deux pages
+> peuvent partager la même phrase. *La carte du rapport est une carte de l'affichage,
+> jamais du source.*
+
+Le geste coûte une commande, et c'est la même que pour les nombres : **chercher la
+phrase avant de la corriger**. Si elle ne se trouve pas là où le rapport pointe, c'est
+qu'on allait l'ajouter une seconde fois — et une phrase écrite deux fois est une
+divergence qui attend.
+
 L'étiquette de compte tenait jusqu'à **douze** caractères, et elle vit **avant**
 l'instrument. Or le compte ne distingue que cinq choses, l'instrument en distingue
 quinze dans une liste : le nom dépensait son budget visible sur le segment le moins
@@ -4256,6 +4271,26 @@ existe pour interdire — les gardes ne savent lire que les chaînes —, et l'a
 > **Une garde par liste d'ancres ne voit pas ce que personne n'a pensé à y mettre**, et
 > c'est son angle mort assumé. Ce qui l'a révélé n'est pas une relecture : c'est d'avoir
 > eu besoin de la phrase ailleurs.
+
+**ET LE SEUIL DE SA GÉNÉRALISATION A ÉTÉ MESURÉ, PAS SUPPOSÉ.** Un angle mort déclaré a
+une date de péremption : celui-ci vient de coûter sa première omission, donc la question
+se pose. La réponse est non, et elle tient en un nombre : **soixante-trois** phrases
+vivent en texte JSX nu dans `src/` aujourd'hui — « Ouvrir mon outil », « Sur toute la
+période », des titres et des boutons. Interdire la forme refuserait soixante-trois cas
+légitimes le premier jour, et une garde qu'il faut désactiver pour travailler ne garde
+rien (règle 16).
+
+**La classe ne se ferme donc pas par la forme** : rien ne distingue mécaniquement
+« Ouvrir mon outil » de « Trois instruments à vous ». Ce qui ferme les cas un par un
+n'est pas une garde, c'est la RÉUTILISATION : le jour où une phrase est nécessaire à
+deux endroits, elle devient une constante nommée — et elle entre dans la surface des
+gardes au passage, sans que personne l'ait décidé.
+
+> **Une omission de ce genre se découvre quand la copie est RÉEMPLOYÉE, pas quand elle
+> est relue.** C'est exactement ce qui vient d'arriver : la phrase est sortie du texte
+> nu parce qu'il fallait la dire ailleurs, pas parce que quelqu'un l'avait cherchée.
+
+L'angle mort reste donc ouvert, et il porte désormais son chiffre.
 
 Les quatre phrases du palier vivent donc dans `src/lib/palier-gratuit.ts`, lues par les
 deux routes. Le compte, lui, ne peut pas être importé — deux applications, deux paquets —
