@@ -3,7 +3,7 @@
 // Deux fois dans la même journée, un correctif a fermé une CLASSE et sa garde a été
 // posée sur un LIEU :
 //
-//   · `ArrayFree` suivi d'un Copy* tue le terminal. Corrigé dans `Export_H1_Vena`,
+//   · `ArrayFree` suivi d'un Copy* tue le terminal. Corrigé dans `Export_H1_Vuna`,
 //     gardé sur « les .mq5 de la racine » — et le robot, qui naît d'un générateur,
 //     n'en est pas un. Le trou est resté ouvert jusqu'à ce qu'on le cherche.
 //   · une attente qui se répète à l'identique n'est plus une attente, c'est une

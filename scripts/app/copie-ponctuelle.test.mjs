@@ -34,7 +34,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { borne } from "../lib/tranche.mjs";
 
-const APP = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
+const APP = readFileSync(new URL("../../Vuna.dc.html", import.meta.url), "utf8");
 const GAB = APP.slice(0, borne(APP, "</x-dc>"));
 
 test("le libellé de la copie ponctuelle a UNE source, et elle est rendue", () => {

@@ -20,7 +20,7 @@ test("le module de chrome PWA s’analyse et s’importe", async () => {
 test("escapeHtml échappe vraiment, il ne recopie pas", () => {
   // le cas qui a coûté la construction : chaque remplacement doit CHANGER l'entrée
   const cas = [
-    ["Véna & Cie", "Véna &amp; Cie"],
+    ["Vuna & Cie", "Vuna &amp; Cie"],
     ["<script>", "&lt;script&gt;"],
     ['dit "bonjour"', "dit &quot;bonjour&quot;"],
     ["l'année", "l&#39;année"],
@@ -52,7 +52,7 @@ test("la sortie ne peut pas refermer un attribut HTML", () => {
 test("escapeHtml et unescapeHtml font l’aller-retour", async () => {
   // `unescapeHtml` n'est pas exporté : on le vérifie par `titleFromDocument`, son appelant
   const { titleFromDocument } = await import("./grok-pwa-shared.mjs");
-  for (const brut of ['Véna & "les autres" <ici>', "l'année 2026", "a & b & c"]) {
+  for (const brut of ['Vuna & "les autres" <ici>', "l'année 2026", "a & b & c"]) {
     const page = `<html><head><title>${escapeHtml(brut)}</title></head></html>`;
     assert.equal(titleFromDocument(page), brut, "aller-retour perdu sur " + JSON.stringify(brut));
   }

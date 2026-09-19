@@ -8,7 +8,7 @@
 // fausses, et aucune ne portait sur le mécanisme : l'erreur était dans la CONVERSION du
 // résultat MT5 en R, avant toute décomposition.
 //
-//   1. le net de +3 422,35 € a été converti au taux de l'ÉCRAN Véna — 100 €/R — alors que
+//   1. le net de +3 422,35 € a été converti au taux de l'ÉCRAN Vuna — 100 €/R — alors que
 //      le rapport part d'un dépôt de 20 000 €. +4,00 R annoncé pour +14,8 R réels ;
 //   2. `InpRisquePct` porte sur l'ÉQUITÉ COURANTE, pas sur le dépôt. La perte moyenne du
 //      rapport vaut −231,22 €, pas −200 : l'équité monte de 20 000 à 23 422, sa moyenne

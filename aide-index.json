@@ -170,7 +170,7 @@
   },
   {
    "terme": "Choisir un fichier de sauvegarde",
-   "texte": "Choisit un fichier sur votre disque. Véna y réécrit tout, chaque minute. Aucun vidage de navigateur ne l’atteint.",
+   "texte": "Choisit un fichier sur votre disque. Vuna y réécrit tout, chaque minute. Aucun vidage de navigateur ne l’atteint.",
    "vues": [
     "Toutes les pages"
    ]
@@ -438,7 +438,7 @@
   },
   {
    "terme": "Les deux scripts MT5",
-   "texte": "Vena_Releve.mq5 (spreads, swaps, minimum de stop) et Export_H1_Vena.mq5 (les bougies, H1 ou M1 selon son réglage). Embarqués dans cette page, octets identiques au dépôt, sans rien d’injecté : à compiler une fois.",
+   "texte": "Vuna_Releve.mq5 (spreads, swaps, minimum de stop) et Export_H1_Vuna.mq5 (les bougies, H1 ou M1 selon son réglage). Embarqués dans cette page, octets identiques au dépôt, sans rien d’injecté : à compiler une fois.",
    "vues": [
     "Mes instruments"
    ]
@@ -634,14 +634,14 @@
   },
   {
    "terme": "Portage sur la détention",
-   "texte": "Le portage — swap — se compte sur la durée pendant laquelle une position reste ouverte. Champ vide : Véna emploie la durée que vos backtests ont mesurée sur chaque instrument.",
+   "texte": "Le portage — swap — se compte sur la durée pendant laquelle une position reste ouverte. Champ vide : Vuna emploie la durée que vos backtests ont mesurée sur chaque instrument.",
    "vues": [
     "Toutes les pages"
    ]
   },
   {
    "terme": "Poser la question à l’assistant",
-   "texte": "Pas encore disponible : cette réponse-là demande un serveur, une limite par visiteur, et un modèle qui connaisse vraiment Véna.",
+   "texte": "Pas encore disponible : cette réponse-là demande un serveur, une limite par visiteur, et un modèle qui connaisse vraiment Vuna.",
    "vues": [
     "Toutes les pages"
    ]
@@ -913,20 +913,6 @@
    ]
   },
   {
-   "terme": "VÉNA",
-   "texte": "Revenir à Mes instruments",
-   "vues": [
-    "Toutes les pages"
-   ]
-  },
-  {
-   "terme": "VÉNA",
-   "texte": "Bougies, tarifs, scans et réglages sont propres au compte choisi.",
-   "vues": [
-    "Toutes les pages"
-   ]
-  },
-  {
    "terme": "Voir ce qui occupe la mémoire",
    "texte": "Ouvre l'Intendance et mesure ce que ce navigateur garde, poste par poste.",
    "vues": [
@@ -938,6 +924,20 @@
    "texte": "Le TOP des configurations retenues, plus bas sur cette page.",
    "vues": [
     "Nouveau scan"
+   ]
+  },
+  {
+   "terme": "VUNA",
+   "texte": "Revenir à Mes instruments",
+   "vues": [
+    "Toutes les pages"
+   ]
+  },
+  {
+   "terme": "VUNA",
+   "texte": "Bougies, tarifs, scans et réglages sont propres au compte choisi.",
+   "vues": [
+    "Toutes les pages"
    ]
   }
  ]

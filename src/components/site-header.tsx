@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
-import { VenaMark, palierPour } from "@/components/vena-mark";
+import { VunaMark, palierPour } from "@/components/vuna-mark";
 
 // ————— TROIS ENTRÉES, ET LE BOUTON —————
 //
@@ -53,15 +53,15 @@ export function SiteHeader({
             « Simulateur de stratégies trading » qui cède, jamais la marque. */}
         <Link
           to="/"
-          aria-label="Véna — accueil"
+          aria-label="Vuna — accueil"
           className="mr-auto flex min-w-0 items-center gap-3 no-underline text-ink"
         >
           {/* le palier vient de la RÈGLE, pas d'un littéral : `h-6 w-6` rend le signe
               à 24 px, et `palierPour(24)` répond `md`. Écrire « lg » ici, comme je
               l'avais fait, contredisait la règle du composant — à 24 px le jambage
               fin du palier `lg` fait 1,44 px et grisonne hors écran retina. */}
-          <VenaMark taille={palierPour(24)} className="h-6 w-6 shrink-0" />
-          <span className="shrink-0 font-display text-lg font-semibold tracking-wide">VÉNA</span>
+          <VunaMark taille={palierPour(24)} className="h-6 w-6 shrink-0" />
+          <span className="shrink-0 font-display text-lg font-semibold tracking-wide">VUNA</span>
           <span className="hidden min-w-0 truncate text-[11px] uppercase tracking-[0.14em] text-muted sm:inline">
             Simulateur de stratégies trading
           </span>
@@ -83,7 +83,7 @@ export function SiteHeader({
               {l.label}
             </Link>
           ))}
-          {/* L'APPLICATION, PAS LA VITRINE. `/app` sert Vena.solo.html tel quel : un
+          {/* L'APPLICATION, PAS LA VITRINE. `/app` sert Vuna.solo.html tel quel : un
               fichier unique, hors du routeur du site — d'où un <a> et non un <Link>,
               qui tenterait une navigation interne vers une route qui n'existe pas.
               C'est ce bouton qu'un client qui a payé va chercher. */}
@@ -120,7 +120,7 @@ export function SiteHeader({
 // La phrase est nommée et rendue telle quelle : le rendu ne change pas d'un caractère,
 // seule la prise des gardes change.
 // prettier-ignore
-const AVERTISSEMENT_RISQUE = "Véna — simulateur de stratégies trading. Outil d’analyse, ni conseil en investissement ni service de gestion. Le trading fait perdre de l’argent à la majorité de ceux qui s’y essaient.";
+const AVERTISSEMENT_RISQUE = "Vuna — simulateur de stratégies trading. Outil d’analyse, ni conseil en investissement ni service de gestion. Le trading fait perdre de l’argent à la majorité de ceux qui s’y essaient.";
 
 export function SiteFooter() {
   return (

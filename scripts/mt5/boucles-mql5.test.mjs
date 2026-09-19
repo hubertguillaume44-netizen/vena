@@ -6,7 +6,7 @@
 // ————— AUCUNE BOUCLE D'UN SOURCE MQL5 NE TOURNE SANS BORNE DITE —————
 //
 // Deux pannes en un jour, même forme, deux fichiers :
-//   · `AttendreHistorique` (Export_H1_Vena) tournait 1 800 s par symbole parce que
+//   · `AttendreHistorique` (Export_H1_Vuna) tournait 1 800 s par symbole parce que
 //     `lu = -1` ne satisfaisait jamais sa condition de sortie ;
 //   · le cache d'agrégation du robot refaisait la lecture ET l'agrégation à chaque
 //     appel — plusieurs fois par tick — parce qu'il mémorisait le SUCCÈS au lieu de
@@ -40,20 +40,20 @@ import { sourcesMQL5 } from "./sources-mql5.mjs";
 // lettres. Écrire la raison est le travail : si elle ne s'écrit pas, la boucle ne se
 // termine pas.
 const BOUCLES = new Map([
-  ["Export_H1_Vena.mq5 · while(pMax < ArraySize(paliers) - 1 && paliers[pMax] < besoin)",
+  ["Export_H1_Vuna.mq5 · while(pMax < ArraySize(paliers) - 1 && paliers[pMax] < besoin)",
     "pMax croît strictement et la condition le borne à ArraySize(paliers) - 1"],
-  ["Export_H1_Vena.mq5 · while(GetTickCount() < fin && !IsStopped())",
+  ["Export_H1_Vuna.mq5 · while(GetTickCount() < fin && !IsStopped())",
     "échéance InpAttenteSec, arrêt utilisateur, ET sortie sur deux tours d'échec "
     + "identiques (lu <= 0 && premiere == 0) — c'est cette dernière qui manquait, et "
     + "son absence coûtait 1 800 s par symbole"],
-  ["Export_H1_Vena.mq5 · while(iM1 < nM1 && m1[iM1].time < r[i].time)",
+  ["Export_H1_Vuna.mq5 · while(iM1 < nM1 && m1[iM1].time < r[i].time)",
     "iM1 croît strictement et nM1 est le nombre de M1 réellement lues"],
-  ["Export_H1_Vena.mq5 · while(j < nM1 && m1[j].time < r[i].time + 3600)",
+  ["Export_H1_Vuna.mq5 · while(j < nM1 && m1[j].time < r[i].time + 3600)",
     "j croît strictement et nM1 borne le parcours"],
-  ["Export_H1_Vena.mq5 · while(!FileIsEnding(f))",
+  ["Export_H1_Vuna.mq5 · while(!FileIsEnding(f))",
     "FileReadString avance le pointeur à CHAQUE tour, avant tout continue : la fin "
     + "de fichier finit par arriver"],
-  ["Vena_Releve.mq5 · while(!FileIsEnding(f))",
+  ["Vuna_Releve.mq5 · while(!FileIsEnding(f))",
     "FileReadString avance le pointeur à CHAQUE tour, avant tout continue"],
   ["robot-mt5.js → .mq5 émis · while(j < nm && mT[j] < hT[i])",
     "j croît strictement et nm est le minimum des comptes réellement lus"],

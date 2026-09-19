@@ -68,9 +68,9 @@ import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
 import { POSER_SEMIS, INSTANCE } from "./lib/semis.mjs";
 
-const APP = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
-const SOLO = new URL("../../Vena.solo.html", import.meta.url).pathname;
-const CHROMIUMS = [process.env.VENA_CHROMIUM,
+const APP = readFileSync(new URL("../../Vuna.dc.html", import.meta.url), "utf8");
+const SOLO = new URL("../../Vuna.solo.html", import.meta.url).pathname;
+const CHROMIUMS = [process.env.VUNA_CHROMIUM,
   "/opt/pw-browsers/chromium-1194/chrome-linux/chrome"].filter(Boolean);
 
 // ————— LE RELEVÉ DU GABARIT : la pile des `sc-for`, pas une liste de noms —————
@@ -116,7 +116,7 @@ test("tout attribut d'événement du gabarit résout vers un producteur", { time
   catch (e) { assert.fail("playwright introuvable — cette garde ne saute pas en silence."); }
   const exe = CHROMIUMS.find((c) => existsSync(c));
   const nav = await chromium.launch(exe ? { executablePath: exe } : {})
-    .catch(() => assert.fail("Chromium introuvable : posez VENA_CHROMIUM — cette garde ne saute pas."));
+    .catch(() => assert.fail("Chromium introuvable : posez VUNA_CHROMIUM — cette garde ne saute pas."));
   try {
     const p = await (await nav.newContext()).newPage();
     await p.goto("file://" + SOLO);

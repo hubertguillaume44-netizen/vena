@@ -17,7 +17,7 @@ const PAGE = [
   '<meta name="theme-color" content="#ebeae6">',
   '<link rel="manifest" href="/__grok/manifest.webmanifest">',
   '<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">',
-  "<title>Véna</title>",
+  "<title>Vuna</title>",
   "</head><body></body></html>",
 ].join("");
 
@@ -121,10 +121,10 @@ test("le manifeste et le site disent la même couleur", () => {
 test("le manifeste porte le nom du produit, pas celui de l’outillage", () => {
   const manifeste = JSON.parse(renderWebManifest());
   // les deux champs sont vérifiés en toutes lettres plutôt que par une liste de noms
-  // interdits : nommer l'ancienne marque ici ferait échouer nom-vena.test.mjs, qui a
+  // interdits : nommer l'ancienne marque ici ferait échouer nom-vuna.test.mjs, qui a
   // raison de compter cette occurrence comme une survivance
-  assert.equal(manifeste.short_name, "Véna");
-  assert.equal(manifeste.name, "Véna — simulateur de stratégies trading");
+  assert.equal(manifeste.short_name, "Vuna");
+  assert.equal(manifeste.name, "Vuna — simulateur de stratégies trading");
   assert.doesNotMatch(manifeste.name + manifeste.short_name, /grok/i);
 });
 
@@ -143,7 +143,7 @@ function iconesDe(html) {
 }
 
 test("les icônes de repli du <head> visent des fichiers du dépôt", () => {
-  const html = grokPwaHeadTags("Véna").map(([, tag]) => tag).join("");
+  const html = grokPwaHeadTags("Vuna").map(([, tag]) => tag).join("");
   const cibles = iconesDe(html);
   assert.ok(cibles.length > 0, "aucune icône de repli déclarée");
   for (const src of cibles) {

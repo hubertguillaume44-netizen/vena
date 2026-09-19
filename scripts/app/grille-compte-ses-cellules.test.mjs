@@ -27,9 +27,9 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { POSER_SEMIS, INSTANCE } from "./lib/semis.mjs";
 
-const APP = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
-const SOLO = new URL("../../Vena.solo.html", import.meta.url).pathname;
-const CHROMIUMS = [process.env.VENA_CHROMIUM,
+const APP = readFileSync(new URL("../../Vuna.dc.html", import.meta.url), "utf8");
+const SOLO = new URL("../../Vuna.solo.html", import.meta.url).pathname;
+const CHROMIUMS = [process.env.VUNA_CHROMIUM,
   "/opt/pw-browsers/chromium-1194/chrome-linux/chrome"].filter(Boolean);
 
 test("le gabarit de la grille des lignes est écrit UNE fois", () => {
@@ -52,7 +52,7 @@ test("l'en-tête et chaque rangée ont les MÊMES pistes, mesurées", { timeout:
   try { ({ chromium } = await import("playwright")); }
   catch (e) {
     assert.fail("Cette garde compare deux grilles CALCULÉES — playwright est introuvable. "
-      + "Installez-le, ou posez VENA_CHROMIUM. Elle ne saute pas en silence : deux "
+      + "Installez-le, ou posez VUNA_CHROMIUM. Elle ne saute pas en silence : deux "
       + "gabarits identiques dans le source ne prouvent pas deux grilles identiques.");
   }
   const executablePath = CHROMIUMS.find((c) => existsSync(c));

@@ -39,10 +39,10 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { POSER_SEMIS, INSTANCE } from "./lib/semis.mjs";
 
-const SOLO = new URL("../../Vena.solo.html", import.meta.url).pathname;
-const APP = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
+const SOLO = new URL("../../Vuna.solo.html", import.meta.url).pathname;
+const APP = readFileSync(new URL("../../Vuna.dc.html", import.meta.url), "utf8");
 const CHROMIUMS = [
-  process.env.VENA_CHROMIUM,
+  process.env.VUNA_CHROMIUM,
   "/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
 ].filter(Boolean);
 

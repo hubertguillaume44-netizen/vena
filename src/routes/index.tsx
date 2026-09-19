@@ -19,7 +19,7 @@ export const Route = createFileRoute("/")({ component: Home });
 // Une mesure réelle est donc posée à côté du titre : deux nombres — le résultat brut, et
 // ce qu'il en reste hors de la période qui a servi à le choisir — puis les contrôles,
 // tels qu'ils tombent. Elle sort du VRAI moteur, sur les séries de démonstration (voir
-// `vitrine()`), et la ligne montrée est la plus GROSSE de celles que Véna refuse de
+// `vitrine()`), et la ligne montrée est la plus GROSSE de celles que Vuna refuse de
 // retenir : le plus beau chiffre de la page, avec le contrôle qui le disqualifie juste
 // en dessous. Voir `vitrine()` pour la règle — c'est un tri, pas un échec fabriqué.
 //
@@ -40,7 +40,7 @@ const GESTES = [
   },
   {
     n: "2",
-    t: "Véna mesure",
+    t: "Vuna mesure",
     b: "Il balaie des milliers de variantes de votre règle, découpe chaque résultat en cinq périodes, et compare au hasard pour savoir si le meilleur chiffre vaut mieux qu’un tirage chanceux.",
   },
   {
@@ -178,7 +178,7 @@ function CarteMesure({ v }: { v: Vitrine }) {
           {row.verdict} · {v.passes}/{v.total}
         </span>
         <span className="min-w-[24ch] flex-1 text-xs leading-relaxed text-muted">
-          Véna ne dit pas « bravo ». Il dit ce qui tient, ce qui ne tient pas, et il vous laisse
+          Vuna ne dit pas « bravo ». Il dit ce qui tient, ce qui ne tient pas, et il vous laisse
           trancher.
         </span>
       </div>
@@ -205,7 +205,7 @@ function Home() {
               Testez une règle avant d’y mettre un euro.
             </h1>
             <p className="mt-6 max-w-prose text-lg leading-relaxed text-ink/80">
-              Véna rejoue votre règle sur vos propres historiques, frais de votre courtier compris.
+              Vuna rejoue votre règle sur vos propres historiques, frais de votre courtier compris.
               Puis il retire la période qui l’a fait bien paraître, et vous montre ce qu’il en
               reste.
             </p>
@@ -248,7 +248,7 @@ function Home() {
               Toute courbe est belle sur la période qui l’a fabriquée
             </h2>
             <p className="max-w-[64ch] text-base leading-relaxed text-panel/85">
-              Un réglage trouvé sur six ans d’historique a eu six ans pour s’y ajuster. Véna coupe
+              Un réglage trouvé sur six ans d’historique a eu six ans pour s’y ajuster. Vuna coupe
               l’historique en cinq, mesure sur quatre, vérifie sur la cinquième — celle qu’il n’a
               jamais vue. Ce qui survit est la seule chose sur laquelle on peut miser.
             </p>
@@ -277,7 +277,7 @@ function Home() {
             <div className="flex min-w-[36ch] flex-1 flex-col gap-2">
               <p className="text-base leading-relaxed">
                 <strong>MetaTrader 5</strong> chez votre courtier — c’est la seule plateforme que
-                Véna lit. Elle vous fait installer deux scripts, une fois, qui produisent les
+                Vuna lit. Elle vous fait installer deux scripts, une fois, qui produisent les
                 fichiers : vos prix horaires et votre relevé de frais. Aucune programmation.
               </p>
               <p className="text-sm leading-relaxed text-muted">

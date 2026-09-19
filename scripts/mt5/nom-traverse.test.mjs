@@ -1,7 +1,7 @@
 // ————— UN NOM QUI TRAVERSE DEUX MONDES SE DÉRIVE, IL NE S'ÉCRIT PAS DEUX FOIS —————
 //
 // Le cas réel : l'application écrivait « symboles_<compte>.txt » ; les deux
-// scripts MT5 lisent « vena\symboles.txt », en dur. Les deux bouts du MÊME geste
+// scripts MT5 lisent « vuna\symboles.txt », en dur. Les deux bouts du MÊME geste
 // ne portaient pas le même nom, et rien ne le disait — le script se taisait,
 // l'application ne prévenait pas.
 //
@@ -28,8 +28,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { borne } from "../lib/tranche.mjs";
 
-const APP = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
-const SOLO = readFileSync(new URL("../../Vena.solo.html", import.meta.url), "utf8");
+const APP = readFileSync(new URL("../../Vuna.dc.html", import.meta.url), "utf8");
+const SOLO = readFileSync(new URL("../../Vuna.solo.html", import.meta.url), "utf8");
 
 const valeurDe = (nom) => {
   const i = APP.indexOf(nom + " = '");
@@ -60,10 +60,10 @@ test("le fichier produit porte le nom que les scripts MT5 lisent", () => {
     + " » et ne trouvera rien, en silence");
 
   // 2 · les scripts EMBARQUÉS cherchent ce nom-là — découverts, pas énumérés
-  const marque = "window.__venaScripts = ";
+  const marque = "window.__vunaScripts = ";
   const i = SOLO.indexOf(marque);
   assert.ok(i > 0,
-    "window.__venaScripts est absent du fichier construit : la garde ne peut pas "
+    "window.__vunaScripts est absent du fichier construit : la garde ne peut pas "
     + "relire ce que l'utilisateur reçoit — relancez « npm run app:solo »");
   const table = JSON.parse(SOLO.slice(i + marque.length, borne(SOLO, ";", i + marque.length)));
   const lecteurs = [];
@@ -71,7 +71,7 @@ test("le fichier produit porte le nom que les scripts MT5 lisent", () => {
     const src = Buffer.from(b64, "base64").toString("utf8");
     const d = src.match(/input\s+string\s+InpFichierListe\s*=\s*"([^"]*)"/);
     if (!d) continue;                       // ce script ne lit pas de liste : rien à vérifier
-    const lu = d[1].replace(/\\\\/g, "\\");   // « vena\\symboles.txt » → vena\symboles.txt
+    const lu = d[1].replace(/\\\\/g, "\\");   // « vuna\\symboles.txt » → vuna\symboles.txt
     lecteurs.push([fichier, lu]);
     assert.ok(chemin.endsWith(lu),
       fichier + " cherche « " + lu + " » et l'application écrit « " + chemin + " » : "
@@ -103,7 +103,7 @@ test("l'écran nomme le chemin complet, et le compte vit DANS le fichier", () =>
     + "sera oubliée le jour où l'autre change");
   // et le compte est écrit DANS le fichier, en commentaire — la seule place où il
   // ne casse rien, puisque LireListeFichier ignore les lignes « // »
-  assert.ok(APP.includes("const entete = '// ' + this.LISTE_NOM + ' — écrit par Véna pour ' + this.nomCompteActif()"),
+  assert.ok(APP.includes("const entete = '// ' + this.LISTE_NOM + ' — écrit par Vuna pour ' + this.nomCompteActif()"),
     "l'en-tête du fichier ne nomme plus le compte : c'est sa seule place légitime — "
     + "dans le nom du fichier, le script ne peut pas le deviner ; nulle part, on ne "
     + "sait plus de quel courtier vient l'orthographe des symboles");

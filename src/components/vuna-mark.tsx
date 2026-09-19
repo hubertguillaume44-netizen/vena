@@ -1,5 +1,5 @@
 /**
- * LE SIGNE VÉNA — un chevron à deux graisses : le jambage fin descend, le plein remonte.
+ * LE SIGNE VUNA — un chevron à deux graisses : le jambage fin descend, le plein remonte.
  *
  * TROIS DESSINS, PAS TROIS TAILLES. Le rapport 6/17 du palier `lg` ne tient que
  * au-dessus de 40 px. En dessous, le jambage fin passe sous le pixel : l'écart de
@@ -36,7 +36,7 @@ export function palierPour(px: number): TailleMarque {
   return "sm";
 }
 
-export function VenaMark({
+export function VunaMark({
   taille = "lg",
   className,
 }: {

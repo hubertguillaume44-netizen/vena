@@ -16,7 +16,7 @@ import { readFileSync } from "node:fs";
 import vm from "node:vm";
 import { borne, borneArriere } from "../lib/tranche.mjs";
 
-const SOURCE = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
+const SOURCE = readFileSync(new URL("../../Vuna.dc.html", import.meta.url), "utf8");
 
 function extraire(debut, fin) {
   const i = SOURCE.indexOf(debut);
@@ -146,7 +146,7 @@ test("la pastille dit DE QUEL tiroir elle parle", () => {
 
 // ————— LA SORTIE DE LA VUE INTÉGRÉE CHANGE DE COFFRE —————
 //
-// « Ouvrez Véna dans un onglet à part » est le bon conseil pour le stockage : la page
+// « Ouvrez Vuna dans un onglet à part » est le bon conseil pour le stockage : la page
 // cesse d'être cloisonnée et le quota passe à plusieurs gigaoctets. Mais une iframe
 // cloisonnée et un onglet de premier plan sont DEUX PARTITIONS : les données ne suivent
 // pas. Suivre ce conseil sans exporter, c'est perdre son travail une seconde fois.
@@ -218,7 +218,7 @@ test("la date vient de lireSauvInfo, pas d’un drapeau nouveau", () => {
   const corps = corpsIIFE("            if (!this.dansIframe()) {");
   assert.match(corps, /let t = this\.lireSauvInfo\(\)\.t;/);
   assert.match(corps, /if \(s\.sauvDate\) t = Math\.max\(t, s\.sauvDate\);/);
-  assert.ok(!/vena\.integre|integreVu|CLE_INTEGRE/.test(SOURCE), "un drapeau nouveau est apparu");
+  assert.ok(!/vuna\.integre|integreVu|CLE_INTEGRE/.test(SOURCE), "un drapeau nouveau est apparu");
 });
 
 test("l’ouverture n’est jamais bloquée, et n’emporte rien avec elle", () => {

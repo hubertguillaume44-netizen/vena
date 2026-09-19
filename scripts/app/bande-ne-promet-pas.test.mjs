@@ -34,7 +34,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { borne } from "../lib/tranche.mjs";
 
-const APP = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
+const APP = readFileSync(new URL("../../Vuna.dc.html", import.meta.url), "utf8");
 
 // la branche « bande nulle » du producteur, prise entre deux ancres qui AGISSENT
 const DEP = "        if (b.largeur < 0.05) {";

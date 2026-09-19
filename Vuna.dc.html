@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Véna</title>
+<title>Vuna</title>
 <!--
   ————— L'ICÔNE DE L'ONGLET, EN DATA-URI —————
   Seule forme compatible avec un fichier autonome : un `href` vers un fichier voisin
@@ -32,7 +32,7 @@
   identiques aux empreintes SRI que `support.js` attend. Une plage de versions ferait
   d'une publication d'un tiers une panne un matin, sans qu'on ait rien touché.
 
-  Le fichier autonome (`Vena.solo.html`) remplace ces chemins par des Blob URL : voir
+  Le fichier autonome (`Vuna.solo.html`) remplace ces chemins par des Blob URL : voir
   `scripts/app/solo.mjs`.
 -->
 <script>
@@ -88,7 +88,7 @@
   .rep:hover { color: var(--color-accent-700); }
   input[type="range"] { accent-color: var(--color-accent); cursor: pointer; }
   /* CE QUI REÇOIT UN FICHIER NE RESSEMBLE PLUS À CE QUI EN TÉLÉCHARGE UN.
-     Un bouton plein sort quelque chose de Véna ; une zone en pointillé attend
+     Un bouton plein sort quelque chose de Vuna ; une zone en pointillé attend
      qu'on y pose un fichier — le <input type="file"> la couvre entièrement, donc
      toute la surface est cliquable, et le glisser-déposer marche dessus.
 
@@ -324,7 +324,7 @@
            page de présentation ; celle-ci n'existe plus, et il ramène donc à « Mes
            instruments » — l'accueil de l'outil. Un logo qui mène à une page blanche
            est pire qu'un logo inerte. -->
-      <button type="button" onClick="{{ goCourt }}" style="display:inline-flex;align-items:center;gap:12px;background:none;border:0;padding:0;font-family:var(--font-heading);font-size:19px;letter-spacing:.06em;color:inherit;cursor:pointer" title="Revenir à Mes instruments"><svg viewBox="0 0 100 100" width="24" height="24" style="display:block;flex:none" aria-hidden="true"><path fill="currentColor" d="M 6.00 17.63 L 19.45 17.63 L 44.50 64.60 L 69.55 17.63 L 94.00 17.63 L 59.48 82.37 L 35.02 82.37 L 37.77 77.21 Z"></path></svg>VÉNA</button>
+      <button type="button" onClick="{{ goCourt }}" style="display:inline-flex;align-items:center;gap:12px;background:none;border:0;padding:0;font-family:var(--font-heading);font-size:19px;letter-spacing:.06em;color:inherit;cursor:pointer" title="Revenir à Mes instruments"><svg viewBox="0 0 100 100" width="24" height="24" style="display:block;flex:none" aria-hidden="true"><path fill="currentColor" d="M 6.00 17.63 L 19.45 17.63 L 44.50 64.60 L 69.55 17.63 L 94.00 17.63 L 59.48 82.37 L 35.02 82.37 L 37.77 77.21 Z"></path></svg>VUNA</button>
       <span style="width:1px;height:16px;background:color-mix(in srgb,var(--color-bg) 30%,transparent)"></span>
         <!--
           UN MENU EN <div>, ET PAS UN <select>.
@@ -444,7 +444,7 @@
       <strong style="font-family:var(--font-heading);font-size:13px;letter-spacing:.04em">Vos premières données réelles</strong>
       <span style="font-size:12px;line-height:1.5;min-width:0">{{ filetProposeTxt }}</span>
       <sc-if value="{{ aFiletFichier }}" hint-placeholder-val="{{ true }}">
-        <button type="button" style="cursor:pointer;font:inherit;font-size:11px;background:var(--color-bg);color:var(--color-accent-900);border:0;padding:4px 11px;white-space:nowrap" onClick="{{ choisirFilet }}" title="Choisit un fichier sur votre disque. Véna y réécrit tout, chaque minute. Aucun vidage de navigateur ne l’atteint.">Choisir un fichier de sauvegarde</button>
+        <button type="button" style="cursor:pointer;font:inherit;font-size:11px;background:var(--color-bg);color:var(--color-accent-900);border:0;padding:4px 11px;white-space:nowrap" onClick="{{ choisirFilet }}" title="Choisit un fichier sur votre disque. Vuna y réécrit tout, chaque minute. Aucun vidage de navigateur ne l’atteint.">Choisir un fichier de sauvegarde</button>
       </sc-if>
       <button type="button" style="cursor:pointer;font:inherit;font-size:11px;background:none;color:var(--color-bg);border:1px solid color-mix(in srgb,var(--color-bg) 42%,transparent);padding:4px 11px;white-space:nowrap" onClick="{{ exporterDepuisFilet }}" disabled="{{ copieBloque }}" title="{{ copieAide }}">{{ copieTxt }}</button>
       <button type="button" style="cursor:pointer;font:inherit;font-size:11px;background:none;color:var(--color-bg);border:1px solid color-mix(in srgb,var(--color-bg) 42%,transparent);padding:4px 11px;white-space:nowrap;margin-inline-start:auto" onClick="{{ plusTardFilet }}" title="Ferme cette proposition. Elle ne reviendra pas — le rang d’état, lui, reste tant qu’aucun filet n’est en place.">Plus tard</button>
@@ -459,7 +459,7 @@
   <!--
     LA VUE INTÉGRÉE, DITE AU RANG PERMANENT — ET SON PIÈGE.
 
-    « Ouvrez Véna dans un onglet à part » est le bon conseil pour le stockage : la page
+    « Ouvrez Vuna dans un onglet à part » est le bon conseil pour le stockage : la page
     cesse d'être cloisonnée, le quota passe de quelques centaines de mégaoctets à
     plusieurs gigaoctets, et l'écriture dans un fichier redevient possible.
 
@@ -544,7 +544,7 @@
         <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
         <div class="card-kicker">À lire avant de commencer</div>
         <div class="dialog-title" style="font-family:var(--font-heading);font-size:26px;line-height:1.15">Un instrument de mesure, pas un conseil</div>
-        <p class="dialog-body" style="margin:0;font-size:13px;line-height:1.6">Véna applique <strong>vos</strong> règles à <strong>vos</strong> historiques de prix et en restitue le résultat chiffré. Il ne recommande rien, ne passe aucun ordre, ne détient aucun fonds et ne garantit aucune performance.</p>
+        <p class="dialog-body" style="margin:0;font-size:13px;line-height:1.6">Vuna applique <strong>vos</strong> règles à <strong>vos</strong> historiques de prix et en restitue le résultat chiffré. Il ne recommande rien, ne passe aucun ordre, ne détient aucun fonds et ne garantit aucune performance.</p>
         <p class="dialog-body" style="margin:0;font-size:13px;line-height:1.6">Les chiffres proviennent de données passées et ne préjugent pas des résultats futurs. Le trading à effet de levier expose à une <strong>perte rapide du capital</strong>, pouvant dépasser le montant déposé. N'engagez que des sommes dont la perte n'affecterait pas votre situation.</p>
         <p class="dialog-body text-muted" style="margin:0;font-size:12px;line-height:1.6">Vos fichiers sont lus dans votre navigateur et n'en sortent pas. Les informations légales complètes sont en bas de page.</p>
         <div style="display:flex;gap:9px;flex-wrap:wrap;align-items:center">
@@ -952,7 +952,7 @@
               <div style="display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;padding:7px 0;border-bottom:1px solid var(--color-divider)">
                 <span style="display:flex;flex-direction:column;gap:1px;flex:1;min-width:16ch">
                   <span style="font-size:12.5px;line-height:1.4">Dossier du terminal MT5</span>
-                  <span style="font-size:10.5px;line-height:1.4" class="text-muted">les journaux de trades de vos robots, LUS sur votre disque — rien n’en sort, et Véna ne peut rien y écrire</span>
+                  <span style="font-size:10.5px;line-height:1.4" class="text-muted">les journaux de trades de vos robots, LUS sur votre disque — rien n’en sort, et Vuna ne peut rien y écrire</span>
                 </span>
                 <span style="font-size:11.5px;white-space:nowrap" class="text-muted">{{ etatPorteDossier }}</span>
               </div>
@@ -967,7 +967,7 @@
         <button type="button" class="rep" onClick="{{ tirBasculeNews }}"><span style="font-size:12px;flex:1"><strong>Actualités &amp; agenda</strong> <span style="color:var(--color-neutral-700)">— {{ tirNewsEtat }}</span></span><span style="font-size:11px" class="text-muted">{{ tirChevNews }}</span></button>
         <sc-if value="{{ tirRepNews }}" hint-placeholder-val="{{ false }}">
           <div style="display:flex;flex-direction:column;gap:6px;padding:2px 0 10px">
-          <p style="margin:0;font-size:12px;line-height:1.55" class="text-muted">Facultatif, et déclenché seulement par une clé : Véna demande à Finnhub les résultats trimestriels et les titres de presse de vos symboles — <strong>seuls les tickers sortent</strong>, jamais vos historiques, vos scans ni vos réglages. Les titres reçus en anglais sont ensuite traduits via MyMemory : <strong>le texte du titre part au service de traduction</strong>, rien d'autre. Sans clé, aucun de ces appels n'est fait.</p>
+          <p style="margin:0;font-size:12px;line-height:1.55" class="text-muted">Facultatif, et déclenché seulement par une clé : Vuna demande à Finnhub les résultats trimestriels et les titres de presse de vos symboles — <strong>seuls les tickers sortent</strong>, jamais vos historiques, vos scans ni vos réglages. Les titres reçus en anglais sont ensuite traduits via MyMemory : <strong>le texte du titre part au service de traduction</strong>, rien d'autre. Sans clé, aucun de ces appels n'est fait.</p>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
             <input class="input" type="password" style="min-height:2rem;height:2rem;font-size:12px;width:24ch" value="{{ cleNews }}" placeholder="clé Finnhub (facultative)" onChange="{{ majCleNews }}">
             <button class="btn btn-ghost" type="button" style="min-height:2rem;font-size:11px" onClick="{{ oublierCleNews }}" disabled="{{ sansCleNews }}">Oublier</button>
@@ -1009,7 +1009,7 @@
         <!-- PORTE 2 : le compteur d'usage anonyme, ÉTEINT par défaut -->
         <div style="display:flex;flex-direction:column;gap:7px;border-top:1px solid var(--color-divider);padding-top:10px">
           <span style="font-size:11px;letter-spacing:.06em;text-transform:uppercase" class="text-muted">Compteur d’usage anonyme — éteint par défaut</span>
-          <label class="radio" style="font-size:12px"><input type="checkbox" checked="{{ usageActif }}" onChange="{{ basculerUsage }}"><span class="dot"></span>Aider à améliorer Véna en envoyant des comptes anonymes</label>
+          <label class="radio" style="font-size:12px"><input type="checkbox" checked="{{ usageActif }}" onChange="{{ basculerUsage }}"><span class="dot"></span>Aider à améliorer Vuna en envoyant des comptes anonymes</label>
           <span style="font-size:11px;line-height:1.55" class="text-muted"><strong>Ce qui part, liste exhaustive :</strong> nombre de scans lancés, nombre de combinaisons, durée, unité choisie, nombre d’instruments, quels filtres ont été balayés, version de l’application, famille de navigateur, et les messages d’erreur rencontrés. <strong>Ce qui ne part jamais :</strong> une série, un prix, un nom d’instrument, une configuration, un résultat, un montant, ni aucun identifiant qui vous suivrait — pas de cookie, pas d’empreinte, pas d’adresse conservée. L’envoi est groupé et différé, jamais pendant un scan ; le relais ne stocke rien.</span>
           <button type="button" class="lien" style="align-self:flex-start" onClick="{{ basculerUsageVoir }}" title="La charge réelle, telle quelle, avant envoi.">{{ usageVoirTxt }}</button>
           <sc-if value="{{ aUsageVoir }}" hint-placeholder-val="{{ false }}">
@@ -1150,7 +1150,7 @@
           <span class="tag tag-outline">Version d'essai</span>
           <span style="font-size:15px">Les dix instruments « VX- » sont <strong>engendrés</strong> — des séries calculées, pas de vrais marchés.</span>
         </div>
-        <p class="card-body" style="margin:0;max-width:88ch"><strong>Sur ces trois ans, cet univers monte</strong> — un résultat flatteur y vient facilement, et il ne dira rien de votre idée. C’est un tirage, pas une promesse : Véna mesure, elle ne promet pas.</p>
+        <p class="card-body" style="margin:0;max-width:88ch"><strong>Sur ces trois ans, cet univers monte</strong> — un résultat flatteur y vient facilement, et il ne dira rien de votre idée. C’est un tirage, pas une promesse : Vuna mesure, elle ne promet pas.</p>
         <p class="card-body" style="margin:0;max-width:88ch"><strong>Tant que vous n'avez pas importé les données de votre courtier, aucun backtest ne peut ressembler à votre situation réelle.</strong> Vos prix, vos horaires de session, votre spread et votre swap sont propres à votre compte : deux courtiers donnent deux résultats différents sur la même stratégie. Ces séries servent à comprendre l'outil, pas à décider. Le mode d'emploi d'import se trouve dans l'onglet <strong>Mes instruments</strong>, cadre « Produire ces fichiers depuis MT5 ».</p>
       </div>
     </sc-if>
@@ -1212,7 +1212,7 @@
                 <span style="display:flex;align-items:center;gap:5px;flex:none"><input class="input" type="number" step="0.1" min="0.1" value="{{ p1Sl }}" onChange="{{ setP1Sl }}" style="min-height:1.7rem;height:1.7rem;font-size:12px;width:82px;padding:0 6px;text-align:right"><span style="font-size:12px;min-width:3.4ch" class="text-muted">%</span></span>
               </div>
               <div style="display:flex;align-items:center;gap:9px">
-                <span style="font-size:12px;flex:1;min-width:0" title="Le portage — swap — se compte sur la durée pendant laquelle une position reste ouverte. Champ vide : Véna emploie la durée que vos backtests ont mesurée sur chaque instrument.">Portage sur la détention</span>
+                <span style="font-size:12px;flex:1;min-width:0" title="Le portage — swap — se compte sur la durée pendant laquelle une position reste ouverte. Champ vide : Vuna emploie la durée que vos backtests ont mesurée sur chaque instrument.">Portage sur la détention</span>
                 <span style="display:flex;align-items:center;gap:5px;flex:none"><input class="input" type="number" step="0.5" min="0" placeholder="mesurée" value="{{ p1Nuits }}" onChange="{{ setP1Nuits }}" style="min-height:1.7rem;height:1.7rem;font-size:12px;width:82px;padding:0 6px;text-align:right"><span style="font-size:12px;min-width:3.4ch" class="text-muted">nuits</span></span>
               </div>
               <div style="display:flex;align-items:center;gap:9px">
@@ -1452,7 +1452,7 @@
           <span class="tag tag-neutral" style="font-size:10px;white-space:nowrap;flex:none">une seule fois</span>
           <span style="font-size:12.5px;line-height:1.5;flex:1;min-width:22ch" title="Chaque script écrit sa version en première ligne du journal MT5 à chaque lancement. Si ce nombre-ci et celui du journal diffèrent, le .ex5 n’a pas été recompilé depuis la mise à jour — c’est la seule façon de le savoir.">Les deux scripts dans <code>MQL5\Scripts</code>, compilés (F7) — version {{ scriptsVersion }}</span>
           <sc-if value="{{ aScriptsFait }}" hint-placeholder-val="{{ false }}"><span class="tag tag-neutral" style="font-size:10px;white-space:nowrap;flex:none">fait</span></sc-if>
-          <button class="{{ scriptsCls }}" type="button" style="min-height:2rem;font-size:12px;padding-inline:12px;flex:none" onClick="{{ telechargerScripts }}" title="Vena_Releve.mq5 (spreads, swaps, minimum de stop) et Export_H1_Vena.mq5 (les bougies, H1 ou M1 selon son réglage). Embarqués dans cette page, octets identiques au dépôt, sans rien d’injecté : à compiler une fois.">Les deux scripts MT5</button>
+          <button class="{{ scriptsCls }}" type="button" style="min-height:2rem;font-size:12px;padding-inline:12px;flex:none" onClick="{{ telechargerScripts }}" title="Vuna_Releve.mq5 (spreads, swaps, minimum de stop) et Export_H1_Vuna.mq5 (les bougies, H1 ou M1 selon son réglage). Embarqués dans cette page, octets identiques au dépôt, sans rien d’injecté : à compiler une fois.">Les deux scripts MT5</button>
         </div>
 
         <span style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:13px 0 2px" class="text-muted">À chaque mise à jour de vos données</span>
@@ -1486,7 +1486,7 @@
               <strong style="font-family:var(--font-heading);font-weight:600;font-size:22px;line-height:1.1;max-width:24ch">Déposer le relevé de symboles</strong>
               <span style="font-family:var(--font-heading);font-weight:600;font-size:34px;line-height:.72;flex:0 0 auto;color:rgba(89,128,166,.45)">1</span>
             </div>
-            <span style="font-size:13.5px;line-height:1.6;max-width:54ch" class="text-muted">Dans MT5, glissez <code>Vena_Releve</code> sur n’importe quel graphique : sans liste, il relève <strong>toute votre Observation du marché</strong>. Le <code>releve.csv</code> produit apporte le coût réel : spread, portage, minimum de stop.</span>
+            <span style="font-size:13.5px;line-height:1.6;max-width:54ch" class="text-muted">Dans MT5, glissez <code>Vuna_Releve</code> sur n’importe quel graphique : sans liste, il relève <strong>toute votre Observation du marché</strong>. Le <code>releve.csv</code> produit apporte le coût réel : spread, portage, minimum de stop.</span>
             <label style="margin-top:auto;min-height:58px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:5px;padding:10px 13px;position:relative;background:#f5f5f8;border:1px dashed rgba(89,128,166,.55);cursor:pointer">
               <span class="btn btn-secondary" style="min-height:1.9rem;font-size:12px;padding-inline:12px;pointer-events:none">Déposer un relevé</span>
               <span style="font-size:11.5px;line-height:1.4" class="text-muted">ou glissez le fichier ici</span>
@@ -1514,7 +1514,7 @@
               <strong style="font-family:var(--font-heading);font-weight:600;font-size:22px;line-height:1.1;max-width:24ch">Déposer les bougies H1</strong>
               <span style="font-family:var(--font-heading);font-weight:600;font-size:34px;line-height:.72;flex:0 0 auto;color:rgba(89,128,166,.45)">3</span>
             </div>
-            <span style="font-size:13.5px;line-height:1.6;max-width:54ch" class="text-muted">Glissez <code>Export_H1_Vena</code> sur un graphique : un CSV par instrument de la liste, et eux seuls, dans <code>MQL5\Files</code>. Déposez-les ici — le scan devient possible.</span>
+            <span style="font-size:13.5px;line-height:1.6;max-width:54ch" class="text-muted">Glissez <code>Export_H1_Vuna</code> sur un graphique : un CSV par instrument de la liste, et eux seuls, dans <code>MQL5\Files</code>. Déposez-les ici — le scan devient possible.</span>
             <sc-if value="{{ aPalierCompteur }}" hint-placeholder-val="{{ false }}">
               <span style="font-size:11px;line-height:1.5;color:{{ palierCouleur }}">{{ palierCompteur }}<sc-if value="{{ aPalierLien }}" hint-placeholder-val="{{ false }}"><button type="button" class="lien" style="font-size:11px;color:inherit;text-decoration:underline;text-underline-offset:2px" onClick="{{ ouvrirTiroir }}">le coller ici</button>{{ palierCompteurFin }}</sc-if></span>
             </sc-if>
@@ -1535,7 +1535,7 @@
               <!-- le 4 est en encre neutre : facultatif, donc moins d'appel que les trois -->
               <span style="font-family:var(--font-heading);font-weight:600;font-size:34px;line-height:.72;flex:0 0 auto;color:rgba(29,31,32,.2)">4</span>
             </div>
-            <span style="font-size:13.5px;line-height:1.6;max-width:54ch" class="text-muted">Même script, réglé sur M1 (<code>InpM1</code>). Le scan et le backtest n’en ont pas besoin : ils travaillent en H1. Le M1 sert à une seule chose, <strong>départager Véna et le robot MT5 quand ils divergent</strong> — savoir si le stop ou l’objectif a été touché d’abord dans l’heure. Comptez soixante fois le volume du H1 : n’en déposez que pour les instruments que vous comparez.</span>
+            <span style="font-size:13.5px;line-height:1.6;max-width:54ch" class="text-muted">Même script, réglé sur M1 (<code>InpM1</code>). Le scan et le backtest n’en ont pas besoin : ils travaillent en H1. Le M1 sert à une seule chose, <strong>départager Vuna et le robot MT5 quand ils divergent</strong> — savoir si le stop ou l’objectif a été touché d’abord dans l’heure. Comptez soixante fois le volume du H1 : n’en déposez que pour les instruments que vous comparez.</span>
             <label style="margin-top:auto;min-height:58px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:5px;padding:10px 13px;position:relative;border:1px dashed rgba(29,31,32,.28);cursor:pointer">
               <span class="btn btn-secondary" style="min-height:1.9rem;font-size:12px;padding-inline:12px;pointer-events:none">Déposer les bougies M1</span>
               <span style="font-size:11.5px;line-height:1.4" class="text-muted">ou glissez les fichiers ici</span>
@@ -1561,7 +1561,7 @@
         -->
         <label class="zdep" style="margin-top:11px">
           <span style="font-size:12.5px;line-height:1.4;color:var(--color-accent-700)">Glissez ici tous vos CSV d’un coup</span>
-          <span style="font-size:11px;line-height:1.4" class="text-muted">Véna reconnaît seul le relevé, le H1 et le M1 — ou lâchez-les n’importe où sur la page</span>
+          <span style="font-size:11px;line-height:1.4" class="text-muted">Vuna reconnaît seul le relevé, le H1 et le M1 — ou lâchez-les n’importe où sur la page</span>
           <input type="file" accept=".csv" multiple="{{ true }}" onChange="{{ surChoixTout }}" style="position:absolute;inset:0;opacity:0;cursor:pointer">
         </label>
         </div>
@@ -2799,7 +2799,7 @@
                  portait le même gris que l'en-tête de la section suivante, et deux bandes
                  grises adjacentes ne se distinguent pas l'une de l'autre. -->
             <div style="display:flex;gap:10px 16px;align-items:center;flex-wrap:wrap;padding-top:11px;border-top:1px solid var(--color-divider)">
-              <span style="font-size:11.5px;line-height:1.5;max-width:82ch;flex:1;min-width:34ch" class="text-muted">La période à tester est celle que Véna a mesurée : reportez-la telle quelle dans le testeur MT5, sinon les deux mesures ne portent pas sur les mêmes trades. Le creux du portefeuille est celui de sa pire ligne, pas la somme des creux : deux lignes ne traversent pas leur mauvaise passe le même mois.</span>
+              <span style="font-size:11.5px;line-height:1.5;max-width:82ch;flex:1;min-width:34ch" class="text-muted">La période à tester est celle que Vuna a mesurée : reportez-la telle quelle dans le testeur MT5, sinon les deux mesures ne portent pas sur les mêmes trades. Le creux du portefeuille est celui de sa pire ligne, pas la somme des creux : deux lignes ne traversent pas leur mauvaise passe le même mois.</span>
               <sc-if value="{{ ps.aRangerIci }}" hint-placeholder-val="{{ false }}">
                 <span style="display:inline-flex;align-items:center;gap:8px;font-size:12px">
                   <span class="text-muted">Ranger une ligne ici…</span>
@@ -4756,7 +4756,7 @@
           <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
           <div style="display:flex;flex-direction:column;gap:3px">
             <span style="margin:0;font-family:var(--font-heading);font-size:24px;line-height:1.1;letter-spacing:-.005em">Comparer avec le robot MT5</span>
-            <span style="font-size:12px;max-width:92ch" class="text-muted">Lancez le testeur de stratégie MT5 sur la même fenêtre, puis collez l'onglet « Transactions » ici. Véna aligne les deux listes et ne signale que les entrées qui divergent.</span>
+            <span style="font-size:12px;max-width:92ch" class="text-muted">Lancez le testeur de stratégie MT5 sur la même fenêtre, puis collez l'onglet « Transactions » ici. Vuna aligne les deux listes et ne signale que les entrées qui divergent.</span>
           </div>
           <textarea class="input" rows="4" placeholder="2020.01.02 09:00:00	1	Spain35	buy	in	1.00	9200.5 …" style="height:auto;min-height:5.5rem;font-family:Consolas,ui-monospace,monospace;font-size:11px;line-height:1.5;resize:vertical" onChange="{{ cmpTexte }}"></textarea>
           <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
@@ -5276,7 +5276,7 @@
           <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
           <div style="display:flex;flex-direction:column;gap:3px">
             <span style="margin:0;font-family:var(--font-heading);font-size:24px;line-height:1.1;letter-spacing:-.005em">Comparer avec le robot MT5</span>
-            <span style="font-size:12px;max-width:92ch" class="text-muted">Lancez le testeur de stratégie MT5 sur la même fenêtre, puis collez l'onglet « Transactions » ici. Véna aligne les deux listes et ne signale que les entrées qui divergent.</span>
+            <span style="font-size:12px;max-width:92ch" class="text-muted">Lancez le testeur de stratégie MT5 sur la même fenêtre, puis collez l'onglet « Transactions » ici. Vuna aligne les deux listes et ne signale que les entrées qui divergent.</span>
           </div>
           <textarea class="input" rows="4" placeholder="2020.05.19 00:00:00	2	AUDCAD	buy	in	0.66	0.90961 …" style="height:auto;min-height:5.5rem;font-family:Consolas,ui-monospace,monospace;font-size:11px;line-height:1.5;resize:vertical" onChange="{{ bcmpTexte }}"></textarea>
           <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
@@ -5329,7 +5329,7 @@
               <span class="tag tag-outline">Données de démonstration</span>
               <span style="font-size:14px">Les dix instruments « VX- » sont <strong>engendrés</strong> : des séries calculées pour que vous puissiez essayer l'outil tout de suite.</span>
             </div>
-            <p class="card-body" style="margin:0">Aucune conclusion à en tirer sur un vrai marché. <strong>Sur ces trois ans, cet univers monte</strong> — un résultat flatteur y vient facilement, et il ne dira rien de votre idée. C’est un tirage, pas une promesse : Véna mesure, elle ne promet pas. Pour des résultats qui valent quelque chose, importez vos propres données depuis l'onglet <strong>Mes instruments</strong>.</p>
+            <p class="card-body" style="margin:0">Aucune conclusion à en tirer sur un vrai marché. <strong>Sur ces trois ans, cet univers monte</strong> — un résultat flatteur y vient facilement, et il ne dira rien de votre idée. C’est un tirage, pas une promesse : Vuna mesure, elle ne promet pas. Pour des résultats qui valent quelque chose, importez vos propres données depuis l'onglet <strong>Mes instruments</strong>.</p>
             <p class="card-body" style="margin:0">Et ces séries sont fabriquées <strong>sans signal de moment d'entrée exploitable</strong> — une garde du générateur le vérifie. Le contrôle du hasard dira donc, correctement, que le hasard fait aussi bien : ce que vous allez apprendre à lire ici, c'est un <strong>verdict négatif rendu honnêtement</strong> — l'outil refuse de trouver ce qui n'existe pas.</p>
           </div>
 
@@ -5341,10 +5341,10 @@
               <div style="display:grid;grid-template-columns:24px 1fr;gap:10px"><span class="text-muted">2</span><span>Sélectionnez votre instrument, puis l'onglet <strong>Barres</strong>.</span></div>
               <div style="display:grid;grid-template-columns:24px 1fr;gap:10px"><span class="text-muted">3</span><span>Choisissez la période <strong>H1</strong> et la plage de dates voulue, puis <strong>Demander</strong>.</span></div>
               <div style="display:grid;grid-template-columns:24px 1fr;gap:10px"><span class="text-muted">4</span><span>Cliquez <strong>Exporter les barres</strong> et enregistrez le fichier <code>.csv</code>.</span></div>
-              <div style="display:grid;grid-template-columns:24px 1fr;gap:10px"><span class="text-muted">5</span><span>Renommez-le avec le nom du symbole : <code>AAPL.US_H1.csv</code>. C'est ce nom qui s'affichera dans Véna.</span></div>
+              <div style="display:grid;grid-template-columns:24px 1fr;gap:10px"><span class="text-muted">5</span><span>Renommez-le avec le nom du symbole : <code>AAPL.US_H1.csv</code>. C'est ce nom qui s'affichera dans Vuna.</span></div>
               <div style="display:grid;grid-template-columns:24px 1fr;gap:10px"><span class="text-muted">6</span><span>Déposez-le dans l'onglet <strong>Mes instruments</strong>, zone <strong>Bougies H1</strong> — ou lâchez-le n'importe où sur la page, le tri se fait seul.</span></div>
             </div>
-            <p class="card-body" style="margin:0">L'unité de temps doit être <strong>H1</strong> : Véna reconstruit H4 et Daily lui-même, et un fichier déjà en Daily fausserait les filtres multi-unités. Pensez à saisir le spread et le swap de votre courtier dans les champs Frais, sinon le résultat sera brut.</p>
+            <p class="card-body" style="margin:0">L'unité de temps doit être <strong>H1</strong> : Vuna reconstruit H4 et Daily lui-même, et un fichier déjà en Daily fausserait les filtres multi-unités. Pensez à saisir le spread et le swap de votre courtier dans les champs Frais, sinon le résultat sera brut.</p>
           </div>
         </sc-if>
         </div>
@@ -5546,7 +5546,7 @@
         <div style="font-size:13px;line-height:1.5" class="text-muted">
           Le robot exporté écrit un journal de conformité quand on met <code>InpConformite</code> à <code>true</code> :
           une ligne par décision, par tentative d'entrée, par entrée, par sortie et par palier.
-          Déposez ce journal ici et Véna le confronte, journée par journée, à ce que le moteur
+          Déposez ce journal ici et Vuna le confronte, journée par journée, à ce que le moteur
           décide sur la MÊME série et le MÊME réglage. C'est la seule façon de savoir si un chiffre
           affiché ici est celui que MT5 rendra.
         </div>
@@ -5921,7 +5921,7 @@
             <button class="btn btn-secondary" type="button" style="min-height:2rem;font-size:12px;padding-inline:11px" onClick="{{ ouvrirTiroir }}" title="Ouvre l'Intendance, où la sauvegarde chiffrée se prépare : phrase secrète, séries incluses ou non.">Sauvegarde chiffrée</button>
             <label class="btn btn-secondary" style="cursor:pointer;display:inline-flex;align-items:center;min-height:2rem;font-size:12px;padding-inline:11px">
               Réimporter
-              <input type="file" accept="application/json,.json,.vena,.sivula" onChange="{{ importerTout }}" style="display:none">
+              <input type="file" accept="application/json,.json,.vuna,.vena,.sivula" onChange="{{ importerTout }}" style="display:none">
             </label>
           </div>
           <!-- ————— D : LES DIX SÉRIES D'EXEMPLE SE MASQUENT, ELLES NE S'EFFACENT PAS —————
@@ -5950,13 +5950,13 @@
 
   <footer style="border-top:1px solid var(--color-divider);margin-top:36px;padding:22px 32px 34px;display:flex;flex-direction:column;gap:12px;font-size:12px;line-height:1.6">
     <span style="font-size:11px" class="text-muted">{{ piedIdentite }}</span>
-    <p style="margin:0;max-width:110ch" class="text-muted"><strong style="color:var(--color-text)">Véna est un outil de mesure, pas un conseil en investissement.</strong> Il applique vos propres règles à vos propres historiques de prix et en restitue le résultat chiffré. Il ne délivre aucune recommandation personnalisée, ne passe aucun ordre, ne détient aucun fonds et ne garantit aucune performance. Les résultats sont issus de données passées : ils ne préjugent en rien des résultats futurs. Le trading à effet de levier expose à un risque de perte rapide du capital investi, pouvant dépasser le montant déposé.</p>
+    <p style="margin:0;max-width:110ch" class="text-muted"><strong style="color:var(--color-text)">Vuna est un outil de mesure, pas un conseil en investissement.</strong> Il applique vos propres règles à vos propres historiques de prix et en restitue le résultat chiffré. Il ne délivre aucune recommandation personnalisée, ne passe aucun ordre, ne détient aucun fonds et ne garantit aucune performance. Les résultats sont issus de données passées : ils ne préjugent en rien des résultats futurs. Le trading à effet de levier expose à un risque de perte rapide du capital investi, pouvant dépasser le montant déposé.</p>
     <details style="max-width:110ch">
       <summary style="cursor:pointer;color:var(--color-accent-700)">Informations légales, données et confidentialité</summary>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;margin-top:14px">
         <div style="display:flex;flex-direction:column;gap:6px">
           <div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text)">Nature du service</div>
-          <p style="margin:0" class="text-muted">Véna est un logiciel d'analyse et de simulation. Il n'exerce ni le conseil en investissement, ni la réception-transmission d'ordres, ni la gestion de portefeuille au sens des articles L. 321-1 et L. 541-1 du Code monétaire et financier. Aucune prestation n'est fournie en considération de la situation personnelle de l'utilisateur.</p>
+          <p style="margin:0" class="text-muted">Vuna est un logiciel d'analyse et de simulation. Il n'exerce ni le conseil en investissement, ni la réception-transmission d'ordres, ni la gestion de portefeuille au sens des articles L. 321-1 et L. 541-1 du Code monétaire et financier. Aucune prestation n'est fournie en considération de la situation personnelle de l'utilisateur.</p>
         </div>
         <div style="display:flex;flex-direction:column;gap:6px">
           <div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text)">Risques</div>
@@ -5964,7 +5964,7 @@
         </div>
         <div style="display:flex;flex-direction:column;gap:6px">
           <div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text)">Données</div>
-          <p style="margin:0" class="text-muted">Les cours, spreads et swaps proviennent des relevés que vous exportez de votre propre compte. Ils appartiennent à votre courtier, restent sous votre responsabilité et ne sont ni revendus ni redistribués par Véna. Les barèmes livrés avec la version d'essai sont des exemples.</p>
+          <p style="margin:0" class="text-muted">Les cours, spreads et swaps proviennent des relevés que vous exportez de votre propre compte. Ils appartiennent à votre courtier, restent sous votre responsabilité et ne sont ni revendus ni redistribués par Vuna. Les barèmes livrés avec la version d'essai sont des exemples.</p>
         </div>
         <div style="display:flex;flex-direction:column;gap:6px">
           <div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text)">Éditeur</div>
@@ -6158,7 +6158,7 @@
         <div style="display:flex;flex-direction:column;gap:8px;margin-top:auto;padding-top:14px;border-top:1px solid var(--color-divider)">
           <span style="font-size:11px;line-height:1.55" class="text-muted">L’assistant expliquera comment l’outil marche. Il ne voit pas vos chiffres et ne commente aucun de vos résultats.</span>
           <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-            <button class="btn btn-secondary" type="button" style="min-height:2rem;font-size:12px" disabled="{{ aideAssistantOff }}" title="Pas encore disponible : cette réponse-là demande un serveur, une limite par visiteur, et un modèle qui connaisse vraiment Véna.">Poser la question à l’assistant</button>
+            <button class="btn btn-secondary" type="button" style="min-height:2rem;font-size:12px" disabled="{{ aideAssistantOff }}" title="Pas encore disponible : cette réponse-là demande un serveur, une limite par visiteur, et un modèle qui connaisse vraiment Vuna.">Poser la question à l’assistant</button>
             <span style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--color-divider);padding:1px 7px" class="text-muted">bientôt</span>
             <button class="btn btn-primary" type="button" style="min-height:2rem;font-size:12px" onClick="{{ aideMEcrire }}">M’écrire</button>
           </div>
@@ -6523,13 +6523,28 @@ function migrerStockage() {
 // le CONTENU ensuite, parce qu'un fichier renommé reste une sauvegarde. Les deux noms
 // d'outil sont acceptés sans date limite : quelqu'un réimportera dans deux ans un
 // fichier exporté aujourd'hui.
-const EXT_SAUVEGARDE = /\.(json|vena|sivula)$/i;
+// ————— LES NOMS QUE CETTE APPLICATION A DÉJÀ ÉCRITS —————
+//
+// TROIS, et ce n'est pas une indécision : « simula », « vena », « vuna ». Chacun a été
+// le marqueur d'export d'une version LIVRÉE, donc chacun dort dans la sauvegarde de
+// quelqu'un. La règle ne bouge pas d'un renommage à l'autre : un fichier que cette
+// application a écrit ne doit jamais être refusé par elle.
+//
+// LA LISTE NE COUVRE QUE LA LECTURE, et c'est la moitié qui compte. À l'ÉCRITURE, le
+// nom neuf s'écrit en toutes lettres et une substitution mécanique le renomme sans rien
+// casser — c'est même ce qu'on veut. C'est en LECTURE qu'elle détruit : le renommage du
+// 19/09 a basculé les six conditions d'un coup, et une sauvegarde exportée la veille
+// devenait illisible par l'application qui l'avait écrite. Six conditions dispersées ne
+// se relisent pas ensemble ; une liste nommée, si — et un quatrième nom y coûte UNE
+// entrée, avec son compte visible : trois noms, c'est le prix de deux renommages.
+const OUTILS_LUS = ['vuna', 'vena', 'simula'];
+const EXT_SAUVEGARDE = /\.(json|vuna|vena|sivula)$/i;
 function nomDeSauvegarde(nom) { return EXT_SAUVEGARDE.test(String(nom || '')); }
 // L'enveloppe, lue sur les premiers octets seulement : un dump fait plusieurs mégaoctets
 // et le décider ne demande pas de le lire en entier.
 function texteDeSauvegarde(debut) {
   const t = String(debut || '').slice(0, 400).replace(/\s+/g, '');
-  return t.indexOf('"outil":"vena"') >= 0 || t.indexOf('"outil":"simula"') >= 0;
+  return OUTILS_LUS.some(function (o) { return t.indexOf('"outil":"' + o + '"') >= 0; });
 }
 
 // ————— LE REPLI DE LECTURE —————
@@ -7171,7 +7186,7 @@ class Component extends DCLogic {
     fResist: false, utResist: 'D1', resistLookback: 20, resistMarge: 1,
     // L'UNITÉ PAR DÉFAUT EST H1, la matière que vous déposez. Elle était à D1 : le
     // piège était coché d'origine, alors que la page explique par ailleurs qu'un fichier
-    // déjà en Daily fausse les filtres multi-unités, et que Véna reconstruit elle-même
+    // déjà en Daily fausse les filtres multi-unités, et que Vuna reconstruit elle-même
     // H4 et Daily à partir des bougies horaires.
     _grilleV2: 1, _penteV3: 1, _trailV4: 1, _echV3: 1, ut: 'H1', gPeriodes: '5 6 7 8 9 10 15 20 26',
     // Sans session enregistrée (première visite), gEchelles restait undefined : les
@@ -7315,7 +7330,7 @@ class Component extends DCLogic {
     const jj = (f) => (f ? f.split('-').reverse().join('/') : '');
     return {
       forme: 'Code mal recopié : il commence par SIV1. et se colle d\u2019un bloc, sans espace. Recopiez-le depuis le mail.',
-      signature: 'Ce code n\u2019est pas un code Véna valide — un caractère a probablement changé en route. Recopiez-le depuis le mail.',
+      signature: 'Ce code n\u2019est pas un code Vuna valide — un caractère a probablement changé en route. Recopiez-le depuis le mail.',
       email: 'Ce code est destiné à un autre e-mail : saisissez exactement l\u2019adresse utilisée à l\u2019achat.',
       expire: 'Code expiré' + (r && r.fin ? ' depuis le ' + jj(r.fin) : '')
         + '. Vos mesures restent en place ; reprenez un abonnement pour continuer sur vos données.',
@@ -7439,7 +7454,7 @@ class Component extends DCLogic {
     return this.state.deverrouille ? base + '.perso' : base + '.client';
   }
 
-  // Le poids de chaque espace de données, en octets : les clés vena.* classées
+  // Le poids de chaque espace de données, en octets : les clés vuna.* classées
   // par le segment d'espace de leur nom. Peser relit toutes les valeurs, donc
   // jamais à chaque rendu — au chargement et à l'ouverture du tiroir seulement.
   // (vena.acces.perso.v1, la clé du verrou, tombe dans « perso » : trois
@@ -8155,7 +8170,7 @@ class Component extends DCLogic {
     // Paramètre de version : un import dynamique est mis en cache par URL pour toute la
     // session. Après une correction du générateur, le navigateur continuait de servir la
     // version précédente — et le bouton restait cassé jusqu'à un rechargement complet.
-    try { mod = await import('./robot-mt5.js?v=' + (window.__venaRobotV || Date.now())); } catch (e) {
+    try { mod = await import('./robot-mt5.js?v=' + (window.__vunaRobotV || Date.now())); } catch (e) {
       this.setState({ hasardMsg: 'Le générateur de robot n\u2019a pas pu être chargé : '
         + (e && e.message ? e.message : 'raison inconnue')
         + '. Rechargez la page (Ctrl+Maj+R) puis réessayez.' });
@@ -8255,9 +8270,9 @@ class Component extends DCLogic {
     // doit dire tout seul sur quoi il a été mesuré : c'est là que l'étiquette compte
     // vraiment, parce que plus rien autour ne la porte.
     const marque = this.fenMarque(this.fenetreDeLigne(v));
-    // le compte, juste après « Véna » : c'est la première chose qu'on lit dans
+    // le compte, juste après « Vuna » : c'est la première chose qu'on lit dans
     // MQL5\\Experts quand deux courtiers ont reçu la même configuration
-    const nomFichier = mod.nomRobot(v, stamp).replace(/^Vena_/, 'Vena_' + this.etiquetteCompte() + '_')
+    const nomFichier = mod.nomRobot(v, stamp).replace(/^Vuna_/, 'Vuna_' + this.etiquetteCompte() + '_')
       + (marque ? '_' + marque : '') + '.mq5';
     {
       const m = this.lireLive();
@@ -9281,7 +9296,7 @@ GROUPES = {
         } catch (e) { refuser(f.name, 'illisible'); }
         continue;
       }
-      if (utNom) { refuser(f.name, 'unité ' + utNom[1].toUpperCase() + ' : Véna attend du H1 et reconstruit le reste'); continue; }
+      if (utNom) { refuser(f.name, 'unité ' + utNom[1].toUpperCase() + ' : Vuna attend du H1 et reconstruit le reste'); continue; }
       const sym = f.name.replace(/\.csv$/i, '').replace(/[._-](H1|H4|D1|M\d+)$/i, '').replace(/^#/, '');
       // ————— LE PALIER GRATUIT : trois instruments personnels —————
       // La licence signée (ou le verrou propriétaire) l'ouvre. À l'expiration d'un
@@ -9327,7 +9342,7 @@ GROUPES = {
         });
         if (estMT4) {
           refuser(f.name, 'fichier au format MT4 — date et heure en deux colonnes. '
-            + 'Véna attend un export MT5 produit par le script Export_H1_Vena');
+            + 'Vuna attend un export MT5 produit par le script Export_H1_Vuna');
           continue;
         }
         const brut = this.M.texteVersDf(txt);
@@ -9905,7 +9920,7 @@ GROUPES = {
 
   // ————— comparer le robot MT5 au backtest —————
   // Le rapport du testeur est collé tel quel ; on n'y cherche que les dates d'ENTRÉE.
-  // Les sorties diffèrent par construction — Véna évalue ses paliers sur les CLÔTURES
+  // Les sorties diffèrent par construction — Vuna évalue ses paliers sur les CLÔTURES
   // H1, MT5 déplace le stop et le lit en INTRABAR. L'entrée, elle, doit tomber sur la
   // même bougie.
   //
@@ -10092,17 +10107,17 @@ GROUPES = {
     const rows = [
       ...(c.ecartsPrix || []).map((x) => ({ ms: x.siv, quand: dt(x.siv), cote: 'prix différent',
         cls: 'tag tag-accent',
-        note: 'MT5 ' + hm(x.mt5) + ' à ' + px(x.pMt5) + ' · Véna ' + hm(x.siv) + ' à ' + px(x.pSiv)
+        note: 'MT5 ' + hm(x.mt5) + ' à ' + px(x.pMt5) + ' · Vuna ' + hm(x.siv) + ' à ' + px(x.pSiv)
           + ' · ' + fr1(x.pct, 3) + ' % — spread payé à l\u2019entrée' })),
       ...c.orphMt5.map((x) => ({ ms: x, quand: dt(x), cote: 'MT5 seul',
         cls: 'tag tag-outline', note: 'Le robot est entré, le backtest non' })),
-      ...c.orphSiv.map((x) => ({ ms: x, quand: dt(x), cote: 'Véna seul',
+      ...c.orphSiv.map((x) => ({ ms: x, quand: dt(x), cote: 'Vuna seul',
         cls: 'tag tag-neutral', note: 'Le backtest est entré, le robot non' })),
     ].sort((a, b) => a.ms - b.ms).slice(0, 60);
     return { ...base, ['a' + P]: true,
       [p + 'Chiffres']: (c.avant >= 3 ? c.avant + ' premières entrées identiques d’affilée · ' : '')
         + c.paires.length + ' entrées communes · ' + c.orphMt5.length
-        + ' côté MT5 seul · ' + c.orphSiv.length + ' côté Véna seul · '
+        + ' côté MT5 seul · ' + c.orphSiv.length + ' côté Vuna seul · '
         + Math.round(acc) + ' % d\u2019accord'
         + (c.nPrix ? ' · prix d\u2019entrée : écart médian ' + fr1(c.prixMed, 3) + ' %' : ''),
       [p + 'Verdict']: (c.avant >= 5
@@ -10117,9 +10132,9 @@ GROUPES = {
         + (c.nPrix
         ? (c.prixUnSens >= 0.8 && c.prixMed <= 0.25
           ? 'MÊME DONNÉE DES DEUX CÔTÉS. Le prix de MT5 est systématiquement du même côté que celui de '
-            + 'Véna, de ' + fr1(c.prixMed, 3) + ' % en médiane — quelques pips : c\u2019est le SPREAD, pas une '
+            + 'Vuna, de ' + fr1(c.prixMed, 3) + ' % en médiane — quelques pips : c\u2019est le SPREAD, pas une '
             + 'autre série. MT5 achète à l\u2019ask, vos bougies exportées sont en bid, et l\u2019entrée tombe à '
-            + 'l\u2019heure du rollover, où le spread est le plus large de la journée. Véna compte ce coût à '
+            + 'l\u2019heure du rollover, où le spread est le plus large de la journée. Vuna compte ce coût à '
             + 'part, dans la colonne Frais. '
           : c.prixMed > 0.25
           ? 'LES DEUX SÉRIES SONT DIFFÉRENTES. Le prix de MT5 s\u2019écarte de ' + fr1(c.prixMed, 3)
@@ -10153,7 +10168,7 @@ GROUPES = {
         + ' Seules les ENTRÉES sont comparées — les sorties diffèrent par construction.',
       [p + 'Rows']: rows, ['a' + P + 'Rows']: rows.length > 0,
       // Calibrage : l'écart médian mesuré EST le spread réellement payé à l'entrée.
-      // Une seule comparaison par instrument suffit à aligner Véna sur MT5.
+      // Une seule comparaison par instrument suffit à aligner Vuna sur MT5.
       ...(() => {
         const sym = this.state.btSym;
         const bon = c.nPrix >= 5 && c.prixUnSens >= 0.8 && c.prixMed > 0 && c.prixMed <= 0.5;
@@ -10443,7 +10458,7 @@ GROUPES = {
       UK100C: '#UK100', FRA40C: '#France40',
       US2000: '#US2000', CHINA50: '#ChinaA50', CN50: '#ChinaA50',
       // actions européennes : le catalogue les nomme en codes Reuters (.PA, .DE, .L),
-      // sans rapport avec le ticker local. Clés sur les symboles RÉELS de Véna — les
+      // sans rapport avec le ticker local. Clés sur les symboles RÉELS de Vuna — les
       // valeurs allemandes y portent un « d » avant le suffixe.
       'MC.FR': 'LVMH.PA', 'OR.FR': 'OREP.PA', 'TTE.FR': 'TTEF.PA', 'BNP.FR': 'BNPP.PA',
       'GLE.FR': 'SOGN.PA', 'CS.FR': 'AXAF.PA', 'SU.FR': 'SCHN.PA', 'AIR.FR': 'AIR.PA',
@@ -12316,14 +12331,14 @@ GROUPES = {
     const out = [];
     const d = this.diag && this.diag[sym];
     if (!d) {
-      out.push('Les bougies de cet instrument ne sont pas chargées : Véna ne peut pas '
+      out.push('Les bougies de cet instrument ne sont pas chargées : Vuna ne peut pas '
         + 'dire ici combien la fenêtre horaire en retire. Ouvrez la ligne en Backtest '
         + 'pour le voir — annoncer zéro sans avoir regardé serait une disculpation.');
     } else if (d.ecartees > 0) {
       out.push('Cette série porte ' + d.ecartees.toLocaleString('fr-FR') + ' bougies '
         + 'RETIRÉES par la fenêtre horaire homogène — elles n\u2019entrent dans aucune '
         + 'mesure. Sur les deux instruments dans ce cas parmi neuf rejoués, le testeur '
-        + 'MT5 a rendu 7 à 11 points de réussite EN MOINS que Véna. C\u2019est une '
+        + 'MT5 a rendu 7 à 11 points de réussite EN MOINS que Vuna. C\u2019est une '
         + 'corrélation sur neuf instruments chez un seul courtier, pas une règle.');
     }
     // la reprise : le critère est celui dont le Backtest tire déjà `varianteRatee`
@@ -12932,7 +12947,7 @@ GROUPES = {
     // le producteur aurait donné deux listes à tenir d'accord ; le jour où elles
     // divergent, l'application promet un robot que l'export refuse — exactement la
     // panne qu'on ferme. Le producteur appelle la MÊME fonction que le refus.
-    try { this._modRobot = await import('./robot-mt5.js?v=' + (window.__venaRobotV || Date.now())); }
+    try { this._modRobot = await import('./robot-mt5.js?v=' + (window.__vunaRobotV || Date.now())); }
     catch (e) { this._modRobot = null; }
     this.testerWorkers();
     this.migrerGrille();
@@ -13387,7 +13402,7 @@ GROUPES = {
     const vente = ((plus && plus.sens) || s.btSens) === 'vente';
     const au = vente ? 'en_dessous' : 'au_dessus';
     const sens_pente = vente ? 'baisse' : 'hausse';
-    // défauts Véna : tendance Daily sur la médiane (Tenkan) 9
+    // défauts Vuna : tendance Daily sur la médiane (Tenkan) 9
     if (s.btMtf) filtres.push({ type: 'tendance_mtf', ut: s.utMtf, ligne: s.ligneMtf, periode: Number(s.periodeMtf), sens: au });
     if (s.fRsi) filtres.push({ type: 'rsi', ut: s.utRsi, periode: Number(s.periodeRsi),
       seuil: vente ? 100 - Number(s.fRsiSeuil) : Number(s.fRsiSeuil), sens: au });
@@ -15762,7 +15777,7 @@ GROUPES = {
   cederLeFil() {
     if (!this._canalCession) {
       // navigateur sans MessageChannel : la minuterie reste, bridée mais fonctionnelle.
-      // Aucun navigateur capable de faire tourner Véna n'est dans ce cas.
+      // Aucun navigateur capable de faire tourner Vuna n'est dans ce cas.
       if (typeof MessageChannel === 'undefined') return new Promise((r) => setTimeout(r, 0));
       const canal = new MessageChannel();
       this._cessions = [];
@@ -16193,7 +16208,7 @@ GROUPES = {
     } catch (e) {
       // panne imprévue : on publie quand même ce qui a été mesuré, avec l'explication
       echecs.push('interruption : ' + String((e && e.message) || e));
-      try { console.error('[vena] scan interrompu', e); } catch (e2) {}
+      try { console.error('[vuna] scan interrompu', e); } catch (e2) {}
     } finally {
       // les cœurs sont libérés dès la fin du scan : un worker vivant garde une copie
       // des bougies en mémoire, ce qui compte sur une machine à 8 Go
@@ -17360,7 +17375,7 @@ GROUPES = {
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260919.2';
+  VERSION_APP = '260919.3';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -17991,18 +18006,29 @@ GROUPES = {
   //
   // DEUX PRÉFIXES, et ce n'est pas une indécision. « SIV_trades_ » est GELÉ — les
   // robots DÉJÀ COMPILÉS chez l'utilisateur l'écrivent, et personne n'a à les
-  // recompiler pour être lu. « VNA_ » est accepté d'avance, pour que le jour du
+  // recompiler pour être lu. « VUNA_ » est accepté d'avance, pour que le jour du
   // dégel ne demande pas de toucher au lecteur : un lecteur qui refuse le nom neuf
   // se corrige après coup, sur un parc déjà en place.
+  //
+  // « VNA_trades_ » n'est PAS dans la liste, et c'est mesuré plutôt que supposé :
+  // aucun robot ne l'a jamais écrit — `robot-mt5.js` compose « SIV_trades_ » et lui
+  // seul. Un préfixe que rien n'écrit dans un lecteur, c'est une garde qui accuse
+  // tout et n'accuse rien.
   //
   // Une seule porte : les trois lieux qui reconnaissent un journal la lisent — le
   // dépôt global, le tri du glisser-déposer, et la lecture de dossier. Trois motifs
   // écrits séparément divergeraient au premier changement (la figure de `deposes`).
-  estJournalLive(nom) { return /^(?:SIV|VNA)_trades_/i.test(String(nom || '')); }
+  estJournalLive(nom) { return /^(?:SIV|VUNA)_trades_/i.test(String(nom || '')); }
   // L'INSTANTANÉ EST UN SECOND FICHIER, et c'est la même dérivation : le robot compose
-  // « VNA_positions_ » + symbole + magique + .csv. Jamais une liste — quinze robots
+  // « VUNA_positions_ » + symbole + magique + .csv. Jamais une liste — quinze robots
   // écrivent quinze fichiers, et le seizième est lu sans être nommé.
-  estInstantanePositions(nom) { return /^VNA_positions_/i.test(String(nom || '')); }
+  //
+  // ET « VNA_positions_ » EST ACCEPTÉ, lui, contrairement au journal : celui-là a
+  // ÉTÉ écrit par une version livrée (260919.2, la veille du renommage). Un .ex5
+  // compilé ce jour-là tourne peut-être encore sur le VPS, et son instantané doit
+  // rester lisible jusqu'à la recompilation. C'est la même règle que les noms
+  // d'outil — on n'accepte que ce qui a réellement été écrit, mais tout ce qui l'a été.
+  estInstantanePositions(nom) { return /^(?:VNA|VUNA)_positions_/i.test(String(nom || '')); }
 
   // ————— UN INSTANTANÉ SE LIT, IL NE S'ENREGISTRE PAS —————
   //
@@ -18013,7 +18039,7 @@ GROUPES = {
   //
   // LE R LATENT EST LU, JAMAIS DÉRIVÉ. Le robot est le seul à connaître le risque en
   // devise qui a dimensionné la position ; le recalculer ici depuis les bougies de
-  // Véna serait une seconde vérité, et elle divergerait au premier écart de prix entre
+  // Vuna serait une seconde vérité, et elle divergerait au premier écart de prix entre
   // le courtier et l'export. Une case vide reste vide : elle DIT que le risque initial
   // n'est pas connu pour cette position, au lieu d'en fabriquer un.
   //
@@ -18055,7 +18081,7 @@ GROUPES = {
   // second mécanisme de permission divergerait du premier, et l'utilisateur ne
   // saurait plus lequel a échoué.
   //
-  // `mode: 'read'` PARTOUT. Véna ne doit jamais pouvoir écrire dans le dossier du
+  // `mode: 'read'` PARTOUT. Vuna ne doit jamais pouvoir écrire dans le dossier du
   // terminal : c'est là que vit l'historique du courtier, et une application de
   // mesure n'a aucune raison d'y toucher.
   ATTENTE_DOSSIER = 'La lecture du dossier du terminal attend votre autorisation pour ce navigateur — elle retombe à chaque session.';
@@ -18364,7 +18390,7 @@ GROUPES = {
       .some((v) => String(this.magicDe(v)) === x.magic || String(this.magicAncien(v)) === x.magic));
     if (sansMesure.length === n) {
       manque.push('Aucun de ces trades ne correspond à une configuration encore validée : '
-        + 'l’écart entre ce que Véna avait mesuré et ce que le robot a fait ne peut donc pas '
+        + 'l’écart entre ce que Vuna avait mesuré et ce que le robot a fait ne peut donc pas '
         + 'être calculé. Il réapparaît dès qu’une ligne du portefeuille porte le même magique.');
     }
     return { jvDires: dires, aJvManque: manque.length > 0, jvManque: manque };
@@ -18460,7 +18486,7 @@ GROUPES = {
     }
     return pire;
   }
-  // L'ÉCART entre ce que le robot a fait et ce que Véna avait mesuré, en %.
+  // L'ÉCART entre ce que le robot a fait et ce que Vuna avait mesuré, en %.
   //
   // Écrit ici plutôt que dans la page du portefeuille : la barre de navigation en a
   // besoin aussi, et deux copies de cette arithmétique auraient fini par annoncer deux
@@ -18741,10 +18767,10 @@ GROUPES = {
   // Rien de tout cela ne s'exécute dans le testeur.
   //
   // Le titre d'abord : c'est le plus utile et il ne demande aucune autorisation. Un
-  // onglet qui affiche « 45 % · Véna » se lit sans être ouvert.
+  // onglet qui affiche « 45 % · Vuna » se lit sans être ouvert.
   titreScan(txt) {
     try {
-      if (!this._titre0) this._titre0 = document.title || 'Véna';
+      if (!this._titre0) this._titre0 = document.title || 'Vuna';
       const voulu = txt ? txt + ' · ' + this._titre0 : this._titre0;
       if (document.title !== voulu) document.title = voulu;
     } catch (e) {}
@@ -18781,7 +18807,7 @@ GROUPES = {
     try {
       if (this.state.notifOk && typeof Notification !== 'undefined'
           && Notification.permission === 'granted') {
-        new Notification('Véna — scan terminé', { body: txt, tag: 'vena-scan' });
+        new Notification('Vuna — scan terminé', { body: txt, tag: 'vuna-scan' });
       }
     } catch (e) {}
     if (!this.state.sonScan) return;
@@ -18839,8 +18865,8 @@ GROUPES = {
           ? 'Protection accordée : le navigateur ne peut plus vider ces données de lui-même.'
           : this.dansIframe()
             ? this.state.ongletKO
-              ? 'Le navigateur a refusé — il n\u2019accorde pas la protection à une vue intégrée, et celle-ci ne peut pas s\u2019ouvrir en onglet (jeton d\u2019aperçu à usage unique). Ouvrez votre fichier Véna.solo.html directement dans le navigateur et redemandez-la là ; en attendant, l\u2019export est la seule protection.'
-              : 'Le navigateur a refusé — il n\u2019accorde pas la protection à une vue intégrée. Ouvrez Véna dans un onglet à lui et redemandez-la là ; en attendant, l\u2019export est la seule protection.'
+              ? 'Le navigateur a refusé — il n\u2019accorde pas la protection à une vue intégrée, et celle-ci ne peut pas s\u2019ouvrir en onglet (jeton d\u2019aperçu à usage unique). Ouvrez votre fichier Vuna.solo.html directement dans le navigateur et redemandez-la là ; en attendant, l\u2019export est la seule protection.'
+              : 'Le navigateur a refusé — il n\u2019accorde pas la protection à une vue intégrée. Ouvrez Vuna dans un onglet à lui et redemandez-la là ; en attendant, l\u2019export est la seule protection.'
             : 'Le navigateur a refusé pour l\u2019instant : il accorde la protection aux sites visités régulièrement ou installés. Réessayez plus tard — l\u2019export reste la protection sûre.' } : {}) });
     } catch (e) {
       this.setState({ persistEtat: 'refusee', persistanceConnue: true });
@@ -19261,7 +19287,7 @@ GROUPES = {
             : ancienneVide && !neuveVide
               ? 'L\u2019exemplaire ancien ne porte rien : il n\u2019y a rien à sauver de ce côté. '
               : '')
-          + 'Véna ne tranche pas seul : jeter une valeur sans l\u2019avoir lue est irrattrapable. '
+          + 'Vuna ne tranche pas seul : jeter une valeur sans l\u2019avoir lue est irrattrapable. '
           + 'Gardez celui que vous voulez — l\u2019autre est supprimé et sa place rendue.',
         aSupprimable: true,
         aAdopter: false,
@@ -19461,7 +19487,7 @@ GROUPES = {
   }
   // ————— LES BOUGIES M1 : un espace à part, jamais dans le moteur —————
   //
-  // Le M1 ne sert qu'à départager Véna et le robot MT5 quand ils divergent —
+  // Le M1 ne sert qu'à départager Vuna et le robot MT5 quand ils divergent —
   // savoir ce que le prix a réellement fait DANS l'heure. Le moteur de scan et de
   // backtest exige du H1 confirmé : une série M1 chargée comme série de mesure
   // ferait tomber tous ses invariants. D'où un stockage distinct, et une cadence
@@ -19506,14 +19532,14 @@ GROUPES = {
     if (med > 0 && med <= 120000) return { ou: 'm1', min };
     if (med >= 1800000 && med <= 5400000) return { ou: 'h1', min };
     return { ou: 'refus',
-      motif: 'cadence ' + (min || '?') + ' min : Véna attend du H1 (60 min) ou du M1 (1 min)' };
+      motif: 'cadence ' + (min || '?') + ' min : Vuna attend du H1 (60 min) ou du M1 (1 min)' };
   }
   // La zone unique : elle trie, elle range par les chemins qui existent, et elle DIT
   // ce qu'elle a fait. Un tri silencieux sur treize fichiers est pire qu'un refus —
   // on ne sait pas ce qui est entré.
   async accepterTout(liste) {
     if (!this.M || !liste || !liste.length) return;
-    // UNE SAUVEGARDE VÉNA LÂCHÉE ICI PART DANS L'IMPORT, pas dans le tri des CSV.
+    // UNE SAUVEGARDE VUNA LÂCHÉE ICI PART DANS L'IMPORT, pas dans le tri des CSV.
     // Reconnue AVANT qu'on juge l'extension : par le nom, puis par l'enveloppe pour un
     // fichier renommé. Elle passe par `examinerImport`, donc par l'écran de
     // confrontation — jamais d'écrasement silencieux.
@@ -19625,7 +19651,7 @@ GROUPES = {
     }
     const compteRendu =
       (pris.length ? 'Bougies M1 enregistrées pour ' + pris.join(', ')
-        + ' — elles ne servent qu\u2019à départager Véna et le robot MT5 : elles n\u2019entrent jamais dans le scan ni le backtest.' : '')
+        + ' — elles ne servent qu\u2019à départager Vuna et le robot MT5 : elles n\u2019entrent jamais dans le scan ni le backtest.' : '')
       + (refus.length ? (pris.length ? ' — ' : '') + 'Ignoré(s) : ' + refus.join(', ') : '');
     if (!muet) this.setState({ messageDepot: compteRendu });
     return compteRendu;
@@ -19730,7 +19756,7 @@ GROUPES = {
   // Ces marques restent dans le produit. Elles ne coûtent rien, elles ne s'affichent
   // nulle part, et elles se lisent d'une ligne dans la console de n'importe qui :
   //
-  //   performance.getEntriesByType('measure').filter((m) => m.name.startsWith('vena:'))
+  //   performance.getEntriesByType('measure').filter((m) => m.name.startsWith('vuna:'))
   //
   // Sans elles, la seule façon de savoir où passent les secondes chez un utilisateur
   // est de lui demander de croire à une hypothèse.
@@ -19739,7 +19765,7 @@ GROUPES = {
     return (extra) => {
       try {
         const p = globalThis.performance;
-        if (p && p.measure) p.measure('vena:' + nom + (extra ? ' ' + extra : ''),
+        if (p && p.measure) p.measure('vuna:' + nom + (extra ? ' ' + extra : ''),
           { start: t0, end: p.now() });
       } catch (e) {}
     };
@@ -20036,8 +20062,8 @@ GROUPES = {
     }
     try {
       const h = await window.showSaveFilePicker({
-        suggestedName: 'vena-sauvegarde.json',
-        types: [{ description: 'Sauvegarde Véna', accept: { 'application/json': ['.json'] } }],
+        suggestedName: 'vuna-sauvegarde.json',
+        types: [{ description: 'Sauvegarde Vuna', accept: { 'application/json': ['.json'] } }],
       });
       await this.idbSet(h);
       this.handleAuto = h;
@@ -20057,7 +20083,7 @@ GROUPES = {
       if (nom === 'AbortError') return;
       this.setState({ autoMsg: (nom === 'SecurityError' || nom === 'NotAllowedError')
         ? 'L\u2019écriture directe dans un fichier est interdite dans cette vue intégrée. '
-          + 'Ouvrez Véna dans un onglet à lui pour activer la sauvegarde automatique — '
+          + 'Ouvrez Vuna dans un onglet à lui pour activer la sauvegarde automatique — '
           + 'en attendant, « Enregistrer une copie » ci-dessus enregistre tout dans un fichier à chaque fois.'
         : 'Impossible d\u2019ouvrir le fichier de sauvegarde (' + (nom || 'erreur inconnue') + '). '
           + 'Utilisez « Enregistrer une copie » après chaque séance.' });
@@ -20177,7 +20203,7 @@ GROUPES = {
   }
   ouvrirEnOnglet() {
     if (this.state.ongletKO) {
-      this.setState({ ongletMsg: 'Cette vue intégrée ne peut pas s’ouvrir en onglet : le viewer sert la page sous un jeton à usage unique, et l’onglet répondrait « preview token required ». Le chemin qui marche : enregistrez une copie ici, ouvrez votre fichier Véna.solo.html directement dans le navigateur — glissé dans un onglet vide — puis « Réimporter » l’export (Mes décisions, ou le tiroir Intendance). Là, la protection du stockage et la sauvegarde automatique fonctionnent.' });
+      this.setState({ ongletMsg: 'Cette vue intégrée ne peut pas s’ouvrir en onglet : le viewer sert la page sous un jeton à usage unique, et l’onglet répondrait « preview token required ». Le chemin qui marche : enregistrez une copie ici, ouvrez votre fichier Vuna.solo.html directement dans le navigateur — glissé dans un onglet vide — puis « Réimporter » l’export (Mes décisions, ou le tiroir Intendance). Là, la protection du stockage et la sauvegarde automatique fonctionnent.' });
       return;
     }
     try { window.open(window.location.href, '_blank'); } catch (e) {}
@@ -20236,7 +20262,7 @@ GROUPES = {
       if (p !== 'granted') return null;
       const f = await h.getFile();
       const b = JSON.parse(await f.text());
-      if (!b || (b.outil !== 'vena' && b.outil !== 'simula') || !b.donnees) return null;
+      if (!b || OUTILS_LUS.indexOf(b.outil) < 0 || !b.donnees) return null;
       for (const [k, v] of Object.entries(b.donnees)) {
         if (k.startsWith('gros:')) { try { await this.grosSet(k.slice(5), typeof v === 'string' ? JSON.parse(v) : v); } catch (e) {} continue; }
         try { localStorage.setItem(k, v); } catch (e) {}
@@ -20466,7 +20492,7 @@ GROUPES = {
       // au FIL, comme l'export : la chaîne unique du dump entier refaisait deux
       // fois le stockage en mémoire — chaque minute, à chaque sauvegarde
       const bilan = await this.ecrireExportAu(w,
-        '"outil":"vena","version":1,"date":' + JSON.stringify(new Date().toISOString()) + ',');
+        '"outil":"vuna","version":1,"date":' + JSON.stringify(new Date().toISOString()) + ',');
       await w.close();
       w = null;                       // fermé : le finally n'a plus rien à avorter
       // `_autoTaille` est partie avec la vérification : elle n'avait qu'elle pour
@@ -20560,8 +20586,8 @@ GROUPES = {
   // « Exporter ma sauvegarde (page Journal) » qui ne désignait AUCUN bouton existant.
   // Renommer le seul libellé aurait fait un quatrième nom, pire que l'imprécision.
   // ————— LES DEUX BOUTS DU MÊME GESTE PORTENT LE MÊME NOM —————
-  // L'application écrivait « symboles_<compte>.txt » ; Export_H1_Vena.mq5 lit
-  // « vena\\symboles.txt », en dur. Le script se taisait (le chemin qu'il DEMANDE
+  // L'application écrivait « symboles_<compte>.txt » ; Export_H1_Vuna.mq5 lit
+  // « vuna\\symboles.txt », en dur. Le script se taisait (le chemin qu'il DEMANDE
   // existe : ce n'est pas le repli muet, sa garde ne pouvait pas l'attraper), et
   // l'application ne prévenait pas. Le nom du compte n'a rien à faire dans le nom
   // du fichier : le script ne peut pas le deviner, et deux comptes n'ont jamais
@@ -20573,7 +20599,7 @@ GROUPES = {
   // (nom-traverse.test.mjs) relit le .mq5 EMBARQUÉ pour vérifier qu'il cherche bien
   // celui-là — la seule forme qui empêche les deux bouts de re-diverger.
   LISTE_NOM = 'symboles.txt';
-  LISTE_DOSSIER = 'MQL5\\Files\\vena\\';
+  LISTE_DOSSIER = 'MQL5\\Files\\vuna\\';
   get LISTE_CHEMIN() { return this.LISTE_DOSSIER + this.LISTE_NOM; }
   COPIE_TXT = 'Enregistrer une copie';
   COPIE_AIDE = 'Une copie datée, à garder de côté ou à emporter sur une autre machine. La sauvegarde automatique, elle, se met à jour seule.';
@@ -20616,7 +20642,7 @@ GROUPES = {
     // même assemblage en morceaux que l'export en clair : le stringify du dump
     // entier portait la même limite, en plus gros
     const clair = new Uint8Array(await new Blob(this.partiesExport(dump,
-      '"outil":"vena","version":1,"date":' + JSON.stringify(new Date().toISOString()) + ','
+      '"outil":"vuna","version":1,"date":' + JSON.stringify(new Date().toISOString()) + ','
       + (licC ? '"licence":' + JSON.stringify(licC) + ',' : ''))).arrayBuffer());
     const sel = crypto.getRandomValues(new Uint8Array(16));
     const iv = crypto.getRandomValues(new Uint8Array(12));
@@ -20629,13 +20655,13 @@ GROUPES = {
     // même pas de `o` : il était doublement faux — deux compteurs lus dans l'état et
     // aucune taille du tout. Le blob chiffré EST le fichier : on le nomme avant de
     // le donner à l'URL, pour pouvoir lire son `size`.
-    const fichierC = new Blob(['{"vena_chiffre":1,"algo":"AES-GCM",'
+    const fichierC = new Blob(['{"vuna_chiffre":1,"algo":"AES-GCM",'
       + '"kdf":"PBKDF2-SHA256","iterations":' + this.CHIFFRE_ITER + ','
       + '"sel":' + JSON.stringify(this._b64o(sel)) + ',"iv":' + JSON.stringify(this._b64o(iv))
       + ',"date":' + JSON.stringify(new Date().toISOString()) + ',"donnees":"',
       this._b64o(chiffre), '"}'], { type: 'application/json' });
     a.href = URL.createObjectURL(fichierC);
-    a.download = 'vena-chiffre-' + new Date().toISOString().slice(0, 10) + '.json';
+    a.download = 'vuna-chiffre-' + new Date().toISOString().slice(0, 10) + '.json';
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 2000);
     try { localStorage.setItem(this.cleGlobale(this.CLE_SAUV), JSON.stringify({
@@ -20708,7 +20734,7 @@ GROUPES = {
     this.ecrireUsage(u);
     this.usagePlanifier();
   }
-  usageEnveloppe(u) { return { outil: 'vena', schema: 1, evenements: (u || this.lireUsage()).tampon || [] }; }
+  usageEnveloppe(u) { return { outil: 'vuna', schema: 1, evenements: (u || this.lireUsage()).tampon || [] }; }
   usagePlanifier() {
     clearTimeout(this._usageT);
     this._usageT = setTimeout(() => this.usageEnvoyer(), 30000);
@@ -20763,7 +20789,7 @@ GROUPES = {
       return t;
     };
     const l = [];
-    l.push('VÉNA — fichier de diagnostic · ' + new Date().toISOString().slice(0, 16).replace('T', ' ') + ' UTC');
+    l.push('VUNA — fichier de diagnostic · ' + new Date().toISOString().slice(0, 16).replace('T', ' ') + ' UTC');
     l.push('Ce fichier ne part nulle part tout seul : relisez-le, puis joignez-le à un');
     l.push('mail si vous le voulez. Les instruments y sont anonymisés (A, B, C…), et ni');
     l.push('règle, ni prix, ni résultat n' + '’' + 'y figure.');
@@ -20797,7 +20823,7 @@ GROUPES = {
     if (!errs.length) l.push('  aucune enregistrée');
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([l.join('\n') + '\n'], { type: 'text/plain;charset=utf-8' }));
-    a.download = 'vena-diagnostic-' + new Date().toISOString().slice(0, 10) + '.txt';
+    a.download = 'vuna-diagnostic-' + new Date().toISOString().slice(0, 10) + '.txt';
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 2000);
   }
@@ -20838,9 +20864,9 @@ GROUPES = {
     this.libererBougiesExport();
     try {
       const licE = this.ligneLicenceExport();
-      const entete = '"outil":"vena","version":1,"date":' + JSON.stringify(new Date().toISOString()) + ','
+      const entete = '"outil":"vuna","version":1,"date":' + JSON.stringify(new Date().toISOString()) + ','
         + (licE ? '"licence":' + JSON.stringify(licE) + ',' : '');
-      const nomFichier = 'vena-sauvegarde-' + new Date().toISOString().slice(0, 10) + '.json';
+      const nomFichier = 'vuna-sauvegarde-' + new Date().toISOString().slice(0, 10) + '.json';
       let bilan;
       // le sélecteur peut refuser AUTREMENT qu'en étant absent : activation
       // consommée, vue intégrée. Le téléchargement, lui, passe — un export qui
@@ -21005,12 +21031,12 @@ GROUPES = {
     try {
       let b = JSON.parse(await fichier.text());
       // un fichier CHIFFRÉ demande d'abord sa phrase : rien n'est lu avant
-      if (b && (b.vena_chiffre === 1 || b.sivula_chiffre === 1)) {
+      if (b && (b.vuna_chiffre === 1 || b.vena_chiffre === 1 || b.sivula_chiffre === 1)) {
         this.setState({ dlgChiffre: { nom: fichier.name, objet: b, phrase: '', err: null } });
         return;
       }
-      if (!b || (b.outil !== 'vena' && b.outil !== 'simula') || !b.donnees) {
-        return this.setState({ sauvMsg: 'Ce fichier ne vient pas de Véna.' });
+      if (!b || OUTILS_LUS.indexOf(b.outil) < 0 || !b.donnees) {
+        return this.setState({ sauvMsg: 'Ce fichier ne vient pas de Vuna.' });
       }
       // On compte SANS rien écrire : les clés du dump disent déjà ce qu'il porte.
       const d = b.donnees;
@@ -21071,8 +21097,8 @@ GROUPES = {
     if (!fichier) return;
     try {
       const b = JSON.parse(await fichier.text());
-      if (!b || (b.outil !== 'vena' && b.outil !== 'simula') || !b.donnees) {
-        return this.setState({ sauvMsg: 'Ce fichier ne vient pas de Véna.' });
+      if (!b || OUTILS_LUS.indexOf(b.outil) < 0 || !b.donnees) {
+        return this.setState({ sauvMsg: 'Ce fichier ne vient pas de Vuna.' });
       }
       let n = 0;
       for (const [k0, v] of Object.entries(b.donnees)) {
@@ -21452,7 +21478,7 @@ GROUPES = {
       (i, v) => !v || idx.dur[i] < 0 || idx.dur[i] <= v,
     ];
     // garde-fou : un curseur ajouté sans son prédicat décalait tout l'alignement
-    if (tests.length !== DEFS_T.length) console.error('Véna : ' + DEFS_T.length
+    if (tests.length !== DEFS_T.length) console.error('Vuna : ' + DEFS_T.length
       + ' curseurs pour ' + tests.length + ' tests — alignement rompu');
     const vals = DEFS_T.map((d) => valT(d[0]));
     // masque des lignes retenues + cascade des compteurs, en une seule passe
@@ -21478,7 +21504,7 @@ GROUPES = {
     // se règle au hasard : on le pousse jusqu'à ce que le tableau plaise, ce qui est
     // exactement la façon de fabriquer un résultat qui ne tiendra pas.
     const POURQUOI = {
-      tTradesMin: 'en dessous, Véna et le testeur MT5 ne peuvent pas s\u2019accorder : trois trades qui basculent déplacent tout',
+      tTradesMin: 'en dessous, Vuna et le testeur MT5 ne peuvent pas s\u2019accorder : trois trades qui basculent déplacent tout',
       tSegMin: 'une règle qui n\u2019a marché qu\u2019à une époque a marché par accident',
       tDdMax: 'le creux est ce qu\u2019il faut traverser sans abandonner ; au-delà, on coupe avant la fin',
       tWinMin: 'à manier avec précaution : un objectif lointain se contente d\u2019un taux bas, et l\u2019exiger haut écarte justement les configurations qui gagnent gros',
@@ -21750,7 +21776,7 @@ GROUPES = {
             bouton: 'Choisir le relevé', aide: 'Un fichier CSV, lu dans votre navigateur.' },
           { cle: 'bougies', court: 'Bougies', fait: nSeries > 0, depot: true,
             titre: 'Déposez les bougies H1 de vos instruments',
-            texte: 'Un instrument n\u2019est scannable que si son historique de prix est là. Dans MetaTrader, ouvrez le graphique en H1, puis l\u2019export des barres, et nommez le fichier avec le symbole — par exemple AAPL.US_H1.csv. Véna reconstruit H4 et Daily lui-même.'
+            texte: 'Un instrument n\u2019est scannable que si son historique de prix est là. Dans MetaTrader, ouvrez le graphique en H1, puis l\u2019export des barres, et nommez le fichier avec le symbole — par exemple AAPL.US_H1.csv. Vuna reconstruit H4 et Daily lui-même.'
               + (nSeries ? ' Ce compte en porte ' + nSeries + '.' : ''),
             bouton: 'Choisir des bougies H1', aide: 'Vous pouvez en déposer plusieurs à la fois.' },
           { cle: 'scan', court: 'Balayage', fait: nScan > 0, cible: 'scan', ancre: 'lancerScan',
@@ -22486,8 +22512,8 @@ GROUPES = {
             ? 'Rien de ce qui est ici n\u2019existe ailleurs que dans ce navigateur, et il peut le vider. '
               + 'Une vue intégrée interdit la sauvegarde automatique : '
               + (this.state.ongletKO
-                ? 'enregistrez une copie, ou ouvrez Véna.solo.html directement dans le navigateur.'
-                : 'enregistrez une copie, ou rouvrez Véna dans un onglet à lui.')
+                ? 'enregistrez une copie, ou ouvrez Vuna.solo.html directement dans le navigateur.'
+                : 'enregistrez une copie, ou rouvrez Vuna dans un onglet à lui.')
             : 'Rien de ce qui est ici n\u2019existe ailleurs que dans le stockage de ce navigateur. '
               + 'Un navigateur qui vide son espace emporte les scans, les portefeuilles et les bougies. '
               + 'Choisissez un fichier de sauvegarde automatique : il s\u2019écrit sur votre disque à '
@@ -22540,7 +22566,7 @@ GROUPES = {
           sansSauvImporter: () => {
             const inp = document.createElement('input');
             inp.type = 'file';
-            inp.accept = 'application/json,.json,.vena,.sivula';
+            inp.accept = 'application/json,.json,.vuna,.sivula';
             inp.onchange = () => { const f2 = inp.files && inp.files[0]; if (f2) this.examinerImport(f2); };
             inp.click();
           },
@@ -22987,7 +23013,7 @@ GROUPES = {
       //
       // La branche d'essai, elle, RESTE : elle ne nomme personne, et distinguer un
       // essai d'une licence est justement utile dans une capture d'écran.
-      piedIdentite: 'Véna ' + this.VERSION_APP + ' · ' + this.navVersionne()
+      piedIdentite: 'Vuna ' + this.VERSION_APP + ' · ' + this.navVersionne()
         + (this.licenceMention() ? '' : ' · version d\u2019essai — aucune licence'),
       ...(() => {
         // l'état des trois sections repliées : lisible sans les ouvrir
@@ -23070,7 +23096,7 @@ GROUPES = {
             + 'CLOISONNÉ — ' + (p.quota ? this.taille(p.quota) + ' ici, ' : '')
             + 'contre plusieurs gigaoctets dans un onglet à part. Les données de cette vue '
             + 'ne sont ni les mêmes ni aussi durables que celles de l\u2019adresse réelle : '
-            + 'ouvrez Véna dans son propre onglet pour travailler.',
+            + 'ouvrez Vuna dans son propre onglet pour travailler.',
           // La pastille d'état : « protégé » n'est pas un détail de confort, c'est la
           // différence entre des données qui survivent au remplissage du disque et des
           // données que le navigateur peut jeter sans le dire.
@@ -23247,7 +23273,7 @@ GROUPES = {
               : p.type === 'orphelines'
               ? p.n + ' séries d\u2019un espace qui n\u2019existe plus : aucun compte ne les lit, elles ne servent plus à rien. À supprimer en premier.'
               : p.type === 'm1'
-                ? p.n + ' série(s) M1, rangées à part : elles ne servent qu\u2019à départager Véna et le robot MT5, jamais au scan. Les supprimer ne touche à rien d\u2019autre.'
+                ? p.n + ' série(s) M1, rangées à part : elles ne servent qu\u2019à départager Vuna et le robot MT5, jamais au scan. Les supprimer ne touche à rien d\u2019autre.'
               : p.type === 'hasard'
                 ? Number(p.n || 0).toLocaleString('fr-FR') + ' contrôles du hasard mémorisés. Les supprimer ne touche ni aux bougies ni aux scans : il faudra seulement relancer les contrôles.'
               : p.type === 'series'
@@ -23319,7 +23345,7 @@ GROUPES = {
       // Le presse-papier est remplacé par un FICHIER. Coller une liste de cent
       // vingt-sept noms dans un champ de saisie de MetaEditor, puis recompiler à chaque
       // changement de sélection, n'est pas tenable pour un geste hebdomadaire. Les deux
-      // scripts lisent maintenant `vena\symboles.txt` : ils se compilent une fois et
+      // scripts lisent maintenant `vuna\symboles.txt` : ils se compilent une fois et
       // ne bougent plus, c'est le .txt qu'on remplace.
       ...(() => {
         const cle = this.compteActif === 'tous' ? this.COURTIERS[0][0] : this.compteActif;
@@ -23347,7 +23373,7 @@ GROUPES = {
         return {
           nListeMt5: noms.length,
           // le rang d'installation s'efface une fois qu'il a servi : un relevé reçu
-          // prouve que Vena_Releve.mq5 a été compilé et lancé
+          // prouve que Vuna_Releve.mq5 a été compilé et lancé
           aScriptsFait: !!((this.baremes || {})[this.compteDesFichiers()]),
           // la version EMBARQUÉE, annoncée : l'utilisateur la compare à la première
           // ligne du journal MT5 et sait en une seconde s'il doit recompiler. Un
@@ -23377,7 +23403,7 @@ GROUPES = {
             // #USNDAQ100 — un lecteur qui saute les lignes à dièse jetait dix-neuf
             // noms sur vingt. L'ancien en-tête au dièse reste lisible par le nouveau
             // lecteur (« # » suivi d'une espace), et celui-ci l'est par les deux.
-            const entete = '// ' + this.LISTE_NOM + ' — écrit par Véna pour ' + this.nomCompteActif()
+            const entete = '// ' + this.LISTE_NOM + ' — écrit par Vuna pour ' + this.nomCompteActif()
               + ' le ' + new Date().toLocaleString('fr-FR') + '\n'
               + (aReleve
                 ? '// ' + noms.length + ' instrument(s) · orthographe du relevé de ' + this.nomCompteActif()
@@ -23385,8 +23411,8 @@ GROUPES = {
                   + (sansLigne.length ? '// ' + sansLigne.length + ' nom(s) SANS ligne de relevé — orthographe du catalogue, à vérifier : '
                     + sansLigne.join(', ') + '\n' : '')
                 : '// ' + noms.length + ' instrument(s) · orthographe du CATALOGUE, À VÉRIFIER — aucun relevé déposé pour '
-                  + this.nomCompteActif() + '. Passez Vena_Releve puis déposez releve.csv pour l\u2019orthographe exacte du compte.\n')
-              + '// À placer dans MQL5\\Files\\vena\\ — remplacez-le quand votre sélection change.\n';
+                  + this.nomCompteActif() + '. Passez Vuna_Releve puis déposez releve.csv pour l\u2019orthographe exacte du compte.\n')
+              + '// À placer dans MQL5\\Files\\vuna\\ — remplacez-le quand votre sélection change.\n';
             const a = document.createElement('a');
             a.href = URL.createObjectURL(new Blob([entete + noms.join('\n') + '\n'],
               { type: 'text/plain;charset=utf-8' }));
@@ -23416,23 +23442,23 @@ GROUPES = {
             // « file:// » la bloque quoi qu'il y ait dans le dossier, et /app ne
             // copie pas les deux .mq5 — deux échecs distincts, le même bouton mort.
             // solo.mjs les embarque donc comme React, l'aide et le journal des
-            // livraisons : window.__venaScripts, octets identiques aux fichiers du
+            // livraisons : window.__vunaScripts, octets identiques aux fichiers du
             // dépôt. Le ZIP se construit depuis la mémoire, rien ne peut manquer —
             // le repli à deux téléchargements et le message d'absence sont partis
             // avec la cause qui les justifiait.
-            const table = (typeof window !== 'undefined' && window.__venaScripts) || null;
+            const table = (typeof window !== 'undefined' && window.__vunaScripts) || null;
             if (!table) {
               // la SOURCE ouverte sans passer par solo.mjs : la table n'existe que
               // dans le fichier construit — exception déclarée, personne ne reçoit
               // ce fichier-ci
-              this.setState({ mt5Copie: 'Fichier de travail : les scripts MT5 ne voyagent que dans le fichier construit par « npm run app:solo ». Prenez Vena_Releve.mq5 et Export_H1_Vena.mq5 à la racine du dépôt.' });
+              this.setState({ mt5Copie: 'Fichier de travail : les scripts MT5 ne voyagent que dans le fichier construit par « npm run app:solo ». Prenez Vuna_Releve.mq5 et Export_H1_Vuna.mq5 à la racine du dépôt.' });
               return;
             }
             const fichiers = Object.entries(table).map(([n, b64]) =>
               [n, Uint8Array.from(atob(b64), (c) => c.charCodeAt(0))]);
             const a = document.createElement('a');
             a.href = URL.createObjectURL(this.zipStocke(fichiers));
-            a.download = 'scripts-mt5-vena.zip';
+            a.download = 'scripts-mt5-vuna.zip';
             a.click();
             setTimeout(() => URL.revokeObjectURL(a.href), 2000);
             this.setState({ mt5Copie: fichiers.length + ' scripts téléchargés — '
@@ -23465,7 +23491,7 @@ GROUPES = {
               + 'Un fichier sur votre disque, réécrit à chaque minute, les met hors d\u2019atteinte.'
             : this.dansIframe()
               ? 'Elles ne vivent que dans ce navigateur, qui peut les vider sans prévenir. '
-                + 'Cette vue intégrée n\u2019autorise pas l\u2019écriture directe dans un fichier : ouvrez Véna '
+                + 'Cette vue intégrée n\u2019autorise pas l\u2019écriture directe dans un fichier : ouvrez Vuna '
                 + 'dans un onglet à lui, ou enregistrez une copie après chaque séance.'
               : 'Elles ne vivent que dans ce navigateur, qui peut les vider sans prévenir. '
                 + 'Ce navigateur ne sait pas écrire dans un fichier (Chrome ou Edge le permettent) : '
@@ -23523,7 +23549,7 @@ GROUPES = {
         const q = s.manquePlace;
         if (!q) return { aManquePlace: false, manquePlaceTxt: '' };
         const ko = Math.max(1, Math.round(q.octets / 1024));
-        const quoi = String(q.cle || '').replace(/^(vena|simula)\./, '').split('.')[0] || 'une donn\u00e9e';
+        const quoi = String(q.cle || '').replace(/^(vuna|simula)\./, '').split('.')[0] || 'une donn\u00e9e';
         // LE CAS DE LA MIGRATION SE DIT AUTREMENT : rien n'est perdu, tout reste
         // lisible, et c'est la première chose que l'utilisateur a besoin d'entendre.
         if (q.motif === 'migration') {
@@ -24685,12 +24711,12 @@ GROUPES = {
       // ————— L'UNITÉ DE TEMPS SE REPLIE, ET LES PIÈGES SE NOMMENT —————
       //
       // Trois boutons au même rang laissaient croire à trois choix équivalents. Ils ne le
-      // sont pas : Véna RECONSTRUIT H4 et Daily à partir des bougies horaires, et un
+      // sont pas : Vuna RECONSTRUIT H4 et Daily à partir des bougies horaires, et un
       // fichier déjà en Daily fausse les filtres multi-unités — la page le dit ailleurs,
       // pas ici, à l'endroit du choix. H1 est replié par défaut ; les deux autres restent
       // atteignables derrière « changer », avec l'avertissement au moment où il sert.
       choixUts: [
-        ['H1', 'H1', 'La matière de Véna : les bougies horaires que vous déposez. '
+        ['H1', 'H1', 'La matière de Vuna : les bougies horaires que vous déposez. '
           + 'H4 et Daily en sont reconstruits, donc rien n\u2019est perdu à rester ici.'],
         ['H4', 'H4', 'Balaye des bougies de quatre heures. Elles sont RECONSTRUITES à partir '
           + 'de vos bougies horaires : le résultat est bon, mais quatre fois moins de signaux '
@@ -24976,10 +25002,10 @@ GROUPES = {
         // la licence signe le fichier — sauf si la case « retirer mon nom » est
         // cochée : montrer son travail n'oblige pas à montrer son adresse
         const licL = this.ligneLicenceExport();
-        const blob = new Blob(['\uFEFF' + (licL ? '# Véna · ' + licL + '\n' : '') + [entete, ...lignes].join('\n')], { type: 'text/csv;charset=utf-8' });
+        const blob = new Blob(['\uFEFF' + (licL ? '# Vuna · ' + licL + '\n' : '') + [entete, ...lignes].join('\n')], { type: 'text/csv;charset=utf-8' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = 'vena_top_' + new Date().toISOString().slice(0, 10) + '.csv';
+        a.download = 'vuna_top_' + new Date().toISOString().slice(0, 10) + '.csv';
         a.click();
         setTimeout(() => URL.revokeObjectURL(a.href), 2000);
       },
@@ -25057,7 +25083,7 @@ GROUPES = {
             : l.length + ' configuration(s) identiques au moteur actuel';
         })(),
         noteRecalcul: s.recalcul && s.recalcul.partiel
-          ? 'Ce scan a été enregistré avant que Véna ne sauvegarde ses filtres : le recalcul utilise les réglages actuellement à l\u2019écran, l\u2019écart peut venir de là.'
+          ? 'Ce scan a été enregistré avant que Vuna ne sauvegarde ses filtres : le recalcul utilise les réglages actuellement à l\u2019écran, l\u2019écart peut venir de là.'
           : 'Recalcul avec les filtres enregistrés dans ce run : tout écart vient du moteur, pas des réglages.',
         lignesRecalcul: (s.recalcul && s.recalcul.id === r.id ? s.recalcul.lignes : []).map((x) => ({
           sym: x.sym,
@@ -27042,7 +27068,7 @@ GROUPES = {
             // était une clé interne, ni qu'il avait le droit d'en changer.
             + 'Pour en ajouter une, déposez le CSV d\u2019un autre flux nommé « ' + base + '-'
             + this.suffixeFlux(this.compteActif === 'tous' ? this.COURTIERS[0][0] : this.compteActif)
-            + '_H1.csv » : Véna le reconnaît comme le même sous-jacent et applique les frais '
+            + '_H1.csv » : Vuna le reconnaît comme le même sous-jacent et applique les frais '
             + 'du bon compte. Ce suffixe suit le nom que vous donnez au compte.' };
       })(),
       dDuree: d && d.nuits !== undefined
@@ -27504,7 +27530,7 @@ GROUPES = {
                   : 'Écart ' + Math.round(ecart) + ' % — sous 15 % c’est l’artefact de reconstruction attendu, '
                     + 'au-delà de 20 % il faut débrancher et comprendre. ')
                 + 'Sorties : ' + motifsTxt + '. '
-                + 'Si Véna sort surtout sur paliers et MT5 surtout sur sl, l’écart est expliqué.',
+                + 'Si Vuna sort surtout sur paliers et MT5 surtout sur sl, l’écart est expliqué.',
               deployEtat: grave ? 'ecart' : 'live', deployEcart: ecart,
               // relevé pour l'action de fin de ligne, calculée juste après
               _ecartPose: (() => { this._ecartLive = this._ecartLive || {};
@@ -27548,7 +27574,7 @@ GROUPES = {
                   + ' d\u2019un terminal : les deux mesures se comparent. Ce qui est '
                   + 'vérifié, c\u2019est CETTE ligne chez CE courtier \u2014 rien de plus.'
                 : 'Aucun trade de cette configuration n\u2019est remonté de MT5 : rien ne '
-                  + 'compare encore ce que Véna a mesuré à ce qu\u2019un terminal exécute. '
+                  + 'compare encore ce que Vuna a mesuré à ce qu\u2019un terminal exécute. '
                   + 'La mesure reste une mesure de prix.',
               aPeriode: !!(v.t0 && v.t1),
               periodeT0: v.t0 ? jpt(v.t0) : '\u2014',
@@ -27559,7 +27585,7 @@ GROUPES = {
               // (Et ce commentaire ne l'épelle pas : une garde qui lit du source ne
               // distingue pas un récit d'un texte rendu — elle vient de le montrer.)
               periodeAide: v.t0 && v.t1
-                ? 'Du ' + jpt(v.t0) + ' au ' + jpt(v.t1) + ' \u2014 la période que Véna a '
+                ? 'Du ' + jpt(v.t0) + ' au ' + jpt(v.t1) + ' \u2014 la période que Vuna a '
                   + 'mesurée. Reportez-la telle quelle dans le testeur MT5 : un robot lancé '
                   + 'sur toute la série ne rejoue pas les mêmes trades.'
                 : 'Cette ligne a été mise de côté avant que la période mesurée soit '
@@ -27594,7 +27620,7 @@ GROUPES = {
                 // entrée, convertit quand le terminal porte la paire, et REFUSE plutôt
                 // que de dimensionner faux.
                 //
-                // La réserve ne va PAS sur la ligne du portefeuille : Véna, depuis le
+                // La réserve ne va PAS sur la ligne du portefeuille : Vuna, depuis le
                 // navigateur, ne sait pas dans quelle devise un courtier cote, ni ce
                 // qu'il renseigne. Un bandeau permanent y serait une affirmation
                 // qu'aucune mesure ne soutient — le défaut qu'on vient de purger
@@ -27615,7 +27641,7 @@ GROUPES = {
                     ? '\n\nCE QU\u2019ON SAIT DE CETTE LIGNE — ' + r.join(' ')
                       + '\n\nVÉRIFIÉ CONTRE LE TESTEUR ? Non pour cette ligne. Les '
                       + 'repères ci-dessus viennent de neuf instruments rejoués chez UN '
-                      + 'courtier, sur UN compte, mesurés hors de Véna. Ils indiquent où '
+                      + 'courtier, sur UN compte, mesurés hors de Vuna. Ils indiquent où '
                       + 'regarder ; ils n\u2019attestent rien.'
                     : ''))(this.reservesExport(v)) };
           })(),
@@ -28054,7 +28080,7 @@ GROUPES = {
                   periodeEncre: 'var(--color-accent-700)',
                   periodeAide: trL.motif === 'bougies non chargées'
                     ? 'Les bougies de cet instrument ne sont pas chargées et cette ligne ne '
-                      + 'porte pas de bornes enregistrées : Véna ne peut pas dire ici sur '
+                      + 'porte pas de bornes enregistrées : Vuna ne peut pas dire ici sur '
                       + 'quelle période elle a été mesurée. Déposez la série, ou rouvrez la '
                       + 'ligne en Backtest.'
                     : trL.motif === 'configuration introuvable'
@@ -28692,7 +28718,7 @@ GROUPES = {
           provVousTxt: 'Les vôtres' + (nVous ? ' (' + nVous + ')' : ''),
           provExTxt: 'Séries d\u2019exemple' + (nEx ? ' (' + nEx + ')' : ''),
           provAide: 'Les vôtres viennent de vos fichiers MT5. Les séries d\u2019exemple sont '
-            + 'engendrées par Véna : elles ne pèsent rien dans ce navigateur, ne partent pas '
+            + 'engendrées par Vuna : elles ne pèsent rien dans ce navigateur, ne partent pas '
             + 'dans vos sauvegardes, et ne comptent pas dans le palier gratuit. Sur ces trois '
             + 'ans, cet univers d\u2019exemple MONTE — un résultat flatteur y vient facilement, '
             + 'et il ne dira rien de votre idée.',
@@ -29499,7 +29525,7 @@ GROUPES = {
                 ? (q.univers || []).filter((x) => x !== sel)
                 : [...(q.univers || []), sel] }), () => this.ecrireSession()),
               fBndBougies: !la
-                ? 'Aucune série dans ce navigateur. Cochez-le, téléchargez la liste pour MT5, puis lancez Export_H1_Vena.'
+                ? 'Aucune série dans ce navigateur. Cochez-le, téléchargez la liste pour MT5, puis lancez Export_H1_Vuna.'
                 : cv
                   ? 'H1 · ' + cv.n.toLocaleString('fr-FR') + ' bougies · du ' + jour(cv.t0) + ' au ' + jour(cv.t1)
                     + (nTrous ? ' · ' + this.pl(nTrous, 'trou', 'trous') : (vieux ? '' : ' · complet'))
@@ -29715,7 +29741,7 @@ GROUPES = {
             jvPosLignes: L.map((x) => ({
               nom: (x.sym || '?') + ' ' + (x.sens || ''),
               // LE R LATENT EST CELUI DU ROBOT. Vide, il reste vide et se dit : le
-              // dériver ici des bougies de Véna serait une seconde vérité.
+              // dériver ici des bougies de Vuna serait une seconde vérité.
               r: x.r === null || !Number.isFinite(x.r) ? '—' : sg(x.r, 2) + ' R',
               coul: x.r === null || !Number.isFinite(x.r) ? 'var(--color-text)'
                 : x.r >= 0 ? 'var(--color-accent-900)' : 'var(--color-text)',
@@ -29772,7 +29798,7 @@ GROUPES = {
             jvVideTxt: 'Donnez-moi une fois le dossier Common\\Files du terminal, et je '
               + 'lirai tous les journaux SIV_trades_<symbole>_<magique>.csv qui s’y '
               + 'trouvent — un par robot, sans en nommer aucun. C’est une lecture de '
-              + 'disque, en lecture seule : rien ne sort de votre navigateur, et Véna '
+              + 'disque, en lecture seule : rien ne sort de votre navigateur, et Vuna '
               + 'ne peut rien écrire dans ce dossier. Le glisser-déposer d’un fichier '
               + 'reste possible — c’est la voie pour un terminal sur une autre machine.' };
         }
@@ -30092,7 +30118,7 @@ GROUPES = {
               : 'contenu non détaillé (ancien format de trace)',
             chiffre: info.nC !== null ? info.nC + ' conf.' : '—',
             encre: 'var(--color-text)',
-            signature: 'vena-sauvegarde-' + new Date(info.t).toISOString().slice(0, 10)
+            signature: 'vuna-sauvegarde-' + new Date(info.t).toISOString().slice(0, 10)
               + '.json · ' + this.nomCompteActif() + ' · réimportable tel quel',
             chiffres: [],
             note: 'Le fichier est chez vous, hors du navigateur : c\u2019est la seule copie qu\u2019un vidage de cache ne peut pas atteindre. Seul le dernier export laisse une trace datée.',
@@ -30104,7 +30130,7 @@ GROUPES = {
         // pourrait dire ce qui est parti ni combien de place cela a rendu — et un
         // utilisateur qui vide son stockage pendant une panne a besoin de ce compte.
         for (const m of this.lireMenage()) {
-          const nom = String((m.cles || [])[0] || '').replace(/^vena\./, '');
+          const nom = String((m.cles || [])[0] || '').replace(/^vuna\./, '');
           entrees.push({ id: 'men' + m.t, t: m.t, type: 'ménage', cls: 'tag-outline',
             titre: m.garder === 'ancien' ? 'Exemplaire actuel supprimé (conflit tranché)'
               : m.garder === 'neuf' ? 'Exemplaire ancien supprimé (conflit tranché)'

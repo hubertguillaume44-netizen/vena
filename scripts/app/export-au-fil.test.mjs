@@ -26,9 +26,9 @@ import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { INSTANCE } from "./lib/semis.mjs";
 
-const SOLO = new URL("../../Vena.solo.html", import.meta.url).pathname;
+const SOLO = new URL("../../Vuna.solo.html", import.meta.url).pathname;
 const CHROMIUMS = [
-  process.env.VENA_CHROMIUM,
+  process.env.VUNA_CHROMIUM,
   "/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
 ].filter(Boolean);
 
@@ -40,7 +40,7 @@ test("le pic de l'export au fil tient dans le plus gros bloc, pas dans le total"
   const nav = await chromium.launch({
     ...(executablePath ? { executablePath } : {}),
     args: ["--js-flags=--expose-gc", "--enable-precise-memory-info"],
-  }).catch(() => assert.fail("Chromium introuvable : posez VENA_CHROMIUM — cette garde ne saute pas."));
+  }).catch(() => assert.fail("Chromium introuvable : posez VUNA_CHROMIUM — cette garde ne saute pas."));
   try {
     const p = await (await nav.newContext()).newPage();
     await p.goto("file://" + SOLO);
@@ -88,15 +88,15 @@ test("le pic de l'export au fil tient dans le plus gros bloc, pas dans le total"
       let pic = j0, total = 0;
       const bilan = await inst.ecrireExportAu(
         { write: async (s) => { total += s.length; const j = heap(); if (j > pic) pic = j; } },
-        '"outil":"vena","version":1,');
+        '"outil":"vuna","version":1,');
       const j1 = heap();
       // passe 2 — la validité : la SONDE a le droit d'accumuler, pas le produit
       const morceaux = [];
-      await inst.ecrireExportAu({ write: async (s) => morceaux.push(s) }, '"outil":"vena","version":1,');
+      await inst.ecrireExportAu({ write: async (s) => morceaux.push(s) }, '"outil":"vuna","version":1,');
       let valide = false, grosOk = false;
       try {
         const o = JSON.parse(morceaux.join(""));
-        valide = o.outil === "vena";
+        valide = o.outil === "vuna";
         const g = o.donnees["gros:" + cleIdx + "|GROS3"];
         grosOk = !!(g && Array.isArray(g.t) && g.t.length === 130000);
       } catch (e) { valide = false; }

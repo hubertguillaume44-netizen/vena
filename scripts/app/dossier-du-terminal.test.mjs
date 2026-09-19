@@ -24,10 +24,10 @@ import { POSER_SEMIS, INSTANCE } from "./lib/semis.mjs";
 import { CLIC_CONTIENT, CLIC_EXACT } from "./lib/vues.mjs";
 import { borne } from "../lib/tranche.mjs";
 
-const SOLO = new URL("../../Vena.solo.html", import.meta.url).pathname;
-const APP = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
+const SOLO = new URL("../../Vuna.solo.html", import.meta.url).pathname;
+const APP = readFileSync(new URL("../../Vuna.dc.html", import.meta.url), "utf8");
 const CHROMIUMS = [
-  process.env.VENA_CHROMIUM,
+  process.env.VUNA_CHROMIUM,
   "/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
 ].filter(Boolean);
 
@@ -42,7 +42,7 @@ const ligneDe = (o) => APP.slice(0, o).split("\n").length;
 
 test("la poignée du dossier est en LECTURE SEULE — partout", () => {
   const { txt, debut } = blocDossier();
-  // Véna ne doit jamais pouvoir écrire dans le dossier du terminal : c'est là que vit
+  // Vuna ne doit jamais pouvoir écrire dans le dossier du terminal : c'est là que vit
   // l'historique du courtier, et une application de mesure n'a aucune raison d'y
   // toucher. La garde s'ancre sur l'APPEL, pas sur la prose qui le raconte (règle 3).
   const fautes = [...txt.matchAll(/mode:\s*'readwrite'/g)]
@@ -199,27 +199,35 @@ test("le motif de l'instantané se DÉRIVE du nom que le robot compose", () => {
     + "la dérivation a perdu sa prise, et le lecteur mesurerait un nom que personne "
     + "n'écrit. Vu " + m.length + " composition(s).");
   const prefixes = m.map((x) => x.match(/"([A-Za-z_]+)"/)[1]);
-  assert.ok(prefixes.includes("VNA_positions_"),
-    "le robot n'écrit plus d'instantané sous VNA_positions_ : vu " + prefixes.join(", "));
+  assert.ok(prefixes.includes("VUNA_positions_"),
+    "le robot n'écrit plus d'instantané sous VUNA_positions_ : vu " + prefixes.join(", "));
   const i = borne(APP, "  estInstantanePositions(nom) {");
   const corps = APP.slice(borne(APP, "{", i) + 1, borne(APP, "}", i));
   const estInst = new Function("nom", corps);
   // le nom RÉEL que le robot compose, reconstruit depuis son propre littéral
-  assert.ok(estInst("VNA_positions_" + "GOLD_777.csv"),
+  assert.ok(estInst("VUNA_positions_" + "GOLD_777.csv"),
     "le lecteur ne reconnaît pas le nom que le robot écrit.");
+  // ET L'ANCIEN PRÉFIXE RESTE LU, parce qu'il a ÉTÉ écrit par une version livrée :
+  // 260919.2, la veille du renommage. Un .ex5 compilé ce jour-là tourne peut-être
+  // encore, et son instantané doit rester lisible jusqu'à la recompilation. C'est la
+  // même règle que les noms d'outil d'une sauvegarde — on accepte tout ce qui a été
+  // écrit, et rien de ce qui ne l'a jamais été.
+  assert.ok(estInst("VNA_positions_GOLD_777.csv"),
+    "le lecteur refuse l'instantané d'un robot compilé avant le renommage : celui-là "
+    + "tourne peut-être encore, et personne ne l'a recompilé.");
   assert.ok(!estInst("SIV_trades_GOLD_777.csv"),
     "le lecteur confond l'instantané et le journal : un état lu comme un historique.");
-  assert.ok(!corps.includes("["), "le motif de l'instantané est devenu une liste : "
+  assert.ok(!/\[[^\]]*,/.test(corps), "le motif de l'instantané est devenu une liste : "
     + "quinze robots écrivent quinze fichiers, et le seizième doit être lu sans être "
     + "nommé nulle part.");
 });
 
-test("le R latent n'est JAMAIS recalculé côté Véna, et rien ne s'enregistre", () => {
+test("le R latent n'est JAMAIS recalculé côté Vuna, et rien ne s'enregistre", () => {
   const i = borne(APP, "  lirePositions(texte) {");
   const lecteur = APP.slice(i, borne(APP, "\n  }\n", i));
   // ————— ANCRÉE SUR L'ABSENCE (règle 14, troisième issue) —————
   // Le robot est le seul à connaître le risque en devise qui a DIMENSIONNÉ la
-  // position. Un second producteur côté Véna serait une seconde vérité, et elle
+  // position. Un second producteur côté Vuna serait une seconde vérité, et elle
   // divergerait au premier écart de prix entre le courtier et l'export.
   const derive = ["this.base(", "this.M.", "backtester", "mesurer(", "risque", "/ r"]
     .filter((x) => lecteur.includes(x));

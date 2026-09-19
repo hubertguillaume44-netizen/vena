@@ -82,7 +82,7 @@ test("le registre ne survit pas à l'entrée qu'il décrit", () => {
 test("tout ce qui DÉCIDE paraît au journal d'initialisation", () => {
   // ancré sur les appels, pas sur le texte : un PrintFormat avec ses arguments ne
   // peut pas vivre dans un commentaire (règle 3, critère d'ancrage)
-  const d = borne(SRC, 'PrintFormat("VÉNA ENTRÉES EFFECTIVES 1/2');
+  const d = borne(SRC, 'PrintFormat("VUNA ENTRÉES EFFECTIVES 1/2');
   const fin = borne(SRC, "g_lancement = TimeCurrent();", d);
   const bloc = SRC.slice(d, fin);
   const decident = Object.keys(REGISTRE).filter((n) => REGISTRE[n] === true);

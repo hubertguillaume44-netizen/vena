@@ -16,7 +16,7 @@ import { borne, borneArriere } from "../lib/tranche.mjs";
 
 const RACINE = new URL("../../", import.meta.url);
 const lire = (f) => readFileSync(new URL(f, RACINE), "utf8");
-const APP = lire("Vena.dc.html");
+const APP = lire("Vuna.dc.html");
 const TARIFS = lire("src/routes/tarifs.tsx");
 
 // ————— UNE GARDE DOIT TOMBER QUAND SON HYPOTHÈSE CESSE D'ÊTRE VRAIE —————
@@ -58,7 +58,7 @@ function marcher(rel) {
 }
 
 /** Toutes les surfaces que l'acheteur lit : le site en entier, et l'application. */
-const SURFACES = [...marcher("src/"), ["Vena.dc.html", APP]];
+const SURFACES = [...marcher("src/"), ["Vuna.dc.html", APP]];
 
 // La découverte doit rester une découverte : si elle cesse d'atteindre les deux endroits
 // d'où le défaut est venu, c'est qu'elle a repris un périmètre.

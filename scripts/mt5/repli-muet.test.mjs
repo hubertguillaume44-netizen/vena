@@ -28,7 +28,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { borne } from "../lib/tranche.mjs";
 
-const MQ5 = readFileSync(new URL("../../Export_H1_Vena.mq5", import.meta.url), "utf8");
+const MQ5 = readFileSync(new URL("../../Export_H1_Vuna.mq5", import.meta.url), "utf8");
 
 test("une liste demandée et non trouvée se dit, avec le chemin complet", () => {
   const i = MQ5.indexOf("else if(StringLen(InpFichierListe) > 0)");
@@ -39,7 +39,7 @@ test("une liste demandée et non trouvée se dit, avec le chemin complet", () =>
     + "quelqu'un qui en avait coché quarante. Réancrez, ne laissez pas la garde "
     + "verte sur du vide.");
   const bloc = MQ5.slice(i, borne(MQ5, "\n   }", i));
-  // le chemin COMPLET : « vena\symboles.txt » seul ne dit pas où chercher
+  // le chemin COMPLET : « vuna\symboles.txt » seul ne dit pas où chercher
   assert.ok(bloc.includes("TerminalInfoString(TERMINAL_DATA_PATH)"),
     "le message ne donne plus le chemin complet : le nom relatif seul ne dit pas "
     + "OÙ chercher — le dossier de données ne se trouve pas seul, c'est écrit "
@@ -75,9 +75,13 @@ test("le silence reste légitime quand personne n'a demandé de fichier", () => 
     + "fait cesser de lire les journaux, et qui rendrait muette la vraie alerte");
   // et l'ordre : le repli ancien est TENTÉ avant qu'on déclare l'échec
   // l'ancre s'arrête AVANT le nom de l'ancien dossier : l'épeler ferait de cette
-  // garde une exception à nom-vena, et une exemption ne se prend que quand la
+  // garde une exception à nom-vuna, et une exemption ne se prend que quand la
   // chaîne interdite est le SUJET de la garde — ici elle n'est qu'incidente
-  const iRepli = MQ5.indexOf("ancienAbsent = !FileIsExist(");
+  // RÉANCRÉE (règle 14, deuxième issue) : le repli était UN bloc sur UN ancien
+  // dossier ; il y en a deux depuis le second renommage, donc c'est une boucle. Son
+  // invariant n'a pas bougé — le filet est tendu AVANT qu'on déclare l'échec —, seule
+  // sa forme a changé. L'ancre s'arrête toujours avant le nom des anciens dossiers.
+  const iRepli = MQ5.indexOf("for(int a = 0; a < ArraySize(ANCIENS_DOSSIERS)");
   assert.ok(iRepli > 0 && iRepli < i,
     "le repli sur l'ancien dossier n'est plus tenté AVANT le compte rendu : on "
     + "annoncerait un échec que le filet allait rattraper");

@@ -44,7 +44,7 @@
 // objectif sur des heures où le courtier n'exécute rien.
 //
 // LA DIRECTION NE VA PAS DANS LE SENS DES CHIFFRES PÉRIMÉS DE L'UTILISATEUR, et il faut
-// le dire : restaurer la séance rend Véna PLUS optimiste ici (4,00 → 14,93 R), alors que
+// le dire : restaurer la séance rend Vuna PLUS optimiste ici (4,00 → 14,93 R), alors que
 // ses cinq lignes ont CHUTÉ à la remesure. Ce commit change donc les chiffres — c'est
 // établi — mais il n'est PAS établi comme la cause de leur baisse. Ce qui est établi est
 // la classe : le moteur a changé de règle sans que la clé de cache le dise.
@@ -76,7 +76,7 @@ import * as M from "../../moteur.js";
 import { construireConfig } from "../mt5/config.mjs";
 import { borne } from "../lib/tranche.mjs";
 
-const APP = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
+const APP = readFileSync(new URL("../../Vuna.dc.html", import.meta.url), "utf8");
 
 // Le décor est GELÉ : graine écrite, colonnes de la minute et séance présentes. Les
 // colonnes sont ce qui distingue les deux chemins — sans elles, `decouper` n'a rien à

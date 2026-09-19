@@ -4,7 +4,7 @@
 // ne le dise : à 24 px, le jambage fin du palier `lg` fait 1,44 px et grisonne hors
 // écran retina.
 //
-// Ce test tient la CIBLE et non la forme : pour chaque usage de VenaMark, il calcule la
+// Ce test tient la CIBLE et non la forme : pour chaque usage de VunaMark, il calcule la
 // taille de rendu depuis les classes, puis vérifie que le palier demandé est celui que
 // la règle prescrit. Les seuils sont LUS dans le composant — les redire ici créerait
 // une seconde règle, exactement le défaut qu'on corrige.
@@ -14,7 +14,7 @@ import { readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 
 const RACINE = new URL("../", import.meta.url).pathname;
-const COMPOSANT = "src/components/vena-mark.tsx";
+const COMPOSANT = "src/components/vuna-mark.tsx";
 const lire = (rel) => readFileSync(path.join(RACINE, rel), "utf8");
 
 /** Les seuils de `palierPour`, extraits de son corps. */
@@ -48,19 +48,19 @@ function sources(dir = path.join(RACINE, "src"), out = []) {
   return out;
 }
 
-test("chaque usage de VenaMark demande le palier que la règle prescrit", () => {
+test("chaque usage de VunaMark demande le palier que la règle prescrit", () => {
   const prescrit = reglePalier();
   const usages = [];
   for (const fichier of sources()) {
     const src = readFileSync(fichier, "utf8");
-    for (const m of src.matchAll(/<VenaMark\b([^>]*?)\/>/gs)) {
+    for (const m of src.matchAll(/<VunaMark\b([^>]*?)\/>/gs)) {
       const attributs = m[1];
       // le composant lui-même n'est pas un usage
-      if (fichier.endsWith("vena-mark.tsx")) continue;
+      if (fichier.endsWith("vuna-mark.tsx")) continue;
       usages.push({ fichier: fichier.slice(RACINE.length), attributs });
     }
   }
-  assert.ok(usages.length > 0, "aucun usage de VenaMark trouvé — le motif a changé");
+  assert.ok(usages.length > 0, "aucun usage de VunaMark trouvé — le motif a changé");
 
   for (const { fichier, attributs } of usages) {
     const classes = attributs.match(/className="([^"]*)"/)?.[1] ?? "";
@@ -113,12 +113,12 @@ function tracesDuComposant() {
 }
 
 test("le signe de l’en-tête de l’application est le palier md du composant", () => {
-  const app = lire("Vena.dc.html");
-  // Le bouton est repéré par ce qu'il EST — le signe suivi du mot VÉNA — et non par le
+  const app = lire("Vuna.dc.html");
+  // Le bouton est repéré par ce qu'il EST — le signe suivi du mot VUNA — et non par le
   // gestionnaire qu'il porte. Il pointait vers `goAccueil` ; la page de présentation
   // ayant disparu, il ramène désormais à « Mes instruments », et ce test échouait pour
   // une raison sans rapport avec le palier du signe, qui est son seul objet.
-  const entete = app.match(/<button type="button" onClick="\{\{ \w+ \}\}"[^>]*>(<svg[\s\S]*?<\/svg>)VÉNA<\/button>/);
+  const entete = app.match(/<button type="button" onClick="\{\{ \w+ \}\}"[^>]*>(<svg[\s\S]*?<\/svg>)VUNA<\/button>/);
   assert.ok(entete, "le signe n’est plus dans le bouton de marque de l’en-tête");
   const trace = entete[1].match(/\sd="([^"]+)"/);
   assert.ok(trace, "le signe de l’en-tête n’a pas de tracé");
@@ -132,7 +132,7 @@ test("le signe de l’en-tête de l’application est le palier md du composant"
 });
 
 test("l’icône d’onglet de l’application est le palier sm, et ne cite aucun voisin", () => {
-  const app = lire("Vena.dc.html");
+  const app = lire("Vuna.dc.html");
   const icone = app.match(/<link rel="icon"[^>]*href="(data:image\/svg\+xml,[^"]+)"/);
   assert.ok(icone, "l’application ne déclare pas d’icône en data-URI");
   const svg = decodeURIComponent(icone[1].slice("data:image/svg+xml,".length));

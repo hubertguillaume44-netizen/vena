@@ -42,7 +42,7 @@ import { existsSync, readFileSync } from "node:fs";
 
 const RACINE = new URL("../../", import.meta.url);
 const R = (f) => readFileSync(new URL(f, RACINE), "utf8");
-const APP = R("Vena.dc.html");
+const APP = R("Vuna.dc.html");
 const PUB = R("scripts/app/publier-solo.mjs");
 const TOML = R("netlify.toml");
 
@@ -83,7 +83,7 @@ test("le fichier unique embarque bien les tables dont le fetch n'est qu'un repli
 test("chaque manifeste demandé par l'application est absolu et publié", () => {
   assert.ok(demandes.length >= 3,
     demandes.length + " appel(s) `fetch(…, { cache: 'no-store' })` trouvé(s) dans "
-    + "Vena.dc.html, au moins 3 attendus. La garde a perdu sa prise sur la forme de ces "
+    + "Vuna.dc.html, au moins 3 attendus. La garde a perdu sa prise sur la forme de ces "
     + "appels : réancrez-la plutôt que de la laisser verte sur du vide.");
 
   const vivantes = demandes.filter((d) => !EMBARQUES.some((e) => d.endsWith(e)));

@@ -53,8 +53,8 @@
 //
 // ET LA DIRECTION TOMBE AUSSI, ce qui est plus décisif que les magnitudes : sur les deux
 // instruments les objectifs manqués dépassent les stops manqués — 3 contre 2, 14 contre
-// 4. Manquer un stop rend Véna OPTIMISTE ; manquer un objectif la rend PESSIMISTE. Le
-// solde net pousse donc Véna SOUS le testeur, et l'écart observé la mettait AU-DESSUS.
+// 4. Manquer un stop rend Vuna OPTIMISTE ; manquer un objectif la rend PESSIMISTE. Le
+// solde net pousse donc Vuna SOUS le testeur, et l'écart observé la mettait AU-DESSUS.
 // Le mécanisme a le signe inverse de ce qu'il devait expliquer — le critère du signe,
 // appliqué à l'hypothèse qui a fait naître ce compteur.
 //
@@ -89,7 +89,7 @@ import { construireConfig } from "./config.mjs";
 import { borne } from "../lib/tranche.mjs";
 
 const MOTEUR = readFileSync(new URL("../../moteur.js", import.meta.url), "utf8");
-const APP = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
+const APP = readFileSync(new URL("../../Vuna.dc.html", import.meta.url), "utf8");
 
 // ————— UNE SÉRIE DE BANC, PARCE QU'AUCUNE FAMILLE D'EXEMPLE N'A CE DÉFAUT —————
 // Les dix familles cotent les mêmes heures toutes les années : `fenetreHomogene` n'y

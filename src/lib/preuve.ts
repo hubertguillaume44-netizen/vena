@@ -73,7 +73,7 @@ export function computePreuve(): PreuveRow[] {
 // même chemin que le tableau de la page Méthode.
 //
 // QUELLE LIGNE. Celle du plus gros gain brut PARMI CELLES QUI ÉCHOUENT à un contrôle —
-// c'est-à-dire le plus beau chiffre que Véna refuse de retenir. C'est tout l'argument :
+// c'est-à-dire le plus beau chiffre que Vuna refuse de retenir. C'est tout l'argument :
 // une carte qui passerait cinq contrôles sur cinq ferait publicité, et l'intérêt est
 // précisément que l'outil contredise son propriétaire.
 //

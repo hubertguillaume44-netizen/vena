@@ -26,7 +26,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { borne, borneArriere } from "../lib/tranche.mjs";
 
-const FICHIERS = ["Vena.dc.html", "Vena.solo.html"];
+const FICHIERS = ["Vuna.dc.html", "Vuna.solo.html"];
 
 function source(fichier) {
   return readFileSync(new URL("../../" + fichier, import.meta.url), "utf8");
@@ -97,7 +97,7 @@ for (const f of FICHIERS) {
 
 test("les deux fichiers livrés portent la même cession", () => {
   const [a, b] = FICHIERS.map((f) => methode(source(f), "  cederLeFil() {"));
-  assert.equal(a, b, "Vena.solo.html n'a pas été régénéré depuis Vena.dc.html");
+  assert.equal(a, b, "Vuna.solo.html n'a pas été régénéré depuis Vuna.dc.html");
 });
 
 /**
@@ -108,7 +108,7 @@ test("les deux fichiers livrés portent la même cession", () => {
  * Dans un navigateur la question ne se pose pas — l'onglet vit de toute façon.
  */
 function fabriquer() {
-  const corps = methode(source("Vena.dc.html"), "  cederLeFil() {");
+  const corps = methode(source("Vuna.dc.html"), "  cederLeFil() {");
   // eslint-disable-next-line no-new-func
   const f = new Function("return function cederLeFil() " + corps + ";")();
   return {

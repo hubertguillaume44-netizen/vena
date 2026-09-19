@@ -1,27 +1,58 @@
-# Véna — conventions du dépôt
+# Vuna — conventions du dépôt
+
+> **LE PRODUIT S'APPELAIT VÉNA JUSQU'AU 19 SEPTEMBRE 2026**, et Sivula avant lui. Le
+> signe — un V — n'a pas changé ; le mot, deux fois.
+>
+> **Les récits qui citent « Véna » ne sont PAS réécrits.** Ce fichier est un registre de
+> défauts réels, et chacun est daté par le nom que le produit portait ce jour-là. On
+> interdit le code, pas le récit du code (règle 3) — et un registre réécrit
+> rétroactivement perd sa valeur de témoignage : on ne saurait plus lequel des trois noms
+> tournait quand la page blanche a duré des semaines.
+>
+> **Ce qui est réécrit, ce sont les CONSIGNES** — un chemin, une commande, une
+> affirmation sur ce que le code fait aujourd'hui. Une consigne périmée a l'autorité des
+> vraies et envoie chercher une panne qui n'existe plus ; c'est la règle 5, et ce fichier
+> l'a déjà payée deux fois (« `_ds/` n'est pas dans le dépôt »). La frontière se dit en
+> une ligne : **au passé, on laisse ; au présent, on renomme.**
 
 ## Le nom, et sa règle d'écriture
 
-**« Véna » partout où un humain lit.** Avec l'accent, y compris en capitales : **VÉNA**.
-La marque, la page de vente, l'en-tête de l'application, les mails, les libellés de
-paiement, le titre de fenêtre, les mentions de licence, les infobulles, les commentaires
-du code.
+**« Vuna » partout où un humain lit**, et **VUNA** en capitales. La marque, la page de
+vente, l'en-tête de l'application, les mails, les libellés de paiement, le titre de
+fenêtre, les mentions de licence, les infobulles, les commentaires du code.
 
-**`vena` partout où une machine lit.** Sans accent, sans majuscule. Noms de fichiers,
-clés de stockage, bases IndexedDB, noms de robots MQL5, identifiants dans le code, noms
-de fichiers exportés, chemins de dossiers.
+**`vuna` partout où une machine lit.** Sans majuscule. Noms de fichiers, bases IndexedDB,
+noms de robots MQL5, identifiants dans le code, noms de fichiers exportés, chemins de
+dossiers. **Les clés de stockage n'en sont plus** — voir « Ce que `vena` garde » plus bas.
 
-> **Pourquoi la séparation.** Un accent dans un nom de fichier ou une clé casse au premier
-> transfert entre Windows et macOS : les deux systèmes ne normalisent pas le « é » de la
-> même façon (NFC contre NFD), et le fichier devient introuvable. Le générateur de robots
-> l'illustre : `nomRobot` efface tout caractère non alphanumérique, et « Véna » y
-> deviendrait « V_na ».
+> **LA SÉPARATION S'EST RÉDUITE À LA CASSE, et le renommage l'a réduite sans qu'on le
+> décide.** « Véna » portait un accent ; « Vuna » n'en porte pas. Il ne reste donc entre
+> les deux colonnes qu'une capitale, et la moitié des gardes qui tenaient l'accent n'ont
+> plus de sujet — `site-titres` a perdu la sienne (règle 14, première issue), `nom-vuna`
+> deux motifs. **Et leur généralisation a été mesurée, puis refusée** : « tout accent dans
+> un littéral qui ressemble à un chemin » rend **531 faux refus** sur ce dépôt, parce
+> qu'une phrase française contenant un « / » en est un. Ce qui reste s'ancre sur ce qui
+> AGIT — trois appels qui écrivent un identifiant.
+>
+> **Le paragraphe reste quand même, et il change de travail** : il ne dit plus comment
+> écrire ce nom-ci, il dit ce qu'on ne pourra pas choisir au suivant. Un accent dans un
+> nom de fichier ou une clé casse au premier transfert entre Windows et macOS — les deux
+> systèmes ne normalisent pas le « é » de la même façon (NFC contre NFD), et le fichier
+> devient introuvable. `nomRobot` efface tout caractère non alphanumérique : « Véna » y
+> devenait « V_na », et c'est **mesuré** — `nom-genere.test.mjs` le vérifie encore, sur le
+> nom que `nomRobot` produit aujourd'hui.
 
-L'adresse du site est **venapp.fr**. Le suffixe est technique : il n'entre ni dans le
+L'adresse du site est **venapp.fr**, et **elle n'a pas suivi** : un nom de domaine vit
+chez un registraire, pas dans le dépôt. Le suffixe est technique : il n'entre ni dans le
 logo, ni dans l'en-tête, ni dans les mails.
 
-Ne pas confondre avec les mots français **simulateur**, **simulation**, **simuler** :
-ce ne sont pas la marque, ils restent tels quels.
+Ne pas confondre avec les mots français **simulateur**, **simulation**, **simuler** : ce
+ne sont pas la marque, ils restent tels quels. **Et « vena » a sa propre famille de
+sosies, plus fournie que celle de « simula »** : `provenance`, `venait`, `devenait`,
+`revenait`, `convenait` — **169 occurrences** dans les fichiers versionnés, dont 49 pour le
+seul mot `provenance`, qui est le vocabulaire de ce fichier-ci (le compte est celui du jour
+où il est écrit, et il bougera : c'est l'ordre de grandeur qui décide, pas l'unité). Une garde qui chercherait « vena » sans bornes de mot accuserait tout ce
+registre, et serait désactivée le premier jour (règle 16).
 
 ## Ce qui ne change JAMAIS de nom
 
@@ -32,29 +63,150 @@ Trois familles sont gelées. Les renommer casserait des données déjà chez l'u
 | Le **numéro magique** (`magicDe`) | robot MQL5, journal | Il identifie les positions ouvertes chez le courtier. Un robot qui perd son magique perd la trace de ses propres positions. Il ne hache que la configuration et le compte — le nom de l'application n'y entre pas, et ne doit jamais y entrer. |
 | **`SIV_trades_`**, **`SIV_NIV_`** (et le repli `SIVTRADE;` du même journal) | protocole MT5 | Étiquettes écrites par les robots **déjà compilés** et RELUES — le fichier par l'application, les objets par le robot. Les basculer remplirait `Common\Files` de deux orthographes du même fichier — le symptôme même qu'on corrige — et couperait la trace des robots en place. |
 
-La marque d'ordre `SIV_<stamp>` et le préfixe de panneau `SIV_PAN_` ont été **dégelés**
-(livraison 260914.2) sur une raison MESURÉE, pas déclarée : la marque n'est jamais relue
-(les appariements passent tous par `POSITION_MAGIC`/`DEAL_MAGIC`, aucun
-`POSITION_COMMENT` dans le robot) et le préfixe de panneau n'est relu que par le robot
-qui l'écrit. Ils s'écrivent `VNA_<stamp>` et `VNA_PAN_`, avec un **balayage unique** de
-l'ancien `SIV_PAN_` à `OnInit` — un terminal fermé brutalement laisse les objets de
-l'ancien robot sous le panneau neuf. `scripts/mt5/nom-genere.test.mjs` remesure tout
-cela sur le source émis, et tient l'exception des gelés.
+### Ce n'est pas le NOM qui gèle ces trois-là, c'est un BINAIRE hors du dépôt
+
+Et la distinction décide de tout le reste, parce qu'elle dit **quand** le gel tombe. Les
+autres étiquettes MQL5 ont été renommées deux fois sans qu'un test rougisse ; celles-ci
+non, et la raison n'est pas qu'elles seraient plus importantes — c'est qu'un `.ex5`
+**déjà compilé**, sur le VPS de l'utilisateur, les écrit encore et ne sera jamais
+recompilé par un commit d'ici.
+
+> **Une constante gelée par un binaire hors du dépôt ne se dégèle pas en relisant le
+> dépôt.** Aucune garde ne peut voir ce qui tourne sur une machine qu'elle ne lit pas ;
+> la condition de dégel est un fait du monde, et seul l'utilisateur peut la constater.
+
+**La condition, écrite pour être relue** : le jour où plus aucun `.ex5` compilé avant le
+19 septembre 2026 ne tourne — c'est-à-dire le jour où les robots en place ont TOUS été
+réexportés et recompilés —, les trois peuvent basculer, une par une, et
+`nom-genere.test.mjs` dira laquelle enlever.
+
+### La marque d'ordre et le préfixe de panneau, eux, ont été dégelés — deux fois
+
+Sur une raison MESURÉE, pas déclarée, et la mesure a été REFAITE au second renommage : la
+marque n'est jamais relue (les appariements passent tous par `POSITION_MAGIC`/`DEAL_MAGIC`,
+aucun `POSITION_COMMENT` dans le robot) et le préfixe de panneau n'est relu que par le
+robot qui l'écrit. `SIV_<stamp>` est devenu `VNA_<stamp>` (livraison 260914.2) puis
+**`VUNA_<stamp>`** ; `SIV_PAN_` est devenu `VNA_PAN_` puis **`VUNA_PAN_`**.
+
+**Et il y a donc DEUX balayages à `OnInit`, pas un.** Un terminal fermé brutalement laisse
+les objets de l'ancien robot sous le panneau neuf ; un robot compilé avant le 14/09 en
+laisse sous `SIV_PAN_`, un robot compilé entre le 14 et le 19/09 sous `VNA_PAN_`. N'en
+balayer qu'un rouvrait le défaut que le balayage ferme — **chaque renommage en ajoute un,
+et c'est le COMPTE qui garde**, pas la présence : `nom-genere.test.mjs` exige les deux, une
+fois chacun, dans `OnInit`.
+
+`scripts/mt5/nom-genere.test.mjs` remesure tout cela sur le source émis, et tient
+l'exception des gelés.
 | Les **signatures de journal** | Journal, reproductibilité | Une signature enregistrée sous l'ancien nom doit rester valide et recalculable. |
 
-## Ce qui accepte les deux noms, sans date limite
+## Ce qui accepte les TROIS noms, sans date limite
 
-- **L'import d'une sauvegarde** : `outil: "vena"` et `outil: "simula"`, `vena_chiffre` et
-  `sivula_chiffre`, l'extension `.vena` et `.sivula`. Quelqu'un réimportera dans deux ans
-  un fichier exporté aujourd'hui. **À l'export : le nouveau nom seulement.**
+Le premier renommage avait fait des listes à deux entrées. Le second a montré ce qu'elles
+étaient : **une énumération qui grandit d'un cran à chaque renommage, et dont on oublie un
+membre**. Elles sont donc nommées et lues d'un seul endroit.
+
+- **L'import d'une sauvegarde** : `OUTILS_LUS = ['vuna', 'vena', 'simula']` en tête de la
+  source, lu par les quatre sites qui décident ; `vuna_chiffre`, `vena_chiffre` et
+  `sivula_chiffre` ; les extensions `.vuna`, `.vena` et `.sivula`. Quelqu'un réimportera
+  dans deux ans un fichier exporté aujourd'hui. **À l'export : le nouveau nom seulement.**
+- **LA LISTE NE COUVRE QUE LA LECTURE, et c'est la moitié qui compte.** Les sites qui
+  ÉCRIVENT portent le littéral neuf, en clair, et se renomment mécaniquement — ils ne
+  cassent rien, puisque personne d'autre ne les relit. Y faire passer la liste aurait
+  ajouté une indirection là où il n'y a pas de choix à faire, et trois gardes ancrées sur
+  l'en-tête JSON écrit seraient tombées sans qu'un défaut existe.
 - **Le relais d'usage** (`netlify/functions/usage.mjs`) : une version ancienne encore
   ouverte dans un onglet continue d'envoyer l'ancien marqueur.
-- **Le script `Export_H1_Vena.mq5`** : il cherche `vena\symboles.txt`, puis retombe sur
-  `Sivula\symboles.txt` si le premier est absent, en le disant dans le journal MT5.
+- **Les deux scripts MT5** : ils cherchent `vuna\symboles.txt`, puis balaient
+  `ANCIENS_DOSSIERS[] = {"vena", "Sivula"}`, en le disant dans le journal MT5. **Le second
+  a reçu ce filet au renommage, et il n'en avait aucun** : `Vuna_Releve.mq5` n'a jamais eu
+  de repli, donc le renommage du dossier lui aurait fait perdre une liste **en silence** —
+  la classe exacte que `repli-muet` existe pour fermer — et elle ne lit qu'UN des deux
+  scripts (règle 8 : la garde porte un nom de LIEU, `Export_H1_Vuna.mq5`, là où
+  l'invariant a un nom de classe). Le renommage du dossier a rendu le trou visible ; il
+  était ouvert depuis toujours.
+
+## Ce que `vena` garde, et pourquoi — le registre
+
+**LE RENOMMAGE S'ARRÊTE À CES NEUF FAMILLES, et chacune a une raison qui se relit.** Sans
+ce tableau, un `vena` survivant se lit comme un oubli, et le prochain renommage le
+« corrigera » — c'est-à-dire qu'il cassera ce que la famille protège. `nom-vuna.test.mjs`
+en tient le registre et **échoue dans les deux sens** (la forme de `boucles-mql5`) : une
+occurrence hors registre le fait tomber, et une famille dont le dernier membre a disparu
+aussi, pour que le registre ne devienne pas une liste de tolérances.
+
+| La famille | Pourquoi elle reste |
+|---|---|
+| **le préfixe des clés** (`vena.`, et la base `vena.auto` avec lui) | **le seul geste irréversible de l'opération** — voir ci-dessous, c'est l'arbitrage principal du renommage. Condition de dégel : aucune |
+| la graine `vena-exemple-v2` | **gelée et versionnée** : un scan enregistré hier doit se relire sur les mêmes bougies. La renommer changerait les bougies, donc périmerait les scans de tout le monde — pour un mot que personne ne lit |
+| `venapp.fr` | un domaine s'achète ; il ne se renomme pas par un commit |
+| `venacontact1@gmail.com` | une adresse réelle, que rien dans le dépôt ne contrôle |
+| `VENA_ACCES` | une variable d'environnement Netlify, **posée dans l'interface** ; lue en repli derrière `VUNA_ACCES` |
+| l'acceptation d'une sauvegarde ancienne (`OUTILS_LUS`, `.vena`, `vena_chiffre`) | un fichier que cette application a écrit ne doit jamais être refusé par elle, sans date limite |
+| `ANCIENS_DOSSIERS` des deux scripts MT5 | une installation antérieure garde sa liste sous l'ancien nom, et la perdre serait **muet** |
+| l'identifiant du sélecteur de dossier (`vena-mt5-common`) | le navigateur s'en sert pour rouvrir au même endroit : le renommer ne gagne rien et fait oublier le dernier dossier |
+| les mots français (`provenance`, `venait`, …) | **169 occurrences** : ce n'est pas la marque |
+
+**TROIS DE CES FAMILLES SONT HORS DU DÉPÔT, et ce sont celles de l'utilisateur** — le
+domaine, la boîte, la variable. Aucune garde ne peut les changer ni vérifier qu'elles
+l'ont été ; ce qui est dans le dépôt, c'est de **ne pas tomber** si elles changent un jour.
+`protection.js` lit donc `VUNA_ACCES` **d'abord** et `VENA_ACCES` **en repli** : la
+variable peut être renommée dans l'interface Netlify à tout moment, ou jamais, sans
+coupure ni dans un sens ni dans l'autre. Et la fonction **ferme quand les deux manquent** —
+une protection qui disparaît avec sa configuration ne protège rien.
+
+## Les clés de stockage n'ont PAS été renommées — et voici la raison
+
+C'est la décision qui coûtait le plus cher à prendre à moitié, donc elle est écrite.
+
+**Ce qu'une migration aurait demandé**, en entier : copier chaque clé de chaque espace
+étanche (`.perso`, `.client`, `.essai`) de chaque compte, dans l'ordre données → réglages
+→ trace, sans rien supprimer, idempotente **par une marque** et non par un « il ne reste
+rien à faire », en lisant les index de séries **avant** les blocs de bougies — plus une
+sonde d'idempotence sur un stockage **PEUPLÉ** avant la moindre exécution réelle (règle 10 :
+à vide, la moitié des bugs d'état ne peuvent pas se produire). C'est exactement la
+discipline de `retirerCompteDemo`, et elle existe parce qu'une version de cette migration a
+déjà laissé 147 séries et 97 Mo inatteignables.
+
+**Ce que ça achète** : un préfixe cohérent avec le nom du produit, dans un endroit
+qu'aucun utilisateur ne regarde jamais.
+
+> **Le gain est cosmétique et invisible ; le risque est la totalité du travail de
+> l'utilisateur.** Une clé de stockage n'est pas lue par un humain : c'est le seul endroit
+> où la règle du nom ne rapporte rien. Il n'y a donc pas d'arbitrage à faire — il y a une
+> question mal posée, et la réponse est de ne pas la poser.
+
+**Et le demi-chemin est le seul vrai danger.** Renommer le préfixe sans migration efface
+tout, silencieusement, au premier chargement ; migrer à moitié laisse deux jeux de clés
+dont aucun ne fait foi. Ce qui est livré ne fait **ni l'un ni l'autre** : `PREFIXE` vaut
+toujours `'vena.'`, et rien n'a bougé dans le navigateur de personne.
+
+**CE N'EST PAS RESTÉ EN PLACE TOUT SEUL, et c'est la morsure à retenir.** La substitution
+en masse portait une liste de motifs gelés, dont `vena\.[A-Za-z]` pour les clés. Elle a
+laissé passer `const PREFIXE = 'vena.';` — le point y est suivi d'une **apostrophe**, pas
+d'une lettre. Le préfixe est devenu `'vuna.'`, et avec lui **tout** ce que l'utilisateur a
+déposé serait devenu invisible au premier chargement — pas perdu, pas signalé : absent.
+
+> **Un motif gelé écrit sur la FORME d'une chaîne se fait battre par la fin de cette
+> chaîne.** `vena.` suivi d'une lettre décrit toutes les clés SAUF celle qui les
+> construit — et c'est la seule qui décide. C'est la règle 3 retournée une fois de plus :
+> ce n'est pas la prose qui a trompé le motif, c'est du code qu'il ne comprenait pas
+> assez.
+
+Ce qui l'a attrapé n'est pas une relecture : c'est **un test qui est tombé**. Et la même
+forme a mordu **une seconde fois**, avant que la première soit refermée — `vena.test`
+ressemble à une clé, si
+bien que `scripts/app/nom-vena.test.mjs` est resté à l'intérieur des auto-exclusions de la
+garde renommée, qui lisait alors son propre fichier. La classe a été mesurée plutôt que
+rustinée au coup par coup : `vena.test`, `vena.mjs`, `vena.png`, `vena.zip` — quatre
+extensions, quatre corrections, une seule lecture.
 
 ## La migration du stockage
 
-Elle vit **en tête de `Vena.dc.html`, avant la classe** — donc avant la moindre lecture.
+**Elle est celle de `simula` → `vena`, et il n'y en a pas de seconde** : le renommage du
+19 septembre 2026 n'a pas touché les clés, donc il n'avait rien à migrer (voir ci-dessus).
+Ce qui suit décrit la migration en place, et la règle qui vaudrait pour une autre.
+
+Elle vit **en tête de `Vuna.dc.html`, avant la classe** — donc avant la moindre lecture.
 Un renommage sans migration efface tout le travail de l'utilisateur au premier
 chargement, silencieusement : c'est le seul geste irréversible de l'opération.
 
@@ -82,19 +234,23 @@ supprimé : l'occupation réelle du navigateur est bien celle des deux.
 
 | Nom | Rôle |
 |---|---|
-| `Vena.dc.html` | **la source**, un seul fichier |
-| `Vena.solo.html` | **artefact**, régénéré par `npm run app:solo` — ne jamais l'éditer à la main |
-| `Export_H1_Vena.mq5`, `Vena_Releve.mq5` | scripts MT5 téléchargés par l'utilisateur |
+| `Vuna.dc.html` | **la source**, un seul fichier |
+| `Vuna.solo.html` | **artefact**, régénéré par `npm run app:solo` — ne jamais l'éditer à la main |
+| `Export_H1_Vuna.mq5`, `Vuna_Releve.mq5` | scripts MT5 téléchargés par l'utilisateur |
 | `aide-index.json` | **artefact**, régénéré par `npm run app:aide` après tout changement de `title=` |
 | `src/lib/textes-recopies.ts` | **la source** des textes qui engagent et qu'aucune garde n'atteint — vente et après-vente, recopiés à la main ; vide et marquée tant que le statut n'est pas tranché |
 
 À chaque livraison : `npm run app:version` avant `npm run app:solo` — voir « La version
 affichée est une date » plus bas.
 
-Le dépôt GitHub s'appelle `hubertguillaume44-netizen/vena`. Il a été renommé depuis
-GitHub, et les deux liens qui le citent (`README.md`, `PASSATION.md`) ont suivi. GitHub
-redirige l'ancienne adresse, mais un lien écrit dans le dépôt doit nommer la vraie :
-une redirection se retire le jour où quelqu'un recrée un dépôt sous l'ancien nom.
+Le dépôt GitHub s'appelle `hubertguillaume44-netizen/vuna`. **Troisième nom**, après
+`simula` puis `vena`, et le renommage se fait **depuis l'interface GitHub** — c'est un
+geste de l'utilisateur, aucun commit ne le porte. Les deux fichiers qui le citent
+nomment le nouveau : `README.md` par un lien, `PASSATION.md` par le nom nu.
+
+**GitHub redirige les deux anciennes adresses, et ce n'est pas une raison de les écrire.**
+Une redirection se retire le jour où quelqu'un recrée un dépôt sous l'ancien nom — et avec
+trois noms en circulation, ce jour est trois fois plus probable qu'avec un.
 
 ## Déploiement — la configuration vit dans le dépôt
 
@@ -188,7 +344,7 @@ depuis un poste, ou depuis l'interface GitHub.
 
 | Adresse | Ce que c'est | Ce qu'elle promet |
 |---|---|---|
-| **`/app`** | `Vena.solo.html` servi tel quel, hors du routeur du site | « ouvrir mon outil » — cinq pages, le moteur complet, vos données |
+| **`/app`** | `Vuna.solo.html` servi tel quel, hors du routeur du site | « ouvrir mon outil » — cinq pages, le moteur complet, vos données |
 | **`/tarifs`** | une page du site, en React | « combien ça coûte » — trois formules, un comparatif, six objections |
 
 **Il n'y a plus qu'une démonstration, et c'est celle de l'outil.** Le site portait la
@@ -222,8 +378,8 @@ nettoyé, et le bandeau qui s'efface dès qu'une clé est posée.
 
 **La construction REFAIT l'application avant de la publier.** `npm run build` appelle
 `scripts/app/publier-solo.mjs`, qui relance `solo.mjs`, vérifie que la version de
-l'artefact est celle de `Vena.dc.html`, puis copie dans `dist/app/index.html`. Publier le
-`Vena.solo.html` du dépôt aurait servi, un jour ou l'autre, une version figée divergeant
+l'artefact est celle de `Vuna.dc.html`, puis copie dans `dist/app/index.html`. Publier le
+`Vuna.solo.html` du dépôt aurait servi, un jour ou l'autre, une version figée divergeant
 de la source — la même panne que le préréglage de déploiement, une strate plus haut.
 
 **`_ds/` EST dans le dépôt depuis, et cette section disait le contraire.** Quinze fichiers
@@ -249,7 +405,7 @@ mettaient en défaut ; les trois sont dans le dépôt.
 
 **React.** `support.js` porte « do not edit » ; on ne le modifie pas. Son
 `cdnScriptFor` lit `window.__resources` avant de retomber sur l'URL distante :
-`Vena.dc.html` pose cette table **avant** la balise du runtime, et `solo.mjs` la remplace
+`Vuna.dc.html` pose cette table **avant** la balise du runtime, et `solo.mjs` la remplace
 par des Blob URL pour que le fichier unique reste autonome. Les deux URL unpkg qui
 subsistent dans le fichier livré sont les **clés** de cette table — ce que le runtime
 cherche, jamais ce qu'il charge.
@@ -279,9 +435,15 @@ Le site entier est derrière une authentification de base, déclarée dans `netl
 par un bloc `[[edge_functions]]` de trois lignes. **Supprimer ces trois lignes l'enlève**
 — voir PASSATION.md, « La protection temporaire du site ».
 
-Le mot de passe vit dans la variable d'environnement **`VENA_ACCES`** posée dans Netlify,
-au format `identifiant:motdepasse`, jamais dans le dépôt. La fonction **ferme** quand la
-variable manque : une protection qui disparaît avec sa configuration ne protège rien.
+Le mot de passe vit dans une variable d'environnement posée dans Netlify, au format
+`identifiant:motdepasse`, jamais dans le dépôt. **`VUNA_ACCES` est lue d'abord,
+`VENA_ACCES` en repli** : la variable est posée dans l'**interface**, que le dépôt ne peut
+pas contredire (voir « Ce que `netlify.toml` ne tient pas »), donc la renommer là-bas est
+un geste de l'utilisateur — à faire quand il veut, ou jamais, sans coupure dans aucun des
+deux sens.
+
+La fonction **ferme quand les deux manquent** : une protection qui disparaît avec sa
+configuration ne protège rien.
 
 Elle couvre `/api/licence` : **le webhook Revolut recevra 401 tant qu'elle est en place**.
 À traiter le jour où le paiement s'ouvre, avec la liste `OUVERTS` de `protection.js`.
@@ -321,6 +483,25 @@ semaine entière : aucun numéro ne distingue les commits antérieurs au 12 sept
 lire « 260905 » dans un pied de page ne dit rien de plus que « avant le 12 ». C'est la
 raison d'être du rang, et la limite de ce qu'il peut.
 
+### La découverte des porteurs ne s'ancre PAS sur le nom du produit
+
+C'est le piège que le second renommage a failli ouvrir, et il valait d'être vérifié plutôt
+que supposé. `app:version` date la source **et** les scripts MT5 qui portent la marque de
+version. La façon paresseuse de les trouver est le nom de fichier — « les `.mq5` qui
+commencent par `Vuna_` » —, et elle serait devenue **aveugle sur les fichiers qu'on vient
+de renommer**, sans rougir : zéro porteur, zéro écart signalé, et un `.ex5` compilé qu'on
+croit à jour.
+
+> **Un nom de LIEU déguisé en découverte**, et c'est la règle 8 dans l'outillage : la
+> découverte s'ancre sur ce qui AGIT — `#define VUNA_VERSION "`, une déclaration —, sur
+> **tous** les `.mq5` et `.js` de la racine. Trois porteurs aujourd'hui
+> (`Export_H1_Vuna.mq5`, `Vuna_Releve.mq5`, `robot-mt5.js`) ; un quatrième serait daté
+> sans qu'on le nomme nulle part.
+
+**Et elle prouve sa prise** : zéro porteur trouvé n'est pas « rien à dater », c'est une
+découverte désancrée. Le script le DIT et sort en erreur, plutôt que de rendre un succès
+silencieux — la forme qui fait chercher plutôt que celle qui fait s'arrêter.
+
 **Le script n'agit plus en étant importé.** `suivante()` est exportée pour être éprouvée ;
 sans garde, la seule *lecture* du module posait une version — deux imports de vérification
 ont fait passer le fichier de `260913` à `260913.3` en deux secondes, sans que personne
@@ -333,7 +514,7 @@ aussi pour ça qu'on l'oublie. `scripts/app/version-datee.test.mjs` interdit qu'
 confondent, et vérifie que la date existe, qu'elle n'est pas dans l'avenir, et que
 l'artefact porte la même que la source.
 
-**L'oubli se voit à la construction.** `publier-solo.mjs` avertit quand `Vena.dc.html` a
+**L'oubli se voit à la construction.** `publier-solo.mjs` avertit quand `Vuna.dc.html` a
 été écrit après la date qu'il annonce. C'est un avertissement et non un arrêt : un clone
 frais réécrit les dates de fichiers, et refuser de construire un dépôt fraîchement cloné
 serait un piège pire que l'oubli qu'on prévient.
@@ -341,7 +522,7 @@ serait un piège pire que l'oubli qu'on prévient.
 ## Les séries d'exemple sont engendrées, jamais livrées
 
 **Aucune série d'exemple n'est un fichier.** Tout vient d'un générateur déterministe à
-graine fixe, en tête de `Vena.dc.html` : quelques kilooctets de code, zéro octet de
+graine fixe, en tête de `Vuna.dc.html` : quelques kilooctets de code, zéro octet de
 données, les mêmes séries pour tout le monde. **Rien des exports d'un utilisateur n'entre
 dans le produit** — ce qui était le cas des quatre séries `DEMO-*` livrées en CSV, dont
 personne ne pouvait plus dire d'où venaient les prix.
@@ -865,7 +1046,7 @@ ensemble, trois défauts que ce fichier tenait pour distincts disent une seule c
 **Et l'inverse est déjà écrit dans ce fichier, en trois endroits où ça a SERVI** : le
 runtime qui criait `never resolved` sept fois à chaque chargement, les six jalons
 d'initialisation dont le SILENCE a renvoyé la recherche hors du robot, et
-`vena:reprendreSeries 0 série` qui a dit que c'était la SONDE qui avait tort. Les trois
+`vuna:reprendreSeries 0 série` qui a dit que c'était la SONDE qui avait tort. Les trois
 ont déclenché une recherche au lieu de la clore.
 
 D'où un critère qui se pose **en concevant**, pas en autopsiant : *quand une chose peut
@@ -987,7 +1168,7 @@ prose ne peut pas imiter était déjà l'énoncé — un appel complet, avec ses
 ses arguments, est la plus courante de ces formes, et la plus courte à écrire.
 
 **Sixième morsure, et le critère d'ancrage ne pouvait pas la couvrir** : la découverte de
-`nom-vena` a attrapé `nom-genere.test.mjs` — la garde qui cherche l'ancien nom dans le
+`nom-vuna` a attrapé `nom-genere.test.mjs` — la garde qui cherche l'ancien nom dans le
 source émis, et qui doit donc l'épeler pour le chercher. La prose n'était pas un
 commentaire, c'était le **motif de recherche lui-même**. C'est la limite de la règle :
 **une garde qui cherche une chaîne interdite s'exclut elle-même de la découverte,
@@ -1303,7 +1484,7 @@ posée sur un **lieu** :
 | Le correctif, et ce qu'il fermait | La garde, et ce qu'elle gardait | Ce qui est resté ouvert |
 |---|---|---|
 | « aucun `ArrayFree` suivi d'un Copy* » | « les `.mq5` de la racine » | le robot, qui naît d'un générateur |
-| « aucune attente qui se répète à l'identique » | `Export_H1_Vena` | le cache d'agrégation du robot |
+| « aucune attente qui se répète à l'identique » | `Export_H1_Vuna` | le cache d'agrégation du robot |
 
 Les deux trous ont été trouvés par l'utilisateur, des heures plus tard, sur des pannes
 coûteuses — un terminal mort, puis un cœur saturé pendant deux heures. Et les deux
@@ -1578,7 +1759,7 @@ La panne fondatrice de cette règle allait dans un sens : la source était juste
 était vide. Le cas miroir s'est présenté sur le BALISAGE, et il coûte l'inverse — une
 garde de source aurait réclamé vingt-neuf corrections qui ne réparent rien.
 
-Mesuré : `Vena.dc.html` porte **trente-cinq** affectations d'un gestionnaire vide
+Mesuré : `Vuna.dc.html` porte **trente-cinq** affectations d'un gestionnaire vide
 (`x: () => {}`) sur un champ que le gabarit lie à un `onClick`. Rendues — le fichier
 livré, les sept vues, l'état semé — **six** atteignent l'utilisateur. Les vingt-neuf
 autres vivent dans des branches dont l'élément est masqué ou grisé : elles ne mentent à
@@ -1663,7 +1844,7 @@ DEUX FONCTIONS », et c'est la voix confiante qu'on lit.
 
 #### Une instrumentation qui n'imprime RIEN est une mesure, et elle pointe dehors
 
-Les six jalons `VENA INIT n/6` n'ont jamais rien imprimé, et c'est ce qui a tranché.
+Les six jalons `VUNA INIT n/6` n'ont jamais rien imprimé, et c'est ce qui a tranché.
 **Une initialisation muette sur six jalons posés dit « le programme n'a pas démarré » ;
 une initialisation muette sans jalons ne disait rien du tout** — ni où elle s'était
 arrêtée, ni si elle avait commencé. L'absence de trace n'est interprétable que si la trace
@@ -1749,8 +1930,8 @@ défaut d'AFFICHAGE : il n'existe que rendu.
 ### Une mutation se défait par le mécanisme qui l'a faite
 
 Le cas réel, évité de justesse : pour éprouver la garde du verbe de la carte, une
-mutation avait été posée dans `Vena.dc.html` par échange de chaîne — et la restauration
-prévue était `git checkout -- Vena.dc.html`. Le fichier portait aussi, **non committé**,
+mutation avait été posée dans `Vuna.dc.html` par échange de chaîne — et la restauration
+prévue était `git checkout -- Vuna.dc.html`. Le fichier portait aussi, **non committé**,
 le correctif même que la garde éprouvait : la restauration l'aurait emporté avec la
 mutation, silencieusement. Le garde-fou de l'environnement a refusé la commande ; il
 n'était pas garanti.
@@ -1877,7 +2058,7 @@ secondes. Les lignes ÷4 et ÷6 donnent la **loi d'échelle**, pas le cas de que
 **Trois marques sont posées dans le produit**, et se lisent d'une ligne sans outil :
 
 ```js
-performance.getEntriesByType('measure').filter((m) => m.name.startsWith('vena:'))
+performance.getEntriesByType('measure').filter((m) => m.name.startsWith('vuna:'))
 ```
 
 `reprendreSeries` (avec le nombre de séries), `lireScanComplet` et `reprendreScan` (avec
@@ -1892,7 +2073,7 @@ reproduire une perte de séries, deux semis de sonde sont tombés à côté — 
 lieu de `l` pour les bas, puis l'espace `.perso.ic` quand le compte réel était
 `.client.fxpro`. Les deux fois, la sonde rendait **« 0 série » sans se plaindre** : une
 mesure fausse qui a l'air d'une mesure, le pire mode de panne d'un diagnostic. C'est
-`vena:reprendreSeries 0 série`, posée dans le produit, qui l'a dit — pas une assertion de
+`vuna:reprendreSeries 0 série`, posée dans le produit, qui l'a dit — pas une assertion de
 test, qui aurait simplement échoué sans dire que c'était la sonde qui avait tort.
 
 > **Une instrumentation posée dans le produit attrape une mesure fausse ; une sonde de test
@@ -2711,7 +2892,7 @@ quatre fichiers :
 | | ce qui est lu |
 |---|---|
 | `robot-mt5.js` | `TimeToStruct(TimeCurrent(), …)` → heure **serveur** du courtier |
-| `Export_H1_Vena.mq5` | `TimeToString(r[i].time, …)` → la même, en horloge murale |
+| `Export_H1_Vuna.mq5` | `TimeToString(r[i].time, …)` → la même, en horloge murale |
 | `moteur.js` · `lireCsv` | `Date.UTC(an, mois-1, jour, h, m)` → cette horloge murale, **rangée en UTC** |
 | `moteur.js` · `executable` | `getUTCDay()` / `getUTCHours()` → **ressort l'heure serveur** |
 
@@ -2938,7 +3119,7 @@ raison, et la garde échoue **dans les deux sens**.
 ### Et un robot ne rend jamais des chiffres qui RESSEMBLENT à une mesure
 
 `nomRobot` compose le nom du fichier avec `cfg.sym` : un `.ex5` nommé
-`Vena_<compte>_Spain35_…` ne peut être né que d'un export de Spain35. Posé sur un
+`Vuna_<compte>_Spain35_…` ne peut être né que d'un export de Spain35. Posé sur un
 graphique d'un autre instrument, il tradait quand même — il lit `_Symbol`, pas le
 symbole mesuré — et n'imprimait qu'un `ATTENTION` parmi dix lignes de démarrage. Les
 chiffres obtenus avaient la forme d'une mesure de l'instrument affiché sans en être une.
@@ -3876,7 +4057,7 @@ parfaitement. Pas parce que les deux lisent UTC — **aucun des deux ne le fait*
 | | ce qui est lu |
 |---|---|
 | `robot-mt5.js` | `TimeToStruct(TimeCurrent(), …)` → heure **serveur** du courtier |
-| `Export_H1_Vena.mq5` | `TimeToString(r[i].time, …)` → la même, en horloge murale |
+| `Export_H1_Vuna.mq5` | `TimeToString(r[i].time, …)` → la même, en horloge murale |
 | `moteur.js` · `lireCsv` | `Date.UTC(an, mois-1, jour, h, m)` → cette horloge murale **rangée en UTC** |
 | `moteur.js` · `executable` | `getUTCDay()` / `getUTCHours()` → **ressort l'heure serveur** |
 
@@ -4051,7 +4232,7 @@ celle qui tourne mesure une règle que personne n'exécute.
 la composition réelle du nom.**
 
 **Le rapport désignait `nomRobot`, et le geste vivait ailleurs** : `nomRobot` rend
-`Vena_<instrument>_…`, et c'est l'application qui insère le compte après `Vena_`, dans
+`Vuna_<instrument>_…`, et c'est l'application qui insère le compte après `Vuna_`, dans
 `etiquetteCompte()`. Le geste était juste, la carte non — et les deux se vérifient
 séparément. *Porter le geste là où le rapport pointe* aurait fait entrer l'étiquette de
 compte dans le générateur de robots, qui ne connaît pas les comptes : un défaut neuf, posé
@@ -4228,7 +4409,7 @@ l'écran porte : *« 17:42 (il y a −582 min) · »*.
 
 ### Et une garde réancrée sur le RÉSULTAT au passage
 
-`nom-vena` vérifiait que la page contient le littéral `/^SIV_trades_/i`. Les trois lieux
+`nom-vuna` vérifiait que la page contient le littéral `/^SIV_trades_/i`. Les trois lieux
 qui reconnaissaient un journal sont passés par une porte unique, qui accepte aussi le nom
 neuf : le littéral a disparu, l'invariant non. Elle demandait « le motif est-il écrit
 ainsi ? » — une intention — pour décider « ce nom est-il reconnu ? » — le résultat. Elle
@@ -4553,6 +4734,55 @@ général. C'est la garde `aucun-voisin` qui l'a dit, et elle avait raison.
 
 ## Le test qui tient la convention
 
-`scripts/app/nom-vena.test.mjs` échoue si l'ancien nom réapparaît ailleurs que dans la
-migration et l'import de sauvegarde, si un accent se glisse dans un chemin, une clé ou un
-nom de fichier, ou si un fichier du dépôt reprend l'ancien nom.
+`scripts/app/nom-vuna.test.mjs` échoue si l'ancien nom réapparaît hors des neuf familles
+du registre, si un accent se glisse dans une clé ou un nom de fichier téléchargé, ou si un
+fichier du dépôt reprend l'ancien nom. Son registre **échoue dans les deux sens** : une
+famille dont le dernier membre a disparu le fait tomber aussi, pour qu'elle ne survive pas
+en tolérance vide.
+
+**Et il s'exclut lui-même, nommément, avec sa raison** : une garde qui cherche une chaîne
+interdite doit l'épeler pour la chercher, donc elle se trouverait elle-même. L'exclusion
+nominative ne retire qu'un fichier **dont l'interdit est le sujet** — jamais un périmètre
+qui reviendrait par la fenêtre (règle 7). `stockage-plein.test.mjs` prend la même exemption
+pour la même raison : il sème l'ancien préfixe pour éprouver la migration.
+
+## Une garde de MARQUE se pose au RENDU, parce que c'est l'écran qui fait la marque
+
+**STATUT · CAUSE ÉTABLIE — renommage DÉCIDÉ (19/09/2026), surface et prise MESURÉES DANS
+LE DÉPÔT, au rendu, sur le fichier livré.**
+
+La garde évidente, après un renommage, est une garde de source : *aucun « Véna » dans le
+dépôt*. Elle est fausse, et le chiffre le dit — **213 occurrences de l'ancien nom, bornes
+de mot comprises, survivent dans les fichiers versionnés ; ZÉRO atteint un écran.** (Dont
+trente-trois dans ce fichier-ci, qui raconte des défauts survenus sous trois noms.) Les clés gelées,
+le registre, les replis MT5, les récits de
+ce fichier-ci : la source a le DROIT de porter l'ancien nom, et une garde qui l'interdirait
+partout se ferait désactiver le premier jour (règle 16).
+
+> **Ce n'est pas le dépôt qui porte une marque, c'est un écran.** La question n'est donc
+> pas « le mot est-il écrit quelque part ? » — une intention — mais « l'ancien nom
+> atteint-il un œil ? », qui est un résultat, et qui est observable. C'est la règle 1,
+> appliquée à un renommage.
+
+`scripts/app/marque-au-rendu.test.mjs` charge le fichier livré dans un vrai navigateur,
+parcourt les sept vues par `VUES` — la surface écrite une fois, partagée avec les deux
+autres bancs de rendu —, lit `document.body.innerText` et cherche l'ancienne marque avec
+des bornes de mot, faute de quoi `provenance` la ferait tomber.
+
+**Elle prouve sa prise avant de rendre son verdict**, et c'est la moitié qui compte : elle
+exige d'avoir lu les sept écrans ET d'y avoir vu la marque NEUVE au moins une fois par
+écran. Sans ça, sept écrans blancs rendraient « zéro ancienne marque » — un zéro qui n'a
+rien regardé, sur le chemin même qu'on instrumente. Mesuré au vert : *7 écrans lus,
+« Vuna » vu 23 fois, ancienne marque : 0*.
+
+**LA PREMIÈRE MUTATION ÉTAIT INERTE, et le message l'a dit.** L'échange posait « Véna »
+dans `'Vuna — scan terminé'` : c'est le titre d'une `new Notification()`, jamais du texte
+de DOM. La garde est restée verte, et la tentation était de la croire aveugle — c'est le
+mode que ce fichier appelle l'inerte, celui qui se paie en heures et ne livre rien. Relue
+plutôt qu'accusée, restaurée par l'échange inverse, refaite sur une phrase réellement
+rendue : elle tombe alors en citant les quatre écrans et le texte lu.
+
+**Son angle mort est en tête** : elle lit ce que les sept vues rendent au chargement. Un
+texte qui n'apparaît que sous une condition — un dialogue, un état d'erreur, une
+notification — lui échappe, et c'est exactement ce que la première mutation a démontré.
+C'est une garde du cas courant, pas de la surface entière.

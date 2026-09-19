@@ -2,15 +2,15 @@
 /**
  * Publie l'APPLICATION dans la sortie de construction du site, sous `/app`.
  *
- * Le site (`src/`) et l'application (`Vena.dc.html`) sont deux choses. Le site se
+ * Le site (`src/`) et l'application (`Vuna.dc.html`) sont deux choses. Le site se
  * construit avec Vite ; l'application est un fichier unique fabriqué par
  * `scripts/app/solo.mjs`. Sans ce pont, `venapp.fr` sert la vitrine et l'application
  * n'est servie par aucune route — un client qui paie ne peut pas l'ouvrir.
  *
  * IL RÉGÉNÈRE AVANT DE PUBLIER, et c'est le point important. Copier le
- * `Vena.solo.html` présent dans le dépôt publierait ce que le dernier
+ * `Vuna.solo.html` présent dans le dépôt publierait ce que le dernier
  * `npm run app:solo` a laissé — c'est-à-dire, un jour ou l'autre, une version figée qui
- * diverge silencieusement de `Vena.dc.html`. La même panne que le préréglage de
+ * diverge silencieusement de `Vuna.dc.html`. La même panne que le préréglage de
  * déploiement, une strate plus haut : une configuration qui décrit un état passé.
  *
  * Il refuse de publier si la version affichée par l'artefact ne correspond pas à celle
@@ -24,8 +24,8 @@ import { copyFileSync, existsSync, mkdirSync, readFileSync, statSync, writeFileS
 import path from "node:path";
 
 const RACINE = path.resolve(new URL("../../", import.meta.url).pathname);
-const SOURCE = path.join(RACINE, "Vena.dc.html");
-const SOLO = path.join(RACINE, "Vena.solo.html");
+const SOURCE = path.join(RACINE, "Vuna.dc.html");
+const SOLO = path.join(RACINE, "Vuna.solo.html");
 const SORTIE = path.join(RACINE, "dist", "app", "index.html");
 
 /** La version que l'application affiche dans son pied — la seule qui se lise à l'écran. */
@@ -41,8 +41,8 @@ execFileSync(process.execPath, [path.join(RACINE, "scripts/app/solo.mjs")], {
 });
 
 // 2. La version publiée doit être celle de la source.
-const vSource = versionDe(SOURCE, "Vena.dc.html");
-const vSolo = versionDe(SOLO, "Vena.solo.html");
+const vSource = versionDe(SOURCE, "Vuna.dc.html");
+const vSolo = versionDe(SOLO, "Vuna.solo.html");
 if (vSource !== vSolo) {
   console.error(`[publier-solo] ARRÊT : la source annonce ${vSource}, l'artefact ${vSolo}.`);
   process.exit(1);
@@ -98,7 +98,7 @@ const jour = (d) => String(d.getFullYear() % 100).padStart(2, "0")
 const ecritLe = jour(statSync(SOURCE).mtime);
 if (vSource < ecritLe) {
   console.warn(`[publier-solo] ATTENTION : l'application annonce la version ${vSource},`);
-  console.warn(`               mais Vena.dc.html a été écrit le ${ecritLe}.`);
+  console.warn(`               mais Vuna.dc.html a été écrit le ${ecritLe}.`);
   console.warn("               Les rapports d'avis et les diagnostics porteront une date fausse.");
   console.warn("               Pour dater : npm run app:version && npm run app:solo");
 }

@@ -25,7 +25,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { borne } from "../lib/tranche.mjs";
 
-const APP = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
+const APP = readFileSync(new URL("../../Vuna.dc.html", import.meta.url), "utf8");
 
 test("un seul ordonnanceur : la commande par instrument le restreint, elle ne le double pas", () => {
   const i = APP.indexOf("  async completerCor(cible, opts = {}) {");

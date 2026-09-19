@@ -1496,7 +1496,7 @@ export function backtester(df, cfg) {
       // ————— CE QUI EST SAUTÉ ICI SE COMPTE, PARCE QUE ÇA NE SE VOIT PAS —————
       //
       // Hors séance, ou sur une bougie reconstituée, ni le stop ni l'objectif ne sont
-      // testés : seul le palier bouge. Véna ne peut donc PAS perdre un trade sur une
+      // testés : seul le palier bouge. Vuna ne peut donc PAS perdre un trade sur une
       // telle bougie, alors que le stop du robot dort dans le carnet du courtier.
       //
       // La règle a été mesurée — journal GOLD du 5 septembre 2026, 538 entrées et 538
@@ -2000,7 +2000,7 @@ export function backtesterSuivi(df, cfg, ut) {
   // signal (invariant 5), sauf quand le robot refuserait l'ordre. `InpPasDebutSemaine`
   // (robot-mt5.js) interdit le dimanche et le lundi avant 02:00 ; le signal n'est pas
   // perdu pour autant, il est réessayé sur les ticks suivants du MÊME seau. Sans cette
-  // règle, Véna entrait deux heures et un mouvement de prix avant le robot — mesuré :
+  // règle, Vuna entrait deux heures et un mouvement de prix avant le robot — mesuré :
   // 90 trades sur 434 concernés sur BITCOIN, 51 sur 489 sur GOLD.
   const pasDebutSemaine = cfg.pas_debut_semaine !== false;
   const executable = (i) => {
@@ -2015,7 +2015,7 @@ export function backtesterSuivi(df, cfg, ut) {
   // bougie du MÊME jour qui repasse sous le plafond — c'est exactement ce que fait le
   // robot, qui garde le seau en attente et réessaie aux ticks suivants (InpSpreadMaxPct).
   // Quand aucune bougie du jour ne passe, les deux renoncent : le repli sur la première
-  // bougie ferait entrer Véna là où le robot n'entre pas (mesuré à 1,5× : 0 à 2 % des
+  // bougie ferait entrer Vuna là où le robot n'entre pas (mesuré à 1,5× : 0 à 2 % des
   // signaux sur cinq instruments, 30 % sur BITCOIN dont le spread est très large).
   const facteur = Number(cfg.spread_max_facteur) || 0;
   const seuil = facteur > 0 ? seuilSpread(df, facteur) : null;
@@ -2138,7 +2138,7 @@ export function backtesterSuivi(df, cfg, ut) {
     // le moment déplace le DÉPART des candidates dans le seau. Aucune bougie du seau
     // ne satisfait le moment → signal PERDU, jamais un repli sur l'ouverture : le
     // robot, lui, ne peut pas entrer rétroactivement à une bougie déjà passée — un
-    // repli ferait entrer Véna là où le robot n'entrera jamais.
+    // repli ferait entrer Vuna là où le robot n'entrera jamais.
     let zDeb = idx.length - 1;
     if (mo) {
       zDeb = -1;

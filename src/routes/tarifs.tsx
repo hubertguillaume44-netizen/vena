@@ -7,7 +7,7 @@ import { GRATUIT_EXEMPLES_TARIFS, GRATUIT_INSTRUMENTS } from "@/lib/palier-gratu
 export const Route = createFileRoute("/tarifs")({
   head: () => ({
     meta: [
-      { title: "Tarifs : gratuit, mensuel ou annuel — Véna" },
+      { title: "Tarifs : gratuit, mensuel ou annuel — Vuna" },
       {
         name: "description",
           content:
@@ -52,7 +52,7 @@ export const Route = createFileRoute("/tarifs")({
 const VERS_CLE = "/app#licence";
 
 // ————— L'ADRESSE DE CONTACT VIT SUR LA PAGE DE VENTE, PAS SEULEMENT DANS L'OUTIL —————
-// Elle n'existait que dans le tiroir de l'application (`Vena.dc.html`, MAIL_CONTACT).
+// Elle n'existait que dans le tiroir de l'application (`Vuna.dc.html`, MAIL_CONTACT).
 // Or celui qui a perdu sa clé, ou qui veut résilier, n'est justement pas dans l'outil.
 // Les deux doivent rester d'accord : si l'une change, l'autre change.
 const CONTACT = "venacontact1@gmail.com";
@@ -136,7 +136,7 @@ const FORMULES = [
 // pas : « Comptes de courtier 1 / 5 / 5 » (la table en porte cinq pour tout le monde),
 // « Actualités et agenda macro » et « Mises à jour » (aucune garde de licence, et
 // l'application est un fichier servi à tous). Vérifiable : `licenceActive` n'apparaît
-// qu'à DEUX endroits de `Vena.dc.html`, le palier gratuit et son compteur.
+// qu'à DEUX endroits de `Vuna.dc.html`, le palier gratuit et son compteur.
 //
 // On a retiré les lignes plutôt que posé les gardes. Brider ce qui est déjà servi serait
 // une régression pour qui s'en sert aujourd'hui ; ces fonctions ne coûtent rien à
@@ -182,7 +182,7 @@ const OBJECTIONS = [
   },
   {
     q: "Il me faut quoi pour commencer ?",
-    r: "MetaTrader 5 chez votre courtier — la seule plateforme que Véna lit. Ni cTrader, ni TradingView, ni relevé au format maison.",
+    r: "MetaTrader 5 chez votre courtier — la seule plateforme que Vuna lit. Ni cTrader, ni TradingView, ni relevé au format maison.",
   },
   {
     // ————— CE N'EST PAS LE PRESTATAIRE QUI VEND —————
@@ -192,7 +192,7 @@ const OBJECTIONS = [
     // contredisaient. La FORME définitive (dénomination, numérotation, régime de TVA)
     // dépend du statut de la société, qui n'est pas arrêté : on ne l'écrit pas encore.
     q: "Et ma facture, sans compte ?",
-    r: "Elle est émise par l’éditeur de Véna — pas par le prestataire de paiement, qui ne fait qu’encaisser — et elle part au courriel de l’achat. C’est aussi à cette adresse que la clé est renvoyée.",
+    r: "Elle est émise par l’éditeur de Vuna — pas par le prestataire de paiement, qui ne fait qu’encaisser — et elle part au courriel de l’achat. C’est aussi à cette adresse que la clé est renvoyée.",
   },
 ];
 

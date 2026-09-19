@@ -53,10 +53,10 @@ import { POSER_SEMIS, INSTANCE } from "./lib/semis.mjs";
 import { borne } from "../lib/tranche.mjs";
 
 const RACINE = new URL("../../", import.meta.url);
-const APP = readFileSync(new URL("Vena.dc.html", RACINE), "utf8");
-const SOLO_CHEMIN = new URL("Vena.solo.html", RACINE).pathname;
+const APP = readFileSync(new URL("Vuna.dc.html", RACINE), "utf8");
+const SOLO_CHEMIN = new URL("Vuna.solo.html", RACINE).pathname;
 const SOLO = readFileSync(SOLO_CHEMIN, "utf8");
-const CHROMIUMS = [process.env.VENA_CHROMIUM,
+const CHROMIUMS = [process.env.VUNA_CHROMIUM,
   "/opt/pw-browsers/chromium-1194/chrome-linux/chrome"].filter(Boolean);
 
 const utilisees = (src) => [...new Set([...src.matchAll(/var\(\s*(--[A-Za-z0-9_-]+)/g)]
@@ -116,7 +116,7 @@ test("un bandeau d'en-tête est plus SOMBRE que ce sur quoi il se pose", { timeo
   try { ({ chromium } = await import("playwright")); }
   catch (e) {
     assert.fail("Cette garde compare deux couleurs RENDUES — playwright est introuvable. "
-      + "Installez-le, ou posez VENA_CHROMIUM. Elle ne saute pas en silence : une bande "
+      + "Installez-le, ou posez VUNA_CHROMIUM. Elle ne saute pas en silence : une bande "
       + "qui ne teinte pas est indistinguable d'une bande absente, et c'est justement "
       + "le défaut qu'elle mesure.");
   }

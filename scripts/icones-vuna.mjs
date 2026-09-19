@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Fabrique les icônes PNG du site à partir de la marque Véna.
+ * Fabrique les icônes PNG du site à partir de la marque Vuna.
  *
  * LA RÈGLE QUE CE SCRIPT EXISTE POUR TENIR : le signe existe en trois DESSINS, pas en
  * trois tailles. Le rapport de graisses du grand palier — 6 pour le jambage fin, 17 pour
@@ -15,7 +15,7 @@
  * du site, et le seul où l'erreur ne se voit pas au moment où on la commet.
  *
  * Les tracés sont LUS dans le composant, jamais recopiés ici : une copie qui dérive
- * serait une seconde marque. `src/components/vena-mark.tsx` fait foi.
+ * serait une seconde marque. `src/components/vuna-mark.tsx` fait foi.
  *
  * Le rendu passe par le Chromium de Playwright, déjà présent en dépendance de
  * développement — plutôt qu'un `sharp` ou un `resvg-js` ajoutés pour trois fichiers.
@@ -23,14 +23,14 @@
  * construction ne doit pas dépendre d'un navigateur pour réussir.
  *
  *   npm run site:icones
- *   node scripts/icones-vena.mjs
+ *   node scripts/icones-vuna.mjs
  */
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { chromium } from "playwright";
 
 const RACINE = path.resolve(new URL("../", import.meta.url).pathname);
-const COMPOSANT = "src/components/vena-mark.tsx";
+const COMPOSANT = "src/components/vuna-mark.tsx";
 
 // Les couleurs du produit, lues dans src/styles.css. Aucune autre valeur dans les icônes.
 const ENCRE = "#1c1e20"; // --color-ink

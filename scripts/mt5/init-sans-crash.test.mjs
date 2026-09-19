@@ -146,13 +146,13 @@ test("les SIX jalons d'initialisation sont là, dans l'ordre, la version en têt
   // LA VERSION EST DANS LA PREMIÈRE INSTRUCTION, pas seulement présente : un .ex5
   // oublié dans MQL5\\Experts porte un stamp d'export lui aussi, et le stamp date le
   // FICHIER, pas le code qui l'a écrit.
-  assert.match(exec[2], /^Print\("VENA INIT 1\/6 · v", VENA_VERSION,/,
+  assert.match(exec[2], /^Print\("VUNA INIT 1\/6 · v", VUNA_VERSION,/,
     "la première instruction d'OnInit n'imprime plus la version — elle est « "
     + exec[2].slice(0, 60) + " ». Sans elle, un agent qui meurt ne dit pas quelle build "
     + "tournait, et on corrige à l'aveugle une version qui n'est peut-être pas celle "
     + "qui plante.");
   // LES SIX, ET DANS L'ORDRE : un jalon déplacé ne borne plus, il décrit.
-  const rangs = [...SRC.matchAll(/VENA INIT (\d)\/6/g)].map((m) => Number(m[1]));
+  const rangs = [...SRC.matchAll(/VUNA INIT (\d)\/6/g)].map((m) => Number(m[1]));
   assert.deepEqual(rangs, [1, 2, 3, 4, 5, 6],
     "les six jalons ne sont plus au complet ni dans l'ordre du déroulement (relevé : "
     + JSON.stringify(rangs) + "). Chacun borne UN bloc d'initialisation ; celui qui "
@@ -182,7 +182,7 @@ test("aucune lecture d'historique ne se refait indéfiniment : la TENTATIVE est 
   // boucle d'agrégation — à chaque appel. Et `Agreger` est appelé plusieurs fois par
   // tick, par C_, H_, L_ et LigneAgr.
   //
-  // C'EST MOT POUR MOT LA PANNE FERMÉE LE MATIN MÊME DANS `Export_H1_Vena` :
+  // C'EST MOT POUR MOT LA PANNE FERMÉE LE MATIN MÊME DANS `Export_H1_Vuna` :
   // `AttendreHistorique` tournait 1 800 s parce que `lu = -1` ne satisfaisait jamais sa
   // condition de sortie. Un échec qui se reproduit à l'identique n'est plus une
   // attente, c'est une boucle. Le correctif avait été posé dans un fichier et pas dans

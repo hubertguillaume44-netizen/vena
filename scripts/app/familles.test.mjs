@@ -43,9 +43,9 @@ import { existsSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-const SOLO = new URL("../../Vena.solo.html", import.meta.url).pathname;
+const SOLO = new URL("../../Vuna.solo.html", import.meta.url).pathname;
 const CHROMIUMS = [
-  process.env.VENA_CHROMIUM,
+  process.env.VUNA_CHROMIUM,
   "/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
 ].filter(Boolean);
 
@@ -85,7 +85,7 @@ test("les familles regroupent, le bandeau est borné, la liste reste visible", {
   catch (e) { assert.fail("playwright introuvable — cette garde ne saute pas en silence."); }
   const executablePath = CHROMIUMS.find((c) => existsSync(c));
   const nav = await chromium.launch(executablePath ? { executablePath } : {})
-    .catch(() => assert.fail("Chromium introuvable : posez VENA_CHROMIUM — cette garde ne saute pas."));
+    .catch(() => assert.fail("Chromium introuvable : posez VUNA_CHROMIUM — cette garde ne saute pas."));
   try {
     const ctx = await nav.newContext();
     const p = await ctx.newPage();

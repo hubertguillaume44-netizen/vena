@@ -11,20 +11,20 @@
  * décalage de bougies. `periode` vient de `periodeMtf`, pas de la période du signal.
  *
  * `stopMini` est la distance minimale de stop du courtier, en unités de PRIX
- * (StopsLevel × Point), relevée par Export_Symboles_Véna.mq5. Elle ne mord que sur
+ * (StopsLevel × Point), relevée par Export_Symboles_Vuna.mq5. Elle ne mord que sur
  * BITCOIN — 200,00, soit 1,00 % du cours de 2022 contre 0,25 % de celui d'aujourd'hui.
  * Le testeur y a refusé 928 ordres « invalid stops » sur 2022-2023 et aucun ensuite ;
  * en la respectant, le moteur passe de 420 à 352 trades contre 355 au testeur, et de
  * 66 trades en trop à zéro. Ailleurs elle vaut 20,00 ou moins, très en dessous des
  * stops mesurés, et ne change rien.
  *
- * `nVéna` / `rVéna` sont les chiffres que Véna affichait AU MOMENT DE L'EXPORT
+ * `nVuna` / `rVuna` sont les chiffres que Vuna affichait AU MOMENT DE L'EXPORT
  * (en-tête « Mesuré »), avant les corrections de suivi H1. Ils servent de repère
  * historique, pas de cible.
  *
  * ET C'EST CE QUI MANQUE POUR FAIRE DU VERDICT UN FAIT DU DÉPÔT. Quatre robots rejoués
  * sur historique complet (40 000 barres, qualité 99 %) rendent quasiment le même nombre
- * de trades que Véna — donc les mêmes entrées, donc la même lecture du marché. Cette
+ * de trades que Vuna — donc les mêmes entrées, donc la même lecture du marché. Cette
  * mesure a été faite sur le poste de l'utilisateur et n'est PAS ici : aucun de ces
  * quatre journaux n'est entré dans ce dossier. Les y joindre transformerait ces repères
  * en cibles, et le harnais sait déjà les lire (lireRapportMt5, apparier, comparer).
@@ -32,8 +32,8 @@
  *
  * ————— ALIGNER LES DATES AVANT DE COMPARER QUOI QUE CE SOIT —————
  *
- * Une demi-journée a été perdue sur AUDUSD : 423 trades côté MT5 contre 104 côté Véna,
- * soit un facteur 4,07 — et Véna avait mesuré 3,4 ans quand le testeur tournait sur 6,6.
+ * Une demi-journée a été perdue sur AUDUSD : 423 trades côté MT5 contre 104 côté Vuna,
+ * soit un facteur 4,07 — et Vuna avait mesuré 3,4 ans quand le testeur tournait sur 6,6.
  * Ramené au même nombre d'années, l'écart tombe à ~2,1. La moitié venait de la
  * comparaison, pas du produit.
  *
@@ -41,7 +41,7 @@
  * champ portait la date EN DUR, lié à rien. Il affiche depuis la période réellement
  * couverte, lue dans les bougies, et signale quand elle est plus courte.
  *
- * LA CONSIGNE : avant de rapprocher un rapport MT5 d'une mesure Véna, relever les deux
+ * LA CONSIGNE : avant de rapprocher un rapport MT5 d'une mesure Vuna, relever les deux
  * fenêtres et les rendre identiques. Un écart de COMPTE n'est interprétable qu'à période
  * égale — et un ratio proche d'un entier (4,07) invite d'autant plus à conclure vite.
  */
@@ -52,7 +52,7 @@ export const PALIERS_REFERENCE = [
 ];
 
 // `portage` : taille du contrat et MONTANT de swap par lot et par nuit, relevés dans
-// Symboles_Véna.csv (FxPro, 3 septembre 2026). Les paires forex y sont déclarées en
+// Symboles_Vuna.csv (FxPro, 3 septembre 2026). Les paires forex y sont déclarées en
 // POINTS (SwapMode 1) et converties ici — points × Point × ContractSize — ce qui donne
 // 1 pour 1 sur une paire à cinq décimales et 100 000 de contrat. Les métaux et indices
 // sont déclarés en montant (SwapMode 2) et repris tels quels. BITCOIN est en intérêt
@@ -89,8 +89,8 @@ export const REFERENCES = [
     filtresAttendus: "pente D1 recul 20",
     mt5Eur: -2862.73,
     nMt5: 66,
-    nVéna: 46,
-    rVéna: 14.16,
+    nVuna: 46,
+    rVuna: 14.16,
   },
   {
     sym: "GOLD",
@@ -108,8 +108,8 @@ export const REFERENCES = [
     filtresAttendus: "tendance D1 mediane 5",
     mt5Eur: 4519.12,
     nMt5: 489,
-    nVéna: 396,
-    rVéna: 124.78,
+    nVuna: 396,
+    rVuna: 124.78,
   },
   {
     sym: "GOLD",
@@ -127,8 +127,8 @@ export const REFERENCES = [
     filtresAttendus: "aucun",
     mt5Eur: 8315.44,
     nMt5: 434,
-    nVéna: 396,
-    rVéna: 44.57,
+    nVuna: 396,
+    rVuna: 44.57,
   },
   {
     sym: "Germany40",
@@ -145,8 +145,8 @@ export const REFERENCES = [
     filtresAttendus: "pente D1 recul 8",
     mt5Eur: 2496.82,
     nMt5: 115,
-    nVéna: 99,
-    rVéna: 23.6,
+    nVuna: 99,
+    rVuna: 23.6,
   },
   {
     sym: "Japan225",
@@ -163,8 +163,8 @@ export const REFERENCES = [
     filtresAttendus: "pente D1 recul 3",
     mt5Eur: 1389.21,
     nMt5: 89,
-    nVéna: 66,
-    rVéna: 18.68,
+    nVuna: 66,
+    rVuna: 18.68,
   },
   {
     sym: "NZDCAD",
@@ -181,8 +181,8 @@ export const REFERENCES = [
     filtresAttendus: "pente D1 recul 15",
     mt5Eur: -1134.75,
     nMt5: 46,
-    nVéna: 44,
-    rVéna: 10.58,
+    nVuna: 44,
+    rVuna: 10.58,
   },
   {
     sym: "BITCOIN",
@@ -199,8 +199,8 @@ export const REFERENCES = [
     filtresAttendus: "aucun",
     mt5Eur: -6776.31,
     nMt5: 466,
-    nVéna: 618,
-    rVéna: 277.1,
+    nVuna: 618,
+    rVuna: 277.1,
   },
   {
     sym: "HongKong50",
@@ -217,8 +217,8 @@ export const REFERENCES = [
     filtresAttendus: "pente D1 recul 20",
     mt5Eur: 241.48,
     nMt5: 83,
-    nVéna: 67,
-    rVéna: 16.14,
+    nVuna: 67,
+    rVuna: 16.14,
   },
 ];
 
@@ -232,7 +232,7 @@ export const REFERENCES = [
  * il a été lu par un humain, et il a produit deux erreurs qui se sont composées :
  *
  *   · le rapport #HongKong50 du 7 septembre 2026 part d'un dépôt de 20 000 €, et son
- *     net de +3 422,35 € a été converti en R au taux de l'ÉCRAN Véna (100 €/R) : +4,00 R
+ *     net de +3 422,35 € a été converti en R au taux de l'ÉCRAN Vuna (100 €/R) : +4,00 R
  *     annoncé pour +14,8 R réels, un facteur presque quatre ;
  *   · `InpRisquePct` est un pourcentage de l'ÉQUITÉ COURANTE, pas du dépôt. La perte
  *     moyenne du rapport vaut −231,22 € — l'équité monte de 20 000 à 23 422, sa moyenne

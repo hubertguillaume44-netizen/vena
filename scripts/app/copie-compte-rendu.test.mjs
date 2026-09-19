@@ -28,10 +28,10 @@ import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
 import { borne } from "../lib/tranche.mjs";
 
-const APP = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
-const SOLO = new URL("../../Vena.solo.html", import.meta.url).pathname;
+const APP = readFileSync(new URL("../../Vuna.dc.html", import.meta.url), "utf8");
+const SOLO = new URL("../../Vuna.solo.html", import.meta.url).pathname;
 const CHROMIUMS = [
-  process.env.VENA_CHROMIUM,
+  process.env.VUNA_CHROMIUM,
   "/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
 ].filter(Boolean);
 const ligneDe = (i) => APP.slice(0, i).split("\n").length;
@@ -110,7 +110,7 @@ test("le compte rendu d'une copie est celui du FICHIER — mesuré au rendu", { 
   catch (e) { assert.fail("playwright introuvable — cette garde ne saute pas en silence."); }
   const executablePath = CHROMIUMS.find((c) => existsSync(c));
   const nav = await chromium.launch(executablePath ? { executablePath } : {})
-    .catch(() => assert.fail("Chromium introuvable : posez VENA_CHROMIUM — cette garde ne saute pas."));
+    .catch(() => assert.fail("Chromium introuvable : posez VUNA_CHROMIUM — cette garde ne saute pas."));
   try {
     const p = await (await nav.newContext({ viewport: { width: 1440, height: 1000 } })).newPage();
     await p.goto("file://" + SOLO);
@@ -140,7 +140,7 @@ test("le compte rendu d'une copie est celui du FICHIER — mesuré au rendu", { 
       }
       let txt = "";
       const bilan = await inst.ecrireExportAu({ write: async (x) => { txt += x; } },
-        '"outil":"vena","date":"x",');
+        '"outil":"vuna","date":"x",');
       let obj = null;
       try { obj = JSON.parse(txt); } catch (e) { return { casse: String(e).slice(0, 120) }; }
       const cles = Object.keys(obj.donnees || {});

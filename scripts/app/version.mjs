@@ -41,7 +41,7 @@ import { readFileSync, writeFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 
 const RACINE = path.resolve(new URL("../../", import.meta.url).pathname);
-const SOURCE = path.join(RACINE, "Vena.dc.html");
+const SOURCE = path.join(RACINE, "Vuna.dc.html");
 const MARQUE = /(VERSION_APP = ')([^']+)(')/;
 
 // ————— LES SCRIPTS MT5 PORTENT LA MÊME VALEUR, POSÉE AU MÊME MOMENT —————
@@ -67,7 +67,7 @@ const MARQUE = /(VERSION_APP = ')([^']+)(')/;
 // on découvre par ce que la chose EST — elle porte la marque — et non par où elle
 // vit. Un générateur qui l'écrit dans le source qu'il émet est daté comme les
 // autres, sans être nommé ici.
-const MARQUE_MQ5 = /(#define VENA_VERSION ")([^"]+)(")/;
+const MARQUE_MQ5 = /(#define VUNA_VERSION ")([^"]+)(")/;
 const PORTEURS = [".mq5", ".js"];
 const scriptsMt5 = () => readdirSync(RACINE)
   .filter((f) => PORTEURS.some((e) => f.endsWith(e)))
@@ -100,7 +100,7 @@ if (APPELE) {
   const src = readFileSync(SOURCE, "utf8");
   const m = MARQUE.exec(src);
   if (!m) {
-    console.error("[version] VERSION_APP est introuvable dans Vena.dc.html.");
+    console.error("[version] VERSION_APP est introuvable dans Vuna.dc.html.");
     process.exit(1);
   }
   const avant = m[2];
@@ -108,6 +108,21 @@ if (APPELE) {
   const apres = suivante(avant, jour);
 
   const mq5 = scriptsMt5();
+  // ————— UNE DÉCOUVERTE QUI NE TROUVE RIEN SE PLAINT —————
+  //
+  // Elle découvre par la MARQUE, et la marque porte le nom du produit : le renommage
+  // du 19/09 l'a fait suivre le produit, comme tout le reste. Renommer la marque sans
+  // renommer le motif ici n'aurait produit AUCUNE erreur — zéro porteur découvert,
+  // zéro script daté, et trois .ex5 annonçant une version périmée dans le journal MT5.
+  // C'est la forme exacte du repli muet, dans l'outil qui date les livraisons.
+  //
+  // Le zéro prouve donc sa prise : on SAIT qu'il y a des porteurs, donc zéro est un
+  // défaut de la découverte, jamais un état du dépôt.
+  if (!mq5.length) {
+    console.error("[version] aucun script ne porte la marque de version : la découverte"
+      + " s'est désancrée (MARQUE_MQ5) ou les porteurs ont disparu. Rien n'a été daté.");
+    process.exit(1);
+  }
   if (process.argv.includes("--voir")) {
     console.log(`[version] posée : ${avant} · aujourd'hui : ${jour}`
       + (avant === apres ? " — à jour." : ` — prochaine : ${apres}.`));

@@ -1,6 +1,6 @@
-# Véna — le vocabulaire visuel, en un fichier lisible
+# Vuna — le vocabulaire visuel, en un fichier lisible
 
-`Vena.dc.html` fait 1,85 Mo : aucun outil de dessin ne peut le lire en entier. Ce fichier
+`Vuna.dc.html` fait 1,85 Mo : aucun outil de dessin ne peut le lire en entier. Ce fichier
 extrait ce qu'il faut pour dessiner juste, sans l'ouvrir. Il est **extrait du code**, pas
 imaginé : chaque valeur vient de `public/_ds/industry-…/styles.css` ou de l'application
 elle-même, et le nombre entre parenthèses dit combien de fois la classe y est employée.
@@ -64,7 +64,7 @@ grand rayon, pas de dégradé.
 
 ## Les écrans, et ce qu'ils portent
 
-**L'en-tête**, sur toutes les pages : le signe **V** et le mot **VÉNA** en condensé, sur
+**L'en-tête**, sur toutes les pages : le signe **V** et le mot **VUNA** en condensé, sur
 `--color-accent-900`. À droite du signe, le sélecteur de compte (un menu en `<div>`, pas un
 `<select>`). Puis la navigation en trois groupes numérotés — **1 Mes instruments**,
 **2 Mes scans**, **3 Mes décisions** — et à droite « Espace client · ce navigateur ». La
@@ -91,6 +91,6 @@ L'application **mesure**, elle ne prédit pas. Aucun écran ne promet un résult
 courbe ne monte pour décorer. Les chiffres sont en `font-variant-numeric: tabular-nums`,
 alignés. Une valeur inconnue s'écrit « — », jamais zéro : zéro est une mesure.
 
-**« Véna » partout où un humain lit** — avec l'accent, capitales comprises : **VÉNA**.
-**`vena` partout où une machine lit** — noms de fichiers, clés, identifiants, sans accent
+**« Vuna » partout où un humain lit** — avec l'accent, capitales comprises : **VUNA**.
+**`vuna` partout où une machine lit** — noms de fichiers, clés, identifiants, sans accent
 ni majuscule. Un accent dans un nom de fichier casse au premier transfert entre systèmes.

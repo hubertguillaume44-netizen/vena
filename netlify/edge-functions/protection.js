@@ -44,7 +44,20 @@
 const OUVERTS = ["/api/licence"];
 
 // Le nom de la variable à créer dans Netlify. Format : « identifiant:motdepasse ».
-const VARIABLE = "VENA_ACCES";
+//
+// DEUX NOMS, ET LE RENOMMAGE NE PEUT PAS LES BASCULER ENSEMBLE. Cette variable ne vit
+// pas dans le dépôt : elle est posée dans l'interface Netlify, que rien ici ne peut
+// contredire — c'est le trou que « ce que netlify.toml ne tient pas » décrit. Basculer
+// le seul nom du dépôt aurait fermé le site entier au déploiement suivant, puisque la
+// fonction FERME quand la variable manque : une protection qui disparaît avec sa
+// configuration ne protège rien, et une qui ferme tout ne sert personne non plus.
+//
+// Le neuf d'abord, l'ancien en repli : l'interface se met à jour quand son propriétaire
+// le décide, sans fenêtre d'indisponibilité. Le repli part le jour où VUNA_ACCES est
+// posée dans Netlify — un geste que seul l'utilisateur peut faire, et que rien ici ne
+// peut mesurer.
+const VARIABLE = "VUNA_ACCES";
+const VARIABLE_ANCIENNE = "VENA_ACCES";
 
 /** Comparaison à durée constante : une comparaison naïve fuit la longueur du préfixe juste. */
 function memeSecret(a, b) {
@@ -61,11 +74,11 @@ const refuser = () =>
     status: 401,
     headers: {
       // Le `realm` s'affiche dans la boîte du navigateur, mais il voyage dans un EN-TÊTE
-      // HTTP, qui ne transporte que du Latin-1. « Véna — site en préparation » y jette :
+      // HTTP, qui ne transporte que du Latin-1. « Vuna — site en préparation » y jette :
       // le tiret cadratin vaut 8212, et chaque 401 devenait un 500. Sans accent, donc —
       // c'est la même raison que la règle du dépôt : un accent casse au transport.
       // `charset="UTF-8"` ne concerne que les identifiants saisis, pas ce libellé.
-      "WWW-Authenticate": 'Basic realm="Vena - site en preparation", charset="UTF-8"',
+      "WWW-Authenticate": 'Basic realm="Vuna - site en preparation", charset="UTF-8"',
       "content-type": "text/plain; charset=utf-8",
       // une page protégée ne doit pas rester dans un cache partagé
       "cache-control": "no-store",
@@ -76,7 +89,7 @@ export default async (request, context) => {
   const chemin = new URL(request.url).pathname;
   if (OUVERTS.some((p) => chemin === p || chemin.startsWith(p + "/"))) return context.next();
 
-  const attendu = Netlify.env.get(VARIABLE);
+  const attendu = Netlify.env.get(VARIABLE) || Netlify.env.get(VARIABLE_ANCIENNE);
   if (!attendu || !attendu.includes(":")) {
     return new Response(
       "Protection mal configurée : la variable d'environnement " + VARIABLE

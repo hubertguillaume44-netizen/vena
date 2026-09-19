@@ -13,7 +13,7 @@ const lire = (p) => readFileSync(path.join(RACINE, p), "utf8");
 
 test("la construction REFAIT l'application, elle ne publie pas une copie", () => {
   // le point qui décide de tout : copier l'artefact du dépôt publierait, un jour, une
-  // version figée qui diverge de Vena.dc.html — sans que rien ne le signale
+  // version figée qui diverge de Vuna.dc.html — sans que rien ne le signale
   const pkg = JSON.parse(lire("package.json"));
   assert.match(pkg.scripts.build, /vite build.*publier-solo\.mjs/,
     "la publication de l’application doit faire partie de la construction");

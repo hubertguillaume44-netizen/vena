@@ -13,11 +13,11 @@ export const Route = createFileRoute("/methode")({
   // dupliqués, et c'est alors sa formulation qui s'affiche, plus la nôtre.
   head: () => ({
     meta: [
-      { title: "La méthode : cinq périodes, hors échantillon — Véna" },
+      { title: "La méthode : cinq périodes, hors échantillon — Vuna" },
       {
         name: "description",
         content:
-          "Comment Véna découpe un historique en cinq périodes, retire celle qui a servi à choisir la configuration, et ce que les quatre pièges classiques coûtent en R.",
+          "Comment Vuna découpe un historique en cinq périodes, retire celle qui a servi à choisir la configuration, et ce que les quatre pièges classiques coûtent en R.",
       },
     ],
   }),
@@ -196,7 +196,7 @@ function Methode() {
           </div>
           <p className="max-w-prose text-panel/80">
             Un outil de vente mettrait la première ligne en avant : c’est le plus gros chiffre de la
-            page. Véna l’écarte si elle ne tient pas hors période — et garde une ligne moins
+            page. Vuna l’écarte si elle ne tient pas hors période — et garde une ligne moins
             spectaculaire qui gagne dans plusieurs tranches.
           </p>
         </div>
@@ -229,7 +229,7 @@ function Methode() {
       <section className="border-t border-line">
         <div className="mx-auto grid w-full max-w-5xl gap-10 px-5 py-16 md:grid-cols-2 md:px-8">
           <div>
-            <h2 className="font-display text-3xl">Ce que Véna ne fait pas</h2>
+            <h2 className="font-display text-3xl">Ce que Vuna ne fait pas</h2>
             <div className="mt-5 flex flex-col text-sm leading-relaxed">
               {RIEN.map((t) => (
                 <div key={t} className="border-t border-line py-4">
@@ -253,7 +253,7 @@ function Methode() {
               vous risquez, et pourquoi vous y croyez.
             </p>
             <p className="text-sm text-muted">
-              Véna applique ces contrôles par défaut : découpage en cinq tranches, frais du symbole
+              Vuna applique ces contrôles par défaut : découpage en cinq tranches, frais du symbole
               déduits, signal sur bougie fermée, creux affiché avant le gain. Vos exports horaires
               restent dans votre navigateur.
             </p>

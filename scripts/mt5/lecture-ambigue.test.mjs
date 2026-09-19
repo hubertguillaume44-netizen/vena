@@ -42,7 +42,7 @@ import { chargerMoteur } from "./charger-moteur.mjs";
 import { borne } from "../lib/tranche.mjs";
 
 const M = await chargerMoteur();
-const SRC = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
+const SRC = readFileSync(new URL("../../Vuna.dc.html", import.meta.url), "utf8");
 const DEB = "// ————— LES DIX SÉRIES D'EXEMPLE SONT ENGENDRÉES, JAMAIS LIVRÉES —————";
 const FIN = "// ————— FIN DU GÉNÉRATEUR D'EXEMPLES —————";
 const code = SRC.slice(borne(SRC, DEB), borne(SRC, FIN))

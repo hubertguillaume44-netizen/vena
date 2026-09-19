@@ -1,7 +1,19 @@
-// ————— LE RENOMMAGE, ET SA MIGRATION —————
-// « Véna » partout où un humain lit, « vena » partout où une machine lit. L'ancien nom
-// n'a le droit de survivre qu'à DEUX endroits : le code de migration du stockage, et
-// l'acceptation d'une sauvegarde ancienne. Partout ailleurs, il est un défaut.
+// ————— LE RENOMMAGE, ET CE QU'IL NE DÉPLACE PAS —————
+//
+// « Vuna » partout où un humain lit, « vuna » partout où une machine lit. Il y a eu
+// DEUX renommages — simula → vena (12/09), vena → vuna (19/09) — et les deux anciens
+// noms ne se tiennent pas de la même façon, parce qu'ils n'ont pas le même âge :
+//
+//   « simula » n'a plus le droit de survivre qu'à DEUX endroits : le code de migration
+//   du stockage, et l'acceptation d'une sauvegarde ancienne. Ailleurs, c'est un défaut,
+//   et le premier test le balaie.
+//
+//   « vena » est encore PORTEUR : il nomme les clés de stockage où vivent les données
+//   de l'utilisateur, la graine des séries d'exemple, un domaine, une boîte aux lettres
+//   et une variable d'environnement Netlify. Le balayer serait détruire. Le second test
+//   en tient donc le REGISTRE — chaque famille avec sa raison —, et il échoue dans les
+//   DEUX SENS : un « vena » hors registre est un défaut, une entrée de registre sans
+//   occurrence est une tolérance que plus personne ne relève.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync, statSync } from "node:fs";
@@ -33,21 +45,26 @@ test("l’ancien nom ne survit que dans la migration et l’import de sauvegarde
     /"simula\.runs\.v1"|"simula\.onb\.v1"|"simula\.uploads\.v1"/,
     // l'import d'une sauvegarde ancienne, sans date limite — reconnaissance comprise :
     // un fichier que l'application a écrit ne doit jamais être refusé par elle
-    /b\.outil !== 'simula'|b\.outil !== "simula"|sivula_chiffre|\.vena,\.sivula/,
-    /EXT_SAUVEGARDE = |'"outil":"simula"'/,
+    /b\.outil !== 'simula'|b\.outil !== "simula"|sivula_chiffre|\.vuna,\.sivula/,
+    /EXT_SAUVEGARDE = |'"outil":"simula"'|accept="application\/json/,
     // LE REPLI DE LECTURE : il traduit le nom neuf vers l'ancien, c'est son objet même
-    /cleVersAncien|« vena\.X » → « simula\.X »|\^\(vena\|simula\)|replace\(\/\^vena\\\.\//,
-    // le repli du script MT5 sur l'ancien dossier
+    /cleVersAncien|« vena\.X » → « simula\.X »|\^\(vuna\|simula\)|replace\(\/\^vuna\\\.\//,
+    // le repli des scripts MT5 sur les anciens dossiers — une LISTE depuis le second
+    // renommage : deux renommages, deux anciens dossiers, et le troisième en ajoutera
+    // un sans demander un bloc de plus
     /Sivula\\\\symboles\.txt|ancien dossier Sivula|liste dans Sivula/,
+    /ANCIENS_DOSSIERS\[\] = \{"vena", "Sivula"\}|\{vena,Sivula\}/,
+    // la liste des noms d'outil acceptés à la LECTURE d'une sauvegarde
+    /const OUTILS_LUS = |« simula », « vena », « vuna »/,
   ];
   const fautes = [];
   for (const p of fichiers()) {
     const r = relatif(p);
     // l'artefact et l'index sont régénérés : ils suivent la source, on les teste à part
-    if (r === "Vena.solo.html" || r === "aide-index.json") continue;
+    if (r === "Vuna.solo.html" || r === "aide-index.json") continue;
     // ce test énonce la règle, et CLAUDE.md l'écrit : tous deux doivent pouvoir nommer
     // l'ancien nom pour dire où il a le droit de survivre
-    if (r === "scripts/app/nom-vena.test.mjs" || r === "CLAUDE.md") continue;
+    if (r === "scripts/app/nom-vuna.test.mjs" || r === "CLAUDE.md") continue;
     // ce test-là a la migration pour SUJET : il sème l'ancien préfixe pour vérifier
     // qu'elle le déplace. L'exclure d'ici ne l'affaiblit pas — il ne décrit rien
     // d'autre que le mécanisme que cette règle autorise.
@@ -69,23 +86,110 @@ test("aucun accent dans un nom de fichier, une clé ou un chemin", () => {
   const fautes = [];
   // un « é » dans un chemin ou une clé casse au premier transfert entre Windows et Mac :
   // les deux systèmes ne normalisent pas le même Unicode
+  // ————— DEUX MOTIFS SONT PARTIS AVEC LEUR SUJET (règle 14, première issue) —————
+  //
+  // Ils cherchaient « Véna » dans un chemin ou un nom de fichier : la marque portait un
+  // accent, et le mettre dans un identifiant machine cassait au premier transfert entre
+  // Windows et macOS. « Vuna » n'en porte pas. Les deux motifs seraient restés VERTS en
+  // ne gardant plus rien — le pire mode de panne.
+  //
+  // ET LA FORME GÉNÉRALE A ÉTÉ MESURÉE, PUIS REFUSÉE. « Tout accent dans un littéral
+  // qui ressemble à un chemin » paraissait la généralisation : elle rend **531** faux
+  // refus sur ce dépôt, parce qu'une phrase française qui contient un « / » en est un.
+  // Une garde qu'il faut désactiver pour travailler ne garde rien (règle 16), et ce
+  // chiffre-là ne laisse pas le choix.
+  //
+  // Ce qui reste s'ancre sur ce qui AGIT — un appel, une affectation — et non sur la
+  // forme d'une chaîne : trois motifs, trois gestes qui écrivent un identifiant.
   const suspects = [
-    /['"][^'"\n]*V[éÉ]na[^'"\n]*\.(json|csv|txt|zip|mq5|ex5|png|html)['"]/g,
-    /['"][^'"\n]*V[éÉ]na[\\/][^'"\n]*['"]/g,
     /(?:localStorage|sessionStorage)\.(?:get|set|remove)Item\(['"][^'"]*[éèêàçÉÈÊÀÇ]/g,
     /indexedDB\.open\(['"][^'"]*[éèêàçÉÈÊÀÇ]/g,
     /download = ['"][^'"]*[éèêàçÉÈÊÀÇ]/g,
   ];
   for (const p of fichiers()) {
     const r = relatif(p);
-    if (r === "Vena.solo.html" || r === "aide-index.json") continue;
-    if (r.startsWith("scripts/app/nom-vena.test.mjs")) continue;
+    if (r === "Vuna.solo.html" || r === "aide-index.json") continue;
+    if (r.startsWith("scripts/app/nom-vuna.test.mjs")) continue;
     const txt = readFileSync(p, "utf8");
     for (const re of suspects) {
       for (const m of txt.matchAll(re)) fautes.push(r + " — " + m[0].slice(0, 70));
     }
   }
   assert.deepEqual(fautes, [], "un accent s’est glissé dans un identifiant machine");
+});
+
+// ————— LE REGISTRE DE CE QUE « VENA » NOMME ENCORE —————
+//
+// POURQUOI UN REGISTRE ET PAS UN BALAYAGE. Le premier renommage pouvait balayer :
+// « simula » ne nommait plus rien de vivant. Le second ne peut pas — « vena » nomme
+// les clés sous lesquelles dorment 66 séries, des scans et des portefeuilles chez
+// l'utilisateur. Interdire le mot aurait demandé de les migrer ; les migrer aurait
+// été le seul geste irréversible de l'opération, pour un préfixe que personne ne voit.
+//
+// Le registre dit donc, famille par famille, POURQUOI chacune ne bouge pas — et il
+// échoue dans les deux sens, comme celui des boucles MQL5 : un « vena » hors famille
+// est un défaut, une famille sans occurrence est une tolérance périmée.
+//
+// ANGLE MORT DÉCLARÉ (règle 9) : il lit le SOURCE. Ce qu'un utilisateur VOIT est tenu
+// ailleurs, par la garde de rendu — parce que c'est l'écran qui porte la marque, et
+// qu'un « vena » machine que personne ne lit n'est pas le sujet de ce fichier.
+const FAMILLES = [
+  ["les mots français — provenance, venait, revenait : ce n'est pas la marque",
+   /[A-Za-z]vena|venai/i],
+  ["le PRÉFIXE DES CLÉS : les données de l'utilisateur dorment dessous. Le renommer "
+   + "demanderait une migration, c'est-à-dire le seul geste irréversible, pour un "
+   + "identifiant que personne ne voit. Condition de dégel : aucune",
+   /vena\\?\.|« vena|startsWith\("vena/],
+  ["la GRAINE des séries d'exemple : la renommer change les bougies, donc périme tous "
+   + "les scans enregistrés — elle se paierait en v3. Gelée, versionnée, jamais choisie",
+   /vena-exemple-v\d/],
+  ["le DOMAINE : il s'achète, il ne se renomme pas par un commit",
+   /venapp\.fr/],
+  ["la BOÎTE AUX LETTRES : une adresse réelle, que personne ici ne contrôle",
+   /venacontact1/],
+  ["la VARIABLE D'ENVIRONNEMENT Netlify : elle vit dans l'interface, que rien dans le "
+   + "dépôt ne peut contredire. La basculer seule fermait le site entier — la fonction "
+   + "FERME quand elle manque. Le neuf d'abord, l'ancien en repli",
+   /VENA_ACCES/],
+  ["l'ACCEPTATION D'UNE SAUVEGARDE ANCIENNE, sans date limite : un fichier que cette "
+   + "application a écrit ne doit jamais être refusé par elle",
+   /\.vena\b|vena_chiffre|'vena'|\|vena\||\.vuna,\.vena/],
+  ["le REPLI SUR L'ANCIEN DOSSIER MT5 : une installation antérieure garde sa liste "
+   + "sous l'ancien nom, et la perdre serait muet",
+   /ANCIENS_DOSSIERS|\{vena,Sivula\}|"vena"/],
+  ["l'IDENTIFIANT DU SÉLECTEUR DE DOSSIER : le navigateur s'en sert pour rouvrir au "
+   + "même endroit. Le renommer ne gagne rien et fait oublier le dernier dossier",
+   /vena-mt5-common/],
+];
+
+test("« vena » ne survit que dans les familles du registre, et chacune vit encore", () => {
+  const PORTE = /vena/i;
+  const vus = new Set();
+  const fautes = [];
+  for (const p of fichiers()) {
+    const r = relatif(p);
+    // ce fichier EST le registre : il doit épeler ce qu'il recense (règle 3)
+    if (r === "scripts/app/nom-vuna.test.mjs" || r === "CLAUDE.md") continue;
+    if (r === "Vuna.solo.html" || r === "aide-index.json") continue;
+    // la garde de RENDU cherche l'ancienne marque à l'écran : elle doit l'épeler pour
+    // la chercher. L'exclusion est nominative et son interdit est son SUJET — elle ne
+    // retire qu'un fichier, jamais un périmètre (la forme déjà écrite pour
+    // nom-genere.test.mjs et stockage-plein.test.mjs).
+    if (r === "scripts/app/marque-au-rendu.test.mjs") continue;
+    readFileSync(p, "utf8").split("\n").forEach((l, i) => {
+      if (!PORTE.test(l)) return;
+      const fam = FAMILLES.findIndex(([, re]) => re.test(l));
+      if (fam < 0) { fautes.push(r + ":" + (i + 1) + " — " + l.trim().slice(0, 90)); return; }
+      vus.add(fam);
+    });
+  }
+  assert.deepEqual(fautes, [],
+    "« vena » apparaît hors des familles recensées. Si c'est un survivant légitime, "
+    + "ajoutez sa famille AVEC sa raison et sa condition de dégel ; sinon renommez-le.");
+  const mortes = FAMILLES.filter((_, i) => !vus.has(i)).map(([quoi]) => quoi);
+  assert.deepEqual(mortes, [],
+    "une famille du registre n'a plus d'occurrence : son sujet est parti, et l'entrée "
+    + "est devenue une tolérance que plus personne ne relève. Retirez-la.");
 });
 
 test("aucun fichier du dépôt ne porte l’ancien nom", () => {
@@ -95,7 +199,7 @@ test("aucun fichier du dépôt ne porte l’ancien nom", () => {
 
 // ————— CE QUI EST GELÉ —————
 test("le numéro magique ne dépend pas du nom de l’application", () => {
-  const src = readFileSync(path.join(RACINE, "Vena.dc.html"), "utf8");
+  const src = readFileSync(path.join(RACINE, "Vuna.dc.html"), "utf8");
   // il identifie les positions ouvertes chez le courtier : un robot qui perd son magique
   // perd la trace de ses propres positions
   assert.match(src, /cleMagic\(v\) \{ return \[v\.sym, v\.entree, v\.ligne, v\.periode, v\.sl, v\.rr, v\.sens\]\.join\('\|'\); \}/,
@@ -104,7 +208,7 @@ test("le numéro magique ne dépend pas du nom de l’application", () => {
     "le magique ne doit hacher que la configuration et le compte");
   const i = src.indexOf("hachMagic(cle) {");
   const corps = src.slice(i, borne(src, "\n  }", i));
-  assert.ok(!/vena|Véna|sivula/i.test(corps), "aucun nom d’application dans le hachage");
+  assert.ok(!/vuna|Vuna|sivula/i.test(corps), "aucun nom d’application dans le hachage");
 });
 
 test("les étiquettes GELÉES du protocole MT5 restent SIV_ — les autres sont parties", () => {
@@ -120,11 +224,11 @@ test("les étiquettes GELÉES du protocole MT5 restent SIV_ — les autres sont 
   // passe par le magique) et le préfixe de panneau n'est relu que par le robot qui
   // l'écrit, avec un balayage unique de l'ancien à OnInit. Le détail vit dans
   // scripts/mt5/nom-genere.test.mjs, qui remesure sur le source ÉMIS.
-  assert.ok(robot.includes("const marque = 'VNA_' + stamp;"),
-    "la marque des ordres doit être VNA_<build>");
-  assert.ok(robot.includes('PAN_PREF "VNA_PAN_"'),
-    "le préfixe du panneau doit être VNA_PAN_");
-  const page = readFileSync(path.join(RACINE, "Vena.dc.html"), "utf8");
+  assert.ok(robot.includes("const marque = 'VUNA_' + stamp;"),
+    "la marque des ordres doit être VUNA_<build>");
+  assert.ok(robot.includes('PAN_PREF "VUNA_PAN_"'),
+    "le préfixe du panneau doit être VUNA_PAN_");
+  const page = readFileSync(path.join(RACINE, "Vuna.dc.html"), "utf8");
   // ————— RÉANCRÉE SUR LE RÉSULTAT, PAS SUR L'ORTHOGRAPHE DU MOTIF —————
   // Elle lisait le littéral `/^SIV_trades_/i` dans la page. Les trois lieux qui
   // reconnaissaient un journal sont passés par une porte unique, `estJournalLive`,
@@ -138,36 +242,50 @@ test("les étiquettes GELÉES du protocole MT5 restent SIV_ — les autres sont 
   assert.ok(estJournalLive("SIV_trades_GOLD_20260901.csv"),
     "l’application ne reconnaît plus le préfixe GELÉ SIV_trades_ : les robots déjà "
     + "compilés chez l’utilisateur l’écrivent, et personne n’a à les recompiler.");
-  assert.ok(estJournalLive("VNA_trades_GOLD_20260901.csv"),
+  assert.ok(estJournalLive("VUNA_trades_GOLD_20260901.csv"),
     "le préfixe neuf doit être accepté d’avance — sinon le jour du dégel demande de "
     + "corriger un lecteur sur un parc déjà en place.");
   assert.ok(!estJournalLive("GOLD_H1.csv"),
     "le motif accepte un export de bougies : il ne reconnaît plus rien.");
   // le NOM du fichier de robot, lui, est machine : sans accent, sinon nomRobot le mange
-  assert.match(robot, /return \['Vena', cfg\.sym,/, "le nom du robot exporté doit être « Vena », sans accent");
+  assert.match(robot, /return \['Vuna', cfg\.sym,/, "le nom du robot exporté doit être « Vuna »");
   // et l'étiquette du compte ENTRE dans ce nom : la substitution vise le préfixe RÉEL
-  // « Vena_ » — écrite « Véna_ », elle ne correspondait jamais, et le compte
+  // « Vuna_ » — écrite « Vuna_ », elle ne correspondait jamais, et le compte
   // disparaissait des noms de fichiers en silence
-  assert.match(page, /\.replace\(\/\^Vena_\/, 'Vena_' \+ this\.etiquetteCompte\(\)/,
+  assert.match(page, /\.replace\(\/\^Vuna_\/, 'Vuna_' \+ this\.etiquetteCompte\(\)/,
     "l’étiquette du compte doit entrer dans le nom du fichier exporté");
 });
 
 test("une sauvegarde de l’ancienne version reste importable", () => {
-  const src = readFileSync(path.join(RACINE, "Vena.dc.html"), "utf8");
-  // trois lectures de sauvegarde, toutes doivent accepter l’ancien marqueur
-  const lectures = src.match(/\(b\.outil !== 'vena' && b\.outil !== 'simula'\)/g) || [];
-  assert.equal(lectures.length, 3, "les trois lectures doivent accepter les deux marqueurs, vu " + lectures.length);
-  assert.match(src, /b\.vena_chiffre === 1 \|\| b\.sivula_chiffre === 1/,
-    "la sauvegarde chiffrée doit accepter les deux marqueurs");
-  assert.match(src, /accept="application\/json,\.json,\.vena,\.sivula"/,
-    "le champ d’import doit accepter les deux extensions");
-  // à l’écriture : le nouveau nom SEULEMENT
-  assert.ok(!/outil: 'simula'/.test(src), "aucune écriture ne doit produire l’ancien marqueur");
-  assert.ok(!/sivula_chiffre: 1/.test(src), "aucune écriture ne doit produire l’ancien marqueur chiffré");
+  const src = readFileSync(path.join(RACINE, "Vuna.dc.html"), "utf8");
+  // ————— TROIS NOMS LUS, ET ILS SONT NOMMÉS EN UN SEUL ENDROIT —————
+  //
+  // Le second renommage a montré pourquoi. Les trois lectures étaient écrites en trois
+  // conditions séparées ; une substitution mécanique les a basculées toutes les trois
+  // d'un coup, et une sauvegarde exportée la veille devenait illisible par
+  // l'application qui l'avait écrite. Six conditions dispersées ne se relisent pas
+  // ensemble. La liste nommée, si — et elle DIT son compte, qui est le prix des
+  // renommages : trois noms acceptés pour deux renommages.
+  assert.match(src, /const OUTILS_LUS = \['vuna', 'vena', 'simula'\];/,
+    "la liste des noms d’outil acceptés doit être nommée, et porter les trois");
+  const lectures = src.match(/OUTILS_LUS\.indexOf\(b\.outil\) < 0/g) || [];
+  assert.equal(lectures.length, 3,
+    "les trois lectures doivent passer par la liste, vu " + lectures.length);
+  assert.match(src, /OUTILS_LUS\.some\(function \(o\) \{ return t\.indexOf/,
+    "la reconnaissance par l’enveloppe doit lire la même liste");
+  assert.match(src, /b\.vuna_chiffre === 1 \|\| b\.vena_chiffre === 1 \|\| b\.sivula_chiffre === 1/,
+    "la sauvegarde chiffrée doit accepter les trois marqueurs");
+  assert.match(src, /accept="application\/json,\.json,\.vuna,\.vena,\.sivula"/,
+    "le champ d’import doit accepter les trois extensions");
+  // à l’écriture : le nom NEUF seulement — et c'est la moitié qu'une substitution
+  // mécanique a le droit de renommer, puisqu'elle ne casse rien en le faisant
+  for (const vieux of [/outil: 'simula'/, /outil: 'vena'/, /sivula_chiffre: 1/, /vena_chiffre: 1/]) {
+    assert.ok(!vieux.test(src), "une écriture produit encore un ancien marqueur : " + vieux);
+  }
 });
 
 test("un import ancien repose ses clés au nouveau préfixe", () => {
-  const src = readFileSync(path.join(RACINE, "Vena.dc.html"), "utf8");
+  const src = readFileSync(path.join(RACINE, "Vuna.dc.html"), "utf8");
   // sans traduction, l'import annoncerait « 40 blocs réimportés » et l'écran resterait
   // vide : les clés reposées seraient celles que l'application ne lit plus
   assert.match(src, /cleVersNeuf\(k\) \{/, "la traduction de préfixe doit exister");
@@ -185,7 +303,7 @@ test("la migration tourne avant la classe, et DÉPLACE au lieu de copier", () =>
   // Le contrat a changé, et c'est une correction : copier exige deux fois la place et
   // n'aboutit pas dans un stockage à moitié plein. Ce qui reste intangible, c'est qu'une
   // valeur ne disparaisse jamais — d'où l'ordre imposé : écrire, RELIRE, puis supprimer.
-  const src = readFileSync(path.join(RACINE, "Vena.dc.html"), "utf8");
+  const src = readFileSync(path.join(RACINE, "Vuna.dc.html"), "utf8");
   const iMig = src.indexOf("const MIGRATION = migrerStockage();");
   const iClasse = src.indexOf("class Component extends DCLogic {");
   assert.ok(iMig > 0 && iClasse > 0 && iMig < iClasse,
@@ -227,7 +345,7 @@ test("la migration tourne avant la classe, et DÉPLACE au lieu de copier", () =>
 });
 
 test("la façade de lecture ne ressuscite jamais une valeur neuve vide", () => {
-  const src = readFileSync(path.join(RACINE, "Vena.dc.html"), "utf8");
+  const src = readFileSync(path.join(RACINE, "Vuna.dc.html"), "utf8");
   const i = src.indexOf("const localStorage = {");
   assert.ok(i > 0, "la façade du stockage a disparu");
   const corps = src.slice(i, borne(src, "class Component extends DCLogic {"));

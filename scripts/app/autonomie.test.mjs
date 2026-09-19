@@ -36,13 +36,13 @@ test("React est vendoré, épinglé, et identique à ce que le CDN sert", () => 
     assert.equal(somme, attendu, f + " ne correspond plus à l’empreinte attendue par support.js");
   }
   // une version EXACTE, pas une plage : un tiers qui publie ne doit pas casser le produit
-  const src = lire("Vena.dc.html");
+  const src = lire("Vuna.dc.html");
   assert.match(src, /react@18\.3\.1\/umd\/react\.production\.min\.js/);
   assert.ok(!/react@\^|react@~|react@latest/.test(src), "aucune plage de versions");
 });
 
 test("la substitution est posée AVANT le runtime, sans toucher au fichier généré", () => {
-  const src = lire("Vena.dc.html");
+  const src = lire("Vuna.dc.html");
   const iRes = src.indexOf("window.__resources = {");
   const iSup = src.indexOf('<script src="./support.js"></script>');
   assert.ok(iRes > 0 && iSup > 0 && iRes < iSup,
@@ -58,7 +58,7 @@ function compter(texte, aiguille) {
 }
 
 test("le fichier autonome n’a plus aucun chargement de tiers", () => {
-  const solo = lire("Vena.solo.html");
+  const solo = lire("Vuna.solo.html");
   const urls = [...new Set(solo.match(/https?:\/\/[a-zA-Z0-9./@_:-]{4,90}/g) || [])];
   for (const u of urls) {
     const estPorte = PORTES.some((p) => u.includes(p));
@@ -107,7 +107,7 @@ test("la feuille de style ne va chercher aucune ressource dehors", () => {
 
 test("le chemin déclaré par l’application est celui où le fichier est publié", () => {
   // un chemin relatif qui marche en local peut ne pas résoudre sous /app
-  const src = lire("Vena.dc.html");
+  const src = lire("Vuna.dc.html");
   const declares = [...new Set((src.match(/_ds\/[^"']+/g) || []))];
   assert.ok(declares.length >= 2, "l’application doit déclarer la feuille et le paquet");
   for (const d of declares) {
@@ -122,7 +122,7 @@ test("le fichier livré porte la feuille, le paquet et les polices — aucun voi
   // rendait sans aucune forme, le bouton plein du pied en texte nu pendant que les
   // filets gardaient un liseré. solo.mjs les embarque désormais comme React et les
   // scripts MT5. Mutation : retirer l'embarquement de solo.mjs fait tomber ici.
-  const solo = lire("Vena.solo.html");
+  const solo = lire("Vuna.solo.html");
   assert.ok(!/(?:src|href)="_ds\//.test(solo),
     "le fichier livré référence encore un voisin _ds/ : en « file:// », il rend sans "
     + "aucune forme — la feuille et le paquet doivent voyager DANS le fichier");

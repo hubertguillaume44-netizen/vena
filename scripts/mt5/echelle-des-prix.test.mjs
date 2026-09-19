@@ -1,5 +1,5 @@
 // STATUT · ANGLE MORT REFERMÉ, DÉFAUT NON TROUVÉ. Cette garde est née d'un rapport —
-// AUDUSD, 423 trades côté MT5 contre 104 côté Véna, et AUDUSD est le premier instrument
+// AUDUSD, 423 trades côté MT5 contre 104 côté Vuna, et AUDUSD est le premier instrument
 // coté SOUS 1 jamais éprouvé. Elle n'a rien attrapé : mesurée, la décision du moteur est
 // invariante par changement d'échelle des prix. Elle ferme donc un angle mort réel sans
 // expliquer le rapport qui l'a fait écrire, et c'est exactement ce qu'elle affirme.
@@ -145,7 +145,7 @@ test("les séries d'exemple n'éprouvent aucun prix sous 1, et la garde le dit",
   // Tant que le générateur ne porte aucune famille sous 1, l'invariance ci-dessus est
   // la SEULE chose qui éprouve ce domaine. Le jour où une famille descend sous 1, cette
   // assertion tombe — et c'est voulu : elle redemandera si l'invariance suffit encore.
-  const APP = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
+  const APP = readFileSync(new URL("../../Vuna.dc.html", import.meta.url), "utf8");
   // `borne()` et non `indexOf` : un motif introuvable rendrait -1, une borne VALIDE
   // pour slice, et la tranche s'élargirait au fichier entier — la garde lirait alors
   // des nombres pris n'importe où en croyant lire la table des familles. C'est la prise

@@ -4,7 +4,7 @@
 // données, les mêmes séries pour tout le monde. Rien des exports d'un utilisateur
 // n'entre dans le produit.
 //
-// Le test fait tourner LE VRAI générateur, extrait de `Vena.dc.html`. Une copie du
+// Le test fait tourner LE VRAI générateur, extrait de `Vuna.dc.html`. Une copie du
 // code dans le test prouverait que la copie fonctionne, ce qui n'intéresse personne.
 //
 // LA GARDE QUI COMPTE EST LA DERNIÈRE : l'absence d'artefact exploitable. Si les
@@ -19,7 +19,7 @@ import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 
 const RACINE = new URL("../../", import.meta.url);
-const SOURCE = readFileSync(new URL("Vena.dc.html", RACINE), "utf8");
+const SOURCE = readFileSync(new URL("Vuna.dc.html", RACINE), "utf8");
 
 const DEBUT_BLOC = "// ————— LES DIX SÉRIES D'EXEMPLE SONT ENGENDRÉES, JAMAIS LIVRÉES —————";
 const FIN_BLOC = "// ————— FIN DU GÉNÉRATEUR D'EXEMPLES —————";
@@ -28,7 +28,7 @@ const FIN_BLOC = "// ————— FIN DU GÉNÉRATEUR D'EXEMPLES ————
 async function charger() {
   const i = SOURCE.indexOf(DEBUT_BLOC);
   const j = SOURCE.indexOf(FIN_BLOC);
-  assert.ok(i > 0 && j > i, "le bloc du générateur ne se délimite plus dans Vena.dc.html");
+  assert.ok(i > 0 && j > i, "le bloc du générateur ne se délimite plus dans Vuna.dc.html");
   const code = SOURCE.slice(i, j)
     + "\nexport { GRAINE_EXEMPLE, EXEMPLES, SEANCES_EXEMPLE, REGIMES_EXEMPLE,"
     + " engendrerExemple, facteurMacro, regimeDe, decalageRegime };";

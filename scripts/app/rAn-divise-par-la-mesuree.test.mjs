@@ -40,7 +40,7 @@ import { construireConfig } from "../mt5/config.mjs";
 import { borne } from "../lib/tranche.mjs";
 
 const M = await chargerMoteur();
-const APP = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
+const APP = readFileSync(new URL("../../Vuna.dc.html", import.meta.url), "utf8");
 const AN = 365.25 * 86400000;
 
 /** Une série qui bouge `jourMort` jours, puis devient quasi plate : la configuration
@@ -209,9 +209,9 @@ test("la mention du silence porte une date ABSOLUE, et le seuil est nommé", () 
 import { existsSync } from "node:fs";
 import { POSER_SEMIS, INSTANCE } from "./lib/semis.mjs";
 
-const SOLO = new URL("../../Vena.solo.html", import.meta.url).pathname;
+const SOLO = new URL("../../Vuna.solo.html", import.meta.url).pathname;
 const CHROMIUMS = [
-  process.env.VENA_CHROMIUM,
+  process.env.VUNA_CHROMIUM,
   "/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
 ].filter(Boolean);
 

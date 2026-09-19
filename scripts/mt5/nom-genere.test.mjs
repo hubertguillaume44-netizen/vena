@@ -49,18 +49,18 @@ function chaines(source) {
 
 test("le nom de fichier produit ne porte que le nouveau nom", () => {
   const nom = nomRobot(CFG, "260914_0000");
-  assert.match(nom, /^Vena_/,
-    "nomRobot() ne préfixe plus « Vena_ » — le littéral de nomRobot() a changé : " + nom);
+  assert.match(nom, /^Vuna_/,
+    "nomRobot() ne préfixe plus « Vuna_ » — le littéral de nomRobot() a changé : " + nom);
   assert.ok(!/sivula|simula/i.test(nom), "nomRobot() rend encore l'ancien nom : " + nom);
-  // sans accent : nomRobot écrase tout non-alphanumérique, « Véna » deviendrait « V_na »
+  // sans accent : nomRobot écrase tout non-alphanumérique, « Vuna » deviendrait « V_na »
   assert.ok(!nom.startsWith("V_na"), "un accent est entré dans le littéral de nomRobot() : " + nom);
 });
 
-test("la marque des ordres est VNA_<build> — et elle n'est JAMAIS relue (remesuré)", () => {
+test("la marque des ordres est VUNA_<build> — et elle n'est JAMAIS relue (remesuré)", () => {
   // ce qui AGIT : les deux appels qui posent la marque chez le courtier
-  const poses = SRC.match(/trade\.(Buy|Sell)\(lots, _Symbol, prix, stop, objectif, "VNA_260914_0000"\)/g) || [];
+  const poses = SRC.match(/trade\.(Buy|Sell)\(lots, _Symbol, prix, stop, objectif, "VUNA_260914_0000"\)/g) || [];
   assert.equal(poses.length, 2,
-    "les deux ordres (Buy et Sell) doivent porter la marque VNA_<build>, vu " + poses.length);
+    "les deux ordres (Buy et Sell) doivent porter la marque VUNA_<build>, vu " + poses.length);
   // Le renommage n'est sans risque QUE si la marque n'est qu'une étiquette pour l'œil :
   // tout appariement passe par le magique, et le commentaire d'ordre n'est jamais relu.
   // Remesuré ici, pas cru sur parole — c'est le genre d'affirmation qui se périme.
@@ -70,18 +70,26 @@ test("la marque des ordres est VNA_<build> — et elle n'est JAMAIS relue (remes
     "le commentaire d'ordre est RELU quelque part : le renommage de la marque cesse d'être sans risque");
 });
 
-test("le panneau écrit sous VNA_PAN_, et balaie l'ancien préfixe une fois, à OnInit", () => {
+test("le panneau écrit sous VUNA_PAN_, et balaie les DEUX anciens préfixes, à OnInit", () => {
   // la déclaration qui agit
-  assert.ok(SRC.includes('#define PAN_PREF "VNA_PAN_"'), "le préfixe du panneau doit être VNA_PAN_");
+  assert.ok(SRC.includes('#define PAN_PREF "VUNA_PAN_"'), "le préfixe du panneau doit être VUNA_PAN_");
   // La marque temporaire, reliée à sa condition : tant que PAN_PREF ne s'écrit plus
   // « SIV_PAN_ », les objets de l'ancien préfixe peuvent rester orphelins sur le
   // graphique (terminal fermé brutalement, .ex5 remplacé à chaud) — le balayage
   // unique doit donc exister, dans OnInit, et une seule fois.
-  const balayages = SRC.match(/ObjectsDeleteAll\(0, "SIV_PAN_"\);/g) || [];
-  assert.equal(balayages.length, 1, "le balayage unique de SIV_PAN_ doit exister, une fois — vu " + balayages.length);
-  const onInit = SRC.slice(borne(SRC, "int OnInit()"), borne(SRC, "void OnTick"));
-  assert.ok(onInit.includes('ObjectsDeleteAll(0, "SIV_PAN_");'),
-    "le balayage doit vivre dans OnInit — avant le premier dessin du panneau neuf");
+  // DEUX BALAYAGES DEPUIS LE SECOND RENOMMAGE, et c'est le compte qui garde : un
+  // robot compilé avant le 14/09 laisse du SIV_PAN_, un robot compilé entre le 14 et
+  // le 19/09 laisse du VNA_PAN_. N'en balayer qu'un laissait la seconde génération
+  // d'objets sous le panneau neuf — le défaut même que ce balayage ferme. Chaque
+  // renommage en ajoute un, et le compte le dit.
+  for (const vieux of ["SIV_PAN_", "VNA_PAN_"]) {
+    const balayages = SRC.match(new RegExp('ObjectsDeleteAll\\(0, "' + vieux + '"\\);', "g")) || [];
+    assert.equal(balayages.length, 1,
+      "le balayage unique de " + vieux + " doit exister, une fois — vu " + balayages.length);
+    const onInit = SRC.slice(borne(SRC, "int OnInit()"), borne(SRC, "void OnTick"));
+    assert.ok(onInit.includes('ObjectsDeleteAll(0, "' + vieux + '");'),
+      "le balayage de " + vieux + " doit vivre dans OnInit — avant le premier dessin");
+  }
 });
 
 test("une rangée au-delà de PAN_MAX se JOURNALISE au lieu de disparaître", () => {

@@ -113,7 +113,7 @@ test("replié et ARRÊTÉ, la rangée porte le MOTIF — jamais le seul mot", ()
 
 test("le motif de l'arrêt distingue les TROIS causes, chacune avec son geste", () => {
   const t0 = borne(SRC, "bool EtatRobot(string &motif, string &geste)");
-  const t1 = borne(SRC, "\nstruct PosVena", t0);
+  const t1 = borne(SRC, "\nstruct PosVuna", t0);
   const bloc = SRC.slice(t0, t1);
   const motifs = [...bloc.matchAll(/motif = "([^"]+)"/g)].map((m) => m[1]);
   const gestes = [...bloc.matchAll(/geste = "([^"]+)"/g)].map((m) => m[1]);
@@ -148,13 +148,13 @@ test("le clic se filtre sur le NOM de l'objet, jamais sur une position d'écran"
 test("le pli survit au redémarrage, et se relit APRÈS les entrées effectives", () => {
   // La clé porte le symbole ET le magique : deux robots sur deux graphiques du même
   // symbole ne partagent pas leur pli.
-  une(/string PliCle\(\) \{ return "VNA_PLIE_" \+ _Symbol \+ "_" \+ IntegerToString\(InpMagic\); \}/g,
+  une(/string PliCle\(\) \{ return "VUNA_PLIE_" \+ _Symbol \+ "_" \+ IntegerToString\(InpMagic\); \}/g,
     "la clé du pli");
   une(/GlobalVariableSet\(PliCle\(\), g_plie \? 1\.0 : 0\.0\);/g, "l'écriture du pli");
 
   // L'ORDRE est le sujet, pas la présence — la forme de dimension-devise : un panneau
   // replié cache des chiffres, jamais ce avec quoi le robot a DÉMARRÉ.
-  const entrees = borne(SRC, "VÉNA ENTRÉES EFFECTIVES 2/2");
+  const entrees = borne(SRC, "VUNA ENTRÉES EFFECTIVES 2/2");
   const relu = borne(SRC, "   g_plie = (GlobalVariableCheck(PliCle())");
   assert.ok(relu > entrees,
     "le pli est relu AVANT la ligne des entrées effectives : les deux lignes qui disent "

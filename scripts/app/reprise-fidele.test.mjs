@@ -35,9 +35,9 @@ import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { POSER_SEMIS, INSTANCE } from "./lib/semis.mjs";
 
-const SOLO = new URL("../../Vena.solo.html", import.meta.url).pathname;
+const SOLO = new URL("../../Vuna.solo.html", import.meta.url).pathname;
 const CHROMIUMS = [
-  process.env.VENA_CHROMIUM,
+  process.env.VUNA_CHROMIUM,
   "/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
 ].filter(Boolean);
 

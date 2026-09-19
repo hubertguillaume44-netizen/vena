@@ -16,7 +16,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { chainesLivrees } from "./chaines-livrees.mjs";
 
-const SOURCE = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
+const SOURCE = readFileSync(new URL("../../Vuna.dc.html", import.meta.url), "utf8");
 const bloc = (debut, fin) => {
   const i = SOURCE.indexOf(debut);
   assert.ok(i > 0, `introuvable : ${debut.slice(0, 50)}`);

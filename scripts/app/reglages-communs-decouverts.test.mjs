@@ -30,9 +30,9 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { POSER_SEMIS, INSTANCE } from "./lib/semis.mjs";
 
-const APP = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
-const SOLO = new URL("../../Vena.solo.html", import.meta.url).pathname;
-const CHROMIUMS = [process.env.VENA_CHROMIUM,
+const APP = readFileSync(new URL("../../Vuna.dc.html", import.meta.url), "utf8");
+const SOLO = new URL("../../Vuna.solo.html", import.meta.url).pathname;
+const CHROMIUMS = [process.env.VUNA_CHROMIUM,
   "/opt/pw-browsers/chromium-1194/chrome-linux/chrome"].filter(Boolean);
 
 test("la note des réglages communs est une INTERSECTION, pas une liste", () => {
@@ -56,14 +56,14 @@ test("ce qui est commun monte, ce qui distingue reste sur sa rangée", { timeout
   try { ({ chromium } = await import("playwright")); }
   catch (e) {
     assert.fail("Cette garde mesure un DÉPLACEMENT à l'écran — playwright est "
-      + "introuvable. Installez-le, ou posez VENA_CHROMIUM. Elle ne saute pas en "
+      + "introuvable. Installez-le, ou posez VUNA_CHROMIUM. Elle ne saute pas en "
       + "silence : un correctif de mise en page qui change le conteneur sans déplacer "
       + "ce qui est imbriqué dedans passe toutes les gardes de source du dépôt.");
   }
   const executablePath = CHROMIUMS.find((c) => existsSync(c));
   const nav = await chromium.launch(executablePath ? { executablePath } : {})
     .catch(() => assert.fail("Chromium introuvable : installez les navigateurs playwright "
-      + "ou posez VENA_CHROMIUM. Cette garde ne saute pas."));
+      + "ou posez VUNA_CHROMIUM. Cette garde ne saute pas."));
   try {
     const p = await (await nav.newContext({ viewport: { width: 1440, height: 1000 } })).newPage();
     const exceptions = [];

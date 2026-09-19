@@ -4,7 +4,7 @@
 // ————— UNE RÈGLE MESURÉE SUR UN INSTRUMENT, APPLIQUÉE À TOUS —————
 //
 // Hors séance — ou sur une bougie reconstituée — le moteur ne teste NI le stop NI
-// l'objectif : la boucle saute, seul le palier bouge. Véna ne peut donc pas perdre un
+// l'objectif : la boucle saute, seul le palier bouge. Vuna ne peut donc pas perdre un
 // trade sur une telle bougie, alors que le stop d'un robot dort dans le carnet du
 // courtier et s'y exécute.
 //
@@ -46,7 +46,7 @@ import { readFileSync } from "node:fs";
 import { borne } from "../lib/tranche.mjs";
 
 const MOTEUR = readFileSync(new URL("../../moteur.js", import.meta.url), "utf8");
-const APP = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
+const APP = readFileSync(new URL("../../Vuna.dc.html", import.meta.url), "utf8");
 
 test("les bougies sautées qui franchissaient un niveau sont COMPTÉES", () => {
   // ancré sur ce qui AGIT : la garde de séance et l'incrément, pas sur un commentaire

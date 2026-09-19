@@ -1,7 +1,7 @@
 // ————— CE QU'UN ÉCHEC LAISSE DERRIÈRE LUI —————
 //
 // La classe qu'aucune garde du dépôt ne couvrait : tout y vérifie ce qu'un geste
-// produit quand il RÉUSSIT. Le cas réel : six « vena-sauvegarde.json.crswap »,
+// produit quand il RÉUSSIT. Le cas réel : six « vuna-sauvegarde.json.crswap »,
 // « .9.crswap », « .10.crswap » sur le disque d'un utilisateur qui n'avait rien
 // exporté — un par écriture avortée, une par minute, en boucle depuis un jour.
 //
@@ -18,8 +18,8 @@
 // COMPORTEMENT vérifie qu'abort est réellement appelé et que la relance s'arrête.
 //
 // ÉPROUVER CES DEUX-LÀ NE SE FAIT PAS AU MÊME ENDROIT, et une mutation l'a
-// montré en restant VERTE : la structurelle lit Vena.dc.html, celle du
-// comportement charge Vena.solo.html. Muter la source sans régénérer l'artefact
+// montré en restant VERTE : la structurelle lit Vuna.dc.html, celle du
+// comportement charge Vuna.solo.html. Muter la source sans régénérer l'artefact
 // laisse le banc mesurer l'ancien code — la mutation semble « ne rien casser »
 // alors qu'elle n'a rien atteint. Une garde de rendu se mute DANS L'ARTEFACT.
 //
@@ -32,10 +32,10 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { borne } from "../lib/tranche.mjs";
 
-const APP = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
-const SOLO = new URL("../../Vena.solo.html", import.meta.url).pathname;
+const APP = readFileSync(new URL("../../Vuna.dc.html", import.meta.url), "utf8");
+const SOLO = new URL("../../Vuna.solo.html", import.meta.url).pathname;
 const CHROMIUMS = [
-  process.env.VENA_CHROMIUM,
+  process.env.VUNA_CHROMIUM,
   "/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
 ].filter(Boolean);
 
@@ -87,7 +87,7 @@ test("après deux échecs la sauvegarde automatique s'arrête, avorte, et le dit
   catch (e) { assert.fail("playwright introuvable — cette garde ne saute pas en silence."); }
   const executablePath = CHROMIUMS.find((c) => existsSync(c));
   const nav = await chromium.launch(executablePath ? { executablePath } : {})
-    .catch(() => assert.fail("Chromium introuvable : posez VENA_CHROMIUM — cette garde ne saute pas."));
+    .catch(() => assert.fail("Chromium introuvable : posez VUNA_CHROMIUM — cette garde ne saute pas."));
   try {
     const p = await (await nav.newContext()).newPage();
     await p.goto("file://" + SOLO);
@@ -109,7 +109,7 @@ test("après deux échecs la sauvegarde automatique s'arrête, avorte, et le dit
       // fait un quota atteint ou une lecture de bloc qui échoue
       const compte = { ouverts: 0, avortes: 0, fermes: 0, tentatives: 0 };
       inst.handleAuto = {
-        name: "vena-sauvegarde.json",
+        name: "vuna-sauvegarde.json",
         queryPermission: async () => "granted",
         requestPermission: async () => "granted",
         createWritable: async () => {

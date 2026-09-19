@@ -37,7 +37,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { borne } from "../lib/tranche.mjs";
 
-const APP = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
+const APP = readFileSync(new URL("../../Vuna.dc.html", import.meta.url), "utf8");
 const SEMIS = readFileSync(new URL("./lib/semis.mjs", import.meta.url), "utf8");
 
 test("le message de l'export de robot est rendu sur la vue où le geste se fait", () => {

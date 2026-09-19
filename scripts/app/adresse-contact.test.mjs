@@ -31,7 +31,7 @@ function litteraux(source) {
   return out;
 }
 
-for (const fichier of ["Vena.dc.html", "Vena.solo.html"]) {
+for (const fichier of ["Vuna.dc.html", "Vuna.solo.html"]) {
   test(`${fichier} : aucune adresse en dur hors de MAIL_CONTACT`, () => {
     const vus = litteraux(lire(fichier));
     assert.deepEqual(vus.map((v) => `l.${v.ligne} — ${v.adresse}`), [],
@@ -40,7 +40,7 @@ for (const fichier of ["Vena.dc.html", "Vena.solo.html"]) {
 }
 
 test("la constante existe, et porte une adresse qui n’est pas un nom civil", () => {
-  const src = lire("Vena.dc.html");
+  const src = lire("Vuna.dc.html");
   const m = src.match(/const MAIL_CONTACT = '([^']+)';/);
   assert.ok(m, "MAIL_CONTACT a disparu : l’adresse est redevenue une copie parmi d’autres");
   assert.match(m[1], ADRESSE, `« ${m[1]} » n’est pas une adresse`);
@@ -49,7 +49,7 @@ test("la constante existe, et porte une adresse qui n’est pas un nom civil", (
 });
 
 test("le href ET le texte viennent de la même valeur", () => {
-  const src = lire("Vena.dc.html");
+  const src = lire("Vuna.dc.html");
   // Chaque lien lit les DEUX trous — jamais une adresse recopiée. On ne compte plus les
   // emplacements : un nombre en dur fait échouer le test le jour où l'adresse rend
   // service à un endroit de plus, pour une raison qui n'a rien à voir avec ce qu'il
@@ -68,7 +68,7 @@ test("le href ET le texte viennent de la même valeur", () => {
 });
 
 test("l’adresse n’est ni obfusquée ni remplacée par un formulaire", () => {
-  const src = lire("Vena.dc.html");
+  const src = lire("Vuna.dc.html");
   // un moissonneur sérieux n'est arrêté par aucune des deux, et l'une comme l'autre
   // retire le clic à quelqu'un qui a perdu sa clé — donc déjà contrarié
   assert.ok(!/&#\d+;@|\[at\]| chez .*point /i.test(src), "l’adresse est obfusquée");
@@ -78,7 +78,7 @@ test("l’adresse n’est ni obfusquée ni remplacée par un formulaire", () => 
 // ————— LES DEUX FAUX POSITIFS À NE PAS ATTRAPER —————
 
 test("le champ du courriel d’achat existe encore, et n’est pas une adresse", () => {
-  const src = lire("Vena.dc.html");
+  const src = lire("Vuna.dc.html");
   // LE CHAMP DOIT CONTINUER D'EXISTER : ce test échouerait si on l'avait supprimé par
   // zèle en croyant retirer une adresse. Il n'est plus reconnu à son texte d'attente —
   // il porte désormais un LIBELLÉ, qui ne disparaît pas à la première frappe — mais à
@@ -93,7 +93,7 @@ test("le champ du courriel d’achat existe encore, et n’est pas une adresse",
 });
 
 test("la mention nominative de licence porte l’adresse de l’ACHETEUR, pas la nôtre", () => {
-  const src = lire("Vena.dc.html");
+  const src = lire("Vuna.dc.html");
   // elle est là pour décourager le prêt d'un code : on n'y touche pas. La donnée est
   // saisie à l'exécution, donc elle n'est jamais un littéral du source.
   assert.match(src, /licenceMention\(\)/, "la mention nominative a disparu");

@@ -57,7 +57,7 @@ function nombres(objet) {
     .map((m) => Number(m[0].replace(/_/g, "")));
 }
 
-for (const fichier of ["Vena.dc.html", "Vena.solo.html"]) {
+for (const fichier of ["Vuna.dc.html", "Vuna.solo.html"]) {
   test(`${fichier} : aucun montant en dur dans l’état initial`, () => {
     const { texte } = objetEtat(lire(fichier));
     const gros = [...new Set(nombres(texte).filter((n) => n >= SEUIL))].sort((a, b) => a - b);
@@ -69,7 +69,7 @@ for (const fichier of ["Vena.dc.html", "Vena.solo.html"]) {
 }
 
 test("le capital de départ lit une constante, déclarée hors de l’objet", () => {
-  const src = lire("Vena.dc.html");
+  const src = lire("Vuna.dc.html");
   const { texte, ouvre } = objetEtat(src);
 
   // l'état lit un NOM, pas un nombre — c'est ce qui rend la valeur trouvable et unique
@@ -95,7 +95,7 @@ test("le capital de départ lit une constante, déclarée hors de l’objet", ()
 test("le seuil garde une marge : l’état n’effleure pas 1000 par ailleurs", () => {
   // si un jour un réglage légitime approche le seuil, ce test le dira AVANT que le
   // suivant ne devienne un faux positif à désamorcer dans l'urgence
-  const { texte } = objetEtat(lire("Vena.dc.html"));
+  const { texte } = objetEtat(lire("Vuna.dc.html"));
   const max = Math.max(...nombres(texte));
   assert.ok(max < SEUIL / 2,
     `un réglage vaut ${max}, trop proche du seuil de ${SEUIL} : révisez la règle plutôt `

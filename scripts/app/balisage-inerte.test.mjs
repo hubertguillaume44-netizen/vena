@@ -6,7 +6,7 @@
 // défaut réel, mais d'une autre nature. » Mesuré : c'en étaient.
 //
 // LE COMPTE DE LA SOURCE N'EST PAS LE COMPTE DE L'ÉCRAN, ET L'ÉCART EST DE 29.
-// `Vena.dc.html` porte 35 affectations d'un gestionnaire vide sur un champ que le
+// `Vuna.dc.html` porte 35 affectations d'un gestionnaire vide sur un champ que le
 // gabarit lie à un `onClick`. Rendues, dans les sept vues à l'état peuplé, SIX
 // seulement atteignent l'utilisateur : les 29 autres vivent dans des branches dont
 // l'élément est masqué ou grisé. Une garde de source aurait donc réclamé 35
@@ -43,9 +43,9 @@ import { existsSync } from "node:fs";
 import { POSER_SEMIS, INSTANCE } from "./lib/semis.mjs";
 import { VUES, CLIC_CONTIENT, CLIC_EXACT } from "./lib/vues.mjs";
 
-const SOLO = new URL("../../Vena.solo.html", import.meta.url).pathname;
+const SOLO = new URL("../../Vuna.solo.html", import.meta.url).pathname;
 const CHROMIUMS = [
-  process.env.VENA_CHROMIUM,
+  process.env.VUNA_CHROMIUM,
   "/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
 ].filter(Boolean);
 
@@ -87,14 +87,14 @@ test("aucun élément annoncé cliquable ne porte un geste vide", { timeout: 300
   try { ({ chromium } = await import("playwright")); }
   catch {
     assert.fail("Cette garde résout le VRAI fichier dans un VRAI navigateur — playwright "
-      + "est introuvable. Installez-le, ou posez VENA_CHROMIUM sur un exécutable "
+      + "est introuvable. Installez-le, ou posez VUNA_CHROMIUM sur un exécutable "
       + "Chromium. Elle ne saute PAS en silence : une garde de rendu qui saute est "
       + "une garde aveugle, et c'est le mode de panne qu'on ferme ici.");
   }
   const executablePath = CHROMIUMS.find((c) => existsSync(c));
   const nav = await chromium.launch(executablePath ? { executablePath } : {})
     .catch(() => assert.fail("Chromium introuvable : installez les navigateurs playwright "
-      + "ou posez VENA_CHROMIUM. Cette garde ne saute pas."));
+      + "ou posez VUNA_CHROMIUM. Cette garde ne saute pas."));
   try {
     const p = await (await nav.newContext()).newPage();
     const exceptions = [];

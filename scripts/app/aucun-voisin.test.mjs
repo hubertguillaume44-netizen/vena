@@ -27,9 +27,9 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { borne, borneArriere } from "../lib/tranche.mjs";
 
-const SOLO = new URL("../../Vena.solo.html", import.meta.url).pathname;
+const SOLO = new URL("../../Vuna.solo.html", import.meta.url).pathname;
 const CHROMIUMS = [
-  process.env.VENA_CHROMIUM,
+  process.env.VUNA_CHROMIUM,
   "/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
 ].filter(Boolean);
 
@@ -39,7 +39,7 @@ test("le fichier livré n'émet aucune requête voisine pendant une session comp
   catch (e) { assert.fail("playwright introuvable — cette garde ne saute pas en silence."); }
   const executablePath = CHROMIUMS.find((c) => existsSync(c));
   const nav = await chromium.launch(executablePath ? { executablePath } : {})
-    .catch(() => assert.fail("Chromium introuvable : posez VENA_CHROMIUM — cette garde ne saute pas."));
+    .catch(() => assert.fail("Chromium introuvable : posez VUNA_CHROMIUM — cette garde ne saute pas."));
   try {
     const ctx = await nav.newContext({ acceptDownloads: true });
     const p = await ctx.newPage();
@@ -84,7 +84,7 @@ test("le fichier livré n'émet aucune requête voisine pendant une session comp
     assert.ok(dl, "l'export n'a produit AUCUN téléchargement : le blob a été libéré trop tôt, "
       + "ou exporterTout a jeté — voir export-fiable.test.mjs");
     const contenu = JSON.parse(readFileSync(await dl.path(), "utf8"));
-    assert.equal(contenu.outil, "vena", "le fichier exporté ne se déclare pas comme une sauvegarde Véna");
+    assert.equal(contenu.outil, "vuna", "le fichier exporté ne se déclare pas comme une sauvegarde Vuna");
     assert.ok(contenu.donnees && typeof contenu.donnees === "object", "le fichier exporté ne porte pas de données");
     // et les scripts MT5, l'autre téléchargement de la session
     for (const ch of await p.$$('button:has-text("déplier")')) await ch.click().catch(() => {});

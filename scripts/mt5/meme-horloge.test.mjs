@@ -5,12 +5,12 @@
 //
 // Le rapport #HongKong50 porte `InpPasDebutSemaine = true` : le robot refuse le dimanche
 // et le lundi avant 02:00. Sur un instrument asiatique, dont la séance ouvre le dimanche
-// soir en heure européenne, une règle que Véna n'appliquerait pas — ou appliquerait sur
+// soir en heure européenne, une règle que Vuna n'appliquerait pas — ou appliquerait sur
 // une AUTRE horloge — déplacerait exactement le genre de douzaine de trades qu'on
 // cherchait. Mesuré : les deux appliquent la même règle, et lisent la même horloge.
 //
 //   robot-mt5.js       TimeToStruct(TimeCurrent(), …)  → heure SERVEUR du courtier
-//   Export_H1_Vena.mq5 TimeToString(r[i].time, …)      → la même, écrite en horloge murale
+//   Export_H1_Vuna.mq5 TimeToString(r[i].time, …)      → la même, écrite en horloge murale
 //   moteur.js lireCsv  Date.UTC(an, mois-1, jour, h, m) → cette horloge murale, RANGÉE en UTC
 //   moteur.js executable getUTCDay() / getUTCHours()    → relit donc l'heure SERVEUR
 //
@@ -44,7 +44,7 @@
 // même convention sans qu'aucune garde ne le vérifie, et une conversion de fuseau posée
 // dans `lireCsv` les emporterait toutes ensemble.
 //
-// Elle ne tient pas non plus l'instant où chacun applique la règle — Véna la pose sur
+// Elle ne tient pas non plus l'instant où chacun applique la règle — Vuna la pose sur
 // l'ouverture de la bougie, le robot sur le tick de sa tentative. À l'heure près les deux
 // coïncident ; une règle future qui descendrait sous l'heure sortirait de sa prise sans
 // qu'elle le dise.
@@ -54,7 +54,7 @@ import { readFileSync } from "node:fs";
 import { borne } from "../lib/tranche.mjs";
 
 const ROBOT = readFileSync(new URL("../../robot-mt5.js", import.meta.url), "utf8");
-const EXPORT = readFileSync(new URL("../../Export_H1_Vena.mq5", import.meta.url), "utf8");
+const EXPORT = readFileSync(new URL("../../Export_H1_Vuna.mq5", import.meta.url), "utf8");
 const MOTEUR = readFileSync(new URL("../../moteur.js", import.meta.url), "utf8");
 
 test("le robot et le moteur refusent le MÊME début de semaine", () => {
@@ -64,7 +64,7 @@ test("le robot et le moteur refusent le MÊME début de semaine", () => {
     + "sur la règle qu'elle compare.");
   assert.match(ROBOT, /if\(t\.day_of_week == 1 && t\.hour < 2\)/,
     "le robot ne refuse plus le lundi avant 02:00, ou plus sous ce seuil. Si le seuil "
-    + "change d'un côté seulement, Véna entre des heures avant le robot — c'est la "
+    + "change d'un côté seulement, Vuna entre des heures avant le robot — c'est la "
     + "panne déjà mesurée à 90 trades sur 434 sur BITCOIN.");
 
   // le moteur : le même jour, le même seuil, dans `executable`
@@ -82,7 +82,7 @@ test("les quatre maillons lisent la même horloge, et c'est celle du SERVEUR", (
   assert.match(ROBOT, /MqlDateTime t; TimeToStruct\(TimeCurrent\(\), t\);/,
     "le robot ne lit plus `TimeCurrent()` pour décider du début de semaine. S'il passait "
     + "à `TimeGMT()`, il déciderait sur une autre horloge que celle des bougies "
-    + "exportées, et l'accord avec Véna tomberait en silence.");
+    + "exportées, et l'accord avec Vuna tomberait en silence.");
   // 2 · l'export écrit cette même heure, en horloge murale
   assert.match(EXPORT, /TimeToString\(r\[i\]\.time, TIME_DATE \| TIME_MINUTES\)/,
     "l'export n'écrit plus l'heure de la bougie telle que le serveur la donne. Toute "

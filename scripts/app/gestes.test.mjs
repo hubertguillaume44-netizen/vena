@@ -39,9 +39,9 @@ import { POSER_SEMIS } from "./lib/semis.mjs";
 import { VUES, PAGES } from "./lib/vues.mjs";
 import path from "node:path";
 
-const SOLO = new URL("../../Vena.solo.html", import.meta.url).pathname;
+const SOLO = new URL("../../Vuna.solo.html", import.meta.url).pathname;
 const CHROMIUMS = [
-  process.env.VENA_CHROMIUM,
+  process.env.VUNA_CHROMIUM,
   "/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
 ].filter(Boolean);
 // ————— SEPT VUES, PAS TROIS PAGES —————
@@ -154,7 +154,7 @@ const EXCLUS = new Map([
 // destination — c'est son état légitime, pas un défaut — et il reste MESURÉ
 // depuis toutes les autres pages, où il doit réagir.
 const EXCLUS_SUR = new Map([
-  ["Mes instruments · VÉNA", "« Revenir à Mes instruments » est sans effet quand on y est ; mesuré depuis les deux autres pages"],
+  ["Mes instruments · VUNA", "« Revenir à Mes instruments » est sans effet quand on y est ; mesuré depuis les deux autres pages"],
   ["Mes scans · Nouveau scan", "le bouton de la vue déjà active ; mesuré depuis les deux autres pages"],
   ["Mes décisions · Portefeuille", "le bouton de la vue déjà active ; mesuré depuis les deux autres pages"],
 ]);
@@ -165,7 +165,7 @@ async function lancerNavigateur() {
   catch (e) { assert.fail("playwright introuvable — cette garde ne saute pas en silence."); }
   const executablePath = CHROMIUMS.find((c) => existsSync(c));
   return chromium.launch(executablePath ? { executablePath } : {})
-    .catch(() => assert.fail("Chromium introuvable : posez VENA_CHROMIUM — cette garde ne saute pas."));
+    .catch(() => assert.fail("Chromium introuvable : posez VUNA_CHROMIUM — cette garde ne saute pas."));
 }
 
 // ————— LA TOURNÉE S'EXÉCUTE SUR L'ÉTAT PEUPLÉ, ET C'EST LA RÈGLE 10 —————
@@ -889,7 +889,7 @@ test("« Réautoriser » sans poignée dit ce qui se passe et offre le choix", {
         && f.stateNode.constructor.name === "StreamableComponent")) f = f.return;
       const inst = f.stateNode.logic;
       inst.handleAuto = null;
-      inst.setState({ autoNom: "vena-sauvegarde.json", autoAttente: true,
+      inst.setState({ autoNom: "vuna-sauvegarde.json", autoAttente: true,
         autoMsg: "Sauvegarde automatique en attente : cliquez « Réautoriser »." });
     });
     await p.waitForTimeout(300);

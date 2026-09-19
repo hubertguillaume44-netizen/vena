@@ -15,7 +15,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { borne, borneArriere } from "../lib/tranche.mjs";
 
-const SOURCE = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
+const SOURCE = readFileSync(new URL("../../Vuna.dc.html", import.meta.url), "utf8");
 
 /** Les ouvertures de « vena.auto » : version demandée et magasins créés. */
 function ouvertures() {

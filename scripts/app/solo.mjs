@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * Fabrique `Vena.solo.html` : l'application ENTIÈRE dans un seul fichier.
+ * Fabrique `Vuna.solo.html` : l'application ENTIÈRE dans un seul fichier.
  *
- * `Vena.dc.html` importe quatre modules voisins et démarre un worker sur un
+ * `Vuna.dc.html` importe quatre modules voisins et démarre un worker sur un
  * cinquième. C'est la bonne structure pour travailler — une seule source par module,
  * pas de copie qui dérive — mais elle interdit de déposer l'application quelque part
  * qui n'accepte qu'un fichier, et elle échoue en `file://` sans le moindre message.
@@ -49,7 +49,7 @@ const modules = {
 modules.scanNoyau = remplacer(modules.scanNoyau, "'./moteur.js'", "'__URL_MOTEUR__'", "scan-noyau.js");
 modules.worker = remplacer(modules.worker, "'./scan-noyau.js'", "'__URL_SCANNOYAU__'", "scan-worker.js");
 
-let html = lire("Vena.dc.html");
+let html = lire("Vuna.dc.html");
 
 // ————— LE SYSTÈME DE DESIGN VOYAGE DANS LE FICHIER —————
 // La feuille et le paquet étaient les DERNIERS voisins : ouvert en « file:// » — le
@@ -70,12 +70,12 @@ if (dsCss.includes("url(fonts/")) {
 html = remplacer(html,
   '<link rel="stylesheet" href="_ds/industry-cbc1f2df-2f0f-4cb9-a754-a8a64e9401b6/styles.css">',
   '<link rel="stylesheet" href="data:text/css;base64,' + Buffer.from(dsCss, "utf8").toString("base64") + '">',
-  "Vena.dc.html");
+  "Vuna.dc.html");
 html = remplacer(html,
   '<script src="_ds/industry-cbc1f2df-2f0f-4cb9-a754-a8a64e9401b6/_ds_bundle.js"></script>',
   '<script src="data:text/javascript;base64,'
     + Buffer.from(lire(DS_DIR + "/_ds_bundle.js"), "utf8").toString("base64") + '"></script>',
-  "Vena.dc.html");
+  "Vuna.dc.html");
 
 // `support.js` — le runtime DC — est chargé par une balise voisine : on l'intègre.
 //
@@ -87,7 +87,7 @@ html = remplacer(html,
 html = remplacer(html, '<script src="./support.js"></script>',
   '<script src="data:text/javascript;base64,'
     + Buffer.from(lire("support.js"), "utf8").toString("base64") + '"></script>',
-  "Vena.dc.html");
+  "Vuna.dc.html");
 
 // ————— REACT VOYAGE DANS LE FICHIER —————
 // La source pointe `window.__resources` vers `./vendor/…` : des chemins voisins, qui ne
@@ -106,7 +106,7 @@ for (const [url, f] of Object.entries(REACT)) reactB64[url] = Buffer.from(lire(f
 const iRes = borne(html, "  window.__resources = {");
 const vieuxResources = html.slice(iRes, borne(html, "};", iRes) + 3);
 if (!vieuxResources.includes("unpkg.com/react")) {
-  throw new Error("solo.mjs : le bloc window.__resources de Vena.dc.html a changé de forme");
+  throw new Error("solo.mjs : le bloc window.__resources de Vuna.dc.html a changé de forme");
 }
 html = remplacer(html, vieuxResources, `  var __R = ${JSON.stringify(reactB64)};
   window.__resources = {};
@@ -114,19 +114,19 @@ html = remplacer(html, vieuxResources, `  var __R = ${JSON.stringify(reactB64)};
     window.__resources[__u] = URL.createObjectURL(new Blob(
       [Uint8Array.from(atob(__R[__u]), function (c) { return c.charCodeAt(0); })],
       { type: "text/javascript" }));
-  }`, "Vena.dc.html");
+  }`, "Vuna.dc.html");
 
 // Les cinq motifs par lesquels la page nomme un fichier voisin — SIX occurrences :
 // `robot-mt5.js` est nommé deux fois, à l'export et au préchargement du juge du
 // refus. `remplacer` remplace TOUTES les occurrences (split/join), donc les deux
 // sont réécrites ; compter les motifs et non les points l'avait fait croire unique.
 html = remplacer(html,
-  "await import('./robot-mt5.js?v=' + (window.__venaRobotV || Date.now()))",
-  "await import(window.__siv.robot)", "Vena.dc.html");
-html = remplacer(html, "import('./conformite-noyau.js')", "import(window.__siv.conf)", "Vena.dc.html");
-html = remplacer(html, "await import('./moteur.js')", "await import(window.__siv.moteur)", "Vena.dc.html");
-html = remplacer(html, "await import('./scan-noyau.js')", "await import(window.__siv.scanNoyau)", "Vena.dc.html");
-html = remplacer(html, "new URL('./scan-worker.js', location.href)", "window.__siv.worker", "Vena.dc.html");
+  "await import('./robot-mt5.js?v=' + (window.__vunaRobotV || Date.now()))",
+  "await import(window.__siv.robot)", "Vuna.dc.html");
+html = remplacer(html, "import('./conformite-noyau.js')", "import(window.__siv.conf)", "Vuna.dc.html");
+html = remplacer(html, "await import('./moteur.js')", "await import(window.__siv.moteur)", "Vuna.dc.html");
+html = remplacer(html, "await import('./scan-noyau.js')", "await import(window.__siv.scanNoyau)", "Vuna.dc.html");
+html = remplacer(html, "new URL('./scan-worker.js', location.href)", "window.__siv.worker", "Vuna.dc.html");
 
 // Le préambule, en tête de <head> : il crée les Blob URL AVANT que quoi que ce soit ne
 // démarre. L'ordre compte — le moteur d'abord, puisque scan-noyau en dépend, et
@@ -139,7 +139,7 @@ for (const [k, v] of Object.entries(modules)) b64[k] = Buffer.from(v, "utf8").to
 // la règle 1 ; un TROISIÈME script naîtrait hors de portée de cette liste, et la garde
 // le dit dans son message.
 const scriptsMt5 = {};
-for (const f of ["Vena_Releve.mq5", "Export_H1_Vena.mq5"]) {
+for (const f of ["Vuna_Releve.mq5", "Export_H1_Vuna.mq5"]) {
   scriptsMt5[f] = Buffer.from(lire(f), "utf8").toString("base64");
 }
 
@@ -181,12 +181,12 @@ window.__sivAide = ${JSON.stringify(JSON.parse(lire("aide-index.json")))};
 // bloquée en « file:// » et rend 404 sous /app — le bouton « Les deux scripts MT5 »
 // lit cette table et n'émet plus aucune requête. Octets identiques aux fichiers du
 // dépôt, vérifiés par scripts/app/scripts-mt5-embarques.test.mjs.
-window.__venaScripts = ${JSON.stringify(scriptsMt5)};
+window.__vunaScripts = ${JSON.stringify(scriptsMt5)};
 </script>
 `;
-html = remplacer(html, "<head>", "<head>\n" + preambule, "Vena.dc.html");
+html = remplacer(html, "<head>", "<head>\n" + preambule, "Vuna.dc.html");
 
-const sortie = path.join(RACINE, "Vena.solo.html");
+const sortie = path.join(RACINE, "Vuna.solo.html");
 writeFileSync(sortie, html);
-console.log(`Vena.solo.html écrit — ${(html.length / 1048576).toFixed(2)} Mo, un seul fichier, `
+console.log(`Vuna.solo.html écrit — ${(html.length / 1048576).toFixed(2)} Mo, un seul fichier, `
   + "aucun voisin requis.");

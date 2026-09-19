@@ -110,8 +110,8 @@ export function renderWebManifest() {
     // le nom du produit, et non celui que l'outillage déduisait de l'hôte : hors d'un
     // domaine en .grok.me il retombait sur « Grok App », qui s'installait tel quel sur
     // l'écran d'accueil
-    name: "Véna — simulateur de stratégies trading",
-    short_name: "Véna",
+    name: "Vuna — simulateur de stratégies trading",
+    short_name: "Vuna",
     id: "/", start_url: "/", scope: "/", display: "standalone",
     // le papier du site, la même valeur que le meta theme-color. Le fond de démarrage
     // doit être celui que la page affiche vraiment, sinon l'ouverture flashe en noir

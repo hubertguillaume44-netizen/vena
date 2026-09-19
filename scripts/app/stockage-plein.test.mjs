@@ -14,7 +14,7 @@ import { readFileSync } from "node:fs";
 import vm from "node:vm";
 import { borne, borneArriere } from "../lib/tranche.mjs";
 
-const SOURCE = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
+const SOURCE = readFileSync(new URL("../../Vuna.dc.html", import.meta.url), "utf8");
 
 /** Un localStorage de navigateur, avec son quota — refus compris. */
 function stockage(quotaOctets = 5 * 1024 * 1024) {
@@ -199,7 +199,10 @@ test("la façade ne supprime jamais la jumelle ancienne", () => {
 // fallait du CSV, et qui a laissé l'utilisateur sans issue de secours.
 
 function chargerReconnaissance() {
-  const debut = SOURCE.indexOf("const EXT_SAUVEGARDE =");
+  // La tranche part de la LISTE NOMMÉE et non de l'extension : `texteDeSauvegarde`
+  // lit OUTILS_LUS, déclarée juste au-dessus. Commencer après elle rendait
+  // « OUTILS_LUS is not defined » — une garde qui mesure une moitié d'unité.
+  const debut = SOURCE.indexOf("const OUTILS_LUS = [");
   const fin = SOURCE.indexOf("// ————— LE REPLI DE LECTURE —————");
   assert.ok(debut > 0 && fin > debut, "le bloc de reconnaissance ne se délimite plus");
   const ctx = { String };
@@ -208,10 +211,10 @@ function chargerReconnaissance() {
   return vm.runInContext("({ nomDeSauvegarde, texteDeSauvegarde })", ctx);
 }
 
-test("une sauvegarde Véna est reconnue par son nom, dans les trois extensions", () => {
+test("une sauvegarde Vuna est reconnue par son nom, dans les trois extensions", () => {
   const { nomDeSauvegarde } = chargerReconnaissance();
-  for (const n of ["vena-2026-09-10.json", "sauvegarde.vena", "vieux-dump.sivula",
-                   "VENA-2024.JSON"]) {
+  for (const n of ["vuna-2026-09-10.json", "sauvegarde.vuna", "vieux-dump.sivula",
+                   "VUNA-2024.JSON"]) {
     assert.ok(nomDeSauvegarde(n), `refusée : ${n}`);
   }
   // et un CSV de bougies reste un CSV
@@ -222,7 +225,7 @@ test("une sauvegarde Véna est reconnue par son nom, dans les trois extensions",
 
 test("une sauvegarde renommée est reconnue à son enveloppe", () => {
   const { texteDeSauvegarde } = chargerReconnaissance();
-  assert.ok(texteDeSauvegarde('{"outil":"vena","version":78,"donnees":{'));
+  assert.ok(texteDeSauvegarde('{"outil":"vuna","version":78,"donnees":{'));
   // les anciennes aussi, sans date limite : quelqu’un réimportera dans deux ans
   assert.ok(texteDeSauvegarde('{ "outil": "simula", "donnees": {'));
   // un CSV de bougies n’est pas une enveloppe

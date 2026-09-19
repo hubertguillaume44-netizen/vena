@@ -1,5 +1,5 @@
 // STATUT · CAUSE ÉTABLIE — troncature RAPPORTÉE (capture du Navigateur MT5 :
-// « Vena_Compten1_USDJPY_Achat_ema_5_SL0… »), budget du préfixe MESURÉ DANS LE DÉPÔT,
+// « Vuna_Compten1_USDJPY_Achat_ema_5_SL0… »), budget du préfixe MESURÉ DANS LE DÉPÔT,
 // sur la composition réelle du nom.
 //
 // ANGLE MORT DÉCLARÉ (règle 9), EN TÊTE : rien ici ne mesure la largeur de la colonne du
@@ -31,9 +31,9 @@ import { readFileSync } from "node:fs";
 import { nomRobot } from "../../robot-mt5.js";
 import { borne } from "../lib/tranche.mjs";
 
-const SRC = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
+const SRC = readFileSync(new URL("../../Vuna.dc.html", import.meta.url), "utf8");
 
-// ARBITRAGE, écrit comme tel : « Vena_ » (5) + l'étiquette (4 au plus) + « _ » (1). Le
+// ARBITRAGE, écrit comme tel : « Vuna_ » (5) + l'étiquette (4 au plus) + « _ » (1). Le
 // plafond de quatre est le choix ; ce que la garde interdit, c'est qu'il redevienne
 // implicite. Aucune garde ne peut le valider — elle peut seulement l'empêcher de dériver.
 const SEUIL_AVANT = 10;
@@ -53,7 +53,7 @@ const abregerEtiquette = abreger();
 /** Le nom composé, par le chemin du produit : nomRobot, puis l'étiquette insérée. */
 function compose(etiquette, sym) {
   return nomRobot({ sym, sens: "achat", ligne: "ema", periode: 5, sl: 0.5, rr: 1.5 },
-    "260918_1200").replace(/^Vena_/, "Vena_" + etiquette + "_");
+    "260918_1200").replace(/^Vuna_/, "Vuna_" + etiquette + "_");
 }
 
 // Les cinq comptes que l'application offre, lus dans la source — une liste écrite ici
@@ -100,8 +100,8 @@ test("l'abrègement DISTINGUE les cinq comptes — une collision serait pire que
       "l'étiquette « " + e + " » fait " + e.length + " caractères : une initiale seule "
       + "ne distingue rien, et au-delà de quatre le seuil ci-dessus tombe.");
   }
-  // la composition reste celle du produit : l'étiquette s'insère APRÈS « Vena_ »
-  assert.match(SRC, /\.replace\(\/\^Vena_\/, 'Vena_' \+ this\.etiquetteCompte\(\) \+ '_'\)/,
+  // la composition reste celle du produit : l'étiquette s'insère APRÈS « Vuna_ »
+  assert.match(SRC, /\.replace\(\/\^Vuna_\/, 'Vuna_' \+ this\.etiquetteCompte\(\) \+ '_'\)/,
     "la composition du nom a changé : la garde mesure un chemin qui n'est plus celui du produit.");
 });
 

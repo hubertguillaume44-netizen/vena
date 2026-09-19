@@ -20,7 +20,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 const RACINE = new URL("../../", import.meta.url);
-const APP = readFileSync(new URL("Vena.dc.html", RACINE), "utf8");
+const APP = readFileSync(new URL("Vuna.dc.html", RACINE), "utf8");
 
 /** Le corps d'une méthode, de sa signature à la borne donnée. */
 function bloc(debut, fin) {

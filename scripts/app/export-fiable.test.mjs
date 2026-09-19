@@ -12,7 +12,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { borne, borneArriere } from "../lib/tranche.mjs";
 
-const APP = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
+const APP = readFileSync(new URL("../../Vuna.dc.html", import.meta.url), "utf8");
 const ligneDe = (idx) => APP.slice(0, idx).split("\n").length;
 
 test("toute libération d'URL d'objet est différée — jamais synchrone après un clic", () => {
@@ -59,7 +59,7 @@ test("l'export écrit AU FIL : rien ne s'accumule, et les accumulateurs restants
   assert.ok(APP.includes("bilan = await this.ecrireExportAu(w, entete);"),
     "exporterTout ne passe plus par le fil : le chemin Chrome/Edge retrouve le "
     + "crash mémoire que le flux avait retiré");
-  assert.ok(APP.includes("await this.ecrireExportAu(w,\n        '\"outil\":\"vena\""),
+  assert.ok(APP.includes("await this.ecrireExportAu(w,\n        '\"outil\":\"vuna\""),
     "sauverAuto ne passe plus par le fil : la sauvegarde-minute refait deux fois "
     + "le stockage en mémoire, à chaque minute");
   // les accumulateurs RESTANTS sont déclarés : le chiffré (AES-GCM, une passe)

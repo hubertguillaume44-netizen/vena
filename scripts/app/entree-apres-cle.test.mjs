@@ -15,7 +15,7 @@ import { readFileSync } from "node:fs";
 import vm from "node:vm";
 import { borne, borneArriere } from "../lib/tranche.mjs";
 
-const SOURCE = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
+const SOURCE = readFileSync(new URL("../../Vuna.dc.html", import.meta.url), "utf8");
 
 /** LA destination d'entrée, telle qu'elle est écrite dans le source. */
 function destination() {

@@ -15,7 +15,7 @@ import { readFileSync } from "node:fs";
 import { borne, borneArriere } from "../lib/tranche.mjs";
 
 const lire = (f) => readFileSync(new URL("../../" + f, import.meta.url), "utf8");
-const SOURCE = lire("Vena.dc.html");
+const SOURCE = lire("Vuna.dc.html");
 const PUBLIER = lire("scripts/app/publier-solo.mjs");
 const NETLIFY = lire("netlify.toml");
 

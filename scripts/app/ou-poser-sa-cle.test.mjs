@@ -16,7 +16,7 @@ import { borne, borneArriere } from "../lib/tranche.mjs";
 
 const RACINE = new URL("../../", import.meta.url);
 const lire = (f) => readFileSync(new URL(f, RACINE), "utf8");
-const APP = lire("Vena.dc.html");
+const APP = lire("Vuna.dc.html");
 
 test("un seul champ de clé de licence dans toute l’application", () => {
   // C'EST LE TEST QUI COMPTE. Deux champs, ce sont deux états à tenir d'accord — le

@@ -31,7 +31,7 @@ import vm from "node:vm";
 
 const RACINE = new URL("../../", import.meta.url);
 const lire = (f) => readFileSync(new URL(f, RACINE), "utf8");
-const SOURCE = lire("Vena.dc.html");
+const SOURCE = lire("Vuna.dc.html");
 
 /** Le fichier sans ses commentaires : ne reste que ce qui s'exécute ou s'affiche. */
 function sansCommentaires(src) {
@@ -390,7 +390,7 @@ test("la table est atteignable depuis un compte autre que le nº 1", () => {
 // nouvelle entrée traduit un nom ou change de bourse. C'est exactement la relecture que
 // la table mérite quand elle grossit, et elle est automatique au lieu d'être espérée.
 const BOURSES = {
-  FR: "paris", PA: "paris",          // .FR est la convention de Véna, .PA celle de Reuters
+  FR: "paris", PA: "paris",          // .FR est la convention de Vuna, .PA celle de Reuters
   DE: "francfort",
   GB: "londres", L: "londres",
   US: "etats-unis", O: "etats-unis", N: "etats-unis", // Nasdaq et NYSE, même séance

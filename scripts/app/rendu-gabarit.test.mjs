@@ -21,9 +21,9 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 
-const SOLO = new URL("../../Vena.solo.html", import.meta.url).pathname;
+const SOLO = new URL("../../Vuna.solo.html", import.meta.url).pathname;
 const CHROMIUMS = [
-  process.env.VENA_CHROMIUM,
+  process.env.VUNA_CHROMIUM,
   "/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
 ].filter(Boolean);
 
@@ -32,14 +32,14 @@ test("aucun trou du gabarit ne reste non résolu au rendu, et les dix lignes d�
   try { ({ chromium } = await import("playwright")); }
   catch (e) {
     assert.fail("Cette garde rend le VRAI fichier dans un VRAI navigateur — playwright est "
-      + "introuvable. Installez-le, ou posez VENA_CHROMIUM sur un exécutable Chromium. "
+      + "introuvable. Installez-le, ou posez VUNA_CHROMIUM sur un exécutable Chromium. "
       + "Elle ne saute pas en silence : c’est précisément une garde de rendu qui manquait "
       + "quand toutes les tables rendaient vide sans qu’aucun test ne rougisse.");
   }
   const executablePath = CHROMIUMS.find((c) => existsSync(c));
   const nav = await chromium.launch(executablePath ? { executablePath } : {})
     .catch(() => assert.fail("Chromium introuvable : installez les navigateurs playwright "
-      + "ou posez VENA_CHROMIUM. Voir l’en-tête de ce fichier — cette garde ne saute pas."));
+      + "ou posez VUNA_CHROMIUM. Voir l’en-tête de ce fichier — cette garde ne saute pas."));
   try {
     const p = await (await nav.newContext()).newPage();
     const nonResolus = [];
@@ -131,7 +131,7 @@ test("chaque menu rendu propose ses options — et la garde en voit au moins un"
   catch (e) { assert.fail("playwright introuvable — cette garde ne saute pas en silence, voir l’en-tête."); }
   const executablePath = CHROMIUMS.find((c) => existsSync(c));
   const nav = await chromium.launch(executablePath ? { executablePath } : {})
-    .catch(() => assert.fail("Chromium introuvable : posez VENA_CHROMIUM — cette garde ne saute pas."));
+    .catch(() => assert.fail("Chromium introuvable : posez VUNA_CHROMIUM — cette garde ne saute pas."));
   try {
     const p = await (await nav.newContext()).newPage();
     // même règle que le premier test : une exception efface tout, et ce test-ci
@@ -193,7 +193,7 @@ test("le pied de sauvegarde tient sa hiérarchie : un seul plein clair, mesuré"
   catch (e) { assert.fail("playwright introuvable — cette garde ne saute pas en silence, voir l’en-tête."); }
   const executablePath = CHROMIUMS.find((c) => existsSync(c));
   const nav = await chromium.launch(executablePath ? { executablePath } : {})
-    .catch(() => assert.fail("Chromium introuvable : posez VENA_CHROMIUM — cette garde ne saute pas."));
+    .catch(() => assert.fail("Chromium introuvable : posez VUNA_CHROMIUM — cette garde ne saute pas."));
   try {
     const p = await (await nav.newContext()).newPage();
     await p.goto("file://" + SOLO);
@@ -294,7 +294,7 @@ test("la barre permanente ne recouvre rien — deux barres cumulées, deux état
   catch (e) { assert.fail("playwright introuvable — cette garde ne saute pas en silence."); }
   const executablePath = CHROMIUMS.find((c) => existsSync(c));
   const nav = await chromium.launch(executablePath ? { executablePath } : {})
-    .catch(() => assert.fail("Chromium introuvable : posez VENA_CHROMIUM — cette garde ne saute pas."));
+    .catch(() => assert.fail("Chromium introuvable : posez VUNA_CHROMIUM — cette garde ne saute pas."));
   try {
     const ctx = await nav.newContext({ acceptDownloads: true });
     const p = await ctx.newPage();
@@ -436,7 +436,7 @@ test("la barre permanente tient en UNE rangée à 1440 px, dans ses trois états
   catch (e) { assert.fail("playwright introuvable — cette garde ne saute pas en silence."); }
   const executablePath = CHROMIUMS.find((c) => existsSync(c));
   const nav = await chromium.launch(executablePath ? { executablePath } : {})
-    .catch(() => assert.fail("Chromium introuvable : posez VENA_CHROMIUM — cette garde ne saute pas."));
+    .catch(() => assert.fail("Chromium introuvable : posez VUNA_CHROMIUM — cette garde ne saute pas."));
   try {
     const p = await (await nav.newContext({ viewport: { width: 1440, height: 900 } })).newPage();
     await p.goto("file://" + SOLO);
@@ -459,8 +459,8 @@ test("la barre permanente tient en UNE rangée à 1440 px, dans ses trois états
       if (typeof inst.PAUSE_AUTO !== "function" || typeof inst.PAUSE_AUTO_DETAIL !== "function") return false;
       const cle = inst.cleGlobale(inst.CLE_SAUV);
       if (q === "actif") {
-        inst.handleAuto = { name: "vena-sauvegarde.json" };
-        inst.setState({ autoNom: "vena-sauvegarde.json", autoAttente: false,
+        inst.handleAuto = { name: "vuna-sauvegarde.json" };
+        inst.setState({ autoNom: "vuna-sauvegarde.json", autoAttente: false,
           autoT: Date.now() - 125000, autoMsg: null, autoDetail: null });
         return true;
       }
@@ -469,10 +469,10 @@ test("la barre permanente tient en UNE rangée à 1440 px, dans ses trois états
       // croyant éprouver l'état chargé
       if (q === "pause") {
         localStorage.setItem(cle, JSON.stringify({ t: Date.now() - 3600000, nC: 3961, nS: 66, o: 620756992 }));
-        inst.handleAuto = { name: "vena-sauvegarde.json" };
-        inst.setState({ autoNom: "vena-sauvegarde.json", autoAttente: true, deposes: ["vx-eur"],
+        inst.handleAuto = { name: "vuna-sauvegarde.json" };
+        inst.setState({ autoNom: "vuna-sauvegarde.json", autoAttente: true, deposes: ["vx-eur"],
           autoMsg: inst.PAUSE_AUTO("il manque " + inst.taille(620756992)),
-          autoDetail: inst.PAUSE_AUTO_DETAIL("vena-sauvegarde.json") });
+          autoDetail: inst.PAUSE_AUTO_DETAIL("vuna-sauvegarde.json") });
         return true;
       }
       // ALERTE PLEINE : aucun fichier choisi, aucune copie jamais. Mettre
@@ -618,7 +618,7 @@ test("la barre : les boutons au bord droit, et l'état de la sauvegarde dit quel
   catch (e) { assert.fail("playwright introuvable — cette garde ne saute pas en silence."); }
   const executablePath = CHROMIUMS.find((c) => existsSync(c));
   const nav = await chromium.launch(executablePath ? { executablePath } : {})
-    .catch(() => assert.fail("Chromium introuvable : posez VENA_CHROMIUM — cette garde ne saute pas."));
+    .catch(() => assert.fail("Chromium introuvable : posez VUNA_CHROMIUM — cette garde ne saute pas."));
   try {
     const p = await (await nav.newContext()).newPage();
     await p.goto("file://" + SOLO);
@@ -637,8 +637,8 @@ test("la barre : les boutons au bord droit, et l'état de la sauvegarde dit quel
         && f.stateNode.constructor.name === "StreamableComponent")) f = f.return;
       const inst = f.stateNode.logic;
       // l'état NORMAL : un fichier de sauvegarde en place, écrit il y a deux minutes
-      inst.handleAuto = { name: "vena-sauvegarde.json" };
-      inst.setState({ autoNom: "vena-sauvegarde.json", autoAttente: false,
+      inst.handleAuto = { name: "vuna-sauvegarde.json" };
+      inst.setState({ autoNom: "vuna-sauvegarde.json", autoAttente: false,
         autoT: Date.now() - 125000, autoMsg: null, autoDetail: null });
       return new Promise((ok) => setTimeout(() => {
         const pied = document.getElementById("pied-sauv");
@@ -687,7 +687,7 @@ test("la barre : les boutons au bord droit, et l'état de la sauvegarde dit quel
       "dans l'état NORMAL — une sauvegarde automatique en place — la barre ne dit rien : "
       + "ni quel fichier, ni quand. C'est ce silence qui a fait demander si ouvrir "
       + "l'application déclenchait une sauvegarde.");
-    assert.match(m.ligne, /vena-sauvegarde\.json/,
+    assert.match(m.ligne, /vuna-sauvegarde\.json/,
       "l'état de la sauvegarde ne nomme pas le FICHIER (« " + m.ligne + " ») : savoir "
       + "qu'une sauvegarde tourne sans savoir où elle écrit ne répond pas à la question");
     assert.match(m.ligne, /il y a 2 min|à l’instant/,
@@ -728,7 +728,7 @@ test("les deux tables PEUPLÉES : des rangées, des chiffres, aucun mot relatif"
   const { POSER_SEMIS } = await import("./lib/semis.mjs");
   const executablePath = CHROMIUMS.find((c) => existsSync(c));
   const nav = await chromium.launch(executablePath ? { executablePath } : {})
-    .catch(() => assert.fail("Chromium introuvable : posez VENA_CHROMIUM — cette garde ne saute pas."));
+    .catch(() => assert.fail("Chromium introuvable : posez VUNA_CHROMIUM — cette garde ne saute pas."));
   try {
     const p = await (await nav.newContext({ viewport: { width: 1440, height: 900 } })).newPage();
     const trous = [], erreurs = [];

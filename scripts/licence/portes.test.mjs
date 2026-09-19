@@ -23,7 +23,7 @@ const cleDePhrase = async (phrase, sel, iter) => {
 const ITER = 600000;
 
 test("sauvegarde chiffrée : aller-retour exact, phrase fausse refusée sans indice", async () => {
-  const clair = JSON.stringify({ outil: "vena", version: 1,
+  const clair = JSON.stringify({ outil: "vuna", version: 1,
     donnees: { "vena.portefeuilles.v1.client": '{"pfs":[1,2,3]}' } });
   const sel = crypto.getRandomValues(new Uint8Array(16));
   const iv = crypto.getRandomValues(new Uint8Array(12));
@@ -39,15 +39,15 @@ test("sauvegarde chiffrée : aller-retour exact, phrase fausse refusée sans ind
 });
 
 test("la page porte l'en-tête versionné et les mêmes constantes", () => {
-  for (const f of ["Vena.dc.html", "Vena.solo.html"]) {
+  for (const f of ["Vuna.dc.html", "Vuna.solo.html"]) {
     const txt = readFileSync(new URL("../../" + f, import.meta.url), "utf8");
     // le marqueur ÉCRIT est le neuf ; l'ancien reste accepté à la lecture, sans date
     // limite — quelqu'un réimportera dans deux ans un fichier exporté aujourd'hui
     // l'enveloppe chiffrée s'assemble en MORCEAUX depuis l'export en tableau
     // (partiesExport — « Invalid string length ») : le marqueur écrit n'est plus
-    // l'objet `vena_chiffre: 1` mais la chaîne JSON brute de l'en-tête — réancré
-    for (const attendu of ['{"vena_chiffre":1,', "PBKDF2-SHA256", "CHIFFRE_ITER = 600000",
-      "Perdre la phrase", "vena_chiffre === 1", "b.sivula_chiffre === 1"]) {
+    // l'objet `vuna_chiffre: 1` mais la chaîne JSON brute de l'en-tête — réancré
+    for (const attendu of ['{"vuna_chiffre":1,', "PBKDF2-SHA256", "CHIFFRE_ITER = 600000",
+      "Perdre la phrase", "vuna_chiffre === 1", "b.sivula_chiffre === 1"]) {
       assert.ok(txt.includes(attendu), f + " ne porte plus « " + attendu + " »");
     }
     // le compteur est éteint par défaut, et rien n'est accumulé éteint
@@ -76,7 +76,7 @@ test("le robot exporté est nominatif — jamais dans les commentaires d'ordre",
 test("le relais d'usage ne laisse passer que le format annoncé", async () => {
   assert.equal(filtrerCharge("pas du json"), null);
   assert.equal(filtrerCharge('{"outil":"autre","schema":1,"evenements":[]}'), null);
-  const brut = JSON.stringify({ outil: "vena", schema: 1, evenements: [
+  const brut = JSON.stringify({ outil: "vuna", schema: 1, evenements: [
     { type: "scan", combinaisons: 15120, duree_s: 12, unite: "H1", instruments: 3,
       filtres: ["rsi", "adx"], version: "260905", navigateur: "Chrome",
       // un client modifié glisse des champs en plus : ils doivent tomber

@@ -23,7 +23,7 @@ import { borne } from "../lib/tranche.mjs";
 
 const RACINE = new URL("../../", import.meta.url);
 const lire = (rel) => readFileSync(new URL(rel, RACINE), "utf8");
-const APP = lire("Vena.dc.html");
+const APP = lire("Vuna.dc.html");
 const MOD = lire("src/lib/palier-gratuit.ts");
 
 /** Les deux surfaces où le palier gratuit s'énonce, et ce que chacune doit nommer. */

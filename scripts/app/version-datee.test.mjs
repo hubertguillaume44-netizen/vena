@@ -37,7 +37,7 @@ function version(fichier) {
 function jourDe(v) { return String(v).split(".")[0]; }
 
 test("la version est une date AAMMJJ, avec un rang seulement si le jour se répète", () => {
-  const v = version("Vena.dc.html");
+  const v = version("Vuna.dc.html");
   // ————— LE RANG SE LIT COMME UN NOMBRE, PAS COMME UN PREMIER CHIFFRE —————
   //
   // Le motif disait `\.[2-9]\d*` pour « un rang commence à 2, la première livraison du
@@ -64,7 +64,7 @@ test("la version est une date AAMMJJ, avec un rang seulement si le jour se rép�
 test("la version n’est pas dans l’avenir", () => {
   // une faute de frappe se voit ici plutôt que dans un rapport d'avis six mois plus
   // tard : « 270912 » pour « 260912 » passerait tous les autres contrôles
-  const v = jourDe(version("Vena.dc.html"));
+  const v = jourDe(version("Vuna.dc.html"));
   const n = new Date();
   const deux = (x) => String(x).padStart(2, "0");
   const aujourdHui = deux(n.getFullYear() % 100) + deux(n.getMonth() + 1) + deux(n.getDate());
@@ -75,18 +75,18 @@ test("la version n’est pas dans l’avenir", () => {
 test("l’artefact porte la même version que la source", () => {
   // `publier-solo.mjs` le vérifie aussi, mais à la construction seulement : un artefact
   // périmé commité dans le dépôt passerait inaperçu jusqu'au prochain déploiement.
-  assert.equal(version("Vena.solo.html"), version("Vena.dc.html"),
-    "Vena.solo.html annonce une autre version que Vena.dc.html — relancez npm run app:solo");
+  assert.equal(version("Vuna.solo.html"), version("Vuna.dc.html"),
+    "Vuna.solo.html annonce une autre version que Vuna.dc.html — relancez npm run app:solo");
 });
 
 test("la version de l’application n’est pas celle du moteur", () => {
   // `MOTEUR_V` est une clé de cache : le changer PÉRIME des résultats enregistrés.
   // `VERSION_APP` est une étiquette : la changer ne périme rien. Les confondre ferait
   // recalculer tous les scans de tout le monde à chaque livraison.
-  const src = lire("Vena.dc.html");
+  const src = lire("Vuna.dc.html");
   const moteur = /MOTEUR_V = '([^']+)'/.exec(src);
   assert.ok(moteur, "MOTEUR_V a disparu");
-  assert.notEqual(moteur[1], version("Vena.dc.html"), "les deux versions se sont confondues");
+  assert.notEqual(moteur[1], version("Vuna.dc.html"), "les deux versions se sont confondues");
   assert.ok(!/signature\([^)]*\)\s*\{[^}]*VERSION_APP/.test(src),
     "VERSION_APP entre dans la signature de cache : une livraison périmerait tous les scans");
 });
@@ -107,9 +107,9 @@ test("importer le script ne pose AUCUNE version", async () => {
   // `suivante` est exportée pour être éprouvée. Sans garde, la seule LECTURE du module
   // écrivait dans la source : deux imports de vérification ont fait passer le fichier de
   // 260913 à 260913.3 en deux secondes, sans que personne n'ait demandé une livraison.
-  const avant = version("Vena.dc.html");
+  const avant = version("Vuna.dc.html");
   await import("./version.mjs?sonde=" + Date.now());
-  assert.equal(version("Vena.dc.html"), avant,
+  assert.equal(version("Vuna.dc.html"), avant,
     "le module a daté le fichier en étant simplement importé");
   // et la garde se lit dans le source, pour qu'on ne la retire pas par « simplification »
   const src = readFileSync(new URL("version.mjs", import.meta.url), "utf8");

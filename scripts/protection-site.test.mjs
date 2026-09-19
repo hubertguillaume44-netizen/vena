@@ -49,7 +49,7 @@ test("le bon couple entre, les autres non", async () => {
 });
 
 test("le défi est un en-tête HTTP valide — pas d’accent", async () => {
-  // un en-tête ne transporte que du Latin-1. « Véna — site » y jette, et CHAQUE 401
+  // un en-tête ne transporte que du Latin-1. « Vuna — site » y jette, et CHAQUE 401
   // devenait un 500 : le refus lui-même tombait en panne.
   const r = await appeler({ variable: BON, entete: null });
   assert.match(r.defi, /^Basic realm="[\x20-\xFF]+"/, "le défi doit être présent et transportable");

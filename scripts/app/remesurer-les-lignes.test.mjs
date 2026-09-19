@@ -62,7 +62,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { borne } from "../lib/tranche.mjs";
 
-const APP = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
+const APP = readFileSync(new URL("../../Vuna.dc.html", import.meta.url), "utf8");
 const BOUCLE = APP.slice(borne(APP, "  async remesurerLignes() {"),
   borne(APP, "\n  // Pousser vaut pour TOUTE la page"));
 
@@ -171,9 +171,9 @@ test("le total ne s'affiche pas comme un fait quand ses parts sont périmées", 
 import { existsSync } from "node:fs";
 import { POSER_SEMIS, INSTANCE } from "./lib/semis.mjs";
 
-const SOLO = new URL("../../Vena.solo.html", import.meta.url).pathname;
+const SOLO = new URL("../../Vuna.solo.html", import.meta.url).pathname;
 const CHROMIUMS = [
-  process.env.VENA_CHROMIUM,
+  process.env.VUNA_CHROMIUM,
   "/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
 ].filter(Boolean);
 
@@ -197,7 +197,7 @@ test("le geste « Remesurer » est à l'écran, estampille ou pas", { timeout: 1
   try { ({ chromium } = await import("playwright")); }
   catch {
     assert.fail("garde de rendu : playwright est introuvable. Installez-le ou posez "
-      + "VENA_CHROMIUM. Elle ne saute pas en silence — c'est précisément une garde muette "
+      + "VUNA_CHROMIUM. Elle ne saute pas en silence — c'est précisément une garde muette "
       + "qui a laissé ce bouton invisible une livraison entière.");
   }
   const executablePath = CHROMIUMS.find((c) => existsSync(c));

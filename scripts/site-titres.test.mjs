@@ -85,10 +85,15 @@ test("un titre nomme la page ET la marque", () => {
   for (const f of ROUTES) {
     const t = meta(lire(f), "title");
     if (!t) continue;
-    assert.ok(/Véna/.test(t), `« ${t} » (${f}) ne nomme pas la marque`);
+    assert.ok(/Vuna/.test(t), `« ${t} » (${f}) ne nomme pas la marque`);
     assert.ok(t.length <= 70,
       `« ${t} » fait ${t.length} caractères : un moteur de recherche coupe vers 60-70`);
-    // l'accent de Véna est obligatoire partout où un humain lit — convention du dépôt
-    assert.ok(!/\bVena\b/.test(t), `« ${t} » écrit la marque sans accent`);
+    // ————— L'ASSERTION D'ACCENT EST PARTIE AVEC SON SUJET (règle 14) —————
+    // Elle exigeait l'accent et refusait la forme nue : la marque en portait un, et un
+    // titre qui l'oubliait écrivait un autre mot. « Vuna » n'en porte pas. La garde
+    // serait devenue une contradiction — exiger la marque ET refuser son orthographe —
+    // ou, pire, une assertion verte qui ne garde plus rien. Ce qui reste au-dessus est
+    // l'invariant qui a survécu au renommage : un titre NOMME la marque, et tient dans
+    // la largeur d'un résultat de recherche.
   }
 });

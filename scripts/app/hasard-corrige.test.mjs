@@ -22,7 +22,7 @@ import { backtester } from "../../moteur.js";
 import { controleCorrige, CRITERES_HASARD, scoreHasard, valeursHasard } from "../../scan-noyau.js";
 import { borne, borneArriere } from "../lib/tranche.mjs";
 
-const APP = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
+const APP = readFileSync(new URL("../../Vuna.dc.html", import.meta.url), "utf8");
 const NOYAU = readFileSync(new URL("../../scan-noyau.js", import.meta.url), "utf8");
 
 // ————— le décor fonctionnel : la vraie série de démonstration, le vrai moteur —————

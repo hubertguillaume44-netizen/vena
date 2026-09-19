@@ -13,7 +13,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { borne, borneArriere } from "../lib/tranche.mjs";
 
-const APP = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
+const APP = readFileSync(new URL("../../Vuna.dc.html", import.meta.url), "utf8");
 const corps = (() => {
   // Réancré : l'ordonnanceur prend désormais une restriction (`opts`) pour servir
   // la commande par INSTRUMENT sans qu'une seconde boucle naîsse. Sa signature a

@@ -23,8 +23,8 @@ import { readFileSync } from "node:fs";
 import { borne } from "../lib/tranche.mjs";
 import { robotEmis } from "./sources-mql5.mjs";
 
-const APP = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
-const SOLO = readFileSync(new URL("../../Vena.solo.html", import.meta.url), "utf8");
+const APP = readFileSync(new URL("../../Vuna.dc.html", import.meta.url), "utf8");
+const SOLO = readFileSync(new URL("../../Vuna.solo.html", import.meta.url), "utf8");
 
 const versionApp = () => {
   const i = APP.indexOf("VERSION_APP = '");
@@ -49,10 +49,10 @@ const recus = () => [
 ];
 
 const embarques = () => {
-  const marque = "window.__venaScripts = ";
+  const marque = "window.__vunaScripts = ";
   const i = SOLO.indexOf(marque);
   assert.ok(i > 0,
-    "window.__venaScripts est absent du fichier construit : la garde ne peut pas "
+    "window.__vunaScripts est absent du fichier construit : la garde ne peut pas "
     + "relire ce que l'utilisateur reçoit — relancez « npm run app:solo »");
   const table = JSON.parse(SOLO.slice(i + marque.length, borne(SOLO, ";", i + marque.length)));
   return Object.entries(table).map(([nom, b64]) => [nom, Buffer.from(b64, "base64").toString("utf8")]);
@@ -65,11 +65,11 @@ test("tout source MQL5 REÇU porte la version courante", () => {
     scripts.length + " source(s) MQL5 reçu(s) : la garde ne mesure plus les trois — "
     + "le robot émis en fait partie, et c'est lui qui manquait");
   for (const [nom, src] of scripts) {
-    const m = src.match(/#define VENA_VERSION "([^"]*)"/);
+    const m = src.match(/#define VUNA_VERSION "([^"]*)"/);
     assert.ok(m,
       nom + " ne porte aucune version : compilé, il devient un binaire dont personne "
       + "ne peut dire de quelle source il vient — ni l'utilisateur, ni le journal MT5, "
-      + "ni vous en lisant son rapport. Posez #define VENA_VERSION, « npm run "
+      + "ni vous en lisant son rapport. Posez #define VUNA_VERSION, « npm run "
       + "app:version » le datera avec le reste.");
     assert.equal(m[1], v,
       nom + " porte la version « " + m[1] + " » alors que l'application est en « " + v
@@ -100,7 +100,7 @@ test("et il la journalise EN PREMIÈRE LIGNE, au lancement", () => {
     const premiere = corps.split("\n")
       .map((l) => l.trim())
       .find((l) => l && !l.startsWith("//"));
-    assert.ok(premiere && /\bPrint(Format)?\(/.test(premiere) && premiere.includes("VENA_VERSION"),
+    assert.ok(premiere && /\bPrint(Format)?\(/.test(premiere) && premiere.includes("VUNA_VERSION"),
       nom + " : la première instruction de OnStart n'imprime pas la version (« "
       + String(premiere).slice(0, 70) + " »). Une version qui n'est pas JOURNALISÉE ne "
       + "prouve rien sur le binaire qui tourne — c'est la source qu'on lirait, pas le "
@@ -111,7 +111,7 @@ test("et il la journalise EN PREMIÈRE LIGNE, au lancement", () => {
     // et son build, ce qui le distingue mieux encore puisque plusieurs robots tournent
     // en même temps. C'est la même exigence (« deux lignes ne se confondent pas »)
     // satisfaite par ce que chaque famille a de propre.
-    const marqueur = nom.endsWith(".mq5") ? '"' + nom.replace(/\.mq5$/, "") : "VENA INIT 1/6";
+    const marqueur = nom.endsWith(".mq5") ? '"' + nom.replace(/\.mq5$/, "") : "VUNA INIT 1/6";
     assert.ok(premiere.includes(marqueur),
       nom + " : la ligne de version ne nomme pas le script. Les deux tournent dans le "
       + "même journal ; deux lignes « 260916.9 — liste : … » ne se distinguent pas.");

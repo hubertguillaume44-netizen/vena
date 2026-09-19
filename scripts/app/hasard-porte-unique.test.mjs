@@ -24,7 +24,7 @@ import { readFileSync } from "node:fs";
 import { borne } from "../lib/tranche.mjs";
 
 const FICHIERS = [
-  ["Vena.dc.html", readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8")],
+  ["Vuna.dc.html", readFileSync(new URL("../../Vuna.dc.html", import.meta.url), "utf8")],
   ["scan-noyau.js", readFileSync(new URL("../../scan-noyau.js", import.meta.url), "utf8")],
 ];
 const ligneDe = (src, i) => src.slice(0, i).split("\n").length;

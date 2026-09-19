@@ -21,7 +21,7 @@ import { CLE_DEMO_PUBLIQUE, CLE_DEMO_PRIVEE } from "./cle-demo.mjs";
 
 const RACINE = new URL("../../", import.meta.url);
 const lire = (f) => readFileSync(new URL(f, RACINE), "utf8");
-const LIVRES = ["Vena.dc.html", "Vena.solo.html"];
+const LIVRES = ["Vuna.dc.html", "Vuna.solo.html"];
 
 const pubDe = (txt) => {
   const m = /CLE_PUB_LICENCE = '([A-Za-z0-9_-]{43})'/.exec(txt);
@@ -51,7 +51,7 @@ test("aucun repli sur une autre clé dans le vérificateur", () => {
   // un repli silencieux annulerait tout : la page doit vérifier avec UNE seule clé, la
   // sienne. Les deux chemins — WebCrypto et le repli JS pour les navigateurs sans
   // Ed25519 — lisent la MÊME constante ; le second est un repli d'ALGORITHME, pas de clé.
-  const txt = lire("Vena.dc.html");
+  const txt = lire("Vuna.dc.html");
   const lectures = [...txt.matchAll(/deB64u\(this\.CLE_PUB_LICENCE\)/g)];
   assert.equal(lectures.length, 2,
     `${lectures.length} lectures de la clé, deux attendues (WebCrypto et repli JS)`);

@@ -2,7 +2,7 @@
 // relu ici.
 //
 // `nomRobot` (robot-mt5.js) compose le nom du fichier avec `cfg.sym` : un fichier
-// nommé « Vena_<compte>_Spain35_… » ne peut avoir été émis que par un export de
+// nommé « Vuna_<compte>_Spain35_… » ne peut avoir été émis que par un export de
 // Spain35. Le testeur a pourtant rendu des chiffres sous ce nom sur un graphique
 // d'un autre instrument, et rien à l'écran ne le disait — le robot trade `_Symbol`,
 // pas le symbole mesuré.

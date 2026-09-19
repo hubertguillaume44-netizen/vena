@@ -10,7 +10,7 @@
 //
 // ————— UN SCRIPT NE DOIT PAS POUVOIR TUER LE TERMINAL DE QUELQU'UN —————
 //
-// `Export_H1_Vena` a fait mourir MetaTrader sur US2000.cash : « Access violation
+// `Export_H1_Vuna` a fait mourir MetaTrader sur US2000.cash : « Access violation
 // write » avec des registres ymm et des vmovdqu — une copie mémoire vectorisée
 // qui écrit hors d'une zone valide. Ce n'est PAS une exception MQL5 rattrapable :
 // le processus meurt, et l'utilisateur perd son terminal parce qu'il a lancé
@@ -72,7 +72,7 @@ test("aucun script ne DÉTRUIT un tableau qu'il va relire", () => {
 
 test("le vidage repose le drapeau de série, et il est défini avant d'être appelé", () => {
   const [nom, src] = SCRIPTS.find(([n]) => n.startsWith("Export_H1"))
-    || assert.fail("Export_H1_Vena introuvable — réancrez");
+    || assert.fail("Export_H1_Vuna introuvable — réancrez");
   const i = src.indexOf("void ViderRates(MqlRates &a[])");
   assert.ok(i > 0,
     nom + " : ViderRates a disparu, alors que la garde ci-dessus interdit ArrayFree — "

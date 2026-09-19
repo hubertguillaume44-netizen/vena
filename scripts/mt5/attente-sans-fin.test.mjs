@@ -35,7 +35,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { borne } from "../lib/tranche.mjs";
 
-const SRC = readFileSync(new URL("../../Export_H1_Vena.mq5", import.meta.url), "utf8");
+const SRC = readFileSync(new URL("../../Export_H1_Vuna.mq5", import.meta.url), "utf8");
 const i = SRC.indexOf("bool AttendreHistorique(string sym, ENUM_TIMEFRAMES tf, string nomTf,");
 const CORPS = SRC.slice(i, borne(SRC, "\n}", i));
 

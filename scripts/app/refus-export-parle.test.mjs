@@ -31,13 +31,13 @@ import * as espree from "espree";
 import { existsSync } from "node:fs";
 import { POSER_SEMIS, INSTANCE } from "./lib/semis.mjs";
 
-const SOLO = new URL("../../Vena.solo.html", import.meta.url).pathname;
+const SOLO = new URL("../../Vuna.solo.html", import.meta.url).pathname;
 const CHROMIUMS = [
-  process.env.VENA_CHROMIUM,
+  process.env.VUNA_CHROMIUM,
   "/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
 ].filter(Boolean);
 
-const SRC = readFileSync(new URL("../../Vena.dc.html", import.meta.url), "utf8");
+const SRC = readFileSync(new URL("../../Vuna.dc.html", import.meta.url), "utf8");
 
 // les <script> en ligne, comme la garde de portée les lit
 function blocsScript(src) {
@@ -110,7 +110,7 @@ test("chaque sortie en échec de l'export de robot a posé un message avant de p
   // ————— LA GARDE DOIT TOMBER EN PERDANT SA PRISE, PAS SE TAIRE —————
   const porteur = blocs.find((b) => b.code.includes("async exporterRobotBrut("));
   assert.ok(porteur, "« async exporterRobotBrut( » n'est plus dans un <script> en ligne "
-    + "de Vena.dc.html : cette garde ne lit plus rien. Réancrez-la sur la nouvelle forme "
+    + "de Vuna.dc.html : cette garde ne lit plus rien. Réancrez-la sur la nouvelle forme "
     + "plutôt que de la laisser verte sur du vide.");
 
   const ast = espree.parse(porteur.code, { ecmaVersion: 2022, sourceType: "script", loc: true });
@@ -190,7 +190,7 @@ test("le bouton d'export se grise sur la ligne refusée, et son infobulle nomme 
   try { ({ chromium } = await import("playwright")); }
   catch {
     assert.fail("garde de rendu : playwright est introuvable. Installez-le ou posez "
-      + "VENA_CHROMIUM. Elle ne saute pas en silence.");
+      + "VUNA_CHROMIUM. Elle ne saute pas en silence.");
   }
   const executablePath = CHROMIUMS.find((c) => existsSync(c));
   const nav = await chromium.launch(executablePath ? { executablePath } : {})

@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
-//|  Export_H1_Vena.mq5                                            |
-//|  Écrit l'historique H1 dans un CSV lu par Véna, AVEC la         |
+//|  Export_H1_Vuna.mq5                                            |
+//|  Écrit l'historique H1 dans un CSV lu par Vuna, AVEC la         |
 //|  colonne de spread. Un fichier par symbole, dans MQL5/Files.      |
 //|                                                                   |
 //|  Le spread écrit est celui de la bougie M1 qui OUVRE l'heure —    |
@@ -13,7 +13,7 @@
 //|  rollover. Or c'est à l'ouverture de la bougie que l'ordre part : |
 //|  c'est ce spread-là que la mesure doit payer, et celui-là seul    |
 //|  que le robot peut retrouver. Avec l'ancienne colonne, aucun      |
-//|  réglage ne pouvait faire coïncider Véna et le testeur ; avec   |
+//|  réglage ne pouvait faire coïncider Vuna et le testeur ; avec   |
 //|  celle-ci, AUDCAD s'apparie à 43 entrées sur 44.                  |
 //|                                                                   |
 //|  UTILISATION                                                      |
@@ -39,7 +39,7 @@
 // La valeur est posée par « npm run app:version », au même moment que le pied de
 // page de l'application : deux endroits qu'on met à jour à la main finissent par
 // diverger, et c'est précisément la divergence qu'on cherche à rendre visible.
-#define VENA_VERSION "260919.2"
+#define VUNA_VERSION "260919.3"
 
 // Vide = le symbole du graphique. « * » = TOUTE l'Observation du marché. Sinon une
 // liste : "AUDCAD,GOLD,NZDCAD".
@@ -50,12 +50,12 @@
 // GER40.cash…), et un nom erroné produit un fichier manquant qu'on ne remarque qu'au
 // moment de mesurer. Le terminal, lui, connaît ses propres noms.
 // Source PRIORITAIRE de la liste : un symbole par ligne, lignes vides et commentaires
-// (« // », ou « # » suivi d'une espace) ignorés. Un « # » collé à un nom est un NOM. Écrit par Véna, remplacé à chaque changement de sélection.
+// (« // », ou « # » suivi d'une espace) ignorés. Un « # » collé à un nom est un NOM. Écrit par Vuna, remplacé à chaque changement de sélection.
 //
 // LA LISTE NE VIT PAS DANS CE FICHIER. En dur, il faudrait rouvrir MetaEditor et
 // recompiler à chaque changement de sélection — pour un geste hebdomadaire, c'est
 // inacceptable. Ce script se compile UNE fois et ne bouge plus ; c'est le .txt qui change.
-input string   InpFichierListe = "vena\\symboles.txt"; // Liste de symboles (prioritaire)
+input string   InpFichierListe = "vuna\\symboles.txt"; // Liste de symboles (prioritaire)
 input string   InpSymboles  = "";             // Symboles ("*" = tout, vide = le graphique)
 // UN AN AVANT le début de la mesure, pas le début lui-même. Le moteur a besoin de
 // 400 jours d'amorce (AMORCE_JOURS) pour ses agrégats, et la médiane du spread porte
@@ -68,7 +68,7 @@ input int      InpMaxBarres = 200000;         // Bougies maximum par fichier
 // téléchargement prend des minutes. Augmentez si le script rend la main trop tôt.
 input int      InpAttenteSec = 1800;          // Attente max du téléchargement, par unité (s)
 // LE MÊME SCRIPT, RÉGLÉ SUR M1. Les fichiers _M1.csv ne servent qu'à départager
-// Véna et le robot MT5 quand ils divergent — savoir si le stop ou l'objectif a
+// Vuna et le robot MT5 quand ils divergent — savoir si le stop ou l'objectif a
 // été touché d'abord dans l'heure. Le scan et le backtest n'en ont pas besoin :
 // ils travaillent en H1. Comptez soixante fois le volume du H1 : n'exportez en M1
 // que les instruments que vous comparez.
@@ -196,7 +196,7 @@ bool AttendreHistorique(string sym, ENUM_TIMEFRAMES tf, string nomTf,
          // La base du courtier est au bout : information, pas erreur — l'export continue.
          if(tf == PERIOD_M1)
             PrintFormat("%s M1 : le courtier ne fournit la M1 que depuis %s (%d barres). "
-                        "Avant cette date, Véna utilisera le spread du relevé.",
+                        "Avant cette date, Vuna utilisera le spread du relevé.",
                         sym, TimeToString(premiere, TIME_DATE), lu);
          else
             PrintFormat("%s %s : le courtier ne fournit la %s que depuis %s (%d barres). "
@@ -231,7 +231,7 @@ bool AttendreHistorique(string sym, ENUM_TIMEFRAMES tf, string nomTf,
 //| Une bougie peut être COTÉE sans être TRAITABLE. Sur #HongKong50    |
 //| les bougies de 03:00 et 04:00 portent un spread normal — 0,080 %   |
 //| et 0,019 % — et l'ordre y est refusé : la séance de négociation    |
-//| ouvre après la séance de cotation. Sans cette colonne, Véna      |
+//| ouvre après la séance de cotation. Sans cette colonne, Vuna      |
 //| inscrivait un prix que personne ne pouvait traiter, deux heures    |
 //| avant l'entrée réelle du robot.                                    |
 //|                                                                    |
@@ -292,7 +292,7 @@ bool HeureEte(datetime t)
 //   octobre à mars      il refuse 03:00 et 04:00 (« market closed ») et entre à 05:00
 //
 // La séance ouvre donc à 04:15 l'été. Ne tester que la minute d'ouverture de la bougie
-// écartait 04:00 — 38 des 67 trades tombaient sur une bougie que Véna tenait pour
+// écartait 04:00 — 38 des 67 trades tombaient sur une bougie que Vuna tenait pour
 // fermée, et le résultat changeait de signe : +6,63 R au testeur contre -5,30 au moteur.
 //
 // Dans l'autre état d'heure d'été, la table lue ne vaut pas : on garde la lecture
@@ -337,7 +337,7 @@ bool Traitable(string sym, datetime t)
 //| est rendue entre deux tranches, et le fichier s'écrit au fur et à |
 //| mesure. Le fichier n'est OUVERT qu'au premier lot de barres       |
 //| obtenu : une interruption ne laisse plus de CSV de 0 Ko que       |
-//| Véna lirait comme une série vide.                               |
+//| Vuna lirait comme une série vide.                               |
 //+------------------------------------------------------------------+
 //| VIDER SANS DÉTRUIRE — et pourquoi ce n'est pas un détail           |
 //|                                                                  |
@@ -396,7 +396,7 @@ bool Exporter(string sym)
    }
 
    // Le « # » de certains symboles (#Japan225) n'est pas valide dans un nom de fichier
-   // sur tous les systèmes, et Véna reconnaît l'instrument sans lui.
+   // sur tous les systèmes, et Vuna reconnaît l'instrument sans lui.
    string propre = sym;
    StringReplace(propre, "#", "");
    string nom = propre + (InpM1 ? "_M1.csv" : "_H1.csv");
@@ -495,7 +495,7 @@ bool Exporter(string sym)
          // La date à partir de laquelle la M1 existe voyage AVEC les données : sans elle,
          // la comparaison moteur ↔ MT5 accuserait un écart de modèle là où il n'y a
          // qu'une absence de matière. Le jeton vit DANS la dernière cellule de l'en-tête,
-         // pas dans une quinzième : Véna compte les cellules pour détecter une date sur
+         // pas dans une quinzième : Vuna compte les cellules pour détecter une date sur
          // deux colonnes, et repère ses colonnes par nom — « bas_apres … » reste reconnu,
          // le compte ne bouge pas, les fichiers déjà déposés restent lisibles.
          string m1Dep = "aucune";
@@ -684,7 +684,7 @@ bool Exporter(string sym)
                   "et %d heures sur %d (%.1f %%) rendent plus de la moitié",
                   sym, 100.0 * renduTotal / renduN, renduFort, renduN, 100.0 * renduFort / renduN);
    PrintFormat("%s : %d bougies (%.1f %%) dont les extrêmes H1 n'existent PAS dans la M1 — "
-               "le testeur ne les voit pas, Véna ne les lira pas non plus.",
+               "le testeur ne les voit pas, Vuna ne les lira pas non plus.",
                sym, ecartH1M1, 100.0 * ecartH1M1 / totalN);
    PrintFormat("%s : plus ancienne barre — H1 %s | M1 %s", sym,
                TimeToString((datetime)SeriesInfoInteger(sym, PERIOD_H1, SERIES_FIRSTDATE), TIME_DATE),
@@ -696,18 +696,18 @@ bool Exporter(string sym)
                        : "absente")));
 
    // Une M1 manquante n'est pas neutre : la bougie retombe sur le spread agrégé de la
-   // H1, et Véna n'entrera pas au même moment que le robot sur cette bougie-là.
+   // H1, et Vuna n'entrera pas au même moment que le robot sur cette bougie-là.
    if(chargerM1 && sansM1 > 0)
       PrintFormat("%s : ATTENTION %d bougies sur %d sans M1 correspondante (%.1f %%) — "
                   "spread de la H1 pour celles-ci.", sym, sansM1, totalN, 100.0 * sansM1 / totalN);
    // Un spread à zéro n'est pas un spread nul : c'est un historique importé par le
-   // courtier sans cette information. Véna le détecte et retombe sur le relevé, mais
+   // courtier sans cette information. Vuna le détecte et retombe sur le relevé, mais
    // autant le savoir tout de suite plutôt que de croire la série complète.
    if(sansSpread > 0)
-      PrintFormat("%s : ATTENTION %d bougies sur %d sans spread (%.1f %%) — Véna "
+      PrintFormat("%s : ATTENTION %d bougies sur %d sans spread (%.1f %%) — Vuna "
                   "utilisera le spread du relevé sur cette partie.",
                   sym, sansSpread, totalN, 100.0 * sansSpread / totalN);
-   PrintFormat("%s : %d bougies sur %d hors séance de négociation (%.1f %%) — Véna "
+   PrintFormat("%s : %d bougies sur %d hors séance de négociation (%.1f %%) — Vuna "
                "n'y entrera pas.", sym, horsSeance, totalN, 100.0 * horsSeance / totalN);
    return true;
 }
@@ -715,8 +715,8 @@ bool Exporter(string sym)
 //+------------------------------------------------------------------+
 //| Export M1 — le départage, pas la mesure.                          |
 //|                                                                   |
-//| Véna range ces fichiers dans un espace à part : ils ne servent  |
-//| qu'à savoir, quand Véna et le robot divergent, ce que le prix a |
+//| Vuna range ces fichiers dans un espace à part : ils ne servent  |
+//| qu'à savoir, quand Vuna et le robot divergent, ce que le prix a |
 //| réellement fait DANS l'heure. Ils n'entrent jamais dans le moteur |
 //| de scan ni de backtest, qui exige du H1 confirmé. Pas de plafond  |
 //| InpMaxBarres ici : tronquer un départage le rendrait muet sur la  |
@@ -1037,7 +1037,7 @@ void OnStart()
    // la première ligne du journal, avant tout le reste : la version d'où vient
    // ce .ex5, et la liste qu'il va chercher — les deux questions qu'un journal
    // MT5 ne permettait pas de trancher
-   PrintFormat("Export_H1_Vena %s — liste : MQL5\\Files\\%s", VENA_VERSION, InpFichierListe);
+   PrintFormat("Export_H1_Vuna %s — liste : MQL5\\Files\\%s", VUNA_VERSION, InpFichierListe);
    // Le plafond « Barres max dans le graphique » borne aussi l'HISTORIQUE que le
    // terminal conserve, pas seulement l'affichage. À 50 000, CopyTime rend 50 009
    // barres quoi qu'on demande et la plus ancienne date ne recule jamais — la boucle
@@ -1060,17 +1060,29 @@ void OnStart()
 
    string syms[];
    int nFic = LireListeFichier(InpFichierListe, syms);
-   // REPLI SUR L'ANCIEN DOSSIER. Une installation antérieure au renommage garde sa
-   // liste dans Sivula\\ : la chercher ici évite de perdre une sélection sans rien dire.
-   // Le dossier neuf l'emporte dès qu'il existe ; l'ancien n'est qu'un filet.
+   // REPLI SUR LES ANCIENS DOSSIERS. Une installation antérieure à un renommage garde
+   // sa liste sous l'ancien nom : la chercher ici évite de perdre une sélection sans
+   // rien dire. Le dossier neuf l'emporte dès qu'il existe ; les anciens sont un filet.
+   //
+   // UNE LISTE, PAS DEUX BLOCS EMPILÉS. Il y a eu deux renommages, donc deux anciens
+   // dossiers, et le troisième aurait demandé un troisième bloc à tenir d'accord avec
+   // les deux premiers. L'ordre va du plus récent au plus ancien : une installation qui
+   // porte les deux prend la plus récente, qui est la plus probablement à jour.
+   string ANCIENS_DOSSIERS[] = {"vena", "Sivula"};
    bool ancienAbsent = false;
    if(nFic <= 0)
    {
-      ancienAbsent = !FileIsExist("Sivula\\symboles.txt");
-      nFic = LireListeFichier("Sivula\\symboles.txt", syms);
-      if(nFic > 0)
-         Print("Liste lue dans l'ancien dossier Sivula\\ : déplacez-la dans vena\\, "
-               "ce repli disparaîtra dans une prochaine version.");
+      ancienAbsent = true;
+      for(int a = 0; a < ArraySize(ANCIENS_DOSSIERS) && nFic <= 0; a++)
+      {
+         string chAncien = ANCIENS_DOSSIERS[a] + "\\symboles.txt";
+         if(FileIsExist(chAncien)) ancienAbsent = false;
+         nFic = LireListeFichier(chAncien, syms);
+         if(nFic > 0)
+            PrintFormat("Liste lue dans l'ancien dossier %s\\ : déplacez-la dans vuna\\, "
+                        "ce repli disparaîtra dans une prochaine version.",
+                        ANCIENS_DOSSIERS[a]);
+      }
    }
    if(nFic > 0)
    {
@@ -1086,7 +1098,7 @@ void OnStart()
    //
    // Le silence ne reste légitime que dans un cas : personne n'a demandé de fichier
    // (champ vide). Un chemin écrit par l'utilisateur et non trouvé se dit toujours,
-   // avec le chemin COMPLET — « vena\\symboles.txt » seul ne dit pas où chercher.
+   // avec le chemin COMPLET — « vuna\\symboles.txt » seul ne dit pas où chercher.
    else if(StringLen(InpFichierListe) > 0)
    {
       string base = TerminalInfoString(TERMINAL_DATA_PATH) + "\\MQL5\\Files\\";
@@ -1098,7 +1110,7 @@ void OnStart()
       // et se taire deux fois ne fait pas une explication. Il ne parle QUE dans ce
       // bloc — le dire à qui n'a jamais connu l'ancien dossier serait du bruit.
       if(ancienAbsent)
-         PrintFormat("Rien non plus dans l'ancien dossier : %sSivula\\symboles.txt", base);
+         PrintFormat("Rien non plus dans les anciens dossiers : %s{vena,Sivula}\\symboles.txt", base);
       Print("Le script continue SANS cette liste : il prend « Symboles » (InpSymboles), "
             "ou le seul graphique courant si ce champ est vide.");
    }
@@ -1182,5 +1194,5 @@ void OnStart()
    for(int i = 0; i < rates; i++)
       PrintFormat("   ✗ %s — %s", g_ratesNom[i], g_ratesPourquoi[i]);
    if(nInc + rates > 0)
-      Print("Ces instruments n'ont PAS de fichier : Véna ne pourra pas les scanner.");
+      Print("Ces instruments n'ont PAS de fichier : Vuna ne pourra pas les scanner.");
 }

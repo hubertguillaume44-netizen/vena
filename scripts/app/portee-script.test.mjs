@@ -9,7 +9,7 @@
 // n'y tourne jamais. Une lecture hors de sa portée est invisible à l'exécution tant
 // que sa branche ne s'exécute pas — mais elle est PARFAITEMENT visible statiquement.
 //
-// La garde parse donc chaque <script> en ligne de Vena.dc.html (espree), résout les
+// La garde parse donc chaque <script> en ligne de Vuna.dc.html (espree), résout les
 // portées (eslint-scope), et exige que toute référence non résolue soit ou bien une
 // déclaration globale d'un bloc du fichier, ou bien un nom de l'environnement
 // navigateur (le paquet `globals` : rien d'énuméré à la main), ou bien une exception
@@ -30,7 +30,7 @@ import * as espree from "espree";
 import * as eslintScope from "eslint-scope";
 import globals from "globals";
 
-const SOURCE = new URL("../../Vena.dc.html", import.meta.url);
+const SOURCE = new URL("../../Vuna.dc.html", import.meta.url);
 const SRC = readFileSync(SOURCE, "utf8");
 
 // Fournis par un <script src> que la page charge AVANT le script de l'application.
@@ -61,7 +61,7 @@ test("aucun identifiant lu dans le script de l'application qui ne soit déclaré
   // script de l'application (celui qui porte renderVals), elle ne mesure plus rien
   assert.ok(blocs.some((b) => b.code.includes("renderVals")),
     "le script de l'application (celui qui porte renderVals) n'est plus un <script> en "
-    + "ligne de Vena.dc.html : cette garde ne le lit plus — réancrez-la sur la nouvelle "
+    + "ligne de Vuna.dc.html : cette garde ne le lit plus — réancrez-la sur la nouvelle "
     + "forme au lieu de la laisser verte sur du vide");
 
   const env = new Set([

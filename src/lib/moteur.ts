@@ -1,4 +1,4 @@
-/* Véna engine — faithful TS port of moteur.js (H1 confirmed-bar backtester). */
+/* Vuna engine — faithful TS port of moteur.js (H1 confirmed-bar backtester). */
 // @ts-nocheck
 export async function chargerCsv(url) {
   const txt = await (await fetch(url)).text();

@@ -1,4 +1,4 @@
-// Générateur d'Expert Advisor MQL5 à partir d'une configuration validée dans Véna.
+// Générateur d'Expert Advisor MQL5 à partir d'une configuration validée dans Vuna.
 //
 // POURQUOI CE ROBOT AGRÈGE LUI-MÊME SES BOUGIES
 // Le moteur ne lit que des H1 et reconstruit les unités supérieures avec ses propres
@@ -56,7 +56,7 @@ const SECONDES = { H1: 3600, H4: 14400, D1: 86400, W1: 604800 };
 // un robot qui ne reproduit pas sa mesure est pire qu'un robot absent. Ce qui a été
 // corrigé, c'est que le refus se sache AVANT le clic — le bouton s'éteint et son
 // infobulle nomme le réglage, pour qu'on choisisse une autre configuration au lieu de
-// recliquer. Voir `refusExport` dans Vena.dc.html, qui appelle CETTE fonction : une
+// recliquer. Voir `refusExport` dans Vuna.dc.html, qui appelle CETTE fonction : une
 // seconde liste là-bas divergerait de celle-ci, et promettrait ce qu'on refuse ici.
 const INCONNUS = {
   fNuage: 'Au-dessus du nuage', fPivot: 'Au-dessus du pivot',
@@ -78,7 +78,7 @@ export function stampMaintenant() {
 // Le nom porte cet horodatage : sans lui, chaque export dupliquait le même nom, Windows
 // ajoutait « (1) », « (2) », et MT5 continuait de proposer les anciens .ex5.
 export function nomRobot(cfg, stamp) {
-  return ['Vena', cfg.sym, cfg.sens === 'vente' ? 'Vente' : 'Achat', cfg.ligne || '',
+  return ['Vuna', cfg.sym, cfg.sens === 'vente' ? 'Vente' : 'Achat', cfg.ligne || '',
     cfg.periode || '', 'SL' + String(cfg.sl).replace('.', 'p'),
     'RR' + String(cfg.rr).replace('.', 'p'), stamp || stampMaintenant()]
     .join('_').replace(/[^A-Za-z0-9_]/g, '_');
@@ -109,14 +109,14 @@ export function genererMQ5(cfg, ctx = {}) {
   const nom = nomRobot(cfg, stamp);
   // Le commentaire d'ordre est tronqué à 31 caractères par MT5 : le nom complet y perdait
   // son horodatage. On y met une étiquette courte, l'horodatage en tête.
-  // « VNA_ » a remplacé l'ancien préfixe, et ce renommage-là est MESURÉ sans risque :
+  // « VUNA_ » a remplacé l'ancien préfixe, et ce renommage-là est MESURÉ sans risque :
   // tous les appariements de positions et de deals passent par POSITION_MAGIC /
   // DEAL_MAGIC == InpMagic, et le commentaire d'ordre n'est jamais relu — aucun
   // POSITION_COMMENT, DEAL_COMMENT ni ORDER_COMMENT dans le robot. C'est une étiquette
   // pour l'œil humain dans l'historique du courtier, pas un identifiant. Rien de commun
   // avec SIV_trades_ et SIV_NIV_, qui restent gelés : eux sont écrits par les robots
   // déjà compilés et relus (fichier par l'application, objets par le robot lui-même).
-  const marque = 'VNA_' + stamp;
+  const marque = 'VUNA_' + stamp;
   const vente = cfg.sens === 'vente';
   const periode = nb(cfg.periode, 20);
   const sl = nb(cfg.sl, 1);
@@ -136,7 +136,7 @@ export function genererMQ5(cfg, ctx = {}) {
   // n'attend pas les mêmes bougies que le moteur et n'entre pas au même moment.
   const facteurSpread = nb(ctx.spreadFacteur, 0).toFixed(2);
   // Fenêtre horaire d'ENTRÉE, portée telle quelle depuis cfg.heures_entree du moteur.
-  // Elle DOIT voyager avec la configuration : un réglage qui existe dans Véna et pas
+  // Elle DOIT voyager avec la configuration : un réglage qui existe dans Vuna et pas
   // dans le robot est exactement la classe d'écart que ce harnais passe son temps à
   // traquer. Début égal à fin = fenêtre inactive, comme dans le moteur.
   const fen = cfg.heures_entree || {};
@@ -275,7 +275,7 @@ export function genererMQ5(cfg, ctx = {}) {
 
   return `//+------------------------------------------------------------------+
 //|  ${nom}
-//|  Généré par Véna · build ${stamp} (UTC) · marque des ordres : ${marque}
+//|  Généré par Vuna · build ${stamp} (UTC) · marque des ordres : ${marque}
 //|
 //|  Instrument      : ${esc(cfg.sym)}
 //|  Sens            : ${vente ? 'VENTE à découvert' : 'ACHAT'}
@@ -302,7 +302,7 @@ export function genererMQ5(cfg, ctx = {}) {
 //|  longtemps pour constater vous-même l'écart avec le backtest avant d'engager du capital.
 //|  Si le nombre de trades diverge, c'est un filtre mal transposé — pas du bruit.
 //+------------------------------------------------------------------+
-#property copyright "Véna"
+#property copyright "Vuna"
 #property version   "2.00"
 #property strict
 
@@ -338,12 +338,12 @@ input string InpDiagDu          = "2020.01.01"; // Diagnostic à partir de cette
 input string InpDiagAu          = "2020.12.31"; // Diagnostic jusqu'à cette date
 input ulong  InpMagic           = ${nb(ctx.magic, 20260901)};
 
-// LA VERSION DE VÉNA QUI A PRODUIT CE ROBOT. Les deux scripts .mq5 la portent depuis
+// LA VERSION DE VUNA QUI A PRODUIT CE ROBOT. Les deux scripts .mq5 la portent depuis
 // 260916.10 ; le générateur, non — et quand un agent de test est mort, rien ne disait
 // quelle build l'avait émis. Le stamp d'export ne répond pas à cette question : il dit
 // QUAND on a exporté, pas DE QUOI. La marque est écrite ici dans la forme exacte que
 // « npm run app:version » cherche, donc ce fichier est daté comme les deux autres.
-#define VENA_VERSION "260919.2"
+#define VUNA_VERSION "260919.3"
 //--- Configuration mesurée (ne pas modifier : le backtest ne serait plus valable)
 #define STOP_PCT        ${sl}
 #define OBJECTIF_R      ${rr}
@@ -355,14 +355,14 @@ input ulong  InpMagic           = ${nb(ctx.magic, 20260901)};
 // Moment d'exécution MESURÉ par instrument (moments.csv → scripts/moment-entree.mjs) :
 // quelle bougie H1 du seau a le droit d'exécuter le signal. "ouverture" = la première,
 // le comportement historique. Constantes et non paramètres : les changer sans remesurer
-// rendrait le backtest de Véna non comparable.
+// rendrait le backtest de Vuna non comparable.
 #define MOMENT_TYPE       "${momType}"
 #define MOMENT_HEURE      ${momHeure}   // heure serveur minimale (type "heure")
 #define MOMENT_MED_SPREAD ${momMed > 0 ? momMed.toFixed(6) : '0.0'}   // % du prix (types "spread"/"glissant")${momDate ? ', figée le ' + momDate : ''}
 // Paliers de sécurisation : en PARAMÈTRES et non en constantes, pour pouvoir les mettre
 // à zéro dans le testeur et voir ce que la sécurisation coûte ou rapporte, sans
 // recompiler. Les valeurs par défaut sont celles de la mesure : les changer rend le
-// backtest de Véna non comparable.
+// backtest de Vuna non comparable.
 input int InpPalier1Seuil  = ${p(0, 0)};  // Palier 1 — chemin parcouru (%) ; 0 = palier désactivé
 input int InpPalier1Niveau = ${p(0, 1)};  // Palier 1 — stop porté à (%)
 input int InpPalier2Seuil  = ${p(1, 0)};  // Palier 2 — chemin parcouru (%) ; 0 = palier désactivé
@@ -385,7 +385,7 @@ input bool InpDessin       = true;  // Dessiner entrée, stop, objectif et palie
 input bool InpSymboleLibre = false; // Autoriser un symbole différent de celui mesuré (suffixe de courtier)
 ${vente ? '#define SENS_VENTE' : '#define SENS_ACHAT'}
 
-// Heures de séance conservées par la MESURE. Véna écarte les heures qui ne sont pas
+// Heures de séance conservées par la MESURE. Vuna écarte les heures qui ne sont pas
 // présentes toutes les années (nettoyage : fenêtre horaire homogène) avant d'agréger les
 // bougies H1. Agréger ici TOUTES les bougies donnerait des bougies D1 différentes — donc
 // d'autres moyennes, d'autres pentes et d'autres signaux. Vide = aucune heure écartée.
@@ -419,7 +419,7 @@ datetime g_lancement = 0;
 // porte le symbole ET le magique — deux robots posés sur deux graphiques du même
 // symbole ne partagent pas leur pli.
 bool g_plie = false;
-string PliCle() { return "VNA_PLIE_" + _Symbol + "_" + IntegerToString(InpMagic); }
+string PliCle() { return "VUNA_PLIE_" + _Symbol + "_" + IntegerToString(InpMagic); }
 
 //+------------------------------------------------------------------+
 //| AGRÉGATION DES BOUGIES DEPUIS LES H1, SUR L'HORLOGE DU SERVEUR    |
@@ -473,7 +473,7 @@ bool Agreger(long sec)
    // se termine, et l'agent finit par être tué — le « disconnected » du journal est
    // l'agent qu'on TUE, pas un agent qui meurt.
    //
-   // C'est mot pour mot la panne fermée le matin même dans Export_H1_Vena : un échec
+   // C'est mot pour mot la panne fermée le matin même dans Export_H1_Vuna : un échec
    // qui se reproduit à l'identique n'est plus une attente, c'est une boucle. Le
    // correctif avait été posé dans un fichier et pas dans l'autre — comme ArrayFree.
    //
@@ -776,10 +776,10 @@ int OnInit()
    // quelle build tourne — et le stamp d'export ne le dit pas : il date le fichier,
    // pas le code qui l'a produit. Un .ex5 oublié dans MQL5\\Experts a un stamp, lui
    // aussi.
-   Print("VENA INIT 1/6 · v", VENA_VERSION, " · build ${stamp} · ${esc(cfg.sym)} · entrée OnInit");
+   Print("VUNA INIT 1/6 · v", VUNA_VERSION, " · build ${stamp} · ${esc(cfg.sym)} · entrée OnInit");
    ConfOuvrir();
    LivOuvrir();
-   Print("VENA INIT 2/6 · journaux ouverts");
+   Print("VUNA INIT 2/6 · journaux ouverts");
    trade.SetExpertMagicNumber(InpMagic);
    trade.SetDeviationInPoints(InpSlippagePoints);
    trade.SetTypeFillingBySymbol(_Symbol);
@@ -789,13 +789,18 @@ int OnInit()
    // où plus aucun robot d'avant le build 260914 ne peut être posé sur un graphique —
    // une condition que rien ici ne peut mesurer : elle reste, au prix d'un appel au
    // démarrage. La garde du dépôt (scripts/mt5/nom-genere.test.mjs) la relie à sa
-   // condition : tant que PAN_PREF ne s'écrit plus « SIV_PAN_ », ce balayage existe.
+   // condition : tant que PAN_PREF ne s'écrit ni « SIV_PAN_ » ni « VNA_PAN_ », les
+   // deux balayages existent. DEUX, parce qu'il y a eu DEUX renommages : un robot
+   // compilé avant le 14/09 laisse du SIV_PAN_, un robot compilé entre le 14 et le
+   // 19/09 laisse du VNA_PAN_. Une seule ligne aurait laissé la seconde génération
+   // d'objets sous le panneau neuf — le défaut même que ce balayage ferme.
    ObjectsDeleteAll(0, "SIV_PAN_");
+   ObjectsDeleteAll(0, "VNA_PAN_");
    // Empreinte : sans elle, impossible de savoir quelle version a réellement tourné
    // quand un ancien .ex5 traîne dans MQL5\\Experts.
    // arguments séparés par des virgules : MQL5 n'accepte PAS la juxtaposition de
    // littéraux à la C, le fichier ne compilait pas
-   Print("=== VÉNA ROBOT · build ${stamp} (UTC)",
+   Print("=== VUNA ROBOT · build ${stamp} (UTC)",
          " · ${esc(cfg.sym)} ${vente ? 'VENTE' : 'ACHAT'} ${esc(cfg.ligne)} ${periode}",
          " · stop ${sl}% R/R ${rr} · attendu ${nb(cfg.n, 0)} trades ===");
    Print("Journées découpées à 00:00 heure serveur, comme les horodatages des CSV mesurés.");
@@ -808,11 +813,11 @@ int OnInit()
    // laisse croire que le reste ne décide pas. Un test avec des paliers hérités d'un lancement précédent
    // rend des gagnants coupés et des perdants adoucis, et se lit comme un défaut du
    // moteur. Ces quatre lignes rendent ce cas DÉCIDABLE depuis le seul journal.
-   PrintFormat("VÉNA ENTRÉES EFFECTIVES 1/2 · paliers %d→%d / %d→%d / %d→%d"
+   PrintFormat("VUNA ENTRÉES EFFECTIVES 1/2 · paliers %d→%d / %d→%d / %d→%d"
                + " · durée max %d bougies · positions max %d",
                InpPalier1Seuil, InpPalier1Niveau, InpPalier2Seuil, InpPalier2Niveau,
                InpPalier3Seuil, InpPalier3Niveau, DUREE_MAX, InpMaxPositions);
-   PrintFormat("VÉNA ENTRÉES EFFECTIVES 2/2 · risque %.2f %% · plafond spread %.2f ×"
+   PrintFormat("VUNA ENTRÉES EFFECTIVES 2/2 · risque %.2f %% · plafond spread %.2f ×"
                + " médiane (+ %.4f %% absolu) · fenêtre d'entrée %d h → %d h"
                + " · début de semaine %s · déviation %d points · bougies agrégées %d",
                InpRisquePct, InpSpreadFacteur, InpSpreadMaxPct,
@@ -838,7 +843,7 @@ int OnInit()
       }
       else if(!InpSymboleLibre)
       {
-         Print("VÉNA REFUSE DE DÉMARRER : ce robot a été mesuré sur ${esc(cfg.sym)} ",
+         Print("VUNA REFUSE DE DÉMARRER : ce robot a été mesuré sur ${esc(cfg.sym)} ",
                "(noyau ", NoyauSymbole("${esc(cfg.sym)}"), "), le graphique porte ",
                _Symbol, " (noyau ", NoyauSymbole(_Symbol), "). Les chiffres d'un test ",
                "lancé ainsi ressemblent à une mesure de ", _Symbol, " sans en être une. ",
@@ -864,17 +869,17 @@ int OnInit()
    // s'arrête proprement après un jalon, un dépassement mémoire meurt PENDANT le bloc
    // le plus gourmand (3/6 ou 4/6), une exception native tue l'agent à l'instruction
    // même — sans jamais laisser passer le jalon suivant.
-   Print("VENA INIT 3/6 · objets du panneau balayés, avant lecture d'historique");
+   Print("VUNA INIT 3/6 · objets du panneau balayés, avant lecture d'historique");
    dernierSeau = SeauCourant(SEC_SIGNAL);
-   Print("VENA INIT 4/6 · seau courant lu, avant amorçage du spread");
+   Print("VUNA INIT 4/6 · seau courant lu, avant amorçage du spread");
    SpOuvAmorcer();
-   Print("VENA INIT 5/6 · amorçage du spread terminé, avant premier agrégat");
+   Print("VUNA INIT 5/6 · amorçage du spread terminé, avant premier agrégat");
    // LE PREMIER APPEL À Agreger AVEC DE VRAIES BOUGIES, sorti de OnTick et amené ici.
    // C'est la fenêtre que le journal désigne — 139 ms après « historique prêt » — et
    // tant qu'il tournait au premier tick, aucun jalon ne pouvait l'encadrer.
    {
       bool ok = Agreger(SEC_SIGNAL);
-      PrintFormat("VENA INIT 6/6 · premier agrégat : %s, %d seaux · robot prêt",
+      PrintFormat("VUNA INIT 6/6 · premier agrégat : %s, %d seaux · robot prêt",
                   ok ? "construit" : "historique insuffisant", g_n);
    }
    g_lancement = TimeCurrent();
@@ -934,7 +939,7 @@ void ConfFermer()
 // Distinct du journal de conformité, et TOUJOURS ACTIF : un journal qu'on oublie
 // d'activer ne sert à rien le jour où l'écart apparaît. Celui-ci ne sert pas à
 // déboguer une exécution, il sert à savoir, six mois plus tard, ce que le robot a
-// vraiment fait — et à le comparer, ligne à ligne, à ce que Véna avait mesuré.
+// vraiment fait — et à le comparer, ligne à ligne, à ce que Vuna avait mesuré.
 //
 // Même dossier que la conformité : l'utilisateur n'a qu'un endroit à connaître.
 //
@@ -983,7 +988,7 @@ string LivP(double x)   { return DoubleToString(x, _Digits); }
 
 // ————— L'INSTANTANÉ DES POSITIONS OUVERTES : UN ÉTAT, PAS UN HISTORIQUE —————
 //
-//   …/MetaQuotes/Terminal/Common/Files/VNA_positions_<SYMBOLE>_<MAGIC>.csv
+//   …/MetaQuotes/Terminal/Common/Files/VUNA_positions_<SYMBOLE>_<MAGIC>.csv
 //
 // UN FICHIER À PART, et ce n'est pas un rangement : le journal des trades est un
 // AJOUT, l'instantané est un ÉTAT COURANT. Un état qu'on ajoute devient un historique
@@ -1004,7 +1009,7 @@ string LivP(double x)   { return DoubleToString(x, _Digits); }
 //
 // LE R LATENT EST CALCULÉ ICI, et nulle part ailleurs. Le robot est le seul à connaître
 // le risque en devise qui a DIMENSIONNÉ la position — g_livRisque, la distance au stop
-// INITIAL. Véna qui le recalculerait depuis ses propres bougies serait une seconde
+// INITIAL. Vuna qui le recalculerait depuis ses propres bougies serait une seconde
 // vérité, et elle divergerait au premier écart de prix entre le courtier et l'export.
 // C'est le même dénominateur que profit_R du journal : les deux colonnes se comparent.
 datetime g_instT = 0;
@@ -1012,7 +1017,7 @@ bool     g_instDit = false;
 
 void InstantanePositions()
 {
-   string nom = "VNA_positions_" + _Symbol + "_" + IntegerToString((long)InpMagic) + ".csv";
+   string nom = "VUNA_positions_" + _Symbol + "_" + IntegerToString((long)InpMagic) + ".csv";
    StringReplace(nom, "#", "");
    int f = FileOpen(nom, FILE_WRITE | FILE_TXT | FILE_ANSI | FILE_COMMON);
    if(f == INVALID_HANDLE)
@@ -1055,7 +1060,7 @@ void InstantanePositions()
 
 // La position en cours, telle qu'elle a été OUVERTE. Le stop courant bouge avec les
 // paliers ; le risque initial, lui, ne bouge pas — et c'est lui qui définit le R de
-// Véna. Diviser par le risque courant donnerait deux colonnes non comparables.
+// Vuna. Diviser par le risque courant donnerait deux colonnes non comparables.
 ulong    g_livTicket  = 0;
 double   g_livOuv     = 0.0;
 double   g_livSl0     = 0.0;
@@ -1304,7 +1309,7 @@ void SurveillerSortie()
                       : "manuel";
          double prof = HistoryDealGetDouble(d, DEAL_PROFIT);
          double frais = swapTot + commTot;
-         // profit_R sur le risque INITIAL : c'est la définition de Véna. Rapporté au
+         // profit_R sur le risque INITIAL : c'est la définition de Vuna. Rapporté au
          // risque courant, un trade sorti sur un palier vaudrait mécaniquement plus.
          string pr = (g_livRisque > 0.0) ? DoubleToString(prof / g_livRisque, 3) : "";
          Liv(StringFormat("%I64u;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%I64u;%s",
@@ -1712,7 +1717,7 @@ void GererPaliers()
          Conf(StringFormat("P|%s|%s|%s|%s|%s", ConfH(TimeCurrent()),
               DoubleToString(parcours, 2), ConfP(sl), ConfP(nouveau), ConfP(extreme)));
          // Un palier a bougé le stop : la sortie qui suivra sera un « palier » et non un
-         // « sl ». C'est LA distinction qui explique l'essentiel des écarts avec Véna —
+         // « sl ». C'est LA distinction qui explique l'essentiel des écarts avec Vuna —
          // le moteur sort sur le palier, MT5 sort sur le niveau du stop en intrabar.
          g_livPalier = true;
          trade.PositionModify(ticket, nouveau, tp);
@@ -1751,7 +1756,7 @@ void GererDuree()
 //| l'objectif reste celui de GererPaliers, et le journal CONF| reste |
 //| la source de vérité du harnais. Leur raison d'être : vérifier à   |
 //| l'œil, sur le chandelier, que le robot voit la même chose que     |
-//| Véna — le vrai test des premières semaines.                     |
+//| Vuna — le vrai test des premières semaines.                     |
 //|                                                                   |
 //| Tenue : un seul groupe d'objets, préfixé du magic pour que deux   |
 //| robots sur deux graphiques ne se marchent pas dessus ; traits     |
@@ -1932,8 +1937,8 @@ void DessinerNiveaux()
 
 // Le tableau est dessiné en OBJETS (cadre + libellés) et non par Comment() : le
 // commentaire se superpose aux bougies et reste illisible sur fond sombre.
-// Le préfixe suit le nom neuf ; l'ancien « SIV_PAN_ » est balayé UNE fois à OnInit.
-#define PAN_PREF "VNA_PAN_"
+// Le préfixe suit le nom neuf ; les DEUX anciens sont balayés UNE fois à OnInit.
+#define PAN_PREF "VUNA_PAN_"
 #define PAN_MAX  16   // rangées
 #define PAN_OBJ  48   // cellules — une rangée en porte jusqu'à quatre
 #define PLI_TAILLE 16 // le bouton de pli, au coin haut droit du cadre
@@ -2247,11 +2252,11 @@ bool EtatRobot(string &motif, string &geste)
 // La position du robot, lue UNE fois pour les deux formes. Replié, le panneau montre
 // son R et son euro ; déplié, il y ajoute l'heure et les niveaux. Deux lectures
 // séparées pourraient diverger d'un tick, et le pli aurait créé un second fait.
-struct PosVena { bool ouverte; double gain; double enR; datetime depuis; double sl; double tp; };
+struct PosVuna { bool ouverte; double gain; double enR; datetime depuis; double sl; double tp; };
 
-PosVena LirePosition(double risque)
+PosVuna LirePosition(double risque)
 {
-   PosVena p;
+   PosVuna p;
    p.ouverte = false; p.gain = 0.0; p.enR = 0.0; p.depuis = 0; p.sl = 0.0; p.tp = 0.0;
    for(int i = PositionsTotal() - 1; i >= 0; i--)
    {
@@ -2278,7 +2283,7 @@ void Tableau()
    bool marche = EtatRobot(motif, geste);
    double solde  = AccountInfoDouble(ACCOUNT_BALANCE);
    double risque = solde * InpRisquePct / 100.0;
-   PosVena pos   = LirePosition(risque);
+   PosVuna pos   = LirePosition(risque);
 
    // ── Qui je suis, et si je tourne. L'état est LA SEULE couleur pleine du panneau :
    // le vert qui décorait six lignes sur dix ne signalait plus rien. Il s'écrit UNE
@@ -2395,8 +2400,8 @@ ${refCreux ? `   Ligne("${refCreux}", gris, "${refCreuxCourt}", corps, false, 5)
    // configuration et le build suffisent à dire de quel export vient ce panneau.
    Ligne("${esc(cfg.ligne)} ${periode} · stop ${sl} % · R/R ${rr} · durée max ${dureeTxt}", gris,
          "${esc(cfg.ligne)} ${periode} · stop ${sl} % · R/R ${rr}", corps - 1, false, 0);
-   Ligne("VÉNA · build ${stamp} · ordres marqués ${marque}", gris,
-         "VÉNA · build ${stamp}", corps - 1, false, 0);
+   Ligne("VUNA · build ${stamp} · ordres marqués ${marque}", gris,
+         "VUNA · build ${stamp}", corps - 1, false, 0);
    PanneauDessiner();
 }
 
@@ -2477,7 +2482,7 @@ bool Entrer()
            ConfP(prix), ConfP(stop), ConfP(objectif), DoubleToString(lots, 2)));
 
       // La position telle qu'elle vient d'être ouverte. Le risque en devise est calculé
-      // ICI, sur la distance au stop INITIAL : c'est le dénominateur du R de Véna.
+      // ICI, sur la distance au stop INITIAL : c'est le dénominateur du R de Vuna.
       g_livTicket = g_posTicket;
       g_livOuv    = prix;
       g_livSl0    = stop;
@@ -2535,7 +2540,7 @@ void OnTick()
    if(!MQLInfoInteger(MQL_TESTER) && TimeCurrent() - g_instT >= INST_BATTEMENT)
       InstantanePositions();
    // les niveaux, eux, se dessinent aussi dans le testeur VISUEL : c'est là qu'on
-   // vérifie à l'œil que le robot voit la même chose que Véna
+   // vérifie à l'œil que le robot voit la même chose que Vuna
    if(!MQLInfoInteger(MQL_TESTER) || MQLInfoInteger(MQL_VISUAL_MODE)) DessinerNiveaux();
    SurveillerSortie();
    GererPaliers();
