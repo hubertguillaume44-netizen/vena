@@ -160,16 +160,20 @@ const FAMILLES = [
   ["l'IDENTIFIANT DU SÉLECTEUR DE DOSSIER : le navigateur s'en sert pour rouvrir au "
    + "même endroit. Le renommer ne gagne rien et fait oublier le dernier dossier",
    /vena-mt5-common/],
-  // AJOUTÉE PAR CETTE GARDE ELLE-MÊME, le jour du second renommage : les deux liens
-  // avaient été passés à « vuna » d'avance, et le registre les a trouvés. C'est le seul
-  // membre dont la condition de dégel est DATABLE par une commande, et elle est écrite :
-  // `git ls-remote --get-url origin` cesse de rendre une redirection vers /vena. Écrire
-  // le nom futur avant le geste produit un lien qui ne résout pas — l'inverse exact du
-  // défaut que la consigne de CLAUDE.md existe pour empêcher.
-  ["le NOM DU DÉPÔT GITHUB : il se renomme depuis l'interface, jamais par un commit. "
-   + "Tant que le geste n'a pas eu lieu, écrire « vuna » fabrique un lien mort. Dégel : "
-   + "le jour où le dépôt s'appelle vuna, ces deux liens suivent",
-   /hubertguillaume44-netizen\/vena/],
+  // ————— LA DIXIÈME FAMILLE EST PARTIE, ET ELLE A EU LA BONNE FIN —————
+  //
+  // Elle a vécu quelques heures : ajoutée le 19/09/2026 parce que les deux liens du dépôt
+  // avaient été passés à « vuna » d'avance et que le registre les a refusés ; retirée le
+  // même jour, quand le renommage GitHub a eu lieu et que ses occurrences ont disparu.
+  // C'est le registre qui a EXIGÉ son retrait — il échoue dans les deux sens, donc une
+  // famille sans membre le fait tomber, et elle ne pouvait pas survivre en tolérance vide.
+  //
+  // ET SA CONDITION DE DÉGEL NOMMAIT UNE COMMANDE QUI NE POUVAIT PAS LA DATER :
+  // `git ls-remote --get-url origin` n'interroge rien — il imprime .git/config, donc il
+  // aurait rendu l'ancienne URL pour toujours. La commande qui répond interroge le
+  // SERVEUR : le nom canonique que GitHub rend pour le dépôt. Un flag d'écart, et une
+  // question locale déguisée en question sur le monde. Voir CLAUDE.md, « une condition de
+  // dégel ne vaut que la commande qu'elle nomme ».
 ];
 
 test("« vena » ne survit que dans les familles du registre, et chacune vit encore", () => {

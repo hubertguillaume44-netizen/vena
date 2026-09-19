@@ -131,18 +131,27 @@ membre**. Elles sont donc nommées et lues d'un seul endroit.
 
 ## Ce que `vena` garde, et pourquoi — le registre
 
-**LE RENOMMAGE S'ARRÊTE À CES DIX FAMILLES, et chacune a une raison qui se relit.** Sans
+**LE RENOMMAGE S'ARRÊTE À CES NEUF FAMILLES, et chacune a une raison qui se relit.** Sans
 ce tableau, un `vena` survivant se lit comme un oubli, et le prochain renommage le
 « corrigera » — c'est-à-dire qu'il cassera ce que la famille protège. `nom-vuna.test.mjs`
 en tient le registre et **échoue dans les deux sens** (la forme de `boucles-mql5`) : une
 occurrence hors registre le fait tomber, et une famille dont le dernier membre a disparu
 aussi, pour que le registre ne devienne pas une liste de tolérances.
 
-**LA DIXIÈME A ÉTÉ TROUVÉE PAR LE REGISTRE LUI-MÊME, le jour où il a été écrit.** Les deux
-liens du dépôt avaient été passés à `vuna` d'avance, sur la foi de l'inventaire plutôt que
-du remote ; la première poussée a rendu « *This repository moved… /vena.git* », et la garde
-a refusé le retour en arrière tant que sa raison n'était pas écrite. *Une garde de registre
-gagne sa place le jour où elle attrape ce que son auteur venait d'écrire.*
+**IL Y EN A EU UNE DIXIÈME, ET ELLE EST NÉE ET MORTE LE MÊME JOUR — les deux fois par le
+registre.** Les deux liens du dépôt avaient été passés à `vuna` d'avance, sur la foi de
+l'inventaire plutôt que du distant ; la première poussée a rendu « *This repository moved…
+/vena.git* », et la garde a refusé le retour à `vena` tant que sa raison n'était pas
+écrite. *Une garde de registre gagne sa place le jour où elle attrape ce que son auteur
+venait d'écrire.*
+
+Quelques heures plus tard, l'utilisateur a renommé le dépôt, les deux liens sont passés à
+`vuna` pour de bon, et **le registre a exigé le retrait de la famille** — il échoue dans
+les deux sens, donc une entrée sans membre tombe comme une occurrence hors registre. C'est
+la démonstration que la seconde moitié n'est pas décorative : *sans elle, la dixième serait
+restée écrite, verte, et décrirait un état du monde qui n'existe plus.* Ce qu'elle a laissé
+derrière est une leçon sur les commandes, écrite plus haut — « une condition de dégel ne
+vaut que la commande qu'elle nomme ».
 
 | La famille | Pourquoi elle reste |
 |---|---|
@@ -154,11 +163,12 @@ gagne sa place le jour où elle attrape ce que son auteur venait d'écrire.*
 | l'acceptation d'une sauvegarde ancienne (`OUTILS_LUS`, `.vena`, `vena_chiffre`) | un fichier que cette application a écrit ne doit jamais être refusé par elle, sans date limite |
 | `ANCIENS_DOSSIERS` des deux scripts MT5 | une installation antérieure garde sa liste sous l'ancien nom, et la perdre serait **muet** |
 | l'identifiant du sélecteur de dossier (`vena-mt5-common`) | le navigateur s'en sert pour rouvrir au même endroit : le renommer ne gagne rien et fait oublier le dernier dossier |
-| le **nom du dépôt GitHub** | il se renomme depuis l'interface, jamais par un commit. Tant que le geste n'a pas eu lieu, écrire `vuna` fabrique un lien mort. **Dégel : le jour du renommage** |
 | les mots français (`provenance`, `venait`, …) | **169 occurrences** : ce n'est pas la marque |
 
-**QUATRE DE CES FAMILLES SONT HORS DU DÉPÔT, et ce sont celles de l'utilisateur** — le
-domaine, la boîte, la variable Netlify, le nom du dépôt. Aucune garde ne peut les changer ni vérifier qu'elles
+**TROIS DE CES FAMILLES SONT HORS DU DÉPÔT, et ce sont celles de l'utilisateur** — le
+domaine, la boîte, la variable Netlify. **Il y en avait quatre il y a quelques heures** :
+le nom du dépôt est parti le jour où il a été renommé, et le registre a exigé son retrait
+plutôt que de la laisser survivre en tolérance vide. Aucune garde ne peut les changer ni vérifier qu'elles
 l'ont été ; ce qui est dans le dépôt, c'est de **ne pas tomber** si elles changent un jour.
 `protection.js` lit donc `VUNA_ACCES` **d'abord** et `VENA_ACCES` **en repli** : la
 variable peut être renommée dans l'interface Netlify à tout moment, ou jamais, sans
@@ -254,20 +264,44 @@ supprimé : l'occupation réelle du navigateur est bien celle des deux.
 À chaque livraison : `npm run app:version` avant `npm run app:solo` — voir « La version
 affichée est une date » plus bas.
 
-**Le dépôt GitHub s'appelle `hubertguillaume44-netizen/vena` AUJOURD'HUI, et il doit
-s'appeler `vuna`.** Le renommage se fait depuis l'interface GitHub : c'est un geste de
-l'utilisateur, qu'aucun commit ne peut porter — et il n'a pas encore eu lieu. **Mesuré**,
-pas supposé : une poussée depuis ce dépôt rend « This repository moved. Please use the new
-location: …/vena.git ».
+Le dépôt GitHub s'appelle **`hubertguillaume44-netizen/vuna`** — troisième nom, après
+`simula` puis `vena`. Le renommage se fait depuis l'interface GitHub : c'est un geste de
+l'utilisateur, qu'aucun commit ne peut porter. `README.md` et `PASSATION.md` le nomment.
 
-**Et c'est pourquoi `README.md` et `PASSATION.md` nomment encore `vena`.** Écrire `vuna`
-avant le geste produit un lien qui ne résout pas — l'inverse exact du défaut que cette
-section existe pour empêcher. Le jour du renommage, **trois endroits suivent** : le lien de
-`README.md`, le nom nu de `PASSATION.md`, et ce paragraphe.
-
-**GitHub redirige les anciennes adresses, et ce n'est pas une raison de les écrire.** Une
-redirection se retire le jour où quelqu'un recrée un dépôt sous l'ancien nom — et avec
+**GitHub redirige les deux anciennes adresses, et ce n'est pas une raison de les écrire.**
+Une redirection se retire le jour où quelqu'un recrée un dépôt sous l'ancien nom — et avec
 trois noms en circulation, ce jour est trois fois plus probable qu'avec un.
+
+### Une condition de dégel ne vaut que la COMMANDE qu'elle nomme
+
+Ce paragraphe a porté pendant quelques heures l'inverse de ce qu'il dit — `vena`, avec la
+mention que le renommage n'avait pas eu lieu — et le registre de `nom-vuna` en a fait sa
+**dixième famille**, retirée depuis : le geste a eu lieu, les occurrences ont disparu, et
+le registre a EXIGÉ le retrait, parce qu'une famille sans membre le fait tomber comme une
+occurrence hors registre.
+
+**Sa condition de dégel nommait une commande qui ne pouvait pas la dater**, et c'est ce
+qu'il faut garder de l'épisode. Elle disait : *« `git ls-remote --get-url origin` cesse de
+rendre une redirection »*. Or `--get-url` **n'interroge rien** — il imprime `.git/config`.
+Il rendait l'ancienne URL avant le renommage, il la rend encore après, et il l'aurait
+rendue pour toujours.
+
+> **Une commande qui lit la configuration LOCALE ressemble exactement à une commande qui
+> interroge le MONDE**, et un seul drapeau les sépare. `git ls-remote <url>` parle au
+> serveur ; `git ls-remote --get-url` parle à un fichier. Écrite dans une note, la
+> différence est invisible — et c'est une condition de dégel qui ne se déclenche jamais.
+
+**Ce qui a répondu est le nom CANONIQUE que l'hébergeur rend** — le `full_name` d'un
+listage des dépôts accessibles, qui dit `…/vuna` et rien d'autre. Et deux prises
+plausibles ont été essayées avant, sans discriminer : les deux URL résolvent (GitHub
+redirige, c'est son travail), et un `push --dry-run` ne transfère rien, donc le serveur
+n'annonce rien.
+
+C'est la classe déjà nommée, appliquée à un outil au lieu d'un fait : **un fait disponible
+— ce que l'hébergeur déclare — remplacé par un fait plausible — ce qu'une commande d'allure
+adéquate imprime.** Le geste ne change pas : *avant d'écrire une condition de dégel, la
+faire échouer une fois.* Une condition qu'on n'a jamais vue rendre l'autre réponse est une
+condition dont on ne sait pas si elle peut la rendre.
 
 ## Déploiement — la configuration vit dans le dépôt
 
@@ -4948,7 +4982,7 @@ général. C'est la garde `aucun-voisin` qui l'a dit, et elle avait raison.
 
 ## Le test qui tient la convention
 
-`scripts/app/nom-vuna.test.mjs` échoue si l'ancien nom réapparaît hors des dix familles
+`scripts/app/nom-vuna.test.mjs` échoue si l'ancien nom réapparaît hors des neuf familles
 du registre, si un accent se glisse dans une clé ou un nom de fichier téléchargé, ou si un
 fichier du dépôt reprend l'ancien nom. Son registre **échoue dans les deux sens** : une
 famille dont le dernier membre a disparu le fait tomber aussi, pour qu'elle ne survive pas
