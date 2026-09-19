@@ -2054,11 +2054,13 @@ modeste* — c'est précisément sa modestie qui l'a fait passer.
 
 #### La quatrième instance était DANS l'énoncé de la règle — et ce n'était pas un nombre
 
-Il y en a **quatre**, et les voici, parce qu'un compte qui ne s'énumère pas est
+Il y en a **cinq**, et les voici, parce qu'un compte qui ne s'énumère pas est
 exactement ce que ce paragraphe interdit : « la troisième instance » pour la cinquième,
-« des mois » pour quatre jours, « douze caractères » pour six, et — dans le message qui
+« des mois » pour quatre jours, « douze caractères » pour six, — dans le message qui
 posait le signal ci-dessus — **« les trois nombres étaient faux dans le sens qui
-renforçait »**, alors que deux le sont.
+renforçait »**, alors que deux le sont, et enfin **« trois morsures, CHACUNE attrapée
+par la phrase que la précédente avait laissée derrière elle »**, alors qu'une seule
+l'a été : les deux autres l'ont été par relecture.
 
 C'est la figure que le dépôt connaît déjà sous une autre forme : *la règle 1, à
 l'intérieur d'une garde écrite contre elle.* Ici c'est une règle de prose, commise dans la
@@ -2077,6 +2079,22 @@ des nombres tirés du souvenir ; le quatrième est un nombre tiré des cas SOUS 
 
 Le geste ne change pas — il s'applique à un mot de plus. *Avant d'écrire « les trois »,
 reprendre les trois.*
+
+**Et la CLÔTURE a resservi, dans la même situation exactement.** Les deux
+quantificateurs de cette liste — « les trois », « chacune » — ont été écrits *en
+commentant la règle qui les interdit*, par la même personne, à six jours d'écart. Ce
+n'est pas une distraction : commenter une règle, c'est avoir sous les yeux les cas qui
+viennent de la produire, et **un ensemble qu'on vient d'examiner se clôt tout seul** —
+on dit « chacune » de trois choses dont on a vérifié une, parce que les trois sont
+là, ensemble, et paraissent avoir été vues.
+
+> **Le moment le plus dangereux pour un quantificateur est celui où l'on RÉCAPITULE.**
+> Les nombres de mémoire se trompent quand on est loin des cas ; les quantificateurs se
+> trompent quand on en est tout près. La récapitulation a l'air d'être le moment où l'on
+> est le mieux informé — c'est le moment où le compte est le moins fait.
+
+Le geste, lui, ne change toujours pas ; c'est le déclencheur qui s'élargit. *Avant
+d'écrire « les trois », reprendre les trois — et surtout dans la phrase qui conclut.*
 
 **Et ce nom-là a ABSORBÉ une règle du dépôt, ce que les précédents n'avaient pas fait.**
 « Un “seul” se périme sans bruit : compter, pas jurer » vivait depuis le 13 septembre dans
