@@ -123,7 +123,11 @@ membre**. Elles sont donc nommées et lues d'un seul endroit.
   la classe exacte que `repli-muet` existe pour fermer — et elle ne lit qu'UN des deux
   scripts (règle 8 : la garde porte un nom de LIEU, `Export_H1_Vuna.mq5`, là où
   l'invariant a un nom de classe). Le renommage du dossier a rendu le trou visible ; il
-  était ouvert depuis toujours.
+  était ouvert depuis toujours — **et ce n'est pas un petit trou : c'est la panne de
+  septembre, celle d'une liste de symboles perdue sans un mot, RAPPORTÉE comme ayant coûté
+  un mois d'installation de robots.** Elle dormait dans le second script pendant que la
+  garde écrite pour elle lisait le premier. *Un renommage ne cause pas ce genre de défaut ;
+  il le met sous la lampe, et c'est le seul bénéfice qu'un renommage puisse avoir.*
 
 ## Ce que `vena` garde, et pourquoi — le registre
 
@@ -2352,6 +2356,100 @@ est bien voulu, l'étiquette ne l'était pas.
 Ne pas confondre non plus avec les deux autres « périmé » du fichier : les « chiffres
 périmés » (réglages changés, `perime()`) et `aScansPerimes` (un scan antérieur à une
 livraison). **Trois mécanismes, un seul mot.**
+
+## Un fait DISPONIBLE, remplacé par un fait PLAUSIBLE
+
+**PROVENANCE · le nom vient de l'utilisateur, le 19 septembre 2026 ; les instances
+étaient toutes déjà écrites ici, dans trois chapitres qui ne se savaient pas parents.**
+C'est la règle 8 à son second test — *une classe bien nommée ABSORBE* — et ce qu'elle
+ramasse était déjà relié par un renvoi : le chapitre de la carte du rapport dit, en toutes
+lettres, « le geste coûte une commande, et **c'est la même que pour les nombres** ». Le
+lien était vu ; le mécanisme n'avait pas de nom.
+
+Le voici, et il n'est pas « une apposition chiffrée » — celui-là était un LIEU
+grammatical, et il laissait dehors tout ce qui n'est pas un nombre :
+
+> **Une commande existait, tenait dans une ligne, et personne ne l'a lancée — un fait
+> plausible a pris la place du fait disponible.** Le plausible est presque toujours
+> proche : il vient de ce qu'on avait en main, d'un brief, d'un souvenir, d'un écran
+> ouvert. C'est ce qui le rend indistinguable du vérifié une fois écrit.
+
+Les membres, énumérés plutôt que comptés — la forme que ce fichier prescrit pour une
+phrase sur un ensemble :
+
+| le fait plausible | la commande qui répondait | où il vit |
+|---|---|---|
+| les cinq appositions chiffrées | `git log -S`, un compte sur la composition réelle, reprendre les cas | « Aucun mot relatif sur une fenêtre figée » |
+| `nomRobot` désigné pour un geste qui vit dans `etiquetteCompte` | chercher la phrase | « Un nom tronqué perd sa FIN » |
+| `/tarifs` désigné pour une phrase qui vit sur l'accueil | la même | idem |
+| la phrase réécrite de mémoire au lieu d'être cherchée | la même | « La colonne gratuite » |
+| **le nom du dépôt, pris dans l'inventaire du brief** | `git ls-remote --get-url origin` | « Fichiers », plus haut |
+
+**LE DERNIER EST LE PLUS INSTRUCTIF PARCE QU'IL N'EST PAS UN NOMBRE**, et c'est lui qui a
+forcé le renommage de la classe. Le brief du renommage disait « le dépôt GitHub : `vena` →
+`vuna` » ; c'était un ordre de travail, pas un état du monde. Le distant, lui, répondait —
+et il répondait *« This repository moved… /vena.git »*. Trois fichiers ont été passés au
+nom futur sur la foi de l'intention.
+
+**Et la règle 1 est dessous, une fois de plus** : on a pris une INTENTION (« ce dépôt doit
+s'appeler vuna ») pour un RÉSULTAT (« ce dépôt s'appelle vuna »). Ce qui distingue cette
+famille-ci des six de la table fondatrice, c'est que le résultat n'était pas seulement
+observable *plus tard dans le code* — il était observable **tout de suite**, par une
+commande d'une ligne, et personne ne l'a tapée.
+
+### Le chapitre a fait rougir DEUX de ses propres lignes, dans la minute
+
+Et c'est sa meilleure provenance, parce qu'elle ne se raconte pas : elle se relit. Les
+deux appositions ci-dessous ont été écrites **dans ce chapitre-ci**, par celui qui venait
+de le formuler, et corrigées avant le commit — par les deux commandes que le chapitre
+prescrit.
+
+| ce qui était écrit | ce que la commande rendait | le sens de l'erreur |
+|---|---|---|
+| « **cinq** chapitres prescrivaient cinq vigilances » | **trois** chapitres (`grep -n "^## "`) | **amplifie** — cinq vigilances, donc cinq endroits, sans vérifier |
+| « écrit **une heure** plus tôt » | **huit minutes** (`git log --date=format:%H:%M:%S`) | **atténue** — et le vrai chiffre est plus frappant que le juré |
+
+**La seconde va dans le sens qui AFFAIBLIT, et c'est la même répartition que la table
+fondatrice** : deux amplifient, une atténue. Le chiffre juré n'est pas « plus fort », il
+est **plus près de ce que l'auteur croyait** — ici, la durée ressentie d'un travail long.
+
+*Le chapitre a donc attrapé ce qui venait après lui, y compris ce que son auteur n'avait
+pas prévu.* C'est la figure du compte posé, appliquée à un chapitre entier plutôt qu'à un
+nombre : une fois « la commande existait-elle ? » écrit en tête, chaque fait de la page
+devient une valeur à recompter.
+
+### Ce qui referme la famille est un geste unique, et c'est ce qui en fait une classe
+
+**Trois** chapitres prescrivaient **cinq** vigilances — compter un ordinal, compter une
+durée, compter une quantité, chercher la phrase avant de corriger, chercher la phrase
+avant d'écrire. **C'est un seul geste**, et le voir permet de cesser d'en enseigner cinq :
+
+> **Avant d'écrire un fait, demander s'il a une commande — et la taper.** Un nombre, un
+> nom, un chemin, une date, un état du monde : s'il existe une ligne qui répond, la ligne
+> coûte une seconde et le fait plausible coûte une livraison.
+
+**Et le coût est celui que ce fichier documente partout** : un fait plausible a la forme
+d'une réponse, donc il éteint l'enquête. Le nom du dépôt écrit d'avance n'aurait produit
+aucun symptôme le jour où il a été écrit — un lien mort ne se plaint pas — exactement
+comme la seconde copie d'une phrase, qui s'affiche juste jusqu'au jour où l'une des deux
+bouge.
+
+**CE QUI L'A ATTRAPÉ N'ÉTAIT PAS UNE VIGILANCE, ET C'EST LA PARTIE QUI COMPTE.** Le
+registre de `nom-vuna` a refusé le retour à `vena` dans les deux liens, parce qu'une
+occurrence hors des familles recensées le fait tomber. Il a été livré à **18:09:35** et a
+mordu à **18:17:49** — **huit minutes**, relues dans `git log`, sur une erreur de bonne foi
+de son propre auteur, pas sur une mutation posée exprès.
+
+> **Une garde de registre gagne sa place le jour où elle refuse un correctif JUSTE faute
+> de sa raison écrite.** C'est la bonne sévérité et non un excès : un correctif juste est
+> indistinguable d'un oubli tant que personne n'écrit pourquoi. La garde ne sait pas
+> lequel des deux elle voit — elle sait seulement que rien ne l'explique.
+
+**Ce que ce chapitre NE fait pas** : il ne reprend l'énoncé d'aucun des quatre autres. Il
+porte le nom, la liste et le geste ; chaque instance garde sa prose et son cas fondateur là
+où elle est née. C'est la tolérance déjà déclarée pour l'absorption précédente, et son
+seuil vaut ici mot pour mot — le jour où ce chapitre et l'un des quatre cesseront de se
+paraphraser, l'un des deux devient un renvoi nu.
 
 ## L'indicateur choisit son univers sur un RÉSULTAT, jamais sur une intention
 
