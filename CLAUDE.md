@@ -474,6 +474,18 @@ entière : elle fait **consentir**. C'est la facture qui **prouve**.
 
 Elles viennent toutes d'un défaut réel de ce dépôt, et chacune est détaillée plus bas.
 
+> **ET C'EST LE CRITÈRE D'ADMISSION DE TOUT CE FICHIER, pas seulement des seize.** Une
+> règle entre ici parce qu'elle a été LUE sur la pratique — sur un défaut réel, ou sur
+> une habitude réelle qu'on n'avait pas nommée. Elle n'entre jamais parce qu'elle
+> paraissait vraie au bureau. *Ce qui n'est né ni d'un défaut ni d'une habitude n'entre
+> pas.*
+
+Le coût de ne pas l'appliquer n'est pas une ligne de trop : c'est que **le fichier cesse
+d'être lu**. Une section écrite pour elle-même se reconnaît à ce qu'elle n'a ni cas
+fondateur ni geste — et elle dilue les autres, qui en ont. Une règle prescrite à la
+pratique, personne ne l'applique ; une règle lue sur elle n'a pas à être adoptée, elle
+est déjà là.
+
 1. **Demander une intention pour prédire un résultat** — décider après, pas avant ; et
    une intention qui se TROUVAIT vraie devient fausse au premier chemin d'interruption
    qu'on ouvre, sans qu'aucune mutation ait pu l'annoncer.
