@@ -1985,6 +1985,35 @@ puisqu'il la lit comme un décor de sa phrase principale — laquelle est juste.
 seul mécanisme est la relecture par l'autre, la classe reste ouverte ; elle se ferme en
 **posant la commande avant le chiffre**, pas après.
 
+#### Et le chiffre s'ÉCRIT, pas seulement se compte — parce qu'un compte posé DÉTECTE
+
+Tout ce qui précède justifie le compte par l'exactitude : ne pas jurer un ordre de
+grandeur qu'une commande rend. C'est vrai et c'est trop faible. Le compte a une seconde
+fonction, et elle vaut plus que la première :
+
+> **Un compte affirmé ne détecte rien ; un compte POSÉ fait rougir la ligne d'après.**
+> Une fois le chiffre écrit dans le fichier, toute phrase ajoutée qui le contredit se
+> voit — il y a quelque chose à contredire. Une formulation prudente (« c'est rare »,
+> « quelques occurrences ») est exacte et n'attrape jamais rien.
+
+**Mesuré sur deux paragraphes écrits à la suite.** Le compte d'une tournure fautive avait
+été posé — *deux fois hors de la phrase qui compte, trois en brut*. Le paragraphe suivant
+l'a épelée une fois de plus, et le chiffre déjà écrit a rendu la faute visible dans la
+minute : il y avait une valeur à recompter. Sans lui, la même phrase serait passée — rien
+n'aurait été contredit, parce que rien n'aurait été promis.
+
+C'est la figure de l'instrumentation posée dans le produit, appliquée à de la prose :
+*une mesure écrite attrape ce qui vient après elle, y compris ce que son auteur n'avait
+pas prévu.* Et c'est ce qui transforme le geste de compter, qui est une vigilance, en
+quelque chose qui travaille tout seul ensuite — et c'est là que le mot « mécanisme »
+redevient mérité.
+
+**Cette dernière phrase portait « le seul endroit de cette famille », et le mot est
+parti.** Un quantificateur en apposition, dans le chapitre qui l'interdit, écrit sans
+qu'aucune commande ne le rende : rien ne dit combien d'endroits de cette famille
+méritent le mot, et je n'ai pas compté. La sortie est celle que ce chapitre prescrit —
+remplacer par ce qu'on sait vraiment, qui ne promet rien.
+
 ### L'erreur a une DIRECTION — et elle en a deux, pas une
 
 Le signal proposé était : *l'apposition chiffrée est là pour amplifier, donc son erreur
