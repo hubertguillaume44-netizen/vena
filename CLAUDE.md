@@ -2437,6 +2437,36 @@ famille-ci des six de la table fondatrice, c'est que le résultat n'était pas s
 observable *plus tard dans le code* — il était observable **tout de suite**, par une
 commande d'une ligne, et personne ne l'a tapée.
 
+### Sa forme la plus stable : le compte RECOPIÉ, qui se corrobore tout seul
+
+Les membres du tableau ci-dessus remplacent un fait disponible par un fait tiré d'ailleurs
+— d'un brief, d'une impression, d'un écran ouvert. Il existe une variante où le fait
+plausible est **sa propre version antérieure**, et c'est la plus stable des deux, parce
+que rien ne la contredit jamais.
+
+Le cas mesuré : « neuf instruments rejoués ». Relu dans le registre de travail hors dépôt,
+il apparaît **deux fois, à un jour d'écart, sur deux listes différentes** — cinq
+concordants d'un côté, six de l'autre, et pas les mêmes instruments. Le nombre a été posé
+une fois, puis reporté. Personne n'a recompté, parce qu'il n'y avait rien à contredire :
+le second écrit disait la même chose que le premier.
+
+> **Un nombre qui apparaît à plusieurs endroits n'est pas corroboré — il est peut-être
+> recopié.** La répétition ajoute de la confiance sans ajouter la moindre mesure, et
+> l'écart grandit en silence : chaque recopie éloigne le nombre de la liste qui l'a
+> produit, jusqu'à ce que la liste change sans que le nombre bouge.
+
+**Le test ne porte pas sur le nombre, il porte sur ce qui est DESSOUS** : *les deux
+occurrences reposent-elles sur la même énumération ?* Ici, non — et c'est visible
+immédiatement dès qu'on regarde les listes au lieu des totaux. Deux entrées d'accord sur
+un total et en désaccord sur leur contenu ne sont pas deux mesures : c'est une mesure et
+une copie, posées sur des populations qui ont dérivé.
+
+**Et c'est ce qui rend le remède différent du reste de la famille.** Pour les autres
+membres, le geste est *taper la commande*. Ici il n'y a pas de commande — il n'y a qu'une
+énumération à reprendre. D'où la forme que ce fichier prescrit déjà pour les phrases sur
+un ensemble : **écrire la liste à côté du total.** Un total seul se recopie ; une liste
+recopiée se fait démentir par la première comparaison.
+
 ### Le chapitre a fait rougir DEUX de ses propres lignes, dans la minute
 
 Et c'est sa meilleure provenance, parce qu'elle ne se raconte pas : elle se relit. Les
@@ -3348,10 +3378,26 @@ faits l'ont prédite sur les instruments rejoués :
 > **⚠ LE COMPTE DE CETTE SECTION NE SE REFERME PAS, et il est laissé ouvert plutôt que
 > réparé.** Elle a longtemps annoncé « neuf instruments rejoués » au-dessus d'un tableau
 > dont les colonnes font **6 + 2 + 3 = onze**. Les deux nombres viennent de rejeux hors
-> dépôt ; rien ici ne peut dire lequel est juste — peut-être neuf rejoués dont trois se
-> sont révélés non comparables, peut-être onze. **Choisir maintenant fabriquerait
-> rétroactivement une mesure qui n'a pas eu lieu** : un nombre qu'on n'a pas compté ne
-> devient pas vrai quand on le compte après.
+> dépôt. **Et le registre hors dépôt a été relu depuis : il ne tranche pas non plus, il
+> AGGRAVE.** Deux entrées écrites à un jour d'écart, sur les mêmes rejeux, portent le même
+> « neuf instruments rejoués » au-dessus de **deux listes différentes** — cinq concordants
+> d'un côté (GOLD, WTI, BRENT, USNDAQ100, COPPER), six de l'autre (GOLD, US30, SILVEREURO,
+> WTI, BRENT, Cuivre). Et l'union de ce qui a été MESURÉ dans cette session en fait
+> **douze**, énumérés : GOLD, US30, USNDAQ100, WTI, BRENT, Cuivre, SILVEREURO, HongKong50,
+> IBEX, AUDUSD, Germany40, NZDUSD.
+>
+> **« Neuf » n'est donc soutenu nulle part, des deux côtés** — c'est un compte posé une
+> fois et recopié, jamais recompté. **Choisir maintenant fabriquerait rétroactivement une
+> mesure qui n'a pas eu lieu** : un nombre qu'on n'a pas compté ne devient pas vrai quand
+> on le compte après.
+>
+> **ET LE SENS DE L'ERREUR RESTE INDÉTERMINÉ, ce qui est la partie qu'il ne faut pas
+> sauter.** Douze est l'union des instruments **mesurés** ; « neuf » parle des instruments
+> **rejoués contre le testeur**. Ce sont deux populations, et la seconde est incluse dans
+> la première sans qu'on sache de combien. Si huit seulement ont été rejoués, le produit
+> SUR-déclare. Conclure « douze > neuf, donc le produit sous-déclare » serait comparer
+> deux comptes disjoints pour en tirer une direction — le défaut exact des deux grandeurs
+> lues l'une sous l'autre, commis sur la note qui l'interdit.
 >
 > **CE QUI EST FAIT, ET CE QUI NE L'EST PAS** : le mot est retiré de cette phrase-ci, qui
 > est de la prose de dépôt. Il RESTE dans le texte livré — l'infobulle et l'étiquette
