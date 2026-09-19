@@ -179,6 +179,156 @@ test("les trois états sont RENDUS, et l’absence de poignée ne rend jamais un
   } finally { await nav.close(); }
 });
 
+// ————— L'INSTANTANÉ DES POSITIONS OUVERTES —————
+//
+// Le journal des trades clos est un AJOUT ; les positions ouvertes sont un ÉTAT
+// COURANT. Un état qu'on ajoute devient un historique que personne ne voulait ; un
+// historique qu'on remplace perd des trades. D'où un second fichier, réécrit en entier.
+//
+// ET SON DÉFAUT PROPRE EST DE LA FAMILLE QU'ON FERME : un robot arrêté laisse son
+// dernier fichier en place, et « position ouverte sur GOLD, +0,8 R » a la forme d'une
+// réponse quatre jours plus tard. C'est l'instant du fichier qui le tranche.
+
+test("le motif de l'instantané se DÉRIVE du nom que le robot compose", () => {
+  // La forme de `meme-horloge` : le défaut ne serait dans aucun des deux pris
+  // isolément, il serait dans leur DÉSACCORD. On lit le littéral que le robot écrit,
+  // on en fabrique un nom, et on le passe au prédicat du produit.
+  const ROBOT = readFileSync(new URL("../../robot-mt5.js", import.meta.url), "utf8");
+  const m = ROBOT.match(/string nom = "([A-Za-z_]+)" \+ _Symbol \+ "_" \+ IntegerToString\(\(long\)InpMagic\) \+ "\.csv";/g) || [];
+  assert.ok(m.length >= 2, "le robot n'écrit plus ses deux fichiers sous cette forme : "
+    + "la dérivation a perdu sa prise, et le lecteur mesurerait un nom que personne "
+    + "n'écrit. Vu " + m.length + " composition(s).");
+  const prefixes = m.map((x) => x.match(/"([A-Za-z_]+)"/)[1]);
+  assert.ok(prefixes.includes("VNA_positions_"),
+    "le robot n'écrit plus d'instantané sous VNA_positions_ : vu " + prefixes.join(", "));
+  const i = borne(APP, "  estInstantanePositions(nom) {");
+  const corps = APP.slice(borne(APP, "{", i) + 1, borne(APP, "}", i));
+  const estInst = new Function("nom", corps);
+  // le nom RÉEL que le robot compose, reconstruit depuis son propre littéral
+  assert.ok(estInst("VNA_positions_" + "GOLD_777.csv"),
+    "le lecteur ne reconnaît pas le nom que le robot écrit.");
+  assert.ok(!estInst("SIV_trades_GOLD_777.csv"),
+    "le lecteur confond l'instantané et le journal : un état lu comme un historique.");
+  assert.ok(!corps.includes("["), "le motif de l'instantané est devenu une liste : "
+    + "quinze robots écrivent quinze fichiers, et le seizième doit être lu sans être "
+    + "nommé nulle part.");
+});
+
+test("le R latent n'est JAMAIS recalculé côté Véna, et rien ne s'enregistre", () => {
+  const i = borne(APP, "  lirePositions(texte) {");
+  const lecteur = APP.slice(i, borne(APP, "\n  }\n", i));
+  // ————— ANCRÉE SUR L'ABSENCE (règle 14, troisième issue) —————
+  // Le robot est le seul à connaître le risque en devise qui a DIMENSIONNÉ la
+  // position. Un second producteur côté Véna serait une seconde vérité, et elle
+  // divergerait au premier écart de prix entre le courtier et l'export.
+  const derive = ["this.base(", "this.M.", "backtester", "mesurer(", "risque", "/ r"]
+    .filter((x) => lecteur.includes(x));
+  assert.deepEqual(derive, [], "le lecteur de l'instantané DÉRIVE quelque chose : "
+    + derive.join(", ") + ". Le R latent se lit dans le fichier ou reste vide — il ne "
+    + "se recalcule pas ici, sinon deux chiffres portent le même nom et rien à l'écran "
+    + "ne dit lequel est le bon.");
+  assert.ok(lecteur.includes("o.r_latent === '' ? null : Number(o.r_latent)"),
+    "le R latent n'est plus lu tel quel : une case vide doit rester vide et se dire, "
+    + "pas devenir un zéro qui a la forme d'une mesure.");
+  // UN INSTANTANÉ SE LIT, IL NE S'ENREGISTRE PAS : enregistré, il redeviendrait
+  // indistinguable d'un état courant au rechargement suivant.
+  const ecrit = ["localStorage", "this.ecrireLive", "grosSet", "idbSet"]
+    .filter((x) => lecteur.includes(x));
+  assert.deepEqual(ecrit, [], "le lecteur de l'instantané ÉCRIT : " + ecrit.join(", ")
+    + ". Un instantané n'a aucune valeur une minute plus tard ; enregistré, il "
+    + "reparaîtrait au rechargement comme un état courant — une position fantôme.");
+  // et le chemin de lecture du dossier ne l'enregistre pas davantage
+  const j = borne(APP, "  async lireDossierTerminal() {");
+  const passe = APP.slice(j, borne(APP, "posLignes, posVus, posLus, posA });", j));
+  assert.ok(!/localStorage|ecrireLive\(/.test(passe.replace(/this\.lireJournalLive[^\n]*/g, "")),
+    "la lecture de dossier enregistre l'instantané : il doit rester en mémoire.");
+});
+
+test("l'instantané rend ses trois états, et « aucune position » prouve sa prise",
+  { timeout: 240000 }, async () => {
+  let chromium;
+  try { ({ chromium } = await import("playwright")); }
+  catch { assert.fail("garde de rendu : playwright introuvable. Elle ne saute pas."); }
+  const executablePath = CHROMIUMS.find((c) => existsSync(c));
+  const nav = await chromium.launch(executablePath ? { executablePath } : {})
+    .catch(() => assert.fail("Chromium introuvable : cette garde ne saute pas."));
+  try {
+    const p = await (await nav.newContext()).newPage();
+    await p.goto("file://" + SOLO);
+    await p.waitForFunction(() => document.body && document.body.innerText.length > 400,
+      { timeout: 60000 });
+    const porte = await p.waitForSelector("button:has-text(\"J'ai compris\")", { timeout: 15000 })
+      .catch(() => null);
+    if (porte) {
+      await porte.click();
+      await p.waitForSelector(".dialog-backdrop", { state: "detached", timeout: 10000 }).catch(() => {});
+    }
+    await p.evaluate(POSER_SEMIS);
+    await p.evaluate(CLIC_CONTIENT + "('Mes décisions')");
+    await p.waitForTimeout(300);
+    await p.evaluate(CLIC_EXACT + "('Journal')");
+    await p.waitForTimeout(400);
+    const txt = () => p.evaluate("(document.body.innerText || '').replace(/\\s+/g, ' ')");
+    const poser = (o) => p.evaluate("(() => { const i = " + INSTANCE + ";"
+      + " i.setState(" + JSON.stringify(o) + "); return true; })()")
+      .then(() => p.waitForTimeout(350));
+    const LU = { dossNom: 'Files', dossAttente: false, dossARechoisir: false, dossMsg: null,
+      liveLuA: Date.now(), liveLuVus: 1, liveLuFic: 1 };
+
+    // ÉTAT 1 — aucun fichier d'instantané : on N'A PAS REGARDÉ, et on le dit
+    await poser({ ...LU, posVus: 0, posLus: 0, posA: 0, posLignes: [] });
+    const t1 = await txt();
+    assert.match(t1, /pas de fichier d’instantané/,
+      "sans fichier d'instantané, le bloc doit le DIRE. Écran : " + t1.slice(0, 500));
+    assert.ok(!/Aucune position ouverte/.test(t1),
+      "le bloc annonce « aucune position ouverte » sans avoir lu un instantané — "
+      + "c'est `cachesDispo` sur un état : « mesuré à zéro » et « pas mesurable » "
+      + "écrits pareil.");
+
+    // ÉTAT 2 — fichier lu, zéro ligne : un vide QUI A REGARDÉ
+    await poser({ ...LU, posVus: 1, posLus: 1, posA: Date.now(), posLignes: [] });
+    const t2 = await txt();
+    assert.match(t2, /Aucune position ouverte/,
+      "instantané lu et vide : c'est un FAIT, il se dit. Écran : " + t2.slice(0, 500));
+
+    // ÉTAT 3 — des positions, lues par la porte du produit
+    const CSV = "instant;compte;symbole;sens;entree;stop;objectif;prix;r_latent;magic\n"
+      + "2026.09.19 14:32;51234;GOLD;achat;2312.40;2298.10;2341.00;2318.70;0.450;777\n"
+      + "2026.09.19 14:32;51234;US30;vente;41250.0;41500.0;40800.0;41310.0;;778\n";
+    const lignes = await p.evaluate("(() => { const i = " + INSTANCE + ";"
+      + " return i.lirePositions(" + JSON.stringify(CSV) + "); })()");
+    assert.equal(lignes.length, 2, "le lecteur du produit n'a pas rendu deux lignes : "
+      + "la garde mesurerait son propre semis.");
+    assert.equal(lignes[1].r, null, "un R latent vide doit rester NUL, pas devenir zéro.");
+    const FRAIS = Date.now() - 60000;
+    await poser({ ...LU, posVus: 1, posLus: 1, posA: FRAIS, posLignes: lignes });
+    const t3 = await txt();
+    assert.match(t3, /2 positions ouvertes/, "les positions lues ne rejoignent pas "
+      + "l'écran. Écran : " + t3.slice(0, 500));
+    assert.match(t3, /\+ 0,45 R/, "le R latent du fichier n'est pas rendu tel quel.");
+    assert.match(t3, /R latent non calculé/, "la position sans risque initial connu "
+      + "doit DIRE pourquoi sa case est vide, au lieu d'afficher un zéro.");
+    assert.ok(!/le robot ne tourne peut-être plus/.test(t3),
+      "un instantané d'il y a une minute est annoncé périmé : le seuil refuse le cas "
+      + "normal, et c'est une garde qu'on désactive le soir même (règle 16).");
+
+    // ÉTAT 3 bis — LE MÊME INSTANTANÉ, VIEUX : le doute paraît, et l'instant reste absolu
+    const VIEUX = Date.now() - 3 * 3600000;
+    await poser({ posA: VIEUX });
+    const t4 = await txt();
+    assert.match(t4, /le robot ne tourne peut-être plus/,
+      "un instantané de trois heures est annoncé comme un état courant : « position "
+      + "ouverte sur GOLD » a alors la forme d'une réponse, et elle est fausse.");
+    const mm = t4.match(/dernier instantané à (.*?)(?:·|le robot)/);
+    assert.ok(mm, "l'instant du dernier instantané n'est pas rendu. Écran : " + t4.slice(0, 500));
+    assert.match(mm[1], /^\s*\d{1,2}:\d{2}\s*$/,
+      "l'instant du dernier instantané porte « " + mm[1].trim() + " » : ce doit être une "
+      + "heure d'horloge et rien d'autre. Un écart se fige sans se démentir sur une vue "
+      + "qui ne se rafraîchit pas (règle 12) — c'est la prise qui a attrapé « il y a "
+      + "−582 min ».");
+  } finally { await nav.close(); }
+});
+
 test("la porte est LISTÉE dans « Ce qui sort d’ici », et elle dit qu’elle ne sort rien", () => {
   // Une porte d'accès au disque qu'on découvre ailleurs inquiète plus qu'une porte
   // déclarée. Mais une liste qui alarme à tort cesse d'être lue : celle-ci est donc

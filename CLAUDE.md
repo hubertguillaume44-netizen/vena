@@ -4121,6 +4121,88 @@ une autre machine ou sur un VPS n'aura jamais de poignée. Ce qui change est le 
 la phrase : plus « déposez-en un », mais « donnez-moi le dossier une fois, je les lirai
 tous ».
 
+## Un ÉTAT et un HISTORIQUE ne partagent pas un fichier
+
+**STATUT · CAUSE ÉTABLIE — le besoin est RAPPORTÉ (les positions en cours n'étaient
+visibles nulle part), la séparation et les quatre propriétés MESURÉES DANS LE DÉPÔT,
+trois d'entre elles au rendu sur le fichier livré.**
+
+Le journal des trades est un **ajout** ; les positions ouvertes sont un **état courant**.
+Ce ne sont pas deux contenus du même fichier :
+
+> **Un état qu'on ajoute devient un historique que personne ne voulait ; un historique
+> qu'on remplace perd des trades.** Deux natures, deux fichiers, deux modes d'ouverture —
+> `VNA_positions_…` est réécrit EN ENTIER à chaque fois, et son en-tête est écrit même
+> sans position : **zéro ligne est un fait, l'absence de fichier en est un autre.**
+
+**Le R latent est calculé par le ROBOT, et nulle part ailleurs.** Lui seul connaît le
+risque en devise qui a DIMENSIONNÉ la position — la distance au stop initial, le même
+dénominateur que `profit_R` du journal, donc deux colonnes comparables. Véna qui le
+recalculerait depuis ses propres bougies serait une seconde vérité, et elle divergerait
+au premier écart de prix entre le courtier et l'export. La garde s'ancre sur l'**absence**
+d'un second producteur.
+
+**Et une case vide reste vide.** Une position héritée d'un lancement précédent n'a pas de
+risque initial connu : le robot écrit une case vide, et l'écran dit *pourquoi*. Fabriquer
+un R depuis le risque courant rendrait un nombre qui a la forme d'une mesure sans en être
+une.
+
+### Le défaut propre à un état : il survit à ce qu'il décrit
+
+Un robot arrêté laisse son dernier fichier en place. « Position ouverte sur GOLD,
++0,8 R » quatre jours plus tard **a la forme d'une réponse**, et c'est faux — la famille
+qu'on ferme depuis trois jours. Le remède est l'instant, rendu en absolu, et un seuil
+au-delà duquel l'écran cesse d'affirmer : *dernier instantané à 14:32 · le robot ne
+tourne peut-être plus*.
+
+**Et c'est le BATTEMENT qui rend la péremption lisible**, pas le seuil. Les trois
+événements — ouverture, fermeture, palier — ne suffisent pas : entre eux le prix bouge,
+donc le R latent aussi. Une minute d'intervalle donne au fichier une date qui avance tant
+que le robot vit ; sans elle, un fichier figé serait indistinguable d'un fichier à jour.
+
+### La fraîcheur se lit sur l'horloge du LECTEUR, jamais sur celle du fichier
+
+La colonne `instant` porte l'heure **serveur du courtier** — c'est l'horloge du robot, et
+elle peut être à des heures de celle du poste. La comparer à l'horloge du navigateur pour
+décider « ça date » mélangerait deux horloges : c'est le défaut que `meme-horloge` tient
+ailleurs, commis ici sur un seuil.
+
+> **La date de MODIFICATION du fichier est dans l'horloge de celui qui lit, et elle
+> répond exactement à la question posée** — le robot a-t-il écrit récemment. Un
+> horodatage écrit par l'autre bout ne peut pas répondre à une question de fraîcheur
+> posée ici.
+
+C'est aussi ce qui a décidé de n'afficher **qu'un seul instant** : deux — celui du robot
+et celui du fichier — auraient été deux grandeurs disjointes lues l'une sous l'autre, et
+le lecteur les aurait fondues en une (la figure des « 0 bougies hors fenêtre » et des
+« 23 hors séance »).
+
+### Un instantané se LIT, il ne s'enregistre pas
+
+Rien n'entre dans le stockage du navigateur, et c'est structurel : un instantané n'a
+aucune valeur une minute plus tard. **Enregistré, il redeviendrait indistinguable d'un
+état courant au rechargement suivant** — une position fantôme, encore une réponse fausse.
+
+### Un fichier par ROBOT, et c'est un écart assumé au nom demandé
+
+Le brief disait « un fichier par compte ». MT5 ouvre un fichier en écriture de façon
+**exclusive** : quinze experts qui réécriraient le même nom toutes les minutes se
+refuseraient l'un l'autre, et le gagnant écrirait SA position seule dans un fichier censé
+les porter toutes. Le lecteur y lirait « une position » là où il y en a quinze — un
+chiffre faux qui a la forme d'une réponse. Le compte vit donc en **colonne**, où il n'a
+besoin de l'exclusivité de personne. *Raisonné, pas mesuré : rien ici n'exécute MT5*, et
+c'est écrit dans le source à l'endroit du choix.
+
+`scripts/app/dossier-du-terminal.test.mjs` porte les sept, éprouvées par **dix**
+mutations au total. Les six de l'instantané ont été écrites pour ne toucher QUE le fait
+visé — un risque dérivé **à côté** du R lu, un `localStorage` **à côté** du parseur, un
+écart relatif **à côté** de l'heure — et chacune a été relue avant d'être crue : c'est la
+règle de la mutation voisine, appliquée le lendemain de son écriture.
+
+**La sixième est celle qui vérifie le FAUX REFUS** (règle 16) : un instantané d'une
+minute ne doit pas être annoncé périmé. Un seuil qui refuse le cas normal est un seuil
+qu'on désactive le soir même.
+
 ## Une sonde dont l'échec est silencieux par conception se garde ailleurs
 
 Le témoin de version comparait ce que sert l'adresse publique à ce que la page est. Il a

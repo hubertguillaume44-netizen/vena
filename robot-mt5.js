@@ -343,7 +343,7 @@ input ulong  InpMagic           = ${nb(ctx.magic, 20260901)};
 // quelle build l'avait émis. Le stamp d'export ne répond pas à cette question : il dit
 // QUAND on a exporté, pas DE QUOI. La marque est écrite ici dans la forme exacte que
 // « npm run app:version » cherche, donc ce fichier est daté comme les deux autres.
-#define VENA_VERSION "260919"
+#define VENA_VERSION "260919.2"
 //--- Configuration mesurée (ne pas modifier : le backtest ne serait plus valable)
 #define STOP_PCT        ${sl}
 #define OBJECTIF_R      ${rr}
@@ -981,6 +981,78 @@ void Liv(string ligne)
 string LivH(datetime t) { return TimeToString(t, TIME_DATE | TIME_MINUTES); }
 string LivP(double x)   { return DoubleToString(x, _Digits); }
 
+// ————— L'INSTANTANÉ DES POSITIONS OUVERTES : UN ÉTAT, PAS UN HISTORIQUE —————
+//
+//   …/MetaQuotes/Terminal/Common/Files/VNA_positions_<SYMBOLE>_<MAGIC>.csv
+//
+// UN FICHIER À PART, et ce n'est pas un rangement : le journal des trades est un
+// AJOUT, l'instantané est un ÉTAT COURANT. Un état qu'on ajoute devient un historique
+// que personne ne voulait ; un historique qu'on remplace perd des trades. Deux natures,
+// deux fichiers, deux modes d'ouverture — celui-ci est réécrit EN ENTIER à chaque fois.
+//
+// ZÉRO LIGNE EST UN FAIT, PAS UNE ABSENCE. L'en-tête est écrit même sans position :
+// « le robot a regardé et n'a rien » se distingue ainsi de « le robot n'a rien écrit »,
+// que seule l'absence de FICHIER signifie.
+//
+// UN FICHIER PAR ROBOT, et c'est un écart assumé au nom demandé (« par compte »). MT5
+// ouvre un fichier en écriture de façon EXCLUSIVE : quinze experts qui réécriraient le
+// même nom toutes les minutes se refuseraient l'un l'autre, et le gagnant écrirait SA
+// position seule dans un fichier censé les porter toutes. Le lecteur y lirait « une
+// position » là où il y en a quinze — un chiffre faux qui a la forme d'une réponse,
+// exactement ce qu'on ferme. Le compte vit donc en COLONNE, où il n'a besoin de
+// l'exclusivité de personne. (Raisonné, pas mesuré : rien ici n'exécute MT5.)
+//
+// LE R LATENT EST CALCULÉ ICI, et nulle part ailleurs. Le robot est le seul à connaître
+// le risque en devise qui a DIMENSIONNÉ la position — g_livRisque, la distance au stop
+// INITIAL. Véna qui le recalculerait depuis ses propres bougies serait une seconde
+// vérité, et elle divergerait au premier écart de prix entre le courtier et l'export.
+// C'est le même dénominateur que profit_R du journal : les deux colonnes se comparent.
+datetime g_instT = 0;
+bool     g_instDit = false;
+
+void InstantanePositions()
+{
+   string nom = "VNA_positions_" + _Symbol + "_" + IntegerToString((long)InpMagic) + ".csv";
+   StringReplace(nom, "#", "");
+   int f = FileOpen(nom, FILE_WRITE | FILE_TXT | FILE_ANSI | FILE_COMMON);
+   if(f == INVALID_HANDLE)
+   {
+      // dit UNE fois : un instantané qui échoue à chaque minute noierait le journal
+      if(!g_instDit) { g_instDit = true;
+        Print("Instantané des positions : écriture impossible (", GetLastError(),
+              ") — le bloc du Journal restera sur « pas de fichier d'instantané »."); }
+      return;
+   }
+   g_instT = TimeCurrent();
+   FileWriteString(f, "instant;compte;symbole;sens;entree;stop;objectif;prix;r_latent;magic\\r\\n");
+   for(int i = PositionsTotal() - 1; i >= 0; i--)
+   {
+      ulong tk = PositionGetTicket(i);
+      if(tk == 0) continue;
+      if(PositionGetString(POSITION_SYMBOL) != _Symbol) continue;
+      if(PositionGetInteger(POSITION_MAGIC) != (long)InpMagic) continue;
+      // LE R LATENT N'EST ÉCRIT QUE S'IL EST CONNU. Le risque initial n'est tenu que
+      // pour la position que CE robot a ouverte dans cette session : une position
+      // héritée d'un lancement précédent n'en a pas, et fabriquer un R depuis le
+      // risque COURANT rendrait un nombre qui a la forme d'une mesure sans en être une.
+      // La case reste vide, et le lecteur dit pourquoi.
+      string rl = (tk == g_livTicket && g_livRisque > 0.0)
+         ? DoubleToString(PositionGetDouble(POSITION_PROFIT) / g_livRisque, 3) : "";
+      FileWriteString(f, StringFormat("%s;%I64d;%s;%s;%s;%s;%s;%s;%s;%I64u\\r\\n",
+         LivH(g_instT), AccountInfoInteger(ACCOUNT_LOGIN), _Symbol,
+#ifdef SENS_VENTE
+         "vente",
+#else
+         "achat",
+#endif
+         LivP(PositionGetDouble(POSITION_PRICE_OPEN)),
+         LivP(PositionGetDouble(POSITION_SL)),
+         LivP(PositionGetDouble(POSITION_TP)),
+         LivP(PositionGetDouble(POSITION_PRICE_CURRENT)), rl, (ulong)InpMagic));
+   }
+   FileClose(f);
+}
+
 // La position en cours, telle qu'elle a été OUVERTE. Le stop courant bouge avec les
 // paliers ; le risque initial, lui, ne bouge pas — et c'est lui qui définit le R de
 // Véna. Diviser par le risque courant donnerait deux colonnes non comparables.
@@ -1249,6 +1321,10 @@ void SurveillerSortie()
              DoubleToString(frais, 2), (ulong)InpMagic, "${stamp}"));
       }
       g_livTicket = 0; g_livPalier = false;
+      // ET SURTOUT À LA FERMETURE : c'est le seul moment où le fichier PÉRIME. Sans
+      // cette ligne, la dernière position resterait écrite jusqu'au battement suivant,
+      // et un terminal fermé dans l'intervalle la figerait pour toujours.
+      if(!MQLInfoInteger(MQL_TESTER)) InstantanePositions();
       break;
    }
 }
@@ -1640,6 +1716,9 @@ void GererPaliers()
          // le moteur sort sur le palier, MT5 sort sur le niveau du stop en intrabar.
          g_livPalier = true;
          trade.PositionModify(ticket, nouveau, tp);
+         // le stop est CE QUI CHANGE le plus souvent sans changer le prix : un
+         // instantané qui ne le suit pas affiche un risque que le robot ne court plus
+         if(!MQLInfoInteger(MQL_TESTER)) InstantanePositions();
       }
    }
 }
@@ -1858,6 +1937,7 @@ void DessinerNiveaux()
 #define PAN_MAX  16   // rangées
 #define PAN_OBJ  48   // cellules — une rangée en porte jusqu'à quatre
 #define PLI_TAILLE 16 // le bouton de pli, au coin haut droit du cadre
+#define INST_BATTEMENT 60 // secondes entre deux instantanés de positions
 // Chaque cellule porte sa taille, son gras et sa colonne : MQL5 les accepte par objet
 // (OBJPROP_FONTSIZE, OBJPROP_XDISTANCE, police « Consolas Bold ») — c'est Ligne() qui
 // imposait une taille et une couleur uniques. Les colonnes s'alignent par TextGetSize.
@@ -2415,6 +2495,9 @@ bool Entrer()
       // fermeture — et c'est justement celle qu'on veut voir le lundi matin.
       Liv(StringFormat("OUV;%I64u;%s;%s;%s;%s",
           g_livTicket, LivH(g_livT0), LivP(prix), LivP(stop), LivP(objectif)));
+      // l'instantané suit l'ÉVÉNEMENT, il n'attend pas le battement : une position
+      // ouverte qui met une minute à paraître se lit comme une position qui n'existe pas
+      if(!MQLInfoInteger(MQL_TESTER)) InstantanePositions();
    }
    return true;
 }
@@ -2439,6 +2522,18 @@ void OnTick()
 {
    // pas dessiné dans le testeur : cela ralentirait le backtest
    if(!MQLInfoInteger(MQL_TESTER)) Tableau();
+   // ————— LE BATTEMENT DE L'INSTANTANÉ —————
+   // Les trois événements (ouverture, fermeture, palier) ne suffisent pas : entre eux,
+   // le PRIX bouge, donc le R latent aussi. Un instantané qui ne bat pas ment dès le
+   // tick suivant. Une minute est l'arbitrage : assez fin pour que le chiffre vaille
+   // quelque chose, assez large pour ne pas réécrire un fichier à chaque tick.
+   //
+   // ET C'EST LE BATTEMENT QUI DATE LE FICHIER, donc qui rend la péremption LISIBLE :
+   // un robot arrêté cesse de battre, l'instant cesse d'avancer, et le lecteur voit
+   // qu'il ne tourne plus. Sans battement, un fichier figé serait indistinguable d'un
+   // fichier à jour — une position fantôme qui a la forme d'une réponse.
+   if(!MQLInfoInteger(MQL_TESTER) && TimeCurrent() - g_instT >= INST_BATTEMENT)
+      InstantanePositions();
    // les niveaux, eux, se dessinent aussi dans le testeur VISUEL : c'est là qu'on
    // vérifie à l'œil que le robot voit la même chose que Véna
    if(!MQLInfoInteger(MQL_TESTER) || MQLInfoInteger(MQL_VISUAL_MODE)) DessinerNiveaux();

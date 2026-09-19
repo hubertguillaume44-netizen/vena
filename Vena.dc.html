@@ -5705,6 +5705,29 @@
         <sc-if value="{{ aJvVide }}" hint-placeholder-val="{{ false }}">
           <p style="margin:0;font-size:12.5px;line-height:1.6;max-width:96ch" class="text-muted">{{ jvVideTxt }}</p>
         </sc-if>
+        <!-- L'INSTANTANÉ DES POSITIONS OUVERTES. Un état courant, lu et jamais
+             enregistré : il n'a aucune valeur une minute plus tard. Son titre porte les
+             trois états — pas de fichier, aucune position, N positions — et sa
+             sous-ligne l'instant en ABSOLU, avec le doute quand l'instantané date. -->
+        <sc-if value="{{ aJvPos }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:7px;border-top:1px solid var(--color-divider);padding-top:12px">
+            <div style="display:flex;gap:11px;align-items:baseline;flex-wrap:wrap">
+              <span style="font-size:13.5px;font-family:var(--font-heading)">{{ jvPosTitre }}</span>
+              <span style="font-size:11.5px;line-height:1.45;flex:1 1 20ch" class="text-muted">{{ jvPosSous }}</span>
+            </div>
+            <sc-if value="{{ aJvPosLignes }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:5px">
+                <sc-for list="{{ jvPosLignes }}" as="jq" hint-placeholder-count="2">
+                  <div style="display:flex;gap:12px;align-items:baseline;flex-wrap:wrap">
+                    <span style="font-size:12.5px;min-width:14ch">{{ jq.nom }}</span>
+                    <span style="font-size:13px;min-width:8ch;color:{{ jq.coul }}">{{ jq.r }}</span>
+                    <span style="font-size:11px;line-height:1.45;flex:1 1 30ch" class="text-muted">{{ jq.det }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
         <!-- LE GESTE, ET CE QU'IL FAIT À CÔTÉ DE LUI. Une poignée de dossier donnée
              UNE fois remplace quinze glisser-déposer — et c'est pour ça qu'elle
              existe : quinze gestes pour une consultation, on ne les fait pas. La
@@ -17327,10 +17350,17 @@ GROUPES = {
   // division par le temps décrive autre chose qu'une période. Il ne cache RIEN : le R
   // cumulé et la fenêtre restent à l'écran, c'est le rapport des deux qui est retenu.
   SEUIL_ANNUALISER = 2;
+  // ————— AU-DELÀ DE COMBIEN UN INSTANTANÉ CESSE D'ÊTRE UN ÉTAT —————
+  // Le robot bat toutes les minutes. Dix battements manqués ne sont plus un creux de
+  // cotation : c'est un robot qui n'écrit plus. C'est un ARBITRAGE écrit comme tel —
+  // aucune garde ne peut le valider, ce qu'elle interdit c'est qu'il redevienne
+  // implicite. Il ne pilote QUE la mention du doute : les lignes et leur instant
+  // s'affichent toujours, sinon l'information manquerait là où elle n'alerte pas encore.
+  SEUIL_INSTANTANE = 10;
   // Version de l'APPLICATION, distincte de la règle du moteur : un rapport d'avis a
   // besoin des deux — « e4 » dit comment les trades sont calculés, la date dit quelle
   // version de la page l'utilisateur avait sous les yeux.
-  VERSION_APP = '260919';
+  VERSION_APP = '260919.2';
   signature(cfg) { return this.MOTEUR_V + '|' + this.state.btSym + '|' + this.state.ut + '|' + JSON.stringify(cfg); }
   // tout réglage relance le test : impossible de lire un chiffre qui ne correspond pas à l'écran.
   // Mais un backtest complet par frappe fige l'interface : on regroupe les
@@ -17969,6 +17999,49 @@ GROUPES = {
   // dépôt global, le tri du glisser-déposer, et la lecture de dossier. Trois motifs
   // écrits séparément divergeraient au premier changement (la figure de `deposes`).
   estJournalLive(nom) { return /^(?:SIV|VNA)_trades_/i.test(String(nom || '')); }
+  // L'INSTANTANÉ EST UN SECOND FICHIER, et c'est la même dérivation : le robot compose
+  // « VNA_positions_ » + symbole + magique + .csv. Jamais une liste — quinze robots
+  // écrivent quinze fichiers, et le seizième est lu sans être nommé.
+  estInstantanePositions(nom) { return /^VNA_positions_/i.test(String(nom || '')); }
+
+  // ————— UN INSTANTANÉ SE LIT, IL NE S'ENREGISTRE PAS —————
+  //
+  // Rien ici n'écrit dans le stockage de l'utilisateur, et c'est structurel : un
+  // instantané n'a aucune valeur une minute plus tard. Enregistré, il redeviendrait
+  // indistinguable d'un état COURANT au rechargement suivant — une position fantôme
+  // qui a la forme d'une réponse, ce qu'on ferme depuis trois jours.
+  //
+  // LE R LATENT EST LU, JAMAIS DÉRIVÉ. Le robot est le seul à connaître le risque en
+  // devise qui a dimensionné la position ; le recalculer ici depuis les bougies de
+  // Véna serait une seconde vérité, et elle divergerait au premier écart de prix entre
+  // le courtier et l'export. Une case vide reste vide : elle DIT que le risque initial
+  // n'est pas connu pour cette position, au lieu d'en fabriquer un.
+  //
+  // Lu PAR NOM de colonne, comme le journal : un lecteur positionnel se décale en
+  // silence le jour où le robot en ajoute une.
+  lirePositions(texte) {
+    const lignes = String(texte || '').split(/\r?\n/).filter((x) => x.trim());
+    let entete = null;
+    const out = [];
+    for (const l of lignes) {
+      if (l.startsWith('#')) continue;
+      const ch = l.split(';');
+      if (ch[0] === 'instant') { entete = ch.map((x) => x.trim()); continue; }
+      if (!entete) continue;
+      const o = {};
+      entete.forEach((k, i) => { o[k] = ch[i] === undefined ? '' : ch[i].trim(); });
+      if (!o.magic) continue;
+      // Les prix restent des CHAÎNES, telles que le robot les a écrites au grain du
+      // symbole. Les repasser par Number puis les reformater ici fabriquerait une
+      // précision que personne n'a mesurée — et aucun calcul n'en a besoin.
+      out.push({ sym: o.symbole || '', sens: o.sens || '', compte: o.compte || '',
+        entree: o.entree || '', sl: o.stop || '', tp: o.objectif || '',
+        prix: o.prix || '',
+        r: o.r_latent === '' ? null : Number(o.r_latent),
+        magic: String(o.magic) });
+    }
+    return out;
+  }
 
   // ————— LA POIGNÉE DE DOSSIER : LA CLASSE DE `handleAuto`, RÉUTILISÉE —————
   //
@@ -18067,10 +18140,32 @@ GROUPES = {
       if (p !== 'granted') { this.setState({ dossAttente: true, dossMsg: this.ATTENTE_DOSSIER }); return; }
     } catch (e) { this.setState({ dossAttente: true, dossMsg: this.ATTENTE_DOSSIER }); return; }
     let vus = 0, lus = 0, trades = 0;
+    // L'INSTANTANÉ PASSE PAR LA MÊME PORTE : une seconde poignée serait une seconde
+    // permission à tenir d'accord, et l'utilisateur ne saurait plus laquelle a échoué.
+    let posVus = 0, posLus = 0, posA = 0;
+    let posLignes = [];
     try {
       for await (const [nom, ent] of h.entries()) {
-        if (ent.kind !== 'file') continue;
-        if (!this.estJournalLive(nom) || !/\.csv$/i.test(nom)) continue;
+        if (ent.kind !== 'file' || !/\.csv$/i.test(nom)) continue;
+        if (this.estInstantanePositions(nom)) {
+          posVus++;
+          try {
+            const f = await ent.getFile();
+            posLignes = posLignes.concat(this.lirePositions(await f.text()));
+            // ————— LA FRAÎCHEUR SE LIT SUR L'HORLOGE DU LECTEUR —————
+            // La colonne « instant » porte l'heure SERVEUR du courtier — c'est
+            // l'horloge du robot, et elle peut être à des heures de celle d'ici. La
+            // comparer à `Date.now()` pour décider « ça date » mélangerait deux
+            // horloges : c'est le défaut que `meme-horloge` tient ailleurs, commis
+            // ici sur un seuil. La date de MODIFICATION du fichier, elle, est dans
+            // l'horloge de cette machine, et elle répond exactement à la question
+            // posée — le robot a-t-il écrit récemment.
+            if (f.lastModified > posA) posA = f.lastModified;
+            posLus++;
+          } catch (e) {}
+          continue;
+        }
+        if (!this.estJournalLive(nom)) continue;
         vus++;
         try {
           trades += await this.lireJournalLive(await (await ent.getFile()).text(), nom);
@@ -18082,7 +18177,9 @@ GROUPES = {
         + ((e && e.name) || 'erreur inconnue') + '). Réautorisez, ou choisissez le dossier à nouveau.' });
       return;
     }
-    this.setState({ liveLuA: Date.now(), liveLuVus: vus, liveLuFic: lus, liveLuN: trades });
+    this.setState({ liveLuA: Date.now(), liveLuVus: vus, liveLuFic: lus, liveLuN: trades,
+      // EN MÉMOIRE SEULEMENT — rien de tout cela n'entre dans le stockage
+      posLignes, posVus, posLus, posA });
   }
   // ————— CE QUE L'ÉCHANTILLON PERMET DE DIRE —————
   //
@@ -29565,6 +29662,70 @@ GROUPES = {
             ? () => this.reautoriserDossier() : () => this.choisirDossierTerminal(),
           aJvDossMsg: !!s.dossMsg, jvDossMsg: s.dossMsg || '',
         };
+        // ————— L'INSTANTANÉ DES POSITIONS OUVERTES —————
+        //
+        // Un état courant, pas un historique : il ne se rend que si un fichier a été
+        // LU, et « aucune position ouverte » ne se dit qu'après avoir regardé. Sans
+        // ça, l'absence de fichier et l'absence de position s'écriraient pareil —
+        // c'est `cachesDispo`, sur un état au lieu d'un compte.
+        //
+        // ET LE DÉFAUT PROPRE À CETTE DONNÉE EST LA PÉREMPTION : un robot arrêté
+        // laisse son dernier fichier en place, et « position ouverte sur GOLD,
+        // +0,8 R » a la forme d'une réponse quatre jours après. L'instant de
+        // modification du fichier le tranche, et il est rendu en ABSOLU.
+        const posBloc = (() => {
+          const vide = { aJvPos: false, jvPosTitre: '', jvPosSous: '',
+            aJvPosLignes: false, jvPosLignes: [] };
+          if (!dossLit || !aLu) return vide;
+          const L = Array.isArray(s.posLignes) ? s.posLignes : [];
+          const pv = Number(s.posVus || 0), pl = Number(s.posLus || 0);
+          const pa = Number(s.posA || 0);
+          const heure = pa > 0
+            ? new Date(pa).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+            : '';
+          // le verdict est calculé AU MOMENT DE LA LECTURE, comme tout sur cet écran,
+          // et l'instant l'accompagne en toutes lettres pour qu'on puisse en juger
+          const vieux = pa > 0 && (Date.now() - pa) > this.SEUIL_INSTANTANE * 60000;
+          if (pv === 0) {
+            return { ...vide, aJvPos: true, jvPosTitre: 'Positions ouvertes : pas de fichier d’instantané',
+              jvPosSous: 'Aucun fichier VNA_positions_… dans ce dossier. Les robots '
+                + 'exportés avant cette version n’en écrivent pas : réexportez-les pour '
+                + 'voir leurs positions en cours. Ce n’est pas « aucune position » — '
+                + 'personne n’a regardé.' };
+          }
+          if (pl < pv) {
+            return { ...vide, aJvPos: true, jvPosTitre: 'Positions ouvertes : instantané illisible',
+              jvPosSous: this.pl(pv, 'fichier d’instantané', 'fichiers d’instantané')
+                + ', ' + this.pl(pl, 'lisible', 'lisibles') + '. Un instantané illisible '
+                + 'ne dit rien des positions : il ne dit pas non plus qu’il n’y en a pas.' };
+          }
+          if (!L.length) {
+            return { ...vide, aJvPos: true, jvPosTitre: 'Aucune position ouverte',
+              jvPosSous: this.pl(pv, 'robot a écrit son instantané', 'robots ont écrit leur instantané')
+                + (heure ? ' \u00b7 dernier instantané à ' + heure : '')
+                + (vieux ? ' \u00b7 le robot ne tourne peut-être plus' : '') };
+          }
+          return { aJvPos: true, aJvPosLignes: true,
+            jvPosTitre: this.pl(L.length, 'position ouverte', 'positions ouvertes'),
+            jvPosSous: (heure ? 'dernier instantané à ' + heure : 'instantané sans date')
+              + (vieux
+                ? ' \u00b7 le robot ne tourne peut-être plus — ces positions sont '
+                  + 'peut-être déjà fermées'
+                : ''),
+            jvPosLignes: L.map((x) => ({
+              nom: (x.sym || '?') + ' ' + (x.sens || ''),
+              // LE R LATENT EST CELUI DU ROBOT. Vide, il reste vide et se dit : le
+              // dériver ici des bougies de Véna serait une seconde vérité.
+              r: x.r === null || !Number.isFinite(x.r) ? '—' : sg(x.r, 2) + ' R',
+              coul: x.r === null || !Number.isFinite(x.r) ? 'var(--color-text)'
+                : x.r >= 0 ? 'var(--color-accent-900)' : 'var(--color-text)',
+              det: 'entrée ' + (x.entree || '—') + ' \u00b7 stop ' + (x.sl || '—')
+                + ' \u00b7 objectif ' + (x.tp || '—') + ' \u00b7 prix ' + (x.prix || '—')
+                + (x.r === null
+                  ? ' \u00b7 R latent non calculé : le robot ne connaît pas le risque '
+                    + 'initial de cette position'
+                  : '') })) };
+        })();
         // le nom du courtier porte déjà « nº 1 » quand il y en a plusieurs
         const base = {
           jvPers: PERS.map(([id, nom]) => ({ nom,
@@ -29579,7 +29740,7 @@ GROUPES = {
           // qu'aucune mesure ne soutient, la forme de `cachesDispo`. Tant que le
           // dossier n'a pas été lu, la seule chose vraie est qu'on n'a pas regardé.
           const vus = Number(s.liveLuVus || 0), lus = Number(s.liveLuFic || 0);
-          const vide = { ...base, ...dossGeste, aJvVue: true, aJvChiffres: false, aJvVide: true,
+          const vide = { ...base, ...dossGeste, ...posBloc, aJvVue: true, aJvChiffres: false, aJvVide: true,
             jvTuiles: [], jvRepart: [], jvDires: [], aJvManque: false, jvManque: [],
             jvMontrerCalc: false, jvTxtCalc: '', jvBasculerCalc: () => {} };
           if (dossLit && aLu) {
@@ -29617,7 +29778,7 @@ GROUPES = {
         }
         if (!n) {
           return { ...base, aJvVue: true, aJvChiffres: false, aJvVide: true, jvTitre: 'Aucun trade clos sur cette période',
-            ...dossGeste,
+            ...dossGeste, ...posBloc,
             jvPeriodeTxt: this.pl(tous.length, 'trade clos au total', 'trades clos au total')
               + ' · ' + compte + (instant ? ' \u00b7 ' + instant : ''),
             jvVideTxt: 'Vos ' + tous.length + ' trades clos sont hors de la période choisie. '
@@ -29649,7 +29810,7 @@ GROUPES = {
           // 9 septembre » quand le premier trade est du 1er, « du 2 au 9 » quand il est
           // du 2. Annoncer les bornes du filtre ferait dire à la phrase plus que ce que
           // les données portent.
-          ...dossGeste,
+          ...dossGeste, ...posBloc,
           jvPeriodeTxt: (n > 1 && js[0].s !== js[n - 1].s
             ? 'du ' + jour(js[0].s) + ' au ' + jour(js[n - 1].s)
             : 'le ' + jour(js[n - 1].s)) + ' · ' + compte
