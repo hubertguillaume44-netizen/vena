@@ -778,6 +778,38 @@ qui reste soit du bon côté.
 > dates : toute assertion qui décrit l'effet d'une condition doit d'abord établir que la
 > condition s'est appliquée. Sans ce premier temps, on mesure le décor.
 
+#### Et une mutation ROUGE ne prouve pas que la BONNE assertion a mordu
+
+Le dépôt connaissait deux façons pour une mutation de mal renseigner : elle ne tombe pas
+alors que la garde est bonne — l'échange était **inerte**, et `lecture-ambigue` a fait
+passer sa garde pour aveugle deux fois avant qu'on relise ; ou elle tombe et la garde
+est bonne. Il en manquait une troisième, et elle est plus sournoise que l'inerte :
+
+> **Une mutation qui fait rougir une garde VOISINE prouve seulement qu'une garde
+> regarde — pas que la bonne regarde.** C'est le pendant exact de la mutation qui ne
+> tombe pas : là on croit la garde aveugle alors qu'elle voit ; ici on la croit
+> clairvoyante alors que l'assertion qu'on prétendait éprouver n'a jamais tourné.
+
+**Deux fois dans la même séance**, et les voici plutôt qu'un compte :
+
+| la mutation posée | ce qui a mordu | ce qu'on croyait éprouver |
+|---|---|---|
+| la ligne de filtre du lecteur remplacée par une liste de noms | « le lecteur ne passe plus par la porte unique » — la mutation avait aussi **retiré** l'appel au motif | « des noms de fichiers sont ÉCRITS dans le lecteur » |
+| l'instant de lecture remplacé par un écart relatif | « l'instant n'est pas rendu » — la forme `relu à HH:MM` avait **disparu** | « l'instant de lecture est RELATIF » |
+
+Dans les deux cas la suite était rouge, la restauration rendait le vert, et le rapport
+aurait pu s'arrêter là. Dans les deux cas **l'assertion sous épreuve n'avait pas été
+exécutée une seule fois** — et l'une d'elles était fausse, ce qu'a montré la mutation
+refaite : « aucun *il y a* suivi d'un chiffre » laisse passer `il y a −582 min`.
+
+**Le geste qui ferme ça ne coûte rien, et c'est le même que pour l'inerte : LIRE.** Une
+mutation ne se juge pas sur la couleur de la suite mais sur le MESSAGE d'échec — s'il ne
+nomme pas l'assertion qu'on visait, la mutation a raté sa cible, pas la garde. Et le
+remède est d'écrire une mutation qui ne touche QUE le fait visé : ajouter la liste **à
+côté** de la porte au lieu de la remplacer, ajouter l'écart **à côté** de l'heure au lieu
+de la remplacer. *Une mutation trop large est une mutation qui ne dit pas ce qu'elle
+mesure.*
+
 **Le dépôt en portait déjà des instances sans les avoir reliées** — c'est en les relisant
 ensemble qu'on voit qu'elles disent une seule chose :
 
