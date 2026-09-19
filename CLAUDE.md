@@ -2250,6 +2250,46 @@ arbitrage qu'on fasse vraiment en écrivant. Et l'exception mesurée dit où il 
 pas : *un ordinal qui compte des instances se compte toujours, même quand il paraît
 modeste* — c'est précisément sa modestie qui l'a fait passer.
 
+#### Le compte ne peut pas ÉTABLIR la direction — et ce n'est pas ce qu'on lui demande
+
+**Cas fondateur, à une heure d'intervalle** : le chapitre voisin a ajouté deux instances à
+cette table, portant la population classée à **cinq** — trois qui amplifient, deux qui
+atténuent. La récapitulation qui a suivi en a conclu que *« l'échantillon devient assez
+large pour que ce partage cesse d'être une coïncidence »*. C'est faux, et c'est une
+apposition de plus : à cinq, un partage 3/2 est ce qu'une pièce rend le plus souvent.
+
+**Ce qui soutient la règle n'est donc pas le compte, et ne l'a jamais été** :
+
+> **Un mécanisme est une explication, pas une statistique.** Il nomme **deux sources
+> distinctes** — l'impression, formée sur le coût ressenti, qui SURESTIME ; le souvenir
+> d'instances, qui ne retient que ce qu'on a vu et SOUS-ESTIME — et il prédit deux
+> directions opposées **avant** qu'on regarde. Cinq cas ne peuvent qu'être *cohérents*
+> avec ça ; aucun nombre de cas de cet ordre ne l'établit, et aucun n'a besoin de le
+> faire.
+
+**Le test, au moment de croire un partage** : *l'explication a-t-elle prédit la direction
+avant la mesure, ou a-t-elle été écrite pour la décrire après ?* La première n'a pas
+besoin d'un grand échantillon — elle a déjà pris un risque. La seconde en aurait besoin,
+et ne l'aura jamais.
+
+**Et le geste de tri n'en dépend pas du tout**, ce qui est la raison de l'écrire : il ne
+demande pas que la répartition soit prouvée, seulement qu'elle soit assez fréquente pour
+DÉCIDER LEQUEL DES CHIFFRES on va vérifier. Un tri ne promet rien sur le cas qu'il
+classe — il ordonne un travail qu'on fera de toute façon.
+
+> **Un critère de TRI se juge sur ce qu'il fait gagner, un critère de PREUVE sur ce qu'il
+> exclut.** Les confondre fait réclamer à un tri une rigueur qu'il n'a pas à avoir, ou lui
+> fait promettre une certitude qu'il n'a pas.
+
+**LA PORTÉE DÉBORDE LES APPOSITIONS, et c'est ce qui rend la distinction utile ici** : ce
+dépôt mesure presque tout à petit `n`. La table d'`ecartees` porte **cinq** lignes et
+sépare sans contre-exemple ; l'échelle des prix éprouve **trois** échelles ; l'ordre des
+barres H1 était parfait sur **cinq**. Le fichier en a déjà tiré la bonne conclusion deux fois, par deux
+chemins — *« un ordre trop propre est un indice FAIBLE, pas fort »*, et `ecartees`
+déclaré **utilisable comme signal, interdit comme explication**. Ce paragraphe dit
+pourquoi ces deux verdicts étaient justes : dans les deux cas, aucune explication n'avait
+prédit quoi que ce soit avant la mesure.
+
 #### La quatrième instance était DANS l'énoncé de la règle — et ce n'était pas un nombre
 
 Il y en a **cinq**, et les voici, parce qu'un compte qui ne s'énumère pas est
@@ -3303,7 +3343,24 @@ où la promesse se fait. La corrélation qu'ils portent est **RAPPORTÉE** — n
 un seul courtier, un seul compte, mesures hors du dépôt.
 
 La question du produit est *« ce robot fera-t-il ce que cette ligne annonce ? »*, et trois
-faits l'ont prédite sur neuf instruments rejoués :
+faits l'ont prédite sur les instruments rejoués :
+
+> **⚠ LE COMPTE DE CETTE SECTION NE SE REFERME PAS, et il est laissé ouvert plutôt que
+> réparé.** Elle a longtemps annoncé « neuf instruments rejoués » au-dessus d'un tableau
+> dont les colonnes font **6 + 2 + 3 = onze**. Les deux nombres viennent de rejeux hors
+> dépôt ; rien ici ne peut dire lequel est juste — peut-être neuf rejoués dont trois se
+> sont révélés non comparables, peut-être onze. **Choisir maintenant fabriquerait
+> rétroactivement une mesure qui n'a pas eu lieu** : un nombre qu'on n'a pas compté ne
+> devient pas vrai quand on le compte après.
+>
+> **CE QUI EST FAIT, ET CE QUI NE L'EST PAS** : le mot est retiré de cette phrase-ci, qui
+> est de la prose de dépôt. Il RESTE dans le texte livré — l'infobulle et l'étiquette
+> disent « neuf instruments, un courtier, un compte », et `exporter-dit-ce-quon-sait` le
+> tient. *Un échantillon annoncé à un client ne se corrige pas depuis une arithmétique de
+> tableau* : si le vrai nombre est onze, le produit sous-déclare sa propre mesure, ce qui
+> est le sens prudent ; s'il est neuf, c'est le tableau qui compte mal. Les deux demandent
+> la même chose, et c'est la seule sortie : **les journaux de rejeu dans
+> `scripts/mt5/`**. Le jour où ils y entrent, cette note dit exactement quoi remplacer.
 
 | le critère | les 6 concordants | les 2 divergents | les 3 non comparables |
 |---|---|---|---|
