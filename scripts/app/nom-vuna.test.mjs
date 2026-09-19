@@ -160,6 +160,16 @@ const FAMILLES = [
   ["l'IDENTIFIANT DU SÉLECTEUR DE DOSSIER : le navigateur s'en sert pour rouvrir au "
    + "même endroit. Le renommer ne gagne rien et fait oublier le dernier dossier",
    /vena-mt5-common/],
+  // AJOUTÉE PAR CETTE GARDE ELLE-MÊME, le jour du second renommage : les deux liens
+  // avaient été passés à « vuna » d'avance, et le registre les a trouvés. C'est le seul
+  // membre dont la condition de dégel est DATABLE par une commande, et elle est écrite :
+  // `git ls-remote --get-url origin` cesse de rendre une redirection vers /vena. Écrire
+  // le nom futur avant le geste produit un lien qui ne résout pas — l'inverse exact du
+  // défaut que la consigne de CLAUDE.md existe pour empêcher.
+  ["le NOM DU DÉPÔT GITHUB : il se renomme depuis l'interface, jamais par un commit. "
+   + "Tant que le geste n'a pas eu lieu, écrire « vuna » fabrique un lien mort. Dégel : "
+   + "le jour où le dépôt s'appelle vuna, ces deux liens suivent",
+   /hubertguillaume44-netizen\/vena/],
 ];
 
 test("« vena » ne survit que dans les familles du registre, et chacune vit encore", () => {

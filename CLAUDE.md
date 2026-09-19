@@ -127,12 +127,18 @@ membre**. Elles sont donc nommées et lues d'un seul endroit.
 
 ## Ce que `vena` garde, et pourquoi — le registre
 
-**LE RENOMMAGE S'ARRÊTE À CES NEUF FAMILLES, et chacune a une raison qui se relit.** Sans
+**LE RENOMMAGE S'ARRÊTE À CES DIX FAMILLES, et chacune a une raison qui se relit.** Sans
 ce tableau, un `vena` survivant se lit comme un oubli, et le prochain renommage le
 « corrigera » — c'est-à-dire qu'il cassera ce que la famille protège. `nom-vuna.test.mjs`
 en tient le registre et **échoue dans les deux sens** (la forme de `boucles-mql5`) : une
 occurrence hors registre le fait tomber, et une famille dont le dernier membre a disparu
 aussi, pour que le registre ne devienne pas une liste de tolérances.
+
+**LA DIXIÈME A ÉTÉ TROUVÉE PAR LE REGISTRE LUI-MÊME, le jour où il a été écrit.** Les deux
+liens du dépôt avaient été passés à `vuna` d'avance, sur la foi de l'inventaire plutôt que
+du remote ; la première poussée a rendu « *This repository moved… /vena.git* », et la garde
+a refusé le retour en arrière tant que sa raison n'était pas écrite. *Une garde de registre
+gagne sa place le jour où elle attrape ce que son auteur venait d'écrire.*
 
 | La famille | Pourquoi elle reste |
 |---|---|
@@ -144,10 +150,11 @@ aussi, pour que le registre ne devienne pas une liste de tolérances.
 | l'acceptation d'une sauvegarde ancienne (`OUTILS_LUS`, `.vena`, `vena_chiffre`) | un fichier que cette application a écrit ne doit jamais être refusé par elle, sans date limite |
 | `ANCIENS_DOSSIERS` des deux scripts MT5 | une installation antérieure garde sa liste sous l'ancien nom, et la perdre serait **muet** |
 | l'identifiant du sélecteur de dossier (`vena-mt5-common`) | le navigateur s'en sert pour rouvrir au même endroit : le renommer ne gagne rien et fait oublier le dernier dossier |
+| le **nom du dépôt GitHub** | il se renomme depuis l'interface, jamais par un commit. Tant que le geste n'a pas eu lieu, écrire `vuna` fabrique un lien mort. **Dégel : le jour du renommage** |
 | les mots français (`provenance`, `venait`, …) | **169 occurrences** : ce n'est pas la marque |
 
-**TROIS DE CES FAMILLES SONT HORS DU DÉPÔT, et ce sont celles de l'utilisateur** — le
-domaine, la boîte, la variable. Aucune garde ne peut les changer ni vérifier qu'elles
+**QUATRE DE CES FAMILLES SONT HORS DU DÉPÔT, et ce sont celles de l'utilisateur** — le
+domaine, la boîte, la variable Netlify, le nom du dépôt. Aucune garde ne peut les changer ni vérifier qu'elles
 l'ont été ; ce qui est dans le dépôt, c'est de **ne pas tomber** si elles changent un jour.
 `protection.js` lit donc `VUNA_ACCES` **d'abord** et `VENA_ACCES` **en repli** : la
 variable peut être renommée dans l'interface Netlify à tout moment, ou jamais, sans
@@ -243,13 +250,19 @@ supprimé : l'occupation réelle du navigateur est bien celle des deux.
 À chaque livraison : `npm run app:version` avant `npm run app:solo` — voir « La version
 affichée est une date » plus bas.
 
-Le dépôt GitHub s'appelle `hubertguillaume44-netizen/vuna`. **Troisième nom**, après
-`simula` puis `vena`, et le renommage se fait **depuis l'interface GitHub** — c'est un
-geste de l'utilisateur, aucun commit ne le porte. Les deux fichiers qui le citent
-nomment le nouveau : `README.md` par un lien, `PASSATION.md` par le nom nu.
+**Le dépôt GitHub s'appelle `hubertguillaume44-netizen/vena` AUJOURD'HUI, et il doit
+s'appeler `vuna`.** Le renommage se fait depuis l'interface GitHub : c'est un geste de
+l'utilisateur, qu'aucun commit ne peut porter — et il n'a pas encore eu lieu. **Mesuré**,
+pas supposé : une poussée depuis ce dépôt rend « This repository moved. Please use the new
+location: …/vena.git ».
 
-**GitHub redirige les deux anciennes adresses, et ce n'est pas une raison de les écrire.**
-Une redirection se retire le jour où quelqu'un recrée un dépôt sous l'ancien nom — et avec
+**Et c'est pourquoi `README.md` et `PASSATION.md` nomment encore `vena`.** Écrire `vuna`
+avant le geste produit un lien qui ne résout pas — l'inverse exact du défaut que cette
+section existe pour empêcher. Le jour du renommage, **trois endroits suivent** : le lien de
+`README.md`, le nom nu de `PASSATION.md`, et ce paragraphe.
+
+**GitHub redirige les anciennes adresses, et ce n'est pas une raison de les écrire.** Une
+redirection se retire le jour où quelqu'un recrée un dépôt sous l'ancien nom — et avec
 trois noms en circulation, ce jour est trois fois plus probable qu'avec un.
 
 ## Déploiement — la configuration vit dans le dépôt
@@ -4734,7 +4747,7 @@ général. C'est la garde `aucun-voisin` qui l'a dit, et elle avait raison.
 
 ## Le test qui tient la convention
 
-`scripts/app/nom-vuna.test.mjs` échoue si l'ancien nom réapparaît hors des neuf familles
+`scripts/app/nom-vuna.test.mjs` échoue si l'ancien nom réapparaît hors des dix familles
 du registre, si un accent se glisse dans une clé ou un nom de fichier téléchargé, ou si un
 fichier du dépôt reprend l'ancien nom. Son registre **échoue dans les deux sens** : une
 famille dont le dernier membre a disparu le fait tomber aussi, pour qu'elle ne survive pas
