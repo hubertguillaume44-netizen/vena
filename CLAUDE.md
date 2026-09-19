@@ -810,6 +810,29 @@ côté** de la porte au lieu de la remplacer, ajouter l'écart **à côté** de 
 de la remplacer. *Une mutation trop large est une mutation qui ne dit pas ce qu'elle
 mesure.*
 
+##### Et les deux modes n'ont pas le même COÛT — c'est ce qui décide lequel rouvrir
+
+Relire chaque message est le geste juste, et il arrive qu'on ne le fasse pas. Alors
+l'ordre compte, et il est contre-intuitif :
+
+| le mode | ce qu'il produit | ce qu'il coûte |
+|---|---|---|
+| **l'inerte** (mutation VERTE) | on doute d'une garde saine | une enquête — cher en temps, **rien ne part** |
+| **la voisine** (mutation ROUGE) | on croit bonne une garde fausse | **on livre** |
+
+> **L'inerte se paie en heures, la voisine se paie en production.** Et l'asymétrie n'est
+> pas un hasard : l'inerte est AUTO-LIMITANTE — elle fait chercher davantage ; la voisine
+> est AUTO-DISSIMULANTE — elle fait cesser de chercher. Un mode de panne qui éteint
+> l'enquête coûte toujours plus qu'un mode qui la déclenche.
+
+**Donc, à message d'échec non relu, c'est la mutation ROUGE qu'il faut rouvrir, pas la
+verte.** Le réflexe va dans l'autre sens — une mutation verte inquiète, une rouge
+rassure — et c'est précisément ce qui rend la règle utile.
+
+La séance en porte la preuve chiffrée : sans la mutation rouge rouverte, « aucun *il y a*
+suivi d'un chiffre » partait en production, et l'écran aurait pu afficher
+**« il y a −582 min »** sous une garde verte.
+
 **Le dépôt en portait déjà des instances sans les avoir reliées** — c'est en les relisant
 ensemble qu'on voit qu'elles disent une seule chose :
 
