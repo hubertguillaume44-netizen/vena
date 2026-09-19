@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { SiteFooter, SiteHeader } from "@/components/site-header";
 import { vitrine, type Vitrine } from "@/lib/preuve";
 import { signedR } from "@/lib/format";
+import { GRATUIT_EXEMPLES, GRATUIT_INSTRUMENTS } from "@/lib/palier-gratuit";
 
 export const Route = createFileRoute("/")({ component: Home });
 
@@ -315,7 +316,8 @@ function Home() {
             <div className="grid gap-7 md:grid-cols-3">
               <div className="flex flex-col gap-1">
                 <div className="font-display text-4xl leading-none tabular">0 €</div>
-                <div className="text-sm font-medium">Trois instruments à vous</div>
+                <div className="text-sm font-medium">{GRATUIT_INSTRUMENTS}</div>
+                <div className="text-sm font-medium">{GRATUIT_EXEMPLES}</div>
                 <p className="text-sm text-muted">Sans limite de durée, sans compte à créer.</p>
               </div>
               <div className="flex flex-col gap-1">

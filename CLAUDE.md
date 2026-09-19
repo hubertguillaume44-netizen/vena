@@ -4224,6 +4224,66 @@ règle de la mutation voisine, appliquée le lendemain de son écriture.
 minute ne doit pas être annoncé périmé. Un seuil qui refuse le cas normal est un seuil
 qu'on désactive le soir même.
 
+## La colonne gratuite décrivait un outil qu'il faut alimenter avant d'essayer
+
+**STATUT · CAUSE ÉTABLIE — omission RAPPORTÉE, emplacement et dérivation MESURÉS DANS LE
+DÉPÔT.**
+
+Le palier gratuit donne **deux** choses : trois instruments à soi, et les dix séries
+d'exemple. La colonne n'en nommait qu'une, et c'est la seconde qui permet d'essayer
+**sans rien avoir exporté**. Quelqu'un qui arrive sans données lisait « trois instruments
+à vous » et comprenait qu'il devait d'abord installer MT5, compiler un script et exporter
+un CSV pour voir le produit — alors que les séries existent précisément pour lui éviter ça.
+
+**Le rapport désignait `/tarifs` ; la phrase vivait sur l'ACCUEIL.** Mesuré avant
+d'écrire : `/tarifs` nommait déjà les séries d'exemple, c'est le résumé des trois montants
+de l'accueil qui était muet. Le geste était juste, la carte non — deuxième fois en deux
+livraisons, et les deux se vérifient toujours séparément.
+
+**Le mot est celui du produit.** L'application dit « séries d'exemple » partout ; écrire
+« fictives » ou « fausses » sur le site créerait un second vocabulaire pour la même chose,
+et deux vocabulaires divergent. Et la réserve d'honnêteté n'est **pas** recopiée : la page
+vend, l'application avertit à l'endroit où l'avertissement change une décision — une
+seconde copie divergerait en silence.
+
+### Ce que la garde a trouvé dans le PRODUIT : une phrase invisible à toutes les gardes
+
+« Trois instruments à vous » était écrit **deux fois** : en littéral sur `/tarifs`, et en
+**texte JSX nu** sur l'accueil. Le texte nu est exactement ce que `promesses-de-vente`
+existe pour interdire — les gardes ne savent lire que les chaînes —, et l'accueil y
+échappait depuis toujours parce qu'aucune ancre ne le nommait.
+
+> **Une garde par liste d'ancres ne voit pas ce que personne n'a pensé à y mettre**, et
+> c'est son angle mort assumé. Ce qui l'a révélé n'est pas une relecture : c'est d'avoir
+> eu besoin de la phrase ailleurs.
+
+Les quatre phrases du palier vivent donc dans `src/lib/palier-gratuit.ts`, lues par les
+deux routes. Le compte, lui, ne peut pas être importé — deux applications, deux paquets —
+et c'est la garde qui **lie les deux bouts** : passer à onze séries la fait tomber en
+nommant les deux nombres, au lieu de laisser « dix » sur la page de vente.
+
+### QUATRE MUTATIONS SUR SIX SONT RESTÉES VERTES — et la garde était le défaut
+
+C'est le tour le plus instructif de la séance, et il valide la règle écrite la veille :
+une mutation rouge ne prouve rien tant qu'on n'a pas lu son message. Ici quatre sont
+restées **vertes**, et chacune a nommé une figure que ce fichier porte déjà — commise à
+l'intérieur d'une garde écrite pour la même famille :
+
+| ce qui est resté vert | la figure commise |
+|---|---|
+| retirer « Trois instruments à vous » de `/tarifs` | la garde collait le MODULE ENTIER dans sa botte de foin : elle trouvait la phrase dans son propre **commentaire** (règle 3) |
+| retirer la ligne du JSX de l'accueil | l'**import** suffisait à la satisfaire — un import ne rend rien (règle 11, sur une constante au lieu d'un trou) |
+| écrire « séries fictives » dans le module | le périmètre était écrit à la main : deux routes, pas le module (règle 7) |
+| ajouter une onzième série par `push` | la mutation ne modélisait pas le geste réel — refaite **dans** la liste, elle mord |
+
+Les trois premières sont des défauts de la garde ; la quatrième est un défaut de la
+mutation. **C'est la lecture du message qui les a séparés**, pas la couleur.
+
+`scripts/app/palier-gratuit-nomme-ce-quil-donne.test.mjs` porte les quatre propriétés,
+éprouvées par six mutations isolantes après réparation. `promesses-de-vente` s'est
+réancrée au passage (règle 14, deuxième issue) : la phrase a changé de fichier, son
+invariant non.
+
 ## Une sonde dont l'échec est silencieux par conception se garde ailleurs
 
 Le témoin de version comparait ce que sert l'adresse publique à ce que la page est. Il a

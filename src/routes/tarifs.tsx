@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Blueprint } from "@/components/blueprint";
 import { Button } from "@/components/ui/button";
 import { SiteFooter, SiteHeader } from "@/components/site-header";
+import { GRATUIT_EXEMPLES_TARIFS, GRATUIT_INSTRUMENTS } from "@/lib/palier-gratuit";
 
 export const Route = createFileRoute("/tarifs")({
   head: () => ({
@@ -82,10 +83,10 @@ const FORMULES = [
     unite: null,
     sous: "sans limite de durée",
     lignes: [
-      "Trois instruments à vous",
+      GRATUIT_INSTRUMENTS,
       "Cinq comptes de courtier",
       "Scans, backtests, portefeuille et journal",
-      "Dix séries d’exemple, sans limite",
+      GRATUIT_EXEMPLES_TARIFS,
       "Les mises à jour, comme tout le monde",
     ],
     action: "Commencer",

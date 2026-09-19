@@ -75,7 +75,12 @@ for (const attendu of ["src/routes/index.tsx", "src/components/site-header.tsx"]
 // pourquoi cette forme-là et pas une autre.
 
 const ANCRES = [
-  ["src/routes/tarifs.tsx", "Trois instruments à vous"],
+  // RÉANCRÉE (règle 14, deuxième issue) : la phrase du palier gratuit a quitté
+  // `/tarifs` pour `src/lib/palier-gratuit.ts`, parce qu'elle vivait à DEUX endroits —
+  // en littéral ici, en texte JSX NU sur l'accueil, où aucune garde ne la voyait. Son
+  // invariant n'a pas bougé : elle reste dans une chaîne, et les deux routes la lisent
+  // par son nom. C'est l'ancre qui s'est déplacée, pas ce qu'elle tient.
+  ["src/lib/palier-gratuit.ts", "Trois instruments à vous"],
   ["src/routes/tarifs.tsx", "Instruments illimités — au lieu de trois"],
   ["src/routes/tarifs.tsx", "Réponse à vos questions par courriel"],
   ["src/routes/tarifs.tsx", "données de marché ne quittent jamais votre navigateur"],
