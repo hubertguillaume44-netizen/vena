@@ -2124,6 +2124,23 @@ récapitulation, **on ne vérifie pas les quantificateurs un par un — on les r
 tout. Reprendre trois ensembles au moment de conclure ne se fait pas ; écrire une phrase
 qui ne promet aucun ensemble, si.
 
+**Et ce qui le rend meilleur que les formulations précédentes du geste, c'est son COÛT.**
+Les autres demandaient du temps — reprendre les cas, poser la commande — c'est-à-dire
+précisément la ressource que la position de récapitulation n'a pas. Celui-ci n'en demande
+aucun : *« une sur trois, et voici laquelle »* s'écrit dans le même souffle que
+*« chacune »*, et **ne peut pas être faux**, puisqu'il ne promet que ce qu'il énumère.
+
+> **Un remède qui dépense la ressource manquante n'est pas un remède.** Quand un défaut
+> naît d'un manque de temps, la sortie n'est pas de demander plus d'attention : c'est de
+> trouver la formulation qui coûte le même effort et promet moins.
+
+**Corollaire, pour le moment où l'on corrige : une affirmation jamais comptée se RETIRE,
+elle ne se répare pas.** Le « jamais » de la troisième ligne du tableau n'a pas de version
+juste — il n'a qu'une version absente. Chercher son chiffre après coup, c'est fabriquer
+rétroactivement une mesure qui n'a pas eu lieu, et lui donner la forme d'une vérification.
+*Un nombre qu'on n'a pas compté ne devient pas vrai quand on le compte après : il devient
+un autre nombre, dans une phrase qui n'en avait pas besoin.*
+
 **Et ce nom-là a ABSORBÉ une règle du dépôt, ce que les précédents n'avaient pas fait.**
 « Un “seul” se périme sans bruit : compter, pas jurer » vivait depuis le 13 septembre dans
 « Aucun mot relatif sur une fenêtre figée », née d'un « le seul date-contre-aujourd'hui du
