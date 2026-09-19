@@ -4172,6 +4172,27 @@ ailleurs, commis ici sur un seuil.
 > horodatage écrit par l'autre bout ne peut pas répondre à une question de fraîcheur
 > posée ici.
 
+**Et ce qui décide n'est pas que la conversion serait difficile — c'est qu'il n'y en a
+pas.** On aurait pu convertir : le fuseau du serveur est lisible, et le calcul tient en
+deux lignes justes.
+
+> **Une valeur qui est dans le bon référentiel PAR CONSTRUCTION vaut mieux qu'une
+> conversion juste.** Une conversion est un maillon de plus — et le chapitre de
+> l'annulation d'erreurs dit ce qui arrive aux maillons : le danger n'est pas celui qui
+> est faux, c'est celui que quelqu'un CORRIGE de bonne foi. Une valeur qui n'a jamais
+> eu besoin d'être convertie n'offre rien à corriger.
+
+Le geste, au moment de choisir une grandeur : *celle-ci est-elle déjà dans le
+référentiel de la question, ou faut-il l'y amener ?* Quand les deux existent, la
+première gagne — même si la seconde est plus « riche ».
+
+**Et la figure des deux grandeurs disjointes a servi AVANT d'être commise**, ce qui est
+la première fois : deux instants — celui du robot et celui du fichier — auraient été
+lus l'un sous l'autre et fondus en un, exactement comme « 0 bougies hors de cette
+fenêtre » sous « 23 bougies hors séance ». Le chapitre existait, il a été relu au moment
+de décider, et l'écran n'en porte qu'un. *C'est le seul usage qui justifie ce fichier :
+reconnaître une forme avant de la produire, pas après.*
+
 C'est aussi ce qui a décidé de n'afficher **qu'un seul instant** : deux — celui du robot
 et celui du fichier — auraient été deux grandeurs disjointes lues l'une sous l'autre, et
 le lecteur les aurait fondues en une (la figure des « 0 bougies hors fenêtre » et des
