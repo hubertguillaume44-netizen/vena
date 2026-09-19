@@ -862,6 +862,19 @@ ce qui a décidé, dans la même séance, qu'un bloc sans poignée de dossier di
 pas regardé » plutôt que « aucun trade réel » — le second est une réponse, et il est
 faux.
 
+**Et ce sont les trois inverses qui rendent le critère tenable, pas la règle** : ils
+montrent que la forme est un CHOIX. Un avertissement de runtime, un jalon qui se tait,
+une marque posée dans le produit n'étaient pas des heureux hasards — quelqu'un les a
+écrits de cette façon-là. Sans eux, « ce qui coûte, c'est ce qui arrête de chercher »
+décrirait une fatalité, et une fatalité ne se corrige pas.
+
+**PROVENANCE DE CE CRITÈRE, parce qu'elle change ce qu'il vaut** : il a été appliqué
+avant d'être nommé, dans le commit même qui a produit sa dernière instance. Il n'a donc
+pas à être adopté — il est relevé. C'est la différence entre une règle lue sur la
+pratique et une règle prescrite à la pratique, et ce fichier n'a de valeur que pour la
+première : toutes ses règles viennent d'un défaut réel, et celle-ci vient d'une
+habitude réelle, ce qui est la même exigence vue du bon côté.
+
 **Le dépôt en portait déjà des instances sans les avoir reliées** — c'est en les relisant
 ensemble qu'on voit qu'elles disent une seule chose :
 
