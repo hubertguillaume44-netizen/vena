@@ -3969,6 +3969,20 @@ phrase avant de la corriger**. Si elle ne se trouve pas là où le rapport point
 qu'on allait l'ajouter une seconde fois — et une phrase écrite deux fois est une
 divergence qui attend.
 
+**ET C'EST CE QUI REND LA COMMANDE NON NÉGOCIABLE : l'erreur de carte ne produit aucun
+défaut le jour où on la commet.** Une seconde copie s'affiche juste, se lit juste, et
+passe toutes les gardes — elle ne devient fausse que le jour où l'une des deux est
+modifiée seule. Rien ne rougit, rien ne se plaint, et personne ne sait qu'il y a
+désormais deux vérités à tenir d'accord. Mesuré sur le cas du palier gratuit : la
+seconde copie a vécu **sept jours et treize commits** à travers `src/`, et ce qui l'a
+trouvée n'est pas une relecture — c'est d'avoir eu besoin de la phrase une troisième
+fois.
+
+> **Un défaut différé n'a pas de moment où il se signale**, donc aucune vigilance ne
+> peut le rattraper : il n'y a rien à remarquer. Seul un geste posé AVANT l'écriture le
+> ferme — et c'est pourquoi la commande vaut mieux que l'attention, ici comme pour les
+> appositions chiffrées.
+
 L'étiquette de compte tenait jusqu'à **douze** caractères, et elle vit **avant**
 l'instrument. Or le compte ne distingue que cinq choses, l'instrument en distingue
 quinze dans une liste : le nom dépensait son budget visible sur le segment le moins
@@ -4282,15 +4296,44 @@ rien (règle 16).
 
 **La classe ne se ferme donc pas par la forme** : rien ne distingue mécaniquement
 « Ouvrir mon outil » de « Trois instruments à vous ». Ce qui ferme les cas un par un
-n'est pas une garde, c'est la RÉUTILISATION : le jour où une phrase est nécessaire à
-deux endroits, elle devient une constante nommée — et elle entre dans la surface des
-gardes au passage, sans que personne l'ait décidé.
+n'est pas une garde, c'est la RÉUTILISATION — **à une condition qui n'a rien
+d'automatique, et que le cas fondateur lui-même a démentie** (mesuré trois paragraphes
+plus bas) : il faut que le second usage commence par CHERCHER la phrase. Quand c'est le
+cas, elle devient une constante nommée et entre dans la surface des gardes au passage,
+sans que personne l'ait décidé.
 
 > **Une omission de ce genre se découvre quand la copie est RÉEMPLOYÉE, pas quand elle
 > est relue.** C'est exactement ce qui vient d'arriver : la phrase est sortie du texte
 > nu parce qu'il fallait la dire ailleurs, pas parce que quelqu'un l'avait cherchée.
 
 L'angle mort reste donc ouvert, et il porte désormais son chiffre.
+
+**ET LE MÉCANISME A EU SA CHANCE SUR CE CAS-LÀ, ET NE S'EST PAS DÉCLENCHÉ.** Relu dans
+l'historique plutôt que supposé : les deux copies sont nées **le même jour**, le
+12 septembre — l'accueil d'abord (`55a1704`), `/tarifs` quelques heures plus tard
+(`1efc747`, 318 lignes neuves). La phrase a donc été *nécessaire à un second endroit* au
+moment même où la règle dit qu'elle devient une constante, et elle a été **réécrite en
+littéral**. Treize commits ont traversé `src/` avant qu'on la voie, et ce qui l'a vue
+n'est pas une relecture : c'est d'en avoir eu besoin une **troisième** fois.
+
+> **La réutilisation ne déclenche rien ; c'est la RECHERCHE qui déclenche.** Écrire la
+> phrase une seconde fois de mémoire, ou en recomposant l'écran à neuf, produit une
+> copie — pas une constante. Le mécanisme ne s'arme que si le second usage commence par
+> *aller chercher où elle vit déjà*.
+
+**Ce qui le rend utilisable, c'est que ce geste est déjà écrit ailleurs** : c'est la même
+commande que celle de la carte du rapport, deux chapitres plus haut — *chercher la phrase
+avant de l'écrire*. Là elle empêche de corriger au mauvais endroit ; ici elle transforme
+une copie en constante. **Une seule commande, deux défauts fermés**, et c'est la raison
+de l'écrire comme un geste et non comme une vigilance.
+
+**Et la limite que le mécanisme ne peut pas franchir est mesurable, elle aussi** : une
+phrase qui ne sert qu'à UN endroit n'y entre jamais. Compté dans `src/lib/` — les huit
+textes de `textes-recopies.ts` ont **zéro** lecteur hors de leur fichier. Ce sont
+précisément les phrases qui engagent le plus, et chacune est recopiée une fois, dehors.
+Aucune réutilisation ne pouvait les promouvoir : elles ont été **déplacées à la main**,
+et c'est pour ça que ce module existe. *Le mécanisme ramasse ce qui sert deux fois ; ce
+qui ne sert qu'une fois se déplace, ou reste invisible.*
 
 Les quatre phrases du palier vivent donc dans `src/lib/palier-gratuit.ts`, lues par les
 deux routes. Le compte, lui, ne peut pas être importé — deux applications, deux paquets —
